@@ -1,0 +1,11 @@
+.pio
+.vscode
+.DS_Store
+*.pyc
+__pycache__
+*.swp
+*.swo
+*~
+.clang_complete
+.gcc-flags.json
+platformio.ini.user

@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-model href="../../../../Organization/knxprod-support/knx_project_20/knx-editor.xsd" type="application/xml" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<KNX xmlns:op="http://github.com/OpenKNX/OpenKNXproducer" xmlns="http://knx.org/xml/project/20" CreatedBy="KNX MT" ToolVersion="5.1.255.16695">
+  
+  <ManufacturerData>
+    <Manufacturer RefId="M-00FA">
+      <ApplicationPrograms>
+        <ApplicationProgram Id="%AID%" ApplicationNumber="102" ApplicationVersion="21" ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Hue Module" LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="de" DynamicTableManagement="false" Linkable="true" MinEtsVersion="5.0">
+          
+          <Static>
+            <ParameterTypes>
+              
+              <!-- Bridge Mode -->
+              <ParameterType Id="%AID%_PT-HUEBridgeMode" Name="HUEBridgeMode">
+                <TypeRestriction Base="Value" SizeInBit="8" UIHint="DropDown">
+                  <Enumeration Text="Automatisch (mDNS)" Value="0" Id="%ENID%" />
+                  <Enumeration Text="Manuelle IP-Adresse" Value="1" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+              
+              <!-- Bridge IP -->
+              <ParameterType Id="%AID%_PT-HUEBridgeIP" Name="HUEBridgeIP">
+                <TypeText SizeInBit="200" />
+              </ParameterType>
+              
+              <!-- Reset Auth -->
+              <ParameterType Id="%AID%_PT-HUEResetAuth" Name="HUEResetAuth">
+                <TypeNumber SizeInBit="1" Type="unsignedInt" minInclusive="0" maxInclusive="1" UIHint="CheckBox" />
+              </ParameterType>
+              
+              <!-- WebServer Port -->
+              <ParameterType Id="%AID%_PT-HUEWebServerPort" Name="HUEWebServerPort">
+                <TypeNumber SizeInBit="16" Type="unsignedInt" minInclusive="0" maxInclusive="65535" />
+              </ParameterType>
+              
+              <!-- Channel Count -->
+              <ParameterType Id="%AID%_PT-HUEChannelCount" Name="HUEChannelCount">
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="20" />
+              </ParameterType>
+              
+              <!-- Light Type -->
+              <ParameterType Id="%AID%_PT-HUELightType" Name="HUELightType">
+                <TypeRestriction Base="Value" SizeInBit="8" UIHint="DropDown">
+                  <Enumeration Text="Nur schalten (ein/aus)" Value="0" Id="%ENID%" />
+                  <Enumeration Text="Dimmbar" Value="1" Id="%ENID%" />
+                  <Enumeration Text="Farbtemperatur" Value="2" Id="%ENID%" />
+                  <Enumeration Text="Farbe (RGB)" Value="3" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+              
+              <!-- Sync Direction -->
+              <ParameterType Id="%AID%_PT-HUESyncDir" Name="HUESyncDir">
+                <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
+                  <Enumeration Text="Keine Synchronisation" Value="0" Id="%ENID%" />
+                  <Enumeration Text="Nur KNX zu Hue" Value="1" Id="%ENID%" />
+                  <Enumeration Text="Nur Hue zu KNX" Value="2" Id="%ENID%" />
+                  <Enumeration Text="Bidirektional" Value="3" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+              
+              <!-- Poll Interval -->
+              <ParameterType Id="%AID%_PT-HUEPollInterval" Name="HUEPollInterval">
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="255" />
+              </ParameterType>
+              
+              <!-- Brightness -->
+              <ParameterType Id="%AID%_PT-HUEBrightness" Name="HUEBrightness">
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="1" maxInclusive="100" />
+              </ParameterType>
+              
+            </ParameterTypes>
+            
+            <Parameters>
+              <Parameter Id="%AID%_P-1400001" Name="HUEBridgeMode" ParameterType="%AID%_PT-HUEBridgeMode" Text="Bridge Erkennung" Value="0">
+                <Memory CodeSegment="%MID%" Offset="0" BitOffset="0" />
+              </Parameter>
+              
+              <Parameter Id="%AID%_P-1400002" Name="HUEBridgeIP" ParameterType="%AID%_PT-HUEBridgeIP" Text="Bridge IP-Adresse" Value="192.168.1.100">
+                <Memory CodeSegment="%MID%" Offset="1" BitOffset="0" />
+              </Parameter>
+              
+              <Parameter Id="%AID%_P-1400003" Name="HUEResetAuth" ParameterType="%AID%_PT-HUEResetAuth" Text="Authentication zurücksetzen" Value="0">
+                <Memory CodeSegment="%MID%" Offset="26" BitOffset="0" />
+              </Parameter>
+              
+              <Parameter Id="%AID%_P-1400006" Name="HUEShowConnectionStatus" ParameterType="%AID%_PT-HUEResetAuth" Text="Status Verbindung" Value="1">
+                <Memory CodeSegment="%MID%" Offset="26" BitOffset="1" />
+              </Parameter>
+              
+              <Parameter Id="%AID%_P-1400004" Name="HUEWebServerPort" ParameterType="%AID%_PT-HUEWebServerPort" Text="HTTP Server Port" Value="80">
+                <Memory CodeSegment="%MID%" Offset="27" BitOffset="0" />
+              </Parameter>
+              
+              <Parameter Id="%AID%_P-1400005" Name="HUEChannelCount" ParameterType="%AID%_PT-HUEChannelCount" Text="Anzahl aktiver Kanäle" Value="0">
+                <Memory CodeSegment="%MID%" Offset="29" BitOffset="0" />
+              </Parameter>
+            </Parameters>
+            
+            <ParameterRefs>
+              <ParameterRef Id="%AID%_P-1400001_R-140000101" RefId="%AID%_P-1400001" />
+              <ParameterRef Id="%AID%_P-1400002_R-140000201" RefId="%AID%_P-1400002" />
+              <ParameterRef Id="%AID%_P-1400003_R-140000301" RefId="%AID%_P-1400003" />
+              <ParameterRef Id="%AID%_P-1400006_R-140000601" RefId="%AID%_P-1400006" />
+              <ParameterRef Id="%AID%_P-1400004_R-140000401" RefId="%AID%_P-1400004" />
+              <ParameterRef Id="%AID%_P-1400005_R-140000501" RefId="%AID%_P-1400005" />
+            </ParameterRefs>
+            
+            <ComObjectTable>
+              <!-- Status KO für Bridge-Verbindung (1 Bit: 0=Nicht verbunden, 1=Verbunden) -->
+              <ComObject Id="%AID%_O-1400001" Name="HUEConnectionStatus" Text="Bridge Verbindungsstatus" Number="0" FunctionText="Verbindungsstatus zur Hue Bridge (0=Getrennt, 1=Verbunden)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+            </ComObjectTable>
+            
+            <ComObjectRefs>
+              <ComObjectRef Id="%AID%_O-1400001_R-140000101" RefId="%AID%_O-1400001" />
+            </ComObjectRefs>
+          
+          </Static>
+          
+          <Dynamic>
+            <Channel Id="%AID%_CH-HUE" Number="HUE" Name="Hue Bridge" Text="Philips Hue" Icon="led-on">
+              
+              <ParameterBlock Id="%AID%_PB-HUEMain" Name="HueBridge" Text="Hue Bridge" Icon="cog-outline">
+                
+                <ParameterSeparator Id="%AID%_PS-HUETitle" Text="Philips Hue Bridge" UIHint="Headline" />
+                <ParameterSeparator Id="%AID%_PS-HUEVersion" Text="Version: %ModuleVersion%" />
+                <ParameterSeparator Id="%AID%_PS-HUELine1" Text="" UIHint="HorizontalRuler" />
+                
+                <ParameterSeparator Id="%AID%_PS-HUEBridge" Text="Bridge-Konfiguration" UIHint="Headline" />
+                <ParameterRefRef RefId="%AID%_P-1400001_R-140000101" />
+                
+                <!-- Hinweistext je nach Auswahlmethode -->
+                <choose ParamRefId="%AID%_P-1400001_R-140000101">
+                  <when test="0"> <!-- Automatisch (mDNS) -->
+                    <ParameterSeparator Id="%AID%_PS-HUEAutoInfo" Text="ERSTINBETRIEBNAHME (Automatische Bridge-Erkennung):&#xA;&#xA;1. Laden Sie diese Konfiguration per Download auf das Gerät&#xA;2. Das Gerät startet neu und sucht automatisch nach der Hue Bridge im Netzwerk&#xA;3. Falls noch nicht authentifiziert: Die Prog-LED blinkt langsam (ca. 30 Sekunden)&#xA;4. Drücken Sie innerhalb von 30 Sekunden den Link-Button an der Hue Bridge&#xA;5. Das Gerät authentifiziert sich automatisch&#xA;6. Info LED 1 leuchtet dauerhaft = Erfolgreich verbunden&#xA;&#xA;LED-SIGNALE:&#xA;• Blinkt schnell (0,2s): Sucht Bridge im Netzwerk&#xA;• Blinkt langsam (1s): Wartet auf Link-Button - JETZT an Bridge drücken!&#xA;• Leuchtet dauerhaft: Verbunden und betriebsbereit&#xA;• Aus: Keine Bridge gefunden oder Verbindung fehlgeschlagen" UIHint="Information" />
+                  </when>
+                  <when test="1"> <!-- Manuelle IP -->
+                    <ParameterRefRef RefId="%AID%_P-1400002_R-140000201" />
+                    <ParameterSeparator Id="%AID%_PS-HUEManualInfo" Text="ERSTINBETRIEBNAHME (Manuelle IP-Adresse):&#xA;&#xA;1. Geben Sie oben die IP-Adresse Ihrer Hue Bridge ein (z.B. 192.168.1.100)&#xA;2. Laden Sie diese Konfiguration mit ETS auf das Gerät (Download)&#xA;3. Das Gerät startet neu und verbindet sich mit der eingegebenen IP-Adresse&#xA;4. Falls noch nicht authentifiziert: Die Info-LED 1 blinkt langsam (ca. 30 Sekunden)&#xA;5. Drücken Sie innerhalb von 30 Sekunden den Link-Button an der Hue Bridge&#xA;6. Das Gerät authentifiziert sich automatisch&#xA;7. Prog-LED leuchtet dauerhaft = Erfolgreich verbunden&#xA;&#xA;LED-SIGNALE:&#xA;• Blinkt langsam (1s): Wartet auf Link-Button - JETZT an Bridge drücken!&#xA;• Leuchtet dauerhaft: Verbunden und betriebsbereit&#xA;• Aus: Bridge nicht erreichbar oder Verbindung fehlgeschlagen" UIHint="Information" />
+                  </when>
+                </choose>
+                
+                <ParameterRefRef RefId="%AID%_P-1400003_R-140000301" />
+                <ParameterRefRef RefId="%AID%_P-1400006_R-140000601" />
+                
+                <!-- Status-KO nur anzeigen wenn aktiviert -->
+                <choose ParamRefId="%AID%_P-1400006_R-140000601">
+                  <when test="1">
+                    <ComObjectRefRef RefId="%AID%_O-1400001_R-140000101" />
+                  </when>
+                </choose>
+                
+                <ParameterSeparator Id="%AID%_PS-HUEWeb" Text="Web-Oberfläche" UIHint="Headline" />
+                <ParameterRefRef RefId="%AID%_P-1400004_R-140000401" />
+                
+                <ParameterSeparator Id="%AID%_PS-HUEDevices" Text="Lampen-Kanäle" UIHint="Headline" />
+                <ParameterSeparator Id="%AID%_PS-HUEScanInfo" Text="Um die Hue Lampen-IDs (UUIDs) abzurufen, öffnen Sie im Browser: http://openknx-bridge.local/hue/scan (bei geändertem HTTP-Port: http://openknx-bridge.local:[Port]/hue/scan)" UIHint="Information" />
+                <ParameterRefRef RefId="%AID%_P-1400005_R-140000501" />
+                
+              </ParameterBlock>
+              
+              <!-- Include Light Channel Template -->
+              <op:include href="HueModule.templ.xml" xpath="//Dynamic/ChannelIndependentBlock" type="template" prefix="HUE" IsInner="true" />
+              
+            </Channel>
+          </Dynamic>
+          
+        </ApplicationProgram>
+      </ApplicationPrograms>
+    </Manufacturer>
+  </ManufacturerData>
+</KNX>
