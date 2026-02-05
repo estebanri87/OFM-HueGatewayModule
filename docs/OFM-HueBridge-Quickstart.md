@@ -1,8 +1,8 @@
-# OFM-HueModule Integration - Schnellübersicht
+# OFM-HueBridgeModule Integration - Schnellübersicht
 
 ## Warum ein separates Modul?
 
-| Aspekt | OFM-SmartHomeBridge | OFM-HueModule (neu) |
+| Aspekt | OFM-SmartHomeBridge | OFM-HueBridgeModule (neu) |
 |--------|---------------------|---------------|
 | **Richtung** | KNX → Smart Home | Hue → KNX |
 | **Rolle** | Server (emuliert Hue) | Client (nutzt Hue API) |
@@ -144,8 +144,8 @@ ETS Parameter:
 
 ### 1. Hue Bridge Discovery
 ```cpp
-// HueDiscovery.cpp
-bool HueDiscovery::findBridge(String& ipAddress) {
+// HueBridgeDiscovery.cpp
+bool HueBridgeDiscovery::findBridge(String& ipAddress) {
     if (!MDNS.begin("openhab")) return false;
     
     int n = MDNS.queryService("hue", "tcp");
@@ -160,8 +160,8 @@ bool HueDiscovery::findBridge(String& ipAddress) {
 
 ### 2. Authentifizierung
 ```cpp
-// HueAuth.cpp
-bool HueAuth::requestAppKey(const char* bridgeIP) {
+// HueBridgeAuth.cpp
+bool HueBridgeAuth::requestAppKey(const char* bridgeIP) {
     HTTPClient http;
     http.begin(String("http://") + bridgeIP + "/api");
     
@@ -192,15 +192,15 @@ bool HueAuth::requestAppKey(const char* bridgeIP) {
 
 ### 3. Lampe schalten
 ```cpp
-// HueLight.cpp
-void HueLight::processInputKo(GroupObject& ko) {
+// HueBridgeLight.cpp
+void HueBridgeLight::processInputKo(GroupObject& ko) {
     if (ko.asap() == _koSwitch) {
         bool state = ko.value(DPT_Switch);
         setLightState(state);
     }
 }
 
-void HueLight::setLightState(bool on) {
+void HueBridgeLight::setLightState(bool on) {
     HTTPClient http;
     String url = String("https://") + _bridgeIP + 
                  "/clip/v2/resource/light/" + _lightId;
@@ -245,8 +245,8 @@ void HueEventStream::handleEvents() {
                     bool on = event["on"]["on"];
                     uint8_t brightness = event["dimming"]["brightness"];
                     
-                    // Entsprechende HueLight-Instanz informieren
-                    HueLight* light = findLightById(id);
+                    // Entsprechende HueBridgeLight-Instanz informieren
+                    HueBridgeLight* light = findLightById(id);
                     if (light) {
                         light->updateFromHue(on, brightness);
                     }
@@ -260,7 +260,7 @@ void HueEventStream::handleEvents() {
 ## Nächste Schritte - Implementierung
 
 ### Phase 1: Proof of Concept (Woche 1)
-1. OFM-HueModule Repository erstellen
+1. OFM-HueBridgeModule Repository erstellen
 2. Minimales Modul mit 1 Lampe (Schalten)
 3. Automatische Discovery testen
 4. Button-Press Authentication
@@ -297,9 +297,9 @@ void HueEventStream::handleEvents() {
 **A:** Nein, die Hue Bridge ist zwingend erforderlich. Das Modul kommuniziert mit der Bridge, nicht direkt mit den Lampen.
 
 ### Q: Kann ich Hue und HomeKit gleichzeitig nutzen?
-**A:** Ja! OFM-HueModule und OFM-SmartHomeBridge können parallel laufen.
+**A:** Ja! OFM-HueBridgeModule und OFM-SmartHomeBridge können parallel laufen.
 - OFM-SmartHomeBridge: KNX → HomeKit/Alexa
-- OFM-HueModule: Hue → KNX
+- OFM-HueBridgeModule: Hue → KNX
 
 ### Q: Was passiert, wenn die Hue Bridge offline ist?
 **A:** 
@@ -319,3 +319,5 @@ void HueEventStream::handleEvents() {
 **Feedback & Diskussion erwünscht!**
 
 Erstellt: 2026-02-03
+
+

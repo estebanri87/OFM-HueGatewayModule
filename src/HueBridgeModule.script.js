@@ -1,4 +1,4 @@
-// HueModule ETS Script for scanning Hue Bridge lights
+// HueBridgeModule ETS Script for scanning Hue Bridge lights
 
 function scanHueLights(device, online, progress, context) {
     progress.setText("Verbinde mit Gerät...");
@@ -65,3 +65,4 @@ function scanHueLights(device, online, progress, context) {
         online.disconnect();
     }
 }
+

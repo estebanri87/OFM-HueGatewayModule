@@ -74,7 +74,7 @@ Copy Light IDs above and paste into ETS parameters.
 ### 5. Light IDs übertragen
 1. **Markieren** der Light ID in Console (z.B. `abc123-456-789-def-ghi-jkl`)
 2. **Kopieren** (Strg+C)
-3. In ETS öffnen: **HueModule** > **Kanal 1** > **Light ID**
+3. In ETS öffnen: **HueBridgeModule** > **Kanal 1** > **Light ID**
 4. **Einfügen** (Strg+V)
 5. Wiederholen für alle Kanäle
 6. **Gerät programmieren**
@@ -174,8 +174,8 @@ KO 358-360:  Kanal 20      ─┘
 ```
 
 ### Implementierung
-- **Trigger**: `HueModule::processInputKo()` bei KO 300
-- **Scan**: `HueModule::performBridgeScan()`
+- **Trigger**: `HueBridgeModule::processInputKo()` bei KO 300
+- **Scan**: `HueBridgeModule::performBridgeScan()`
 - **Ausgabe**: Serial.println() → USB Serial Port
 
 ### API-Aufruf
@@ -197,3 +197,4 @@ Authorization: hue-application-key {app-key}
 
 **Version**: 0.1.0  
 **Datum**: 2026-02-03
+

@@ -9,11 +9,11 @@
 #include "knxprod.h"
 
 // Forward Declarations
-class HueClient;
-class HueLight;
+class HueBridgeClient;
+class HueBridgeLight;
 
 /**
- * @brief OpenKNX Hue Module - Philips Hue Integration
+ * @brief OpenKNX Hue Bridge Module - Philips Hue Integration
  * 
  * Dieses Modul ermöglicht die Integration von Philips Hue Geräten in KNX-Systeme.
  * Es kommuniziert mit der Hue Bridge via Hue API v2 und stellt die Geräte als
@@ -23,11 +23,11 @@ class HueLight;
  * @date 2026-02-03
  */
 
-class HueModule : public OpenKNX::Module
+class HueBridgeModule : public OpenKNX::Module
 {
 public:
-    HueModule();
-    ~HueModule();
+    HueBridgeModule();
+    ~HueBridgeModule();
     
     // OpenKNX::Module Interface
     const std::string name() override;
@@ -40,12 +40,12 @@ public:
 private:
     bool _initialized;
     unsigned long _lastLoop;
-    HueClient* _client;
+    HueBridgeClient* _client;
     WebServer* _webServer;
     
     // Device Management
     static const int MAX_LIGHTS = 20;
-    HueLight* _lights[MAX_LIGHTS];
+    HueBridgeLight* _lights[MAX_LIGHTS];
     int _lightCount;
     
     // KO numbers (relative to module offset 300)
@@ -92,4 +92,6 @@ private:
 };
 
 // Globale Instanz
-extern HueModule openknxHueModule;
+extern HueBridgeModule openknxHueBridgeModule;
+
+

@@ -1,4 +1,4 @@
-# OFM-HueModule - Start Checkliste
+# OFM-HueBridgeModule - Start Checkliste
 
 **Datum**: 2026-02-03  
 **Projekt**: Philips Hue Integration in KNX  
@@ -9,7 +9,7 @@
 ## Vor dem Start
 
 ### Repository Setup
-- [ ] Github Repository erstellen: `github.com/OpenKNX/OFM-HueModule`
+- [ ] Github Repository erstellen: `github.com/OpenKNX/OFM-HueBridgeModule`
 - [ ] `.gitignore` erstellen (ESP32, PlatformIO, VS Code)
 - [ ] `LICENSE` Datei (GPL-3.0)
 - [ ] Initial Commit mit README
@@ -29,10 +29,10 @@
 
 ### Dokumentation
 - [ ] Alle Templates aus `doc/` in neues Repo kopieren:
-  - `OFM-HueModule-README-Template.md` → `README.md`
-  - `OFM-HueModule-library.json-Template` → `library.json`
+    - `OFM-HueBridgeModule-README-Template.md` → `README.md`
+    - `OFM-HueBridgeModule-library.json-Template` → `library.json`
   - `OFM-Hue-Konzept.md` → `docs/Konzept.md`
-  - `OFM-HueModule-Roadmap.md` → `docs/Roadmap.md`
+    - `OFM-HueBridgeModule-Roadmap.md` → `docs/Roadmap.md`
 
 ---
 
@@ -42,25 +42,25 @@
 - [ ] Repository klonen
 - [ ] Verzeichnisstruktur erstellen:
   ```
-  OFM-HueModule/
+    OFM-HueBridgeModule/
   ├── src/
-  │   ├── HueModule.h
-  │   ├── HueModule.cpp
-  │   ├── HueDiscovery.h
-  │   ├── HueDiscovery.cpp
-  │   ├── HueAuth.h
-  │   ├── HueAuth.cpp
-  │   ├── HueClient.h
-  │   ├── HueClient.cpp
+  │   ├── HueBridgeModule.h
+  │   ├── HueBridgeModule.cpp
+  │   ├── HueBridgeDiscovery.h
+  │   ├── HueBridgeDiscovery.cpp
+  │   ├── HueBridgeAuth.h
+  │   ├── HueBridgeAuth.cpp
+  │   ├── HueBridgeClient.h
+  │   ├── HueBridgeClient.cpp
   │   ├── HueEventStream.h
   │   ├── HueEventStream.cpp
   │   ├── Devices/
   │   │   ├── HueDeviceBase.h
   │   │   ├── HueDeviceBase.cpp
-  │   │   ├── HueLight.h
-  │   │   └── HueLight.cpp
-  │   ├── HueModule.share.xml
-  │   └── HueModule.templ.xml
+  │   │   ├── HueBridgeLight.h
+  │   │   └── HueBridgeLight.cpp
+  │   ├── HueBridgeModule.share.xml
+  │   └── HueBridgeModule.templ.xml
   ├── examples/
   │   └── SimpleLight/
   │       └── SimpleLight.ino
@@ -100,14 +100,14 @@
 
 ## Woche 1 - Tag 2 (Dienstag 04.02)
 
-### HueModule Basis implementieren
+### HueBridgeModule Basis implementieren
 
-**HueModule.h:**
+**HueBridgeModule.h:**
 ```cpp
 #pragma once
 #include "OpenKNX.h"
 
-class HueModule : public OpenKNX::Module
+class HueBridgeModule : public OpenKNX::Module
 {
 public:
     void setup() override;
@@ -121,62 +121,62 @@ private:
     void setupDevices();
 };
 
-extern HueModule openknxHueModule;
+extern HueBridgeModule openknxHueBridgeModule;
 ```
 
-**HueModule.cpp:**
+**HueBridgeModule.cpp:**
 ```cpp
-#include "HueModule.h"
+#include "HueBridgeModule.h"
 
-void HueModule::setup()
+void HueBridgeModule::setup()
 {
-    logInfoP("HueModule setup");
+    logInfoP("HueBridgeModule setup");
     // TODO: Discovery, Auth, Devices
 }
 
-void HueModule::loop()
+void HueBridgeModule::loop()
 {
     // TODO: Event handling
 }
 
-void HueModule::processInputKo(GroupObject& ko)
+void HueBridgeModule::processInputKo(GroupObject& ko)
 {
     // TODO: KO handling
 }
 
-bool HueModule::enabled()
+bool HueBridgeModule::enabled()
 {
     return ParamHUE_Enabled; // Aus knxprod.h
 }
 
-const std::string HueModule::name()
+const std::string HueBridgeModule::name()
 {
-    return "HueModule";
+    return "HueBridgeModule";
 }
 
-const std::string HueModule::version()
+const std::string HueBridgeModule::version()
 {
     return "0.1.0";
 }
 
-HueModule openknxHueModule;
+HueBridgeModule openknxHueBridgeModule;
 ```
 
 - [ ] Dateien erstellen
 - [ ] Build-Test
-- [ ] Commit "Add HueModule skeleton"
+- [ ] Commit "Add HueBridgeModule skeleton"
 
 ---
 
 ## Woche 1 - Tag 3 (Mittwoch 05.02)
 
-### HueDiscovery implementieren
+### HueBridgeDiscovery implementieren
 
 **Ziel**: Bridge automatisch finden oder manuelle IP nutzen
 
 ```cpp
-// HueDiscovery.h
-class HueDiscovery
+// HueBridgeDiscovery.h
+class HueBridgeDiscovery
 {
 public:
     bool findBridge(String& ipAddress);
@@ -200,13 +200,13 @@ private:
 
 ## Woche 1 - Tag 4 (Donnerstag 06.02)
 
-### HueAuth implementieren
+### HueBridgeAuth implementieren
 
 **Ziel**: Button-Press Authentication
 
 ```cpp
-// HueAuth.h
-class HueAuth
+// HueBridgeAuth.h
+class HueBridgeAuth
 {
 public:
     bool authenticate(const char* bridgeIP);
@@ -239,13 +239,13 @@ private:
 
 ## Woche 1 - Tag 5 (Freitag 07.02)
 
-### HueClient Basis implementieren
+### HueBridgeClient Basis implementieren
 
 **Ziel**: API v2 Calls
 
 ```cpp
-// HueClient.h
-class HueClient
+// HueBridgeClient.h
+class HueBridgeClient
 {
 public:
     bool connect(const char* ip, const char* appKey);
@@ -267,19 +267,19 @@ private:
 - [ ] GET Request testen
 - [ ] PUT Request testen
 - [ ] Error Handling (401, 404)
-- [ ] Commit "Implement HueClient basics"
+- [ ] Commit "Implement HueBridgeClient basics"
 
 ---
 
 ## Woche 1 - Tag 6-7 (Wochenende)
 
-### HueLight implementieren
+### HueBridgeLight implementieren
 
 **Ziel**: Erste Lampe steuerbar
 
 ```cpp
-// HueLight.h
-class HueLight : public HueDeviceBase
+// HueBridgeLight.h
+class HueBridgeLight : public HueDeviceBase
 {
 public:
     void setup(uint8_t channelIndex);
@@ -294,16 +294,16 @@ private:
 ```
 
 **Integration:**
-- HueModule erstellt HueLight
-- KO-Callback an HueLight
-- HueLight ruft HueClient
+- HueBridgeModule erstellt HueBridgeLight
+- KO-Callback an HueBridgeLight
+- HueBridgeLight ruft HueBridgeClient
 - Status auf KNX ausgeben
 
 **Test:**
 - KNX GA schalten → Lampe reagiert
 - Lampe in App schalten → Status auf KNX (Polling alle 5s)
 
-- [ ] HueLight Klasse erstellen
+- [ ] HueBridgeLight Klasse erstellen
 - [ ] KO-Handling implementieren
 - [ ] Status-Polling (Basis)
 - [ ] End-to-End Test: KNX → Hue
@@ -367,7 +367,7 @@ private:
 
 **OpenKNX Community:**
 - Github Discussions: https://github.com/OpenKNX/OpenKNX/discussions
-- Issues: https://github.com/OpenKNX/OFM-HueModule/issues
+- Issues: https://github.com/OpenKNX/OFM-HueBridgeModule/issues
 
 **Hue Developer:**
 - Forum: https://developers.meethue.com/forum
@@ -398,3 +398,5 @@ Bei Fragen oder Problemen: Github Issues nutzen oder OpenKNX Community fragen.
 
 **Start**: Montag 03.02.2026, 09:00 Uhr  
 **Ziel Woche 1**: Freitag 09.02.2026, 18:00 Uhr
+
+

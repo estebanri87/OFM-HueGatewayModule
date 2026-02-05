@@ -1,10 +1,10 @@
-# OFM-HueModule
+# OFM-HueBridgeModule
 
 OpenKNX Funktionsmodul zur Integration von Philips Hue Geräten in KNX-Systeme.
 
 ## Überblick
 
-**OFM-HueModule** ermöglicht die Steuerung von Philips Hue Lampen, LED Stripes und Sensoren über KNX. Das Modul kommuniziert mit der Hue Bridge via Hue API v2 und stellt die Geräte als KNX-Kommunikationsobjekte bereit.
+**OFM-HueBridgeModule** ermöglicht die Steuerung von Philips Hue Lampen, LED Stripes und Sensoren über KNX. Das Modul kommuniziert mit der Hue Bridge via Hue API v2 und stellt die Geräte als KNX-Kommunikationsobjekte bereit.
 
 ### Features (Phase 1)
 - ✅ Automatische Hue Bridge Discovery (mDNS)
@@ -20,7 +20,7 @@ OpenKNX Funktionsmodul zur Integration von Philips Hue Geräten in KNX-Systeme.
 
 ### Datenfluss
 ```
-Hue Bridge ←→ ESP32 (OFM-HueModule) ←→ KNX Bus
+Hue Bridge ←→ ESP32 (OFM-HueBridgeModule) ←→ KNX Bus
 ```
 
 ## Voraussetzungen
@@ -42,21 +42,21 @@ Hue Bridge ←→ ESP32 (OFM-HueModule) ←→ KNX Bus
 
 ### Als eigenständiges Modul
 
-OFM-HueModule ist ein **eigenständiges OpenKNX Modul**, das in verschiedene Firmware-Projekte integriert werden kann.
+OFM-HueBridgeModule ist ein **eigenständiges OpenKNX Modul**, das in verschiedene Firmware-Projekte integriert werden kann.
 
 **Option 1: In bestehendes Firmware-Projekt einbinden**
 
 ```bash
 cd <Ihr-OpenKNX-Firmware-Projekt>/lib
-git submodule add https://github.com/OpenKNX/OFM-HueModule.git
+git submodule add https://github.com/OpenKNX/OFM-HueBridgeModule.git
 git submodule update --init --recursive
 ```
 
 **Option 2: Standalone Entwicklung/Test**
 
 ```bash
-git clone https://github.com/OpenKNX/OFM-HueModule.git
-cd OFM-HueModule
+git clone https://github.com/OpenKNX/OFM-HueBridgeModule.git
+cd OFM-HueBridgeModule
 pio run
 ```
 
@@ -65,22 +65,22 @@ pio run
 ```xml
 <!-- Nach BRI-Definition einfügen -->
 <op:define prefix="HUE" ModuleType="9"
-  share="../lib/OFM-HueModule/src/HueModule.share.xml"
-  template="../lib/OFM-HueModule/src/HueModule.templ.xml"
+   share="../lib/OFM-HueBridgeModule/src/HueBridgeModule.share.xml"
+   template="../lib/OFM-HueBridgeModule/src/HueBridgeModule.templ.xml"
   NumChannels="50" 
   KoOffset="1000">
-  <op:verify File="../lib/OFM-HueModule/library.json" ModuleVersion="%HUE_VerifyVersion%" />
+   <op:verify File="../lib/OFM-HueBridgeModule/library.json" ModuleVersion="%HUE_VerifyVersion%" />
 </op:define>
 ```
 
 ### main.cpp erweitern
 
 ```cpp
-#include "HueModule.h"
+#include "HueBridgeModule.h"
 
 void setup() {
   // ... andere Module ...
-  openknx.addModule(9, openknxHueModule);  // Modul-ID 9
+  openknx.addModule(9, openknxHueBridgeModule);  // Modul-ID 9
   openknx.setup();
 }
 ```
@@ -202,18 +202,18 @@ hue light <id>          # Lampen-Info
 ### Repository-Struktur
 
 ```
-OFM-HueModule/
+OFM-HueBridgeModule/
 ├── src/
-│   ├── HueModule.h/cpp           # Hauptmodul
-│   ├── HueClient.h/cpp           # API Client
-│   ├── HueDiscovery.h/cpp        # Bridge Discovery
-│   ├── HueAuth.h/cpp             # Authentifizierung
+│   ├── HueBridgeModule.h/cpp           # Hauptmodul
+│   ├── HueBridgeClient.h/cpp           # API Client
+│   ├── HueBridgeDiscovery.h/cpp        # Bridge Discovery
+│   ├── HueBridgeAuth.h/cpp             # Authentifizierung
 │   ├── HueEventStream.h/cpp      # SSE Event Handler
 │   ├── Devices/
 │   │   ├── HueDeviceBase.h/cpp  # Basis-Klasse
-│   │   └── HueLight.h/cpp       # Lampen
-│   ├── HueModule.share.xml       # ETS Allgemein
-│   └── HueModule.templ.xml       # ETS Kanäle
+│   │   └── HueBridgeLight.h/cpp       # Lampen
+│   ├── HueBridgeModule.share.xml       # ETS Allgemein
+│   └── HueBridgeModule.templ.xml       # ETS Kanäle
 ├── examples/
 │   └── SimpleLight/              # Beispiel-Sketch
 ├── docs/
@@ -249,7 +249,7 @@ GPL-3.0 (wie alle OpenKNX Module)
 - **Hue API v2**: https://developers.meethue.com/develop/hue-api-v2/
 - **OpenKNX**: https://github.com/OpenKNX
 - **SmartHomeBridge**: https://github.com/OpenKNX/OAM-SmartHomeBridge
-- **Support**: https://github.com/OpenKNX/OFM-HueModule/issues
+- **Support**: https://github.com/OpenKNX/OFM-HueBridgeModule/issues
 
 ## Roadmap
 
@@ -275,3 +275,5 @@ GPL-3.0 (wie alle OpenKNX Module)
 Beiträge sind willkommen! Bitte Issues oder Pull Requests erstellen.
 
 **Entwickelt von der OpenKNX Community**
+
+

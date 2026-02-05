@@ -1,15 +1,15 @@
 #include <Arduino.h>
 #include <WiFi.h>
-#include "HueModule.h"
+#include "HueBridgeModule.h"
 
 /**
  * STANDALONE TEST APPLICATION
  * 
- * Dieses main.cpp ist NUR für isolierte Tests des HueModule gedacht.
+ * Dieses main.cpp ist NUR für isolierte Tests des HueBridgeModule gedacht.
  * 
  * In einer echten OpenKNX Firmware (z.B. SmartHomeBridge) würde:
  * - OFM-Network oder WLAN Module das Netzwerk bereitstellen
- * - HueModule das vorhandene WiFi/Ethernet nutzen
+ * - HueBridgeModule das vorhandene WiFi/Ethernet nutzen
  * - Keine WiFi-Credentials hier notwendig
  * 
  * Für Tests: WiFi Credentials hier eintragen
@@ -24,7 +24,7 @@ void setup()
     delay(1000);
     
     Serial.println("\n\n========================================");
-    Serial.println("OFM-HueModule - STANDALONE TEST MODE");
+    Serial.println("OFM-HueBridgeModule - STANDALONE TEST MODE");
     Serial.println("========================================");
     Serial.println("Note: In real OpenKNX firmware, WiFi is");
     Serial.println("provided by OFM-Network or WLAN module");
@@ -52,16 +52,16 @@ void setup()
         Serial.println("\nWiFi connection failed!");
     }
     
-    // HueModule initialisieren
-    Serial.println("\nInitializing HueModule...");
-    openknxHueModule.setup();
+    // HueBridgeModule initialisieren
+    Serial.println("\nInitializing HueBridgeModule...");
+    openknxHueBridgeModule.setup();
     
     Serial.println("\nSetup complete. Entering main loop...\n");
 }
 
 void loop()
 {
-    openknxHueModule.loop();
+    openknxHueBridgeModule.loop();
     
     // Einfacher Heartbeat
     static unsigned long lastHeartbeat = 0;
@@ -73,3 +73,4 @@ void loop()
     
     delay(10);
 }
+

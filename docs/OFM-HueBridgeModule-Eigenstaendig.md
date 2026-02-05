@@ -1,8 +1,8 @@
-# OFM-HueModule - Eigenständiges OpenKNX Modul
+# OFM-HueBridgeModule - Eigenständiges OpenKNX Modul
 
 ## ⚠️ Wichtig: Architektur-Klarstellung
 
-**OFM-HueModule ist ein EIGENSTÄNDIGES OpenKNX Modul-Repository**, vergleichbar mit:
+**OFM-HueBridgeModule ist ein EIGENSTÄNDIGES OpenKNX Modul-Repository**, vergleichbar mit:
 - OFM-LogicModule
 - OFM-Network
 - OFM-FunctionBlocks
@@ -22,11 +22,11 @@ github.com/OpenKNX/
 ├── OFM-Network/                # Eigenständiges Modul
 ├── OFM-SmartHomeBridge/        # Eigenständiges Modul
 ├── OFM-FunctionBlocks/         # Eigenständiges Modul
-└── OFM-HueModule/              # Eigenständiges Modul (NEU)
+└── OFM-HueBridgeModule/              # Eigenständiges Modul (NEU)
     ├── src/
-    │   ├── HueModule.h/cpp
-    │   ├── HueModule.share.xml
-    │   └── HueModule.templ.xml
+    │   ├── HueBridgeModule.h/cpp
+    │   ├── HueBridgeModule.share.xml
+    │   └── HueBridgeModule.templ.xml
     ├── library.json
     ├── platformio.ini           # Standalone Build
     └── README.md
@@ -34,7 +34,7 @@ github.com/OpenKNX/
 
 ### Verwendung in Firmware-Projekten
 
-**Firmware-Projekte** (wie OAM-SmartHomeBridge) können OFM-HueModule **optional** als Library einbinden:
+**Firmware-Projekte** (wie OAM-SmartHomeBridge) können OFM-HueBridgeModule **optional** als Library einbinden:
 
 ```
 OAM-SmartHomeBridge/            # Firmware-Projekt
@@ -42,7 +42,7 @@ OAM-SmartHomeBridge/            # Firmware-Projekt
 │   ├── OFM-LogicModule/        # Git Submodule
 │   ├── OFM-Network/            # Git Submodule
 │   ├── OFM-SmartHomeBridge/    # Git Submodule
-│   └── OFM-HueModule/          # Git Submodule (optional!)
+│   └── OFM-HueBridgeModule/          # Git Submodule (optional!)
 ├── src/
 │   ├── main.cpp
 │   └── SmartHomeBridge.xml
@@ -57,14 +57,14 @@ OAM-SmartHomeBridge/            # Firmware-Projekt
 
 ```bash
 # 1. Eigenständiges Repository klonen
-git clone https://github.com/OpenKNX/OFM-HueModule.git
-cd OFM-HueModule
+git clone https://github.com/OpenKNX/OFM-HueBridgeModule.git
+cd OFM-HueBridgeModule
 
 # 2. Standalone entwickeln und testen
 pio run
 pio test
 
-# 3. Commits direkt in OFM-HueModule
+# 3. Commits direkt in OFM-HueBridgeModule
 git add .
 git commit -m "Feature X implementiert"
 git push
@@ -75,7 +75,7 @@ git push
 ```bash
 # 4. Später: In Firmware-Projekt als Library einbinden
 cd ../OAM-SmartHomeBridge/lib
-git submodule add https://github.com/OpenKNX/OFM-HueModule.git
+git submodule add https://github.com/OpenKNX/OFM-HueBridgeModule.git
 
 # 5. SmartHomeBridge.xml erweitern (optional)
 # Modul einbinden, wenn gewünscht
@@ -87,30 +87,30 @@ pio run -e develop_ESP32_USB
 
 ---
 
-## 📁 OFM-HueModule Repository-Struktur
+## 📁 OFM-HueBridgeModule Repository-Struktur
 
 ### Vollständiges, eigenständiges Projekt:
 
 ```
-OFM-HueModule/
+OFM-HueBridgeModule/
 ├── src/                        # Modul-Quellcode
-│   ├── HueModule.h
-│   ├── HueModule.cpp
-│   ├── HueClient.h
-│   ├── HueClient.cpp
-│   ├── HueDiscovery.h
-│   ├── HueDiscovery.cpp
-│   ├── HueAuth.h
-│   ├── HueAuth.cpp
+│   ├── HueBridgeModule.h
+│   ├── HueBridgeModule.cpp
+│   ├── HueBridgeClient.h
+│   ├── HueBridgeClient.cpp
+│   ├── HueBridgeDiscovery.h
+│   ├── HueBridgeDiscovery.cpp
+│   ├── HueBridgeAuth.h
+│   ├── HueBridgeAuth.cpp
 │   ├── HueEventStream.h
 │   ├── HueEventStream.cpp
 │   ├── Devices/
 │   │   ├── HueDeviceBase.h
 │   │   ├── HueDeviceBase.cpp
-│   │   ├── HueLight.h
-│   │   └── HueLight.cpp
-│   ├── HueModule.share.xml     # ETS Allgemein
-│   └── HueModule.templ.xml     # ETS Kanäle
+│   │   ├── HueBridgeLight.h
+│   │   └── HueBridgeLight.cpp
+│   ├── HueBridgeModule.share.xml     # ETS Allgemein
+│   └── HueBridgeModule.templ.xml     # ETS Kanäle
 │
 ├── examples/                   # Beispiel-Anwendungen
 │   ├── SimpleLight/
@@ -164,10 +164,10 @@ test_framework = unity
 
 ## 🔧 Build-Optionen
 
-### Option 1: Standalone Build (OFM-HueModule selbst)
+### Option 1: Standalone Build (OFM-HueBridgeModule selbst)
 
 ```bash
-cd OFM-HueModule
+cd OFM-HueBridgeModule
 pio run                    # Build Modul
 pio test                   # Run Tests
 pio run -t upload          # Upload Beispiel
@@ -177,7 +177,7 @@ pio run -t upload          # Upload Beispiel
 
 ```bash
 cd OAM-SmartHomeBridge
-pio run -e develop_ESP32_USB    # Build mit HueModule
+pio run -e develop_ESP32_USB    # Build mit HueBridgeModule
 ```
 
 ---
@@ -186,13 +186,13 @@ pio run -e develop_ESP32_USB    # Build mit HueModule
 
 ### Als PlatformIO Library
 
-OFM-HueModule wird als offizielle PlatformIO Library registriert:
+OFM-HueBridgeModule wird als offizielle PlatformIO Library registriert:
 
 ```ini
 # In anderen Projekten verwendbar via:
 [env:myproject]
 lib_deps = 
-    openknx/OFM-HueModule@^0.1.0
+    openknx/OFM-HueBridgeModule@^0.1.0
 ```
 
 ### Releases
@@ -241,7 +241,7 @@ Entspricht OpenKNX-Designprinzipien
 - In SmartHomeBridge verwendbar: ✅
 - Standalone entwickelbar: ✅
 
-### OFM-HueModule (neu)
+### OFM-HueBridgeModule (neu)
 - Eigenständiges Repo: ✅
 - In SmartHomeBridge verwendbar: ✅ (optional)
 - Standalone entwickelbar: ✅
@@ -252,14 +252,14 @@ Entspricht OpenKNX-Designprinzipien
 
 ## ❌ Häufige Missverständnisse
 
-### ❌ Falsch: "OFM-HueModule ist Teil von SmartHomeBridge"
-**✅ Richtig**: OFM-HueModule ist ein eigenständiges Modul, das optional in SmartHomeBridge verwendet werden kann
+### ❌ Falsch: "OFM-HueBridgeModule ist Teil von SmartHomeBridge"
+**✅ Richtig**: OFM-HueBridgeModule ist ein eigenständiges Modul, das optional in SmartHomeBridge verwendet werden kann
 
-### ❌ Falsch: "Man muss SmartHomeBridge haben um HueModule zu nutzen"
-**✅ Richtig**: HueModule kann in jedem OpenKNX-Firmware-Projekt verwendet werden
+### ❌ Falsch: "Man muss SmartHomeBridge haben um HueBridgeModule zu nutzen"
+**✅ Richtig**: HueBridgeModule kann in jedem OpenKNX-Firmware-Projekt verwendet werden
 
 ### ❌ Falsch: "Development nur innerhalb von SmartHomeBridge"
-**✅ Richtig**: Standalone-Entwicklung im OFM-HueModule Repository
+**✅ Richtig**: Standalone-Entwicklung im OFM-HueBridgeModule Repository
 
 ### ❌ Falsch: "Git Submodule von SmartHomeBridge"
 **✅ Richtig**: Eigenständiges Git Repository unter github.com/OpenKNX/
@@ -272,11 +272,11 @@ Entspricht OpenKNX-Designprinzipien
 
 ```bash
 # 1. Repository erstellen
-gh repo create OpenKNX/OFM-HueModule --public
+gh repo create OpenKNX/OFM-HueBridgeModule --public
 
 # 2. Klonen und entwickeln
-git clone https://github.com/OpenKNX/OFM-HueModule.git
-cd OFM-HueModule
+git clone https://github.com/OpenKNX/OFM-HueBridgeModule.git
+cd OFM-HueBridgeModule
 
 # 3. Standalone entwickeln
 # Code schreiben...
@@ -291,7 +291,7 @@ git push
 ```bash
 # Optional: In Firmware-Projekt einbinden
 cd MeinOpenKNX-Projekt/lib
-git submodule add https://github.com/OpenKNX/OFM-HueModule.git
+git submodule add https://github.com/OpenKNX/OFM-HueBridgeModule.git
 
 # In XML einbinden (optional)
 # In main.cpp einbinden (optional)
@@ -318,4 +318,6 @@ pio run
 
 ---
 
-**Fazit**: OFM-HueModule = Eigenständiges OpenKNX Modul, genau wie alle anderen OFM-Module auch!
+**Fazit**: OFM-HueBridgeModule = Eigenständiges OpenKNX Modul, genau wie alle anderen OFM-Module auch!
+
+

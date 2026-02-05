@@ -16,7 +16,7 @@
  * API v2 Dokumentation: https://developers.meethue.com/develop/hue-api-v2/
  */
 
-struct HueLightState
+struct HueBridgeLightState
 {
     bool on;
     uint8_t brightness;  // 0-254 (Hue API Range)
@@ -25,16 +25,16 @@ struct HueLightState
     String name;
 };
 
-class HueClient
+class HueBridgeClient
 {
 public:
-    HueClient();
-    ~HueClient();
+    HueBridgeClient();
+    ~HueBridgeClient();
     
     /**
      * @brief Initialisiert den Client mit Bridge-Daten
      * @param bridgeIP IP-Adresse der Bridge
-     * @param appKey Application Key (von HueAuth)
+     * @param appKey Application Key (von HueBridgeAuth)
      * @return true bei Erfolg
      */
     bool begin(const String& bridgeIP, const String& appKey);
@@ -45,7 +45,7 @@ public:
      * @param maxLights Maximale Anzahl (Array-Größe)
      * @return Anzahl der gefundenen Lichter
      */
-    int getLights(HueLightState* lights, int maxLights);
+    int getLights(HueBridgeLightState* lights, int maxLights);
     
     /**
      * @brief Schaltet ein Licht ein/aus
@@ -141,3 +141,4 @@ private:
      */
     String buildUrl(const String& endpoint);
 };
+

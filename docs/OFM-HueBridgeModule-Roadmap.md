@@ -1,4 +1,4 @@
-# OFM-HueModule - 2-3 Wochen Entwicklungsplan
+# OFM-HueBridgeModule - 2-3 Wochen Entwicklungsplan
 
 **Projekt**: Philips Hue Integration in KNX  
 **Timeline**: 3 Wochen (2026-02-03 bis 2026-02-24)  
@@ -10,18 +10,18 @@
 ### Tag 1-2: Repository & Grundstruktur
 **Montag 03.02 - Dienstag 04.02**
 
-- [ ] **Eigenständiges** Repository erstellen: `github.com/OpenKNX/OFM-HueModule`
+- [ ] **Eigenständiges** Repository erstellen: `github.com/OpenKNX/OFM-HueBridgeModule`
   (NICHT als Submodule von SmartHomeBridge!)
 - [ ] Verzeichnisstruktur anlegen
   ```
-  OFM-HueModule/
+  OFM-HueBridgeModule/
   ├── src/
-  │   ├── HueModule.h/cpp
-  │   ├── HueDiscovery.h/cpp
-  │   ├── HueAuth.h/cpp
-  │   ├── HueClient.h/cpp
+  │   ├── HueBridgeModule.h/cpp
+  │   ├── HueBridgeDiscovery.h/cpp
+  │   ├── HueBridgeAuth.h/cpp
+  │   ├── HueBridgeClient.h/cpp
   │   └── Devices/
-  │       └── HueLight.h/cpp
+  │       └── HueBridgeLight.h/cpp
   ├── library.json
   ├── README.md
   └── examples/
@@ -40,7 +40,7 @@
 ### Tag 3-4: Discovery & Authentication
 **Mittwoch 05.02 - Donnerstag 06.02**
 
-**HueDiscovery.cpp:**
+**HueBridgeDiscovery.cpp:**
 - [ ] mDNS Service Discovery implementieren
   ```cpp
   bool findBridge(String& ipAddress)
@@ -49,7 +49,7 @@
 - [ ] Fallback auf manuelle IP-Eingabe
 - [ ] Bridge-IP im Flash speichern (Preferences)
 
-**HueAuth.cpp:**
+**HueBridgeAuth.cpp:**
 - [ ] Button-Press Authentication Flow
   ```cpp
   bool requestAppKey(const char* bridgeIP)
@@ -70,13 +70,13 @@
 ### Tag 5-7: API Client & Erste Lampe
 **Freitag 07.02 - Sonntag 09.02**
 
-**HueClient.cpp:**
+**HueBridgeClient.cpp:**
 - [ ] HTTP(S) Client Setup
 - [ ] GET /clip/v2/resource/light (alle Lampen holen)
 - [ ] PUT /clip/v2/resource/light/{id} (Lampe schalten)
 - [ ] Error Handling (401, 404, Timeout)
 
-**HueLight.cpp:**
+**HueBridgeLight.cpp:**
 - [ ] Basis-Klasse für Lampe
 - [ ] Schalten implementieren (on/off)
   ```cpp
@@ -85,7 +85,7 @@
   ```
 - [ ] Status von Hue lesen und auf KNX ausgeben
 
-**HueModule.cpp:**
+**HueBridgeModule.cpp:**
 - [ ] OpenKNX Modul Interface
   ```cpp
   void setup()
@@ -107,7 +107,7 @@
 ### Tag 8-9: Dimmen & Status-Updates
 **Montag 10.02 - Dienstag 11.02**
 
-**HueLight erweitern:**
+**HueBridgeLight erweitern:**
 - [ ] Dimmen implementieren
   ```cpp
   void setBrightness(uint8_t brightness)
@@ -141,7 +141,7 @@
   // GET /eventstream/clip/v2
   ```
 - [ ] Event Parsing (data: JSON)
-- [ ] Events an HueLight weiterleiten
+- [ ] Events an HueBridgeLight weiterleiten
 - [ ] Reconnect bei Verbindungsabbruch
 
 **Refactoring:**
@@ -160,18 +160,18 @@
 **Freitag 14.02 - Sonntag 16.02**
 
 **Multi-Lampen Support:**
-- [ ] Array von HueLight Objekten
+- [ ] Array von HueBridgeLight Objekten
 - [ ] Kanal-Konfiguration (Geräte-ID pro Kanal)
 - [ ] 5-10 Lampen gleichzeitig steuerbar
 
 **ETS XML (Basis):**
-- [ ] HueModule.share.xml erstellen
+- [ ] HueBridgeModule.share.xml erstellen
   ```xml
   - Hue Integration aktiv [Ja/Nein]
   - Bridge IP [Auto/Manuell]
   - Anzahl Kanäle [1-50]
   ```
-- [ ] HueModule.templ.xml erstellen
+- [ ] HueBridgeModule.templ.xml erstellen
   ```xml
   - Kanal aktiv
   - Hue Geräte-ID
@@ -263,7 +263,7 @@
   - Installation
   - Konfiguration
   - Troubleshooting
-- [ ] Applikationsbeschreibung-HueModule.md
+- [ ] Applikationsbeschreibung-HueBridgeModule.md
   - User-Anleitung für ETS
   - Beispiel-Konfigurationen
 - [ ] Code-Dokumentation (Doxygen)
@@ -353,7 +353,7 @@
 - Probleme sofort kommunizieren
 
 **Tools:**
-- Git: github.com/OpenKNX/OFM-HueModule
+- Git: github.com/OpenKNX/OFM-HueBridgeModule
 - Issues: Github Issues für Bugs/Features
 - Dokumentation: im Repository (docs/)
 
@@ -369,12 +369,12 @@
 
 ```bash
 # Repository klonen
-git clone https://github.com/OpenKNX/OFM-HueModule.git
-cd OFM-HueModule
+git clone https://github.com/OpenKNX/OFM-HueBridgeModule.git
+cd OFM-HueBridgeModule
 
 # Als Submodul in SmartHomeBridge einbinden
 cd ../OAM-SmartHomeBridge/lib
-git submodule add https://github.com/OpenKNX/OFM-HueModule.git
+git submodule add https://github.com/OpenKNX/OFM-HueBridgeModule.git
 
 # SmartHomeBridge.xml anpassen
 # (HUE-Modul einbinden)
@@ -389,3 +389,5 @@ cd src
 ```
 
 **Los geht's! 🚀**
+
+

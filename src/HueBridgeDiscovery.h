@@ -9,10 +9,10 @@
  * 
  * Findet automatisch Philips Hue Bridges im lokalen Netzwerk
  */
-class HueDiscovery
+class HueBridgeDiscovery
 {
 public:
-    HueDiscovery();
+    HueBridgeDiscovery();
     
     /**
      * @brief Sucht nach Hue Bridge im Netzwerk
@@ -33,3 +33,4 @@ private:
     void saveIP(const String& ip);
     String loadIP();
 };
+

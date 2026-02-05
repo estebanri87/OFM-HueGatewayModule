@@ -1,5 +1,5 @@
 {
-    "name": "OFM-HueModule",
+    "name": "OFM-HueBridgeModule",
     "version": "0.1.0",
     "description": "Philips Hue integration module for OpenKNX, can be embedded in an ETS application",
     "homepage": "https://openknx.de",
@@ -11,7 +11,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/OpenKNX/OFM-HueModule"
+        "url": "https://github.com/OpenKNX/OFM-HueBridgeModule"
     },
     "dependencies": {
         "buelowp/ArduinoJson": "^6.21.0"

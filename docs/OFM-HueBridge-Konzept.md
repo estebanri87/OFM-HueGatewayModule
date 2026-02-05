@@ -1,4 +1,4 @@
-# OFM-HueModule Konzept - Philips Hue Integration in KNX
+# OFM-HueBridgeModule Konzept - Philips Hue Integration in KNX
 
 ## 1. Übersicht
 
@@ -6,11 +6,11 @@
 Integration von Philips Hue Leuchten und Sensoren in ein KNX-System über ein neues OpenKNX-Modul.
 
 ### Datenfluss
-**Hue Bridge → ESP32/OFM-HueModule → KNX Bus**
+**Hue Bridge → ESP32/OFM-HueBridgeModule → KNX Bus**
 
 ```
 ┌─────────────┐      Hue API v2      ┌──────────────┐      KNX       ┌─────────┐
-│ Hue Bridge  │ ◄─────────────────► │ OFM-HueModule│ ◄───────────► │ KNX Bus │
+│ Hue Bridge  │ ◄─────────────────► │ OFM-HueBridgeModule│ ◄───────────► │ KNX Bus │
 │ (Phillips)  │   HTTP/JSON/SSE      │  (ESP32)     │               │         │
 └─────────────┘                      └──────────────┘               └─────────┘
       │                                      │
@@ -26,7 +26,7 @@ Integration von Philips Hue Leuchten und Sensoren in ein KNX-System über ein ne
 
 **Begründung:**
 - **OFM-SmartHomeBridge**: KNX → Smart Home (Server/Emulation)
-- **OFM-HueModule**: Hue → KNX (Client/Consumer)
+- **OFM-HueBridgeModule**: Hue → KNX (Client/Consumer)
 - Unterschiedliche technische Anforderungen
 - Klare Trennung der Verantwortlichkeiten
 - Kann unabhängig entwickelt und deployed werden
@@ -75,8 +75,8 @@ Integration von Philips Hue Leuchten und Sensoren in ein KNX-System über ein ne
 
 ```xml
 <op:define prefix="HUE" ModuleType="9"
-  share="../lib/OFM-HueModule/src/HueModule.share.xml"
-  template="../lib/OFM-HueModule/src/HueModule.templ.xml"
+  share="../lib/OFM-HueBridgeModule/src/HueBridgeModule.share.xml"
+  template="../lib/OFM-HueBridgeModule/src/HueBridgeModule.templ.xml"
   NumChannels="50" 
   KoOffset="1000">
   <op:verify File="../lib/OFM-Hue/library.json" ModuleVersion="%HUE_VerifyVersion%" />
@@ -122,17 +122,17 @@ Für Sensoren:
 ```
 lib/OFM-Hue/
 ├── src/
-│   ├── HueModule.h                    # OpenKNX Modul Interface
-│   ├── HueModule.cpp
+│   ├── HueBridgeModule.h                    # OpenKNX Modul Interface
+│   ├── HueBridgeModule.cpp
 │   │
-│   ├── HueClient.h                    # Hue API v2 Client
-│   ├── HueClient.cpp
+│   ├── HueBridgeClient.h                    # Hue API v2 Client
+│   ├── HueBridgeClient.cpp
 │   │
-│   ├── HueDiscovery.h                 # Bridge Discovery
-│   ├── HueDiscovery.cpp
+│   ├── HueBridgeDiscovery.h                 # Bridge Discovery
+│   ├── HueBridgeDiscovery.cpp
 │   │
-│   ├── HueAuth.h                      # Authentifizierung
-│   ├── HueAuth.cpp
+│   ├── HueBridgeAuth.h                      # Authentifizierung
+│   ├── HueBridgeAuth.cpp
 │   │
 │   ├── HueEventStream.h               # SSE Event Handler
 │   ├── HueEventStream.cpp
@@ -140,8 +140,8 @@ lib/OFM-Hue/
 │   ├── Devices/
 │   │   ├── HueDeviceBase.h           # Basis-Klasse
 │   │   ├── HueDeviceBase.cpp
-│   │   ├── HueLight.h                # Hue Lampen
-│   │   ├── HueLight.cpp
+│   │   ├── HueBridgeLight.h                # Hue Lampen
+│   │   ├── HueBridgeLight.cpp
 │   │   ├── HueSensor.h               # Hue Sensoren
 │   │   └── HueSensor.cpp
 │   │
@@ -155,9 +155,9 @@ lib/OFM-Hue/
 
 ### 5.2 Klassen-Design
 
-#### HueModule (OpenKNX Modul)
+#### HueBridgeModule (OpenKNX Modul)
 ```cpp
-class HueModule : public OpenKNX::Module {
+class HueBridgeModule : public OpenKNX::Module {
 public:
     void setup() override;
     void loop() override;
@@ -165,8 +165,8 @@ public:
     bool enabled() override;
     
 private:
-    HueClient* _client;
-    HueDiscovery* _discovery;
+    HueBridgeClient* _client;
+    HueBridgeDiscovery* _discovery;
     std::vector<HueDeviceBase*> _devices;
     
     void setupDevices();
@@ -174,9 +174,9 @@ private:
 };
 ```
 
-#### HueClient (API Kommunikation)
+#### HueBridgeClient (API Kommunikation)
 ```cpp
-class HueClient {
+class HueBridgeClient {
 public:
     bool connect(const char* ipAddress, const char* appKey);
     bool authenticate();  // Button-Press Flow
@@ -198,9 +198,9 @@ private:
 };
 ```
 
-#### HueLight (Lampen-Implementierung)
+#### HueBridgeLight (Lampen-Implementierung)
 ```cpp
-class HueLight : public HueDeviceBase {
+class HueBridgeLight : public HueDeviceBase {
 public:
     void setup(uint8_t channelIndex) override;
     void updateFromHue(JsonObject& state) override;
@@ -219,7 +219,7 @@ private:
 
 ### 6.1 Beispiel: Integration in SmartHomeBridge
 
-OFM-HueModule ist ein **eigenständiges OpenKNX Modul**, das optional in verschiedene Firmware-Projekte integriert werden kann.
+OFM-HueBridgeModule ist ein **eigenständiges OpenKNX Modul**, das optional in verschiedene Firmware-Projekte integriert werden kann.
 
 **Optional in src/SmartHomeBridge.xml** erweitern:
 ```xml
@@ -235,11 +235,11 @@ OFM-HueModule ist ein **eigenständiges OpenKNX Modul**, das optional in verschi
 
 ### 6.2 Optionale Integration in main.cpp
 
-Firmware-Projekte können OFM-HueModule optional einbinden:
+Firmware-Projekte können OFM-HueBridgeModule optional einbinden:
 
 ```cpp
 #ifdef HUE_ModuleVersion  // Nur wenn Modul in XML definiert
-#include "HueModule.h"
+#include "HueBridgeModule.h"
 #endif
 
 void setup() {
@@ -247,7 +247,7 @@ void setup() {
   openknx.addModule(7, openknxSmartHomeBridgeModule);
   openknx.addModule(8, openknxFunctionBlocksModule);
 #ifdef HUE_ModuleVersion
-  openknx.addModule(9, openknxHueModule);  // Optional
+  openknx.addModule(9, openknxHueBridgeModule);  // Optional
 #endif
   openknx.setup();
 }
@@ -269,16 +269,16 @@ void setup() {
 ## 7. Entwicklungsschritte (Roadmap)
 
 ### Phase 1: Basis-Infrastruktur (Woche 1)
-- [ ] OFM-HueModule Repository erstellen
+- [ ] OFM-HueBridgeModule Repository erstellen
 - [ ] library.json mit Dependencies definieren
-- [ ] HueModule Gerüst implementieren
+- [ ] HueBridgeModule Gerüst implementieren
 - [ ] Integration in SmartHomeBridge.xml
 - [ ] Erste Build-Tests
 
 ### Phase 2: API Client ✓
-- [ ] HueDiscovery implementieren (mDNS/SSDP)
-- [ ] HueAuth: Button-Press Flow
-- [ ] HueClient: Basic API v2 Calls
+- [ ] HueBridgeDiscovery implementieren (mDNS/SSDP)
+- [ ] HueBridgeAuth: Button-Press Flow
+- [ ] HueBridgeClient: Basic API v2 Calls
 - [ ] Verbindungstest mit echter Hue Bridge
 
 ### Phase 3: Event Handling ✓
@@ -287,10 +287,10 @@ void setup() {
 - [ ] Status-Synchronisation Hue → KNX
 
 ### Phase 4: Geräte-Unterstützung ✓
-- [ ] HueLight: Schalten
-- [ ] HueLight: Dimmen
-- [ ] HueLight: Farbtemperatur
-- [ ] HueLight: RGB/HSV
+- [ ] HueBridgeLight: Schalten
+- [ ] HueBridgeLight: Dimmen
+- [ ] HueBridgeLight: Farbtemperatur
+- [ ] HueBridgeLight: RGB/HSV
 - [ ] HueSensor: Basis-Implementierung
 
 ### Phase 5: ETS Integration ✓
@@ -403,3 +403,5 @@ void setup() {
 **Datum**: 2026-02-03  
 **Version**: 0.1 (Draft)  
 **Status**: Konzeptphase - Feedback erwünscht
+
+

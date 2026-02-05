@@ -5,7 +5,7 @@
   <ManufacturerData>
     <Manufacturer RefId="M-00FA">
       <ApplicationPrograms>
-        <ApplicationProgram Id="%AID%" ApplicationNumber="102" ApplicationVersion="21" ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Hue Module" LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="de" DynamicTableManagement="false" Linkable="true" MinEtsVersion="5.0">
+        <ApplicationProgram Id="%AID%" ApplicationNumber="102" ApplicationVersion="21" ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Hue Bridge Module" LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="de" DynamicTableManagement="false" Linkable="true" MinEtsVersion="5.0">
           
           <Static>
             <ParameterTypes>
@@ -159,7 +159,7 @@
               </ParameterBlock>
               
               <!-- Include Light Channel Template -->
-              <op:include href="HueModule.templ.xml" xpath="//Dynamic/ChannelIndependentBlock" type="template" prefix="HUE" IsInner="true" />
+              <op:include href="HueBridgeModule.templ.xml" xpath="//Dynamic/ChannelIndependentBlock" type="template" prefix="HUE" IsInner="true" />
               
             </Channel>
           </Dynamic>
@@ -169,3 +169,4 @@
     </Manufacturer>
   </ManufacturerData>
 </KNX>
+

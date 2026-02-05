@@ -9,10 +9,10 @@
  * 
  * Verwaltet die Authentifizierung mit der Hue Bridge (Button-Press Flow)
  */
-class HueAuth
+class HueBridgeAuth
 {
 public:
-    HueAuth();
+    HueBridgeAuth();
     
     /**
      * @brief Authentifizierung durchführen
@@ -40,3 +40,4 @@ private:
     void saveAppKey(const String& key);
     String loadAppKey();
 };
+

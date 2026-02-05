@@ -1,8 +1,8 @@
-# HueModule WebServer
+# HueBridgeModule WebServer
 
 ## Übersicht
 
-Der HueModule enthält einen **integrierten HTTP-Webserver**, der eine komfortable Inbetriebnahme über den Browser ermöglicht.
+Der HueBridgeModule enthält einen **integrierten HTTP-Webserver**, der eine komfortable Inbetriebnahme über den Browser ermöglicht.
 
 ## Zugriff
 
@@ -144,7 +144,7 @@ http://192.168.1.100/
 ### 5. ETS Parameter ausfüllen
 
 - ETS öffnen
-- **HueModule** → **Kanal 1** → **Light ID**
+- **HueBridgeModule** → **Kanal 1** → **Light ID**
 - Einfügen (Strg+V)
 - Wiederholen für alle Kanäle
 
@@ -176,7 +176,7 @@ http://192.168.1.100/
 **Lösung**:
 1. Button auf Hue Bridge drücken
 2. Gerät neustarten
-3. Serial Console: "[HueModule] Authenticated successfully"
+3. Serial Console: "[HueBridgeModule] Authenticated successfully"
 
 ### "No lights found"
 **Ursachen**:
@@ -270,4 +270,5 @@ GET /hue/status    → handleStatus()
 
 **Version**: 0.1.0  
 **Datum**: 2026-02-03  
-**Autor**: OpenKNX HueModule
+**Autor**: OpenKNX HueBridgeModule
+
