@@ -32,6 +32,11 @@
               <ParameterType Id="%AID%_PT-HUEWebServerPort" Name="HUEWebServerPort">
                 <TypeNumber SizeInBit="16" Type="unsignedInt" minInclusive="0" maxInclusive="65535" />
               </ParameterType>
+
+              <!-- Pairing Window -->
+              <ParameterType Id="%AID%_PT-HUEPairingWindow" Name="HUEPairingWindow">
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="5" maxInclusive="120" />
+              </ParameterType>
               
               <!-- Channel Count -->
               <ParameterType Id="%AID%_PT-HUEChannelCount" Name="HUEChannelCount">
@@ -90,6 +95,10 @@
               <Parameter Id="%AID%_P-1400004" Name="HUEWebServerPort" ParameterType="%AID%_PT-HUEWebServerPort" Text="HTTP Server Port" Value="80">
                 <Memory CodeSegment="%MID%" Offset="27" BitOffset="0" />
               </Parameter>
+
+              <Parameter Id="%AID%_P-1400007" Name="HUEPairingWindow" ParameterType="%AID%_PT-HUEPairingWindow" Text="Pairing-Zeitfenster (Sekunden)" Value="30">
+                <Memory CodeSegment="%MID%" Offset="30" BitOffset="0" />
+              </Parameter>
               
               <Parameter Id="%AID%_P-1400005" Name="HUEChannelCount" ParameterType="%AID%_PT-HUEChannelCount" Text="Anzahl aktiver Kanäle" Value="0">
                 <Memory CodeSegment="%MID%" Offset="29" BitOffset="0" />
@@ -103,15 +112,20 @@
               <ParameterRef Id="%AID%_P-1400006_R-140000601" RefId="%AID%_P-1400006" />
               <ParameterRef Id="%AID%_P-1400004_R-140000401" RefId="%AID%_P-1400004" />
               <ParameterRef Id="%AID%_P-1400005_R-140000501" RefId="%AID%_P-1400005" />
+              <ParameterRef Id="%AID%_P-1400007_R-140000701" RefId="%AID%_P-1400007" />
             </ParameterRefs>
             
             <ComObjectTable>
               <!-- Status KO für Bridge-Verbindung (1 Bit: 0=Nicht verbunden, 1=Verbunden) -->
               <ComObject Id="%AID%_O-1400001" Name="HUEConnectionStatus" Text="Bridge Verbindungsstatus" Number="0" FunctionText="Verbindungsstatus zur Hue Bridge (0=Getrennt, 1=Verbunden)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+
+              <!-- Pairing Trigger KO -->
+              <ComObject Id="%AID%_O-1400002" Name="HUEPairingTrigger" Text="Pairing Trigger" Number="1" FunctionText="Trigger zum Start des Hue Pairings (1=Start)" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-17" />
             </ComObjectTable>
             
             <ComObjectRefs>
               <ComObjectRef Id="%AID%_O-1400001_R-140000101" RefId="%AID%_O-1400001" />
+              <ComObjectRef Id="%AID%_O-1400002_R-140000201" RefId="%AID%_O-1400002" />
             </ComObjectRefs>
           
           </Static>
@@ -131,16 +145,17 @@
                 <!-- Hinweistext je nach Auswahlmethode -->
                 <choose ParamRefId="%AID%_P-1400001_R-140000101">
                   <when test="0"> <!-- Automatisch (mDNS) -->
-                    <ParameterSeparator Id="%AID%_PS-HUEAutoInfo" Text="ERSTINBETRIEBNAHME (Automatische Bridge-Erkennung):&#xA;&#xA;1. Laden Sie diese Konfiguration per Download auf das Gerät&#xA;2. Das Gerät startet neu und sucht automatisch nach der Hue Bridge im Netzwerk&#xA;3. Falls noch nicht authentifiziert: Die Prog-LED blinkt langsam (ca. 30 Sekunden)&#xA;4. Drücken Sie innerhalb von 30 Sekunden den Link-Button an der Hue Bridge&#xA;5. Das Gerät authentifiziert sich automatisch&#xA;6. Info LED 1 leuchtet dauerhaft = Erfolgreich verbunden&#xA;&#xA;LED-SIGNALE:&#xA;• Blinkt schnell (0,2s): Sucht Bridge im Netzwerk&#xA;• Blinkt langsam (1s): Wartet auf Link-Button - JETZT an Bridge drücken!&#xA;• Leuchtet dauerhaft: Verbunden und betriebsbereit&#xA;• Aus: Keine Bridge gefunden oder Verbindung fehlgeschlagen" UIHint="Information" />
+                    <ParameterSeparator Id="%AID%_PS-HUEAutoInfo" Text="ERSTINBETRIEBNAHME (Automatische Bridge-Erkennung):&#xA;&#xA;1. Konfiguration per ETS-Download auf das Gerät laden&#xA;2. Gerät startet neu und sucht die Hue Bridge im Netzwerk&#xA;3. Pairing starten: ETS KO 'Pairing Trigger' auf 1 senden&#xA;4. Link-Button an der Hue Bridge innerhalb des Pairing-Fensters drücken&#xA;5. Status-KO zeigt 'Verbunden', Info LED 1 leuchtet dauerhaft&#xA;&#xA;LED-SIGNALE (INFO LED 1):&#xA;• Schnelles Blinken: Sucht/Authentifiziert&#xA;• Pulsieren: Wartet auf Link-Button&#xA;• Dauerhaft an: Verbunden und betriebsbereit&#xA;• Langsames Blinken: Keine Verbindung" UIHint="Information" />
                   </when>
                   <when test="1"> <!-- Manuelle IP -->
                     <ParameterRefRef RefId="%AID%_P-1400002_R-140000201" />
-                    <ParameterSeparator Id="%AID%_PS-HUEManualInfo" Text="ERSTINBETRIEBNAHME (Manuelle IP-Adresse):&#xA;&#xA;1. Geben Sie oben die IP-Adresse Ihrer Hue Bridge ein (z.B. 192.168.1.100)&#xA;2. Laden Sie diese Konfiguration mit ETS auf das Gerät (Download)&#xA;3. Das Gerät startet neu und verbindet sich mit der eingegebenen IP-Adresse&#xA;4. Falls noch nicht authentifiziert: Die Info-LED 1 blinkt langsam (ca. 30 Sekunden)&#xA;5. Drücken Sie innerhalb von 30 Sekunden den Link-Button an der Hue Bridge&#xA;6. Das Gerät authentifiziert sich automatisch&#xA;7. Prog-LED leuchtet dauerhaft = Erfolgreich verbunden&#xA;&#xA;LED-SIGNALE:&#xA;• Blinkt langsam (1s): Wartet auf Link-Button - JETZT an Bridge drücken!&#xA;• Leuchtet dauerhaft: Verbunden und betriebsbereit&#xA;• Aus: Bridge nicht erreichbar oder Verbindung fehlgeschlagen" UIHint="Information" />
+                    <ParameterSeparator Id="%AID%_PS-HUEManualInfo" Text="ERSTINBETRIEBNAHME (Manuelle IP-Adresse):&#xA;&#xA;1. IP-Adresse der Hue Bridge eintragen (z.B. 192.168.1.100)&#xA;2. Konfiguration per ETS-Download auf das Gerät laden&#xA;3. Gerät startet neu und verbindet sich mit der eingegebenen IP-Adresse&#xA;4. Pairing starten: ETS KO 'Pairing Trigger' auf 1 senden&#xA;5. Link-Button an der Hue Bridge innerhalb des Pairing-Fensters drücken&#xA;6. Status-KO zeigt 'Verbunden', Info LED 1 leuchtet dauerhaft&#xA;&#xA;LED-SIGNALE (INFO LED 1):&#xA;• Schnelles Blinken: Sucht/Authentifiziert&#xA;• Pulsieren: Wartet auf Link-Button&#xA;• Dauerhaft an: Verbunden und betriebsbereit&#xA;• Langsames Blinken: Keine Verbindung" UIHint="Information" />
                   </when>
                 </choose>
                 
                 <ParameterRefRef RefId="%AID%_P-1400003_R-140000301" />
                 <ParameterRefRef RefId="%AID%_P-1400006_R-140000601" />
+                <ParameterRefRef RefId="%AID%_P-1400007_R-140000701" />
                 
                 <!-- Status-KO nur anzeigen wenn aktiviert -->
                 <choose ParamRefId="%AID%_P-1400006_R-140000601">
@@ -148,6 +163,9 @@
                     <ComObjectRefRef RefId="%AID%_O-1400001_R-140000101" />
                   </when>
                 </choose>
+
+                <ParameterSeparator Id="%AID%_PS-HUEPairingInfo" Text="PAIRING VIA ETS-TRIGGER:&#xA;1) Senden Sie 1 auf das KO 'Pairing Trigger'&#xA;2) Druecken Sie den Link-Button an der Hue Bridge&#xA;3) Status-KO zeigt 'Verbunden'" UIHint="Information" />
+                <ComObjectRefRef RefId="%AID%_O-1400002_R-140000201" />
                 
                 <ParameterSeparator Id="%AID%_PS-HUEWeb" Text="Web-Oberfläche" UIHint="Headline" />
                 <ParameterRefRef RefId="%AID%_P-1400004_R-140000401" />

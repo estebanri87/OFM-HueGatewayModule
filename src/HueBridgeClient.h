@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+#include <WiFiClientSecure.h>
+#include <vector>
 
 /**
  * @brief Hue API v2 Client
@@ -23,6 +25,8 @@ struct HueBridgeLightState
     bool reachable;
     String id;
     String name;
+    String room;
+    String zone;
 };
 
 class HueBridgeClient
@@ -119,6 +123,14 @@ private:
     String _bridgeIP;
     String _appKey;
     HTTPClient _http;
+    WiFiClientSecure _secureClient;
+
+    struct LightLocation
+    {
+        String id;
+        String room;
+        String zone;
+    };
     
     /**
      * @brief HTTP GET Request
@@ -140,5 +152,8 @@ private:
      * @brief Erstellt volle URL
      */
     String buildUrl(const String& endpoint);
+
+    void appendLocationsFromDoc(std::vector<LightLocation>& locations, const JsonDocument& doc, bool isRoom);
+    void upsertLocation(std::vector<LightLocation>& locations, const String& id, const String& room, const String& zone);
 };
 

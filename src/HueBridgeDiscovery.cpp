@@ -1,4 +1,5 @@
 #include "HueBridgeDiscovery.h"
+#include <ArduinoJson.h>
 #include <Preferences.h>
 
 Preferences prefs;
@@ -15,15 +16,28 @@ bool HueBridgeDiscovery::findBridge(String& ipAddress)
     String savedIP = loadIP();
     if (savedIP.length() > 0)
     {
-        Serial.printf("[HueBridgeDiscovery] Using saved IP: %s\n", savedIP.c_str());
-        ipAddress = savedIP;
-        return true;
+        if (isBridgeReachable(savedIP))
+        {
+            Serial.printf("[HueBridgeDiscovery] Using saved IP: %s\n", savedIP.c_str());
+            ipAddress = savedIP;
+            return true;
+        }
+
+        Serial.printf("[HueBridgeDiscovery] Saved IP not reachable: %s\n", savedIP.c_str());
     }
     
     // mDNS Discovery versuchen
     if (discoverMDNS(ipAddress))
     {
         Serial.printf("[HueBridgeDiscovery] Found via mDNS: %s\n", ipAddress.c_str());
+        saveIP(ipAddress);
+        return true;
+    }
+
+    // N-UPnP discovery fallback
+    if (discoverNupnp(ipAddress))
+    {
+        Serial.printf("[HueBridgeDiscovery] Found via N-UPnP: %s\n", ipAddress.c_str());
         saveIP(ipAddress);
         return true;
     }
@@ -75,6 +89,82 @@ bool HueBridgeDiscovery::discoverMDNS(String& ip)
     Serial.printf("[HueBridgeDiscovery] Bridge IP: %s\n", ip.c_str());
     Serial.printf("[HueBridgeDiscovery] Bridge Hostname: %s\n", MDNS.hostname(0).c_str());
     
+    return true;
+}
+
+bool HueBridgeDiscovery::discoverNupnp(String& ip)
+{
+    Serial.println("[HueBridgeDiscovery] Starting N-UPnP discovery...");
+
+    WiFiClientSecure client;
+    client.setInsecure();
+
+    HTTPClient http;
+    http.setTimeout(5000);
+
+    if (!http.begin(client, "https://discovery.meethue.com/"))
+    {
+        Serial.println("[HueBridgeDiscovery] N-UPnP HTTP begin failed");
+        return false;
+    }
+
+    int httpCode = http.GET();
+    if (httpCode != 200)
+    {
+        Serial.printf("[HueBridgeDiscovery] N-UPnP HTTP error: %d\n", httpCode);
+        http.end();
+        return false;
+    }
+
+    String response = http.getString();
+    http.end();
+
+    StaticJsonDocument<2048> doc;
+    DeserializationError error = deserializeJson(doc, response);
+    if (error || !doc.is<JsonArray>())
+    {
+        Serial.printf("[HueBridgeDiscovery] N-UPnP JSON parse error: %s\n", error.c_str());
+        return false;
+    }
+
+    JsonArray arr = doc.as<JsonArray>();
+    if (arr.size() == 0)
+    {
+        Serial.println("[HueBridgeDiscovery] N-UPnP returned no bridges");
+        return false;
+    }
+
+    JsonObject first = arr[0];
+    const char* internalIp = first["internalipaddress"] | "";
+    if (internalIp[0] == '\0')
+    {
+        Serial.println("[HueBridgeDiscovery] N-UPnP missing internal IP");
+        return false;
+    }
+
+    ip = String(internalIp);
+    return true;
+}
+
+bool HueBridgeDiscovery::isBridgeReachable(const String& ip)
+{
+    WiFiClientSecure client;
+    client.setInsecure();
+
+    HTTPClient http;
+    String url = String("https://") + ip + "/api/config";
+
+    http.begin(client, url);
+    http.setTimeout(2000);
+
+    int httpCode = http.GET();
+    if (httpCode != 200)
+    {
+        http.end();
+        return false;
+    }
+
+    http.end();
     return true;
 }
 

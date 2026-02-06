@@ -28,7 +28,7 @@ bool HueBridgeAuth::authenticate(const char* bridgeIP)
     
     for (int i = 0; i < 30; i++)
     {
-        if (requestAppKey(bridgeIP))
+        if (requestAppKeyOnce(bridgeIP))
         {
             Serial.println("[HueBridgeAuth] Authentication successful!");
             return true;
@@ -60,12 +60,21 @@ String HueBridgeAuth::getAppKey()
     return _appKey;
 }
 
-bool HueBridgeAuth::requestAppKey(const char* ip)
+bool HueBridgeAuth::loadStoredAppKey()
 {
+    _appKey = loadAppKey();
+    return _appKey.length() > 0;
+}
+
+bool HueBridgeAuth::requestAppKeyOnce(const char* ip)
+{
+    WiFiClientSecure client;
+    client.setInsecure();
     HTTPClient http;
-    String url = String("http://") + ip + "/api";
+    String url = String("https://") + ip + "/api";
+    bool success = false;
     
-    http.begin(url);
+    http.begin(client, url);
     http.addHeader("Content-Type", "application/json");
     http.setTimeout(5000);
     
@@ -94,14 +103,14 @@ bool HueBridgeAuth::requestAppKey(const char* ip)
                     if (errorType == 101)
                     {
                         // Normal - Button noch nicht gedrückt
-                        return false;
+                        success = false;
                     }
                     else
                     {
                         Serial.printf("[HueBridgeAuth] Error %d: %s\n", 
                                     errorType, 
                                     obj["error"]["description"].as<const char*>());
-                        return false;
+                        success = false;
                     }
                 }
                 
@@ -111,7 +120,7 @@ bool HueBridgeAuth::requestAppKey(const char* ip)
                     String username = obj["success"]["username"].as<String>();
                     Serial.printf("[HueBridgeAuth] App-Key received: %s\n", username.c_str());
                     saveAppKey(username);
-                    return true;
+                    success = true;
                 }
             }
         }
@@ -122,7 +131,16 @@ bool HueBridgeAuth::requestAppKey(const char* ip)
     }
     
     http.end();
-    return false;
+    return success;
+}
+
+void HueBridgeAuth::clearAppKey()
+{
+    prefs.begin("hue", false);
+    prefs.remove("app_key");
+    prefs.end();
+    _appKey = "";
+    Serial.println("[HueBridgeAuth] App-Key cleared");
 }
 
 void HueBridgeAuth::saveAppKey(const String& key)

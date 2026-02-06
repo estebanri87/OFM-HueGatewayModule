@@ -7,6 +7,7 @@
 #include <ArduinoJson.h>
 #include "OpenKNX.h"
 #include "knxprod.h"
+#include "HueBridgeAuth.h"
 
 // Forward Declarations
 class HueBridgeClient;
@@ -49,7 +50,6 @@ private:
     int _lightCount;
     
     // KO numbers (relative to module offset 300)
-    static constexpr uint16_t KO_STATUS = 3;           // Status KO (from KoSingleOffset)
     static constexpr uint16_t KO_SCAN_TRIGGER = 300;
     static constexpr uint16_t KO_CHANNELS_START = 301;  // First channel KO
     
@@ -64,22 +64,36 @@ private:
     
     BridgeStatus _bridgeStatus;
     unsigned long _ledBlinkTime;
+
+    // Authentication state
+    HueBridgeAuth _auth;
+    String _bridgeIP;
+    bool _authPending;
+    unsigned long _authStartTime;
+    unsigned long _authLastTry;
+    unsigned long _authWindowMs;
+    bool _devicesInitialized;
     
     void setupBridge();
     void setupDevices();
     void checkConnection();
     void setupWebServer();
     void setupMDNS();
+    void pollAuthentication();
+    bool initClientWithAppKey();
+    void startPairing();
     
     // Web server handlers
     void handleRoot();
     void handleScan();
+    void handleScanText();
     void handleStatus();
     void handleNotFound();
     
     // Scan functions
     void performBridgeScan();
     String getBridgeScanHTML();
+    String getBridgeScanText();
     
     // Helper Methods
     String getBridgeIP();
@@ -87,11 +101,9 @@ private:
     
     // Status Methods
     void updateStatus(BridgeStatus status);
-    void sendStatusKO(const char* message);
+    void sendStatusKO(bool connected);
     void updateInfoLED();
 };
 
 // Globale Instanz
 extern HueBridgeModule openknxHueBridgeModule;
-
-

@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include <WiFiClientSecure.h>
 
 /**
  * @brief Hue Bridge Authentication
@@ -32,11 +33,19 @@ public:
      * @return App-Key oder leerer String
      */
     String getAppKey();
+
+    // Loads stored app key from preferences into memory.
+    bool loadStoredAppKey();
+
+    // Attempts a single app-key request (non-blocking helper).
+    bool requestAppKeyOnce(const char* ip);
+
+    // Clears the stored app key (forces re-auth on next attempt).
+    void clearAppKey();
     
 private:
     String _appKey;
-    
-    bool requestAppKey(const char* ip);
+
     void saveAppKey(const String& key);
     String loadAppKey();
 };

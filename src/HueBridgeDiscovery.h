@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <ESPmDNS.h>
+#include <HTTPClient.h>
+#include <WiFiClientSecure.h>
 
 /**
  * @brief Hue Bridge Discovery via mDNS
@@ -30,6 +32,8 @@ public:
     
 private:
     bool discoverMDNS(String& ip);
+    bool discoverNupnp(String& ip);
+    bool isBridgeReachable(const String& ip);
     void saveIP(const String& ip);
     String loadIP();
 };

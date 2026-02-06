@@ -1,4 +1,5 @@
 #include "HueBridgeClient.h"
+#include <cstring>
 
 HueBridgeClient::HueBridgeClient()
     : _initialized(false)
@@ -21,6 +22,7 @@ bool HueBridgeClient::begin(const String& bridgeIP, const String& appKey)
     _bridgeIP = bridgeIP;
     _appKey = appKey;
     _initialized = true;
+    _secureClient.setInsecure();
     
     Serial.printf("[HueBridgeClient] Initialized - Bridge: %s\n", _bridgeIP.c_str());
     return true;
@@ -34,6 +36,19 @@ int HueBridgeClient::getLights(HueBridgeLightState* lights, int maxLights)
         return 0;
     }
     
+    // Build location index (room/zone -> light id)
+    std::vector<LightLocation> locations;
+    DynamicJsonDocument roomsDoc(8192);
+    if (httpGet("/clip/v2/resource/room", roomsDoc) == 200)
+    {
+        appendLocationsFromDoc(locations, roomsDoc, true);
+    }
+    DynamicJsonDocument zonesDoc(8192);
+    if (httpGet("/clip/v2/resource/zone", zonesDoc) == 200)
+    {
+        appendLocationsFromDoc(locations, zonesDoc, false);
+    }
+
     // API v2: GET /clip/v2/resource/light
     DynamicJsonDocument doc(8192);
     int statusCode = httpGet("/clip/v2/resource/light", doc);
@@ -63,16 +78,97 @@ int HueBridgeClient::getLights(HueBridgeLightState* lights, int maxLights)
         
         // Status (erreichbar wenn owner vorhanden)
         lights[count].reachable = light["owner"].isNull() == false;
+
+        lights[count].room = "";
+        lights[count].zone = "";
+        for (const auto& loc : locations)
+        {
+            if (loc.id == lights[count].id)
+            {
+                lights[count].room = loc.room;
+                lights[count].zone = loc.zone;
+                break;
+            }
+        }
         
-        Serial.printf("[HueBridgeClient] Light %d: %s (%s) - On:%d Bri:%d\n",
-                      count, lights[count].name.c_str(), lights[count].id.c_str(),
-                      lights[count].on, lights[count].brightness);
+        Serial.printf("[HueBridgeClient] Light %d: %s (%s) - On:%d Bri:%d Room:%s Zone:%s\n",
+                  count, lights[count].name.c_str(), lights[count].id.c_str(),
+                  lights[count].on, lights[count].brightness,
+                  lights[count].room.c_str(), lights[count].zone.c_str());
         
         count++;
     }
     
     Serial.printf("[HueBridgeClient] Found %d lights\n", count);
     return count;
+}
+
+void HueBridgeClient::appendLocationsFromDoc(std::vector<LightLocation>& locations, const JsonDocument& doc, bool isRoom)
+{
+    if (!doc.is<JsonObject>())
+    {
+        return;
+    }
+
+    JsonArray data = doc["data"].as<JsonArray>();
+    for (JsonObject item : data)
+    {
+        const char* name = item["metadata"]["name"] | "";
+        if (name[0] == '\0')
+        {
+            continue;
+        }
+
+        JsonArray children = item["children"].as<JsonArray>();
+        for (JsonObject child : children)
+        {
+            const char* rtype = child["rtype"] | "";
+            if (strcmp(rtype, "light") != 0)
+            {
+                continue;
+            }
+
+            const char* rid = child["rid"] | "";
+            if (rid[0] == '\0')
+            {
+                continue;
+            }
+
+            if (isRoom)
+            {
+                upsertLocation(locations, String(rid), String(name), "");
+            }
+            else
+            {
+                upsertLocation(locations, String(rid), "", String(name));
+            }
+        }
+    }
+}
+
+void HueBridgeClient::upsertLocation(std::vector<LightLocation>& locations, const String& id, const String& room, const String& zone)
+{
+    for (auto& loc : locations)
+    {
+        if (loc.id == id)
+        {
+            if (room.length() > 0)
+            {
+                loc.room = room;
+            }
+            if (zone.length() > 0)
+            {
+                loc.zone = zone;
+            }
+            return;
+        }
+    }
+
+    LightLocation loc;
+    loc.id = id;
+    loc.room = room;
+    loc.zone = zone;
+    locations.push_back(loc);
 }
 
 bool HueBridgeClient::setLightOnOff(const String& lightId, bool on)
@@ -273,7 +369,7 @@ int HueBridgeClient::httpGet(const String& endpoint, JsonDocument& doc)
 {
     String url = buildUrl(endpoint);
     
-    _http.begin(url);
+    _http.begin(_secureClient, url);
     _http.addHeader("hue-application-key", _appKey);
     
     int statusCode = _http.GET();
@@ -298,7 +394,7 @@ int HueBridgeClient::httpPut(const String& endpoint, const String& payload)
 {
     String url = buildUrl(endpoint);
     
-    _http.begin(url);
+    _http.begin(_secureClient, url);
     _http.addHeader("Content-Type", "application/json");
     _http.addHeader("hue-application-key", _appKey);
     
@@ -316,8 +412,7 @@ int HueBridgeClient::httpPut(const String& endpoint, const String& payload)
 
 String HueBridgeClient::buildUrl(const String& endpoint)
 {
-    // API v2 nutzt HTTPS (aber für lokales Netzwerk oft HTTP)
-    // Bridge unterstützt beides
+    // Hue API access should use HTTPS (HTTP deprecated by Signify).
     return "https://" + _bridgeIP + endpoint;
 }
 
