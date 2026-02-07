@@ -133,7 +133,7 @@
           <Dynamic>
             <Channel Id="%AID%_CH-HUE" Number="HUE" Name="Hue Bridge" Text="Philips Hue" Icon="led-on">
               
-              <ParameterBlock Id="%AID%_PB-HUEMain" Name="HueBridge" Text="Hue Bridge" Icon="cog-outline">
+              <ParameterBlock Id="%AID%_PB-HUEMain" Name="HueGateway" Text="Hue Bridge" Icon="cog-outline">
                 
                 <ParameterSeparator Id="%AID%_PS-HUETitle" Text="Philips Hue Bridge" UIHint="Headline" />
                 <ParameterSeparator Id="%AID%_PS-HUEVersion" Text="Version: %ModuleVersion%" />
@@ -177,7 +177,7 @@
               </ParameterBlock>
               
               <!-- Include Light Channel Template -->
-              <op:include href="HueBridgeModule.templ.xml" xpath="//Dynamic/ChannelIndependentBlock" type="template" prefix="HUE" IsInner="true" />
+              <op:include href="HueGatewayModule.templ.xml" xpath="//Dynamic/ChannelIndependentBlock" type="template" prefix="HUE" IsInner="true" />
               
             </Channel>
           </Dynamic>

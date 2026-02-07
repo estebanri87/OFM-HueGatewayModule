@@ -3,7 +3,7 @@
 #include <Arduino.h>
 
 // Forward Declaration
-class HueBridgeClient;
+class HueGatewayClient;
 
 /**
  * @brief Einzelnes Hue Licht mit KNX-Mapping
@@ -17,17 +17,17 @@ class HueBridgeClient;
  * Hue → KNX: updateFromHue()
  */
 
-class HueBridgeLight
+class HueGatewayLight
 {
 public:
     /**
      * @brief Konstruktor
      * @param lightId Hue Light Resource ID
      * @param name Gerätename
-     * @param client Pointer auf HueBridgeClient
+     * @param client Pointer auf HueGatewayClient
      */
-    HueBridgeLight(const String& lightId, const String& name, HueBridgeClient* client);
-    ~HueBridgeLight();
+    HueGatewayLight(const String& lightId, const String& name, HueGatewayClient* client);
+    ~HueGatewayLight();
     
     /**
      * @brief Initialisierung
@@ -94,7 +94,7 @@ public:
 private:
     String _lightId;
     String _name;
-    HueBridgeClient* _client;
+    HueGatewayClient* _client;
     
     // KO-Nummern
     uint16_t _koSwitch;

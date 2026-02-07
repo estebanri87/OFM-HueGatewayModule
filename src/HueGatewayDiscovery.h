@@ -11,10 +11,10 @@
  * 
  * Findet automatisch Philips Hue Bridges im lokalen Netzwerk
  */
-class HueBridgeDiscovery
+class HueGatewayDiscovery
 {
 public:
-    HueBridgeDiscovery();
+    HueGatewayDiscovery();
     
     /**
      * @brief Sucht nach Hue Bridge im Netzwerk

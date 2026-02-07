@@ -1,43 +1,43 @@
-#include "HueBridgeAuth.h"
+#include "HueGatewayAuth.h"
 #include <ArduinoJson.h>
 #include <Preferences.h>
 
 extern Preferences prefs;
 
-HueBridgeAuth::HueBridgeAuth()
+HueGatewayAuth::HueGatewayAuth()
     : _appKey("")
 {
 }
 
-bool HueBridgeAuth::authenticate(const char* bridgeIP)
+bool HueGatewayAuth::authenticate(const char* bridgeIP)
 {
-    Serial.printf("[HueBridgeAuth] Authenticating with bridge at %s\n", bridgeIP);
+    Serial.printf("[HueGatewayAuth] Authenticating with bridge at %s\n", bridgeIP);
     
     // App-Key aus Speicher laden
     _appKey = loadAppKey();
     
     if (_appKey.length() > 0)
     {
-        Serial.println("[HueBridgeAuth] Using stored App-Key");
+        Serial.println("[HueGatewayAuth] Using stored App-Key");
         return true;
     }
     
     // Neuen App-Key anfordern (max 30 Sekunden warten)
-    Serial.println("[HueBridgeAuth] Requesting new App-Key...");
-    Serial.println("[HueBridgeAuth] *** PRESS BUTTON ON HUE BRIDGE NOW! ***");
+    Serial.println("[HueGatewayAuth] Requesting new App-Key...");
+    Serial.println("[HueGatewayAuth] *** PRESS BUTTON ON HUE BRIDGE NOW! ***");
     
     for (int i = 0; i < 30; i++)
     {
         if (requestAppKeyOnce(bridgeIP))
         {
-            Serial.println("[HueBridgeAuth] Authentication successful!");
+            Serial.println("[HueGatewayAuth] Authentication successful!");
             return true;
         }
         
-        Serial.printf("[HueBridgeAuth] Waiting for button press... (%d/30)\n", i + 1);
+        Serial.printf("[HueGatewayAuth] Waiting for button press... (%d/30)\n", i + 1);
         
 #ifdef INFO_LED_PIN
-        // Schnelles Blinken während Wartezeit (wird von HueBridgeModule gesteuert)
+        // Schnelles Blinken während Wartezeit (wird von HueGatewayModule gesteuert)
         delay(100);
         digitalWrite(INFO_LED_PIN, !digitalRead(INFO_LED_PIN));
         delay(900);
@@ -46,27 +46,27 @@ bool HueBridgeAuth::authenticate(const char* bridgeIP)
 #endif
     }
     
-    Serial.println("[HueBridgeAuth] Authentication timeout - button not pressed");
+    Serial.println("[HueGatewayAuth] Authentication timeout - button not pressed");
     return false;
 }
 
-bool HueBridgeAuth::hasValidAppKey()
+bool HueGatewayAuth::hasValidAppKey()
 {
     return _appKey.length() > 0;
 }
 
-String HueBridgeAuth::getAppKey()
+String HueGatewayAuth::getAppKey()
 {
     return _appKey;
 }
 
-bool HueBridgeAuth::loadStoredAppKey()
+bool HueGatewayAuth::loadStoredAppKey()
 {
     _appKey = loadAppKey();
     return _appKey.length() > 0;
 }
 
-bool HueBridgeAuth::requestAppKeyOnce(const char* ip)
+bool HueGatewayAuth::requestAppKeyOnce(const char* ip)
 {
     WiFiClientSecure client;
     client.setInsecure();
@@ -78,13 +78,13 @@ bool HueBridgeAuth::requestAppKeyOnce(const char* ip)
     http.addHeader("Content-Type", "application/json");
     http.setTimeout(5000);
     
-    String body = "{\"devicetype\":\"openknx#huebridgemodule\"}";
+    String body = "{\"devicetype\":\"openknx#huegatewaymodule\"}";
     int httpCode = http.POST(body);
     
     if (httpCode == 200)
     {
         String response = http.getString();
-        Serial.printf("[HueBridgeAuth] Response: %s\n", response.c_str());
+        Serial.printf("[HueGatewayAuth] Response: %s\n", response.c_str());
         
         StaticJsonDocument<1024> doc;
         DeserializationError error = deserializeJson(doc, response);
@@ -107,7 +107,7 @@ bool HueBridgeAuth::requestAppKeyOnce(const char* ip)
                     }
                     else
                     {
-                        Serial.printf("[HueBridgeAuth] Error %d: %s\n", 
+                        Serial.printf("[HueGatewayAuth] Error %d: %s\n", 
                                     errorType, 
                                     obj["error"]["description"].as<const char*>());
                         success = false;
@@ -118,7 +118,7 @@ bool HueBridgeAuth::requestAppKeyOnce(const char* ip)
                 if (obj.containsKey("success"))
                 {
                     String username = obj["success"]["username"].as<String>();
-                    Serial.printf("[HueBridgeAuth] App-Key received: %s\n", username.c_str());
+                    Serial.printf("[HueGatewayAuth] App-Key received: %s\n", username.c_str());
                     saveAppKey(username);
                     success = true;
                 }
@@ -127,32 +127,32 @@ bool HueBridgeAuth::requestAppKeyOnce(const char* ip)
     }
     else
     {
-        Serial.printf("[HueBridgeAuth] HTTP Error: %d\n", httpCode);
+        Serial.printf("[HueGatewayAuth] HTTP Error: %d\n", httpCode);
     }
     
     http.end();
     return success;
 }
 
-void HueBridgeAuth::clearAppKey()
+void HueGatewayAuth::clearAppKey()
 {
     prefs.begin("hue", false);
     prefs.remove("app_key");
     prefs.end();
     _appKey = "";
-    Serial.println("[HueBridgeAuth] App-Key cleared");
+    Serial.println("[HueGatewayAuth] App-Key cleared");
 }
 
-void HueBridgeAuth::saveAppKey(const String& key)
+void HueGatewayAuth::saveAppKey(const String& key)
 {
     prefs.begin("hue", false);
     prefs.putString("app_key", key);
     prefs.end();
     _appKey = key;
-    Serial.println("[HueBridgeAuth] App-Key saved to flash");
+    Serial.println("[HueGatewayAuth] App-Key saved to flash");
 }
 
-String HueBridgeAuth::loadAppKey()
+String HueGatewayAuth::loadAppKey()
 {
     prefs.begin("hue", true); // read-only
     String key = prefs.getString("app_key", "");
@@ -160,7 +160,7 @@ String HueBridgeAuth::loadAppKey()
     
     if (key.length() > 0)
     {
-        Serial.println("[HueBridgeAuth] App-Key loaded from flash");
+        Serial.println("[HueGatewayAuth] App-Key loaded from flash");
     }
     
     return key;

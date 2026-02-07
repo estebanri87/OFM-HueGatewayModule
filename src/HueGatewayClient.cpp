@@ -1,21 +1,21 @@
-#include "HueBridgeClient.h"
+#include "HueGatewayClient.h"
 #include <cstring>
 
-HueBridgeClient::HueBridgeClient()
+HueGatewayClient::HueGatewayClient()
     : _initialized(false)
 {
 }
 
-HueBridgeClient::~HueBridgeClient()
+HueGatewayClient::~HueGatewayClient()
 {
     _http.end();
 }
 
-bool HueBridgeClient::begin(const String& bridgeIP, const String& appKey)
+bool HueGatewayClient::begin(const String& bridgeIP, const String& appKey)
 {
     if (bridgeIP.isEmpty() || appKey.isEmpty())
     {
-        Serial.println("[HueBridgeClient] ERROR: Invalid Bridge IP or App Key");
+        Serial.println("[HueGatewayClient] ERROR: Invalid Bridge IP or App Key");
         return false;
     }
     
@@ -24,15 +24,15 @@ bool HueBridgeClient::begin(const String& bridgeIP, const String& appKey)
     _initialized = true;
     _secureClient.setInsecure();
     
-    Serial.printf("[HueBridgeClient] Initialized - Bridge: %s\n", _bridgeIP.c_str());
+    Serial.printf("[HueGatewayClient] Initialized - Bridge: %s\n", _bridgeIP.c_str());
     return true;
 }
 
-int HueBridgeClient::getLights(HueBridgeLightState* lights, int maxLights)
+int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights)
 {
     if (!_initialized)
     {
-        Serial.println("[HueBridgeClient] ERROR: Not initialized");
+        Serial.println("[HueGatewayClient] ERROR: Not initialized");
         return 0;
     }
     
@@ -55,7 +55,7 @@ int HueBridgeClient::getLights(HueBridgeLightState* lights, int maxLights)
     
     if (statusCode != 200)
     {
-        Serial.printf("[HueBridgeClient] ERROR: GET lights failed - HTTP %d\n", statusCode);
+        Serial.printf("[HueGatewayClient] ERROR: GET lights failed - HTTP %d\n", statusCode);
         return 0;
     }
     
@@ -91,7 +91,7 @@ int HueBridgeClient::getLights(HueBridgeLightState* lights, int maxLights)
             }
         }
         
-        Serial.printf("[HueBridgeClient] Light %d: %s (%s) - On:%d Bri:%d Room:%s Zone:%s\n",
+        Serial.printf("[HueGatewayClient] Light %d: %s (%s) - On:%d Bri:%d Room:%s Zone:%s\n",
                   count, lights[count].name.c_str(), lights[count].id.c_str(),
                   lights[count].on, lights[count].brightness,
                   lights[count].room.c_str(), lights[count].zone.c_str());
@@ -99,11 +99,11 @@ int HueBridgeClient::getLights(HueBridgeLightState* lights, int maxLights)
         count++;
     }
     
-    Serial.printf("[HueBridgeClient] Found %d lights\n", count);
+    Serial.printf("[HueGatewayClient] Found %d lights\n", count);
     return count;
 }
 
-void HueBridgeClient::appendLocationsFromDoc(std::vector<LightLocation>& locations, const JsonDocument& doc, bool isRoom)
+void HueGatewayClient::appendLocationsFromDoc(std::vector<LightLocation>& locations, const JsonDocument& doc, bool isRoom)
 {
     if (!doc.is<JsonObject>())
     {
@@ -146,7 +146,7 @@ void HueBridgeClient::appendLocationsFromDoc(std::vector<LightLocation>& locatio
     }
 }
 
-void HueBridgeClient::upsertLocation(std::vector<LightLocation>& locations, const String& id, const String& room, const String& zone)
+void HueGatewayClient::upsertLocation(std::vector<LightLocation>& locations, const String& id, const String& room, const String& zone)
 {
     for (auto& loc : locations)
     {
@@ -171,7 +171,7 @@ void HueBridgeClient::upsertLocation(std::vector<LightLocation>& locations, cons
     locations.push_back(loc);
 }
 
-bool HueBridgeClient::setLightOnOff(const String& lightId, bool on)
+bool HueGatewayClient::setLightOnOff(const String& lightId, bool on)
 {
     if (!_initialized)
         return false;
@@ -190,17 +190,17 @@ bool HueBridgeClient::setLightOnOff(const String& lightId, bool on)
     
     if (statusCode == 200)
     {
-        Serial.printf("[HueBridgeClient] Light %s -> %s\n", lightId.c_str(), on ? "ON" : "OFF");
+        Serial.printf("[HueGatewayClient] Light %s -> %s\n", lightId.c_str(), on ? "ON" : "OFF");
         return true;
     }
     else
     {
-        Serial.printf("[HueBridgeClient] ERROR: PUT failed - HTTP %d\n", statusCode);
+        Serial.printf("[HueGatewayClient] ERROR: PUT failed - HTTP %d\n", statusCode);
         return false;
     }
 }
 
-bool HueBridgeClient::setLightBrightness(const String& lightId, uint8_t brightness)
+bool HueGatewayClient::setLightBrightness(const String& lightId, uint8_t brightness)
 {
     if (!_initialized)
         return false;
@@ -220,17 +220,17 @@ bool HueBridgeClient::setLightBrightness(const String& lightId, uint8_t brightne
     
     if (statusCode == 200)
     {
-        Serial.printf("[HueBridgeClient] Light %s -> Brightness: %d\n", lightId.c_str(), brightness);
+        Serial.printf("[HueGatewayClient] Light %s -> Brightness: %d\n", lightId.c_str(), brightness);
         return true;
     }
     else
     {
-        Serial.printf("[HueBridgeClient] ERROR: PUT brightness failed - HTTP %d\n", statusCode);
+        Serial.printf("[HueGatewayClient] ERROR: PUT brightness failed - HTTP %d\n", statusCode);
         return false;
     }
 }
 
-bool HueBridgeClient::setLightState(const String& lightId, bool on, uint8_t brightness)
+bool HueGatewayClient::setLightState(const String& lightId, bool on, uint8_t brightness)
 {
     if (!_initialized)
         return false;
@@ -250,18 +250,18 @@ bool HueBridgeClient::setLightState(const String& lightId, bool on, uint8_t brig
     
     if (statusCode == 200)
     {
-        Serial.printf("[HueBridgeClient] Light %s -> On:%d Bri:%d\n", 
+        Serial.printf("[HueGatewayClient] Light %s -> On:%d Bri:%d\n", 
                       lightId.c_str(), on, brightness);
         return true;
     }
     else
     {
-        Serial.printf("[HueBridgeClient] ERROR: PUT state failed - HTTP %d\n", statusCode);
+        Serial.printf("[HueGatewayClient] ERROR: PUT state failed - HTTP %d\n", statusCode);
         return false;
     }
 }
 
-bool HueBridgeClient::setLightColorTemperature(const String& lightId, uint16_t mirek)
+bool HueGatewayClient::setLightColorTemperature(const String& lightId, uint16_t mirek)
 {
     if (!_initialized)
         return false;
@@ -285,18 +285,18 @@ bool HueBridgeClient::setLightColorTemperature(const String& lightId, uint16_t m
     
     if (statusCode == 200)
     {
-        Serial.printf("[HueBridgeClient] Light %s -> ColorTemp: %d mirek (%d K)\n", 
+        Serial.printf("[HueGatewayClient] Light %s -> ColorTemp: %d mirek (%d K)\n", 
                       lightId.c_str(), clampedMirek, mirekToKelvin(clampedMirek));
         return true;
     }
     else
     {
-        Serial.printf("[HueBridgeClient] ERROR: PUT color_temperature failed - HTTP %d\n", statusCode);
+        Serial.printf("[HueGatewayClient] ERROR: PUT color_temperature failed - HTTP %d\n", statusCode);
         return false;
     }
 }
 
-bool HueBridgeClient::setLightColor(const String& lightId, float x, float y)
+bool HueGatewayClient::setLightColor(const String& lightId, float x, float y)
 {
     if (!_initialized)
         return false;
@@ -324,18 +324,18 @@ bool HueBridgeClient::setLightColor(const String& lightId, float x, float y)
     
     if (statusCode == 200)
     {
-        Serial.printf("[HueBridgeClient] Light %s -> Color XY: (%.3f, %.3f)\n", 
+        Serial.printf("[HueGatewayClient] Light %s -> Color XY: (%.3f, %.3f)\n", 
                       lightId.c_str(), clampedX, clampedY);
         return true;
     }
     else
     {
-        Serial.printf("[HueBridgeClient] ERROR: PUT color failed - HTTP %d\n", statusCode);
+        Serial.printf("[HueGatewayClient] ERROR: PUT color failed - HTTP %d\n", statusCode);
         return false;
     }
 }
 
-uint16_t HueBridgeClient::kelvinToMirek(uint16_t kelvin)
+uint16_t HueGatewayClient::kelvinToMirek(uint16_t kelvin)
 {
     // Mirek = 1,000,000 / Kelvin
     // Clamp Kelvin to valid range first (2000-6536)
@@ -351,7 +351,7 @@ uint16_t HueBridgeClient::kelvinToMirek(uint16_t kelvin)
     return mirek;
 }
 
-uint16_t HueBridgeClient::mirekToKelvin(uint16_t mirek)
+uint16_t HueGatewayClient::mirekToKelvin(uint16_t mirek)
 {
     // Kelvin = 1,000,000 / Mirek
     // Clamp mirek to valid range first (153-500)
@@ -365,7 +365,7 @@ uint16_t HueBridgeClient::mirekToKelvin(uint16_t mirek)
 
 // ===== Private Methods =====
 
-int HueBridgeClient::httpGet(const String& endpoint, JsonDocument& doc)
+int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc)
 {
     String url = buildUrl(endpoint);
     
@@ -381,7 +381,7 @@ int HueBridgeClient::httpGet(const String& endpoint, JsonDocument& doc)
         
         if (error)
         {
-            Serial.printf("[HueBridgeClient] JSON parse error: %s\n", error.c_str());
+            Serial.printf("[HueGatewayClient] JSON parse error: %s\n", error.c_str());
             statusCode = -1;
         }
     }
@@ -390,7 +390,7 @@ int HueBridgeClient::httpGet(const String& endpoint, JsonDocument& doc)
     return statusCode;
 }
 
-int HueBridgeClient::httpPut(const String& endpoint, const String& payload)
+int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
 {
     String url = buildUrl(endpoint);
     
@@ -403,14 +403,14 @@ int HueBridgeClient::httpPut(const String& endpoint, const String& payload)
     if (statusCode != 200)
     {
         String response = _http.getString();
-        Serial.printf("[HueBridgeClient] Response: %s\n", response.c_str());
+        Serial.printf("[HueGatewayClient] Response: %s\n", response.c_str());
     }
     
     _http.end();
     return statusCode;
 }
 
-String HueBridgeClient::buildUrl(const String& endpoint)
+String HueGatewayClient::buildUrl(const String& endpoint)
 {
     // Hue API access should use HTTPS (HTTP deprecated by Signify).
     return "https://" + _bridgeIP + endpoint;

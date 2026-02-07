@@ -1,10 +1,10 @@
-#include "HueBridgeModule.h"
-#include "HueBridgeDiscovery.h"
-#include "HueBridgeAuth.h"
-#include "HueBridgeClient.h"
-#include "Devices/HueBridgeLight.h"
+#include "HueGatewayModule.h"
+#include "HueGatewayDiscovery.h"
+#include "HueGatewayAuth.h"
+#include "HueGatewayClient.h"
+#include "Devices/HueGatewayLight.h"
 
-HueBridgeModule::HueBridgeModule()
+HueGatewayModule::HueGatewayModule()
     : _initialized(false)
     , _lastLoop(0)
     , _client(nullptr)
@@ -26,7 +26,7 @@ HueBridgeModule::HueBridgeModule()
     }
 }
 
-HueBridgeModule::~HueBridgeModule()
+HueGatewayModule::~HueGatewayModule()
 {
     // Cleanup Lights
     for (int i = 0; i < _lightCount; i++)
@@ -54,10 +54,10 @@ HueBridgeModule::~HueBridgeModule()
     }
 }
 
-void HueBridgeModule::setup()
+void HueGatewayModule::setup()
 {
-    Serial.println("[HueBridgeModule] Setup started");
-    Serial.println("[HueBridgeModule] Initializing...");
+    Serial.println("[HueGatewayModule] Setup started");
+    Serial.println("[HueGatewayModule] Initializing...");
     
     setupBridge();
     setupDevices();
@@ -65,10 +65,10 @@ void HueBridgeModule::setup()
     setupMDNS();
     
     _initialized = true;
-    Serial.println("[HueBridgeModule] Setup complete");
+    Serial.println("[HueGatewayModule] Setup complete");
 }
 
-void HueBridgeModule::loop()
+void HueGatewayModule::loop()
 {
     if (!_initialized)
         return;
@@ -98,30 +98,30 @@ void HueBridgeModule::loop()
     // TODO: Status updates
 }
 
-const std::string HueBridgeModule::name()
+const std::string HueGatewayModule::name()
 {
-    return "HueBridgeModule";
+    return "HueGatewayModule";
 }
 
-const std::string HueBridgeModule::version()
+const std::string HueGatewayModule::version()
 {
     return "0.1.0";
 }
 
-void HueBridgeModule::processInputKo(GroupObject& ko)
+void HueGatewayModule::processInputKo(GroupObject& ko)
 {
     if (!_initialized)
         return;
         
     uint16_t koNumber = ko.asap();
-    Serial.printf("[HueBridgeModule] KO %d received\n", koNumber);
+    Serial.printf("[HueGatewayModule] KO %d received\n", koNumber);
     
     if (koNumber == HUE_KoHUEPairingTrigger)
     {
         bool trigger = ko.value(Dpt(1, 17));  // DPT 1.017 Trigger
         if (trigger)
         {
-            Serial.println("[HueBridgeModule] Pairing triggered via ETS KO");
+            Serial.println("[HueGatewayModule] Pairing triggered via ETS KO");
             startPairing();
         }
         return;
@@ -133,7 +133,7 @@ void HueBridgeModule::processInputKo(GroupObject& ko)
         bool trigger = ko.value(Dpt(1, 17));  // DPT 1.017 Trigger
         if (trigger)
         {
-            Serial.println("\n[HueBridgeModule] Bridge scan triggered via ETS Button/KO");
+            Serial.println("\n[HueGatewayModule] Bridge scan triggered via ETS Button/KO");
             performBridgeScan();
         }
         return;
@@ -149,7 +149,7 @@ void HueBridgeModule::processInputKo(GroupObject& ko)
     
     if (koNumber < KO_CHANNELS_START)
     {
-        Serial.printf("[HueBridgeModule] KO %d below channel range\n", koNumber);
+        Serial.printf("[HueGatewayModule] KO %d below channel range\n", koNumber);
         return;
     }
     
@@ -159,7 +159,7 @@ void HueBridgeModule::processInputKo(GroupObject& ko)
     
     if (channel >= _lightCount)
     {
-        Serial.printf("[HueBridgeModule] Channel %d out of range\n", channel);
+        Serial.printf("[HueGatewayModule] Channel %d out of range\n", channel);
         return;
     }
     
@@ -190,7 +190,7 @@ void HueBridgeModule::processInputKo(GroupObject& ko)
     }
 }
 
-bool HueBridgeModule::processCommand(const std::string cmd, bool diagnoseKo)
+bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
 {
     if (cmd == "hue")
     {
@@ -206,7 +206,7 @@ bool HueBridgeModule::processCommand(const std::string cmd, bool diagnoseKo)
         Serial.println("=================================");
         
         // Bridge finden
-        HueBridgeDiscovery discovery;
+        HueGatewayDiscovery discovery;
         String bridgeIP;
         
         if (!discovery.findBridge(bridgeIP))
@@ -222,7 +222,7 @@ bool HueBridgeModule::processCommand(const std::string cmd, bool diagnoseKo)
         Serial.printf("\nBridge found: %s\n\n", bridgeIP.c_str());
         
         // Authentication prüfen
-        HueBridgeAuth auth;
+        HueGatewayAuth auth;
         if (!auth.authenticate(bridgeIP.c_str()))
         {
             Serial.println("ERROR: Authentication failed!");
@@ -231,14 +231,14 @@ bool HueBridgeModule::processCommand(const std::string cmd, bool diagnoseKo)
         }
         
         // Lichter abrufen
-        HueBridgeClient client;
+        HueGatewayClient client;
         if (!client.begin(bridgeIP, auth.getAppKey()))
         {
             Serial.println("ERROR: Client init failed!");
             return true;
         }
         
-        HueBridgeLightState lights[MAX_LIGHTS];
+        HueGatewayLightState lights[MAX_LIGHTS];
         int count = client.getLights(lights, MAX_LIGHTS);
         
         Serial.println("Found Lights:");
@@ -298,7 +298,7 @@ bool HueBridgeModule::processCommand(const std::string cmd, bool diagnoseKo)
     return false;  // Nicht mein Befehl
 }
 
-void HueBridgeModule::setupMDNS()
+void HueGatewayModule::setupMDNS()
 {
     // mDNS Service registrieren für einfachen Zugriff via openknx-bridge.local
     if (!MDNS.begin("openknx-bridge"))
@@ -315,31 +315,31 @@ void HueBridgeModule::setupMDNS()
 
 // ===== Private Methods =====
 
-void HueBridgeModule::setupBridge()
+void HueGatewayModule::setupBridge()
 {
-    Serial.println("[HueBridgeModule] Setting up Bridge connection...");
+    Serial.println("[HueGatewayModule] Setting up Bridge connection...");
     
     // Prüfen ob Netzwerk verfügbar (von OFM-Network/WLAN bereitgestellt)
     if (WiFi.status() != WL_CONNECTED)
     {
-        Serial.println("[HueBridgeModule] ERROR: WiFi not connected!");
-        Serial.println("[HueBridgeModule] Network must be initialized by OFM-Network or WLAN module first");
+        Serial.println("[HueGatewayModule] ERROR: WiFi not connected!");
+        Serial.println("[HueGatewayModule] Network must be initialized by OFM-Network or WLAN module first");
         return;
     }
     
-    Serial.printf("[HueBridgeModule] Network OK - IP: %s\n", WiFi.localIP().toString().c_str());
+    Serial.printf("[HueGatewayModule] Network OK - IP: %s\n", WiFi.localIP().toString().c_str());
     
     // Bridge IP aus ETS-Parameter lesen
     _bridgeIP = getBridgeIP();
     
     if (_bridgeIP.isEmpty())
     {
-        Serial.println("[HueBridgeModule] ERROR: Bridge IP not configured!");
+        Serial.println("[HueGatewayModule] ERROR: Bridge IP not configured!");
         updateStatus(BridgeStatus::DISCONNECTED);
         return;
     }
     
-    Serial.printf("[HueBridgeModule] Bridge configured: %s\n", _bridgeIP.c_str());
+    Serial.printf("[HueGatewayModule] Bridge configured: %s\n", _bridgeIP.c_str());
 
     if (ParamHUE_HUEResetAuth)
     {
@@ -359,7 +359,7 @@ void HueBridgeModule::setupBridge()
         if (initClientWithAppKey())
         {
             updateStatus(BridgeStatus::CONNECTED);
-            Serial.println("[HueBridgeModule] HueBridgeClient ready");
+            Serial.println("[HueGatewayModule] HueGatewayClient ready");
         }
         else
         {
@@ -372,12 +372,12 @@ void HueBridgeModule::setupBridge()
     _authPending = true;
     _authStartTime = millis();
     _authLastTry = 0;
-    Serial.println("[HueBridgeModule] Awaiting Hue Bridge link button...");
+    Serial.println("[HueGatewayModule] Awaiting Hue Bridge link button...");
 }
 
-void HueBridgeModule::setupDevices()
+void HueGatewayModule::setupDevices()
 {
-    Serial.println("[HueBridgeModule] Setting up Devices...");
+    Serial.println("[HueGatewayModule] Setting up Devices...");
 
     if (_devicesInitialized)
     {
@@ -386,24 +386,24 @@ void HueBridgeModule::setupDevices()
     
     if (!_client || !_client->isInitialized())
     {
-        Serial.println("[HueBridgeModule] ERROR: HueBridgeClient not ready");
+        Serial.println("[HueGatewayModule] ERROR: HueGatewayClient not ready");
         return;
     }
     
     // Anzahl Kanäle aus ETS lesen
     uint8_t channelCount = ParamHUE_HUEChannelCount;
-    Serial.printf("[HueBridgeModule] Configured channels: %d\n", channelCount);
+    Serial.printf("[HueGatewayModule] Configured channels: %d\n", channelCount);
     
     if (channelCount == 0)
     {
-        Serial.println("[HueBridgeModule] No channels configured");
+        Serial.println("[HueGatewayModule] No channels configured");
         return;
     }
     
     // Alle Lichter von der Bridge abrufen (zum Validieren)
-    HueBridgeLightState allLights[MAX_LIGHTS];
+    HueGatewayLightState allLights[MAX_LIGHTS];
     int bridgeLightCount = _client->getLights(allLights, MAX_LIGHTS);
-    Serial.printf("[HueBridgeModule] Bridge has %d lights\n", bridgeLightCount);
+    Serial.printf("[HueGatewayModule] Bridge has %d lights\n", bridgeLightCount);
     
     // Kanäle aus ETS-Parametern laden
     for (uint8_t ch = 0; ch < channelCount && ch < MAX_LIGHTS; ch++)
@@ -415,7 +415,7 @@ void HueBridgeModule::setupDevices()
         
         if (!enabled)
         {
-            Serial.printf("[HueBridgeModule] Channel %d: Disabled\n", ch);
+            Serial.printf("[HueGatewayModule] Channel %d: Disabled\n", ch);
             continue;
         }
         
@@ -425,7 +425,7 @@ void HueBridgeModule::setupDevices()
         
         if (strlen(lightId) == 0)
         {
-            Serial.printf("[HueBridgeModule] Channel %d: No Light ID configured\n", ch);
+            Serial.printf("[HueGatewayModule] Channel %d: No Light ID configured\n", ch);
             continue;
         }
         
@@ -439,48 +439,48 @@ void HueBridgeModule::setupDevices()
         // KO+5/6: ColorTemp (bei Typ 2/3)
         // KO+7/8: ColorRGB (bei Typ 3)
         
-        // HueBridgeLight Instanz erstellen
-        _lights[_lightCount] = new HueBridgeLight(String(lightId), String(name), _client);
+        // HueGatewayLight Instanz erstellen
+        _lights[_lightCount] = new HueGatewayLight(String(lightId), String(name), _client);
         _lights[_lightCount]->begin(koSwitch, koBrightness, koDimming, koStatusSwitch, koStatusBrightness);
         
-        Serial.printf("[HueBridgeModule] Channel %d: %s (%s) -> KO %d/%d/%d/%d/%d\n",
+        Serial.printf("[HueGatewayModule] Channel %d: %s (%s) -> KO %d/%d/%d/%d/%d\n",
                       ch, name, lightId, koSwitch, koBrightness, koDimming, koStatusSwitch, koStatusBrightness);
         
         _lightCount++;
     }
     
-    Serial.printf("[HueBridgeModule] Initialized %d lights\n", _lightCount);
+    Serial.printf("[HueGatewayModule] Initialized %d lights\n", _lightCount);
     _devicesInitialized = true;
 }
 
-void HueBridgeModule::checkConnection()
+void HueGatewayModule::checkConnection()
 {
     // TODO: Bridge Verbindung prüfen
     // TODO: Bei Offline: Reconnect versuchen
-    // Serial.println("[HueBridgeModule] Connection check (not implemented)");
+    // Serial.println("[HueGatewayModule] Connection check (not implemented)");
 }
 
 // ===== Helper Methods =====
 
-String HueBridgeModule::getBridgeIP()
+String HueGatewayModule::getBridgeIP()
 {
     uint8_t mode = ParamHUE_HUEBridgeMode;
     
     if (mode == 0)
     {
         // Automatisch (mDNS)
-        Serial.println("[HueBridgeModule] Using mDNS discovery...");
-        HueBridgeDiscovery discovery;
+        Serial.println("[HueGatewayModule] Using mDNS discovery...");
+        HueGatewayDiscovery discovery;
         String ip;
         
         if (discovery.findBridge(ip))
         {
-            Serial.printf("[HueBridgeModule] Bridge found via mDNS: %s\n", ip.c_str());
+            Serial.printf("[HueGatewayModule] Bridge found via mDNS: %s\n", ip.c_str());
             return ip;
         }
         else
         {
-            Serial.println("[HueBridgeModule] mDNS discovery failed");
+            Serial.println("[HueGatewayModule] mDNS discovery failed");
             return "";
         }
     }
@@ -488,12 +488,12 @@ String HueBridgeModule::getBridgeIP()
     {
         // Manuelle IP
         std::string ipStr = ParamHUE_HUEBridgeIPStr;
-        Serial.printf("[HueBridgeModule] Using manual IP: %s\n", ipStr.c_str());
+        Serial.printf("[HueGatewayModule] Using manual IP: %s\n", ipStr.c_str());
         return String(ipStr.c_str());
     }
 }
 
-uint16_t HueBridgeModule::getChannelParamIndex(uint8_t channel, uint16_t paramOffset)
+uint16_t HueGatewayModule::getChannelParamIndex(uint8_t channel, uint16_t paramOffset)
 {
     // OpenKNXproducer berechnet: BlockOffset + (channel * BlockSize) + paramOffset
     // Wir müssen die tatsächlichen Offsets aus knxprod.h nutzen
@@ -506,7 +506,7 @@ uint16_t HueBridgeModule::getChannelParamIndex(uint8_t channel, uint16_t paramOf
     return HUE_PARAM_BASE + (channel * HUE_PARAM_BLOCK_SIZE) + paramOffset;
 }
 
-void HueBridgeModule::performBridgeScan()
+void HueGatewayModule::performBridgeScan()
 {
     Serial.println("========================================");
     Serial.println("   HUE BRIDGE SCAN (triggered via KO)");
@@ -520,7 +520,7 @@ void HueBridgeModule::performBridgeScan()
         return;
     }
     
-    HueBridgeLightState lights[MAX_LIGHTS];
+    HueGatewayLightState lights[MAX_LIGHTS];
     int count = _client->getLights(lights, MAX_LIGHTS);
     
     if (count <= 0)
@@ -551,7 +551,7 @@ void HueBridgeModule::performBridgeScan()
 // Status & LED Management
 // ============================================
 
-void HueBridgeModule::updateStatus(BridgeStatus status)
+void HueGatewayModule::updateStatus(BridgeStatus status)
 {
     _bridgeStatus = status;
     
@@ -577,10 +577,10 @@ void HueBridgeModule::updateStatus(BridgeStatus status)
     }
     
     sendStatusKO(status == BridgeStatus::CONNECTED);
-    Serial.printf("[HueBridgeModule] Status: %s\n", statusText);
+    Serial.printf("[HueGatewayModule] Status: %s\n", statusText);
 }
 
-void HueBridgeModule::sendStatusKO(bool connected)
+void HueGatewayModule::sendStatusKO(bool connected)
 {
     if (!ParamHUE_HUEShowConnectionStatus)
     {
@@ -591,7 +591,7 @@ void HueBridgeModule::sendStatusKO(bool connected)
     ko.value(connected, Dpt(1, 1));
 }
 
-void HueBridgeModule::pollAuthentication()
+void HueGatewayModule::pollAuthentication()
 {
     if (!_authPending)
     {
@@ -603,7 +603,7 @@ void HueBridgeModule::pollAuthentication()
     {
         _authPending = false;
         updateStatus(BridgeStatus::DISCONNECTED);
-        Serial.println("[HueBridgeModule] Authentication timeout - button not pressed");
+        Serial.println("[HueGatewayModule] Authentication timeout - button not pressed");
         return;
     }
 
@@ -618,7 +618,7 @@ void HueBridgeModule::pollAuthentication()
     if (_auth.requestAppKeyOnce(_bridgeIP.c_str()))
     {
         _authPending = false;
-        Serial.println("[HueBridgeModule] Authentication successful");
+        Serial.println("[HueGatewayModule] Authentication successful");
 
         if (initClientWithAppKey())
         {
@@ -632,7 +632,7 @@ void HueBridgeModule::pollAuthentication()
     }
 }
 
-bool HueBridgeModule::initClientWithAppKey()
+bool HueGatewayModule::initClientWithAppKey()
 {
     if (_client)
     {
@@ -640,10 +640,10 @@ bool HueBridgeModule::initClientWithAppKey()
         _client = nullptr;
     }
 
-    _client = new HueBridgeClient();
+    _client = new HueGatewayClient();
     if (!_client->begin(_bridgeIP, _auth.getAppKey()))
     {
-        Serial.println("[HueBridgeModule] ERROR: HueBridgeClient init failed!");
+        Serial.println("[HueGatewayModule] ERROR: HueGatewayClient init failed!");
         delete _client;
         _client = nullptr;
         return false;
@@ -652,7 +652,7 @@ bool HueBridgeModule::initClientWithAppKey()
     return true;
 }
 
-void HueBridgeModule::startPairing()
+void HueGatewayModule::startPairing()
 {
     if (_bridgeIP.isEmpty())
     {
@@ -661,7 +661,7 @@ void HueBridgeModule::startPairing()
 
     if (_bridgeIP.isEmpty())
     {
-        Serial.println("[HueBridgeModule] ERROR: Bridge IP not configured!");
+        Serial.println("[HueGatewayModule] ERROR: Bridge IP not configured!");
         updateStatus(BridgeStatus::DISCONNECTED);
         return;
     }
@@ -671,10 +671,10 @@ void HueBridgeModule::startPairing()
     _authStartTime = millis();
     _authLastTry = 0;
     updateStatus(BridgeStatus::WAIT_FOR_BUTTON);
-    Serial.println("[HueBridgeModule] Pairing started - press Hue Bridge button");
+    Serial.println("[HueGatewayModule] Pairing started - press Hue Bridge button");
 }
 
-void HueBridgeModule::updateInfoLED()
+void HueGatewayModule::updateInfoLED()
 {
     static BridgeStatus lastStatus = BridgeStatus::DISCONNECTED;
     if (lastStatus == _bridgeStatus)
@@ -714,7 +714,7 @@ void HueBridgeModule::updateInfoLED()
 // WebServer Implementation
 // ============================================
 
-void HueBridgeModule::setupWebServer()
+void HueGatewayModule::setupWebServer()
 {
     // Read port from ETS parameter (default 80)
     uint16_t port = ParamHUE_HUEWebServerPort;
@@ -733,11 +733,11 @@ void HueBridgeModule::setupWebServer()
     
     _webServer->begin();
     
-    Serial.printf("[HueBridgeModule] Webserver started on port %d\n", port);
-    Serial.printf("[HueBridgeModule] Access: http://%s:%d/hue/scan\n", WiFi.localIP().toString().c_str(), port);
+    Serial.printf("[HueGatewayModule] Webserver started on port %d\n", port);
+    Serial.printf("[HueGatewayModule] Access: http://%s:%d/hue/scan\n", WiFi.localIP().toString().c_str(), port);
 }
 
-void HueBridgeModule::handleRoot()
+void HueGatewayModule::handleRoot()
 {
     String html = "<!DOCTYPE html><html><head><meta charset='UTF-8'>";
     html += "<title>OpenKNX Hue Bridge Module</title>";
@@ -758,7 +758,7 @@ void HueBridgeModule::handleRoot()
     _webServer->send(200, "text/html; charset=UTF-8", html);
 }
 
-void HueBridgeModule::handleScan()
+void HueGatewayModule::handleScan()
 {
     if (!_client || !_initialized)
     {
@@ -773,7 +773,7 @@ void HueBridgeModule::handleScan()
     _webServer->send(200, "text/html; charset=UTF-8", html);
 }
 
-void HueBridgeModule::handleScanText()
+void HueGatewayModule::handleScanText()
 {
     if (!_client || !_initialized)
     {
@@ -785,7 +785,7 @@ void HueBridgeModule::handleScanText()
     _webServer->send(200, "text/plain; charset=UTF-8", text);
 }
 
-void HueBridgeModule::handleStatus()
+void HueGatewayModule::handleStatus()
 {
     String html = "<!DOCTYPE html><html><head><meta charset='UTF-8'>";
     html += "<title>Hue Status</title>";
@@ -805,7 +805,7 @@ void HueBridgeModule::handleStatus()
     _webServer->send(200, "text/html; charset=UTF-8", html);
 }
 
-void HueBridgeModule::handleNotFound()
+void HueGatewayModule::handleNotFound()
 {
     String html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>404</title></head><body>";
     html += "<h1>404 - Not Found</h1><p>The requested URL was not found.</p>";
@@ -814,9 +814,9 @@ void HueBridgeModule::handleNotFound()
     _webServer->send(404, "text/html; charset=UTF-8", html);
 }
 
-String HueBridgeModule::getBridgeScanHTML()
+String HueGatewayModule::getBridgeScanHTML()
 {
-    HueBridgeLightState lights[MAX_LIGHTS];
+    HueGatewayLightState lights[MAX_LIGHTS];
     int count = _client->getLights(lights, MAX_LIGHTS);
     
     String html = "<!DOCTYPE html><html><head><meta charset='UTF-8'>";
@@ -863,9 +863,9 @@ String HueBridgeModule::getBridgeScanHTML()
     return html;
 }
 
-String HueBridgeModule::getBridgeScanText()
+String HueGatewayModule::getBridgeScanText()
 {
-    HueBridgeLightState lights[MAX_LIGHTS];
+    HueGatewayLightState lights[MAX_LIGHTS];
     int count = _client->getLights(lights, MAX_LIGHTS);
 
     String text = "OpenKNX Hue Bridge Scan\n";

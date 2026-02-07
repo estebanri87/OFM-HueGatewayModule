@@ -1,8 +1,8 @@
-#include "HueBridgeLight.h"
-#include "../HueBridgeClient.h"
+#include "HueGatewayLight.h"
+#include "../HueGatewayClient.h"
 #include <knx.h>
 
-HueBridgeLight::HueBridgeLight(const String& lightId, const String& name, HueBridgeClient* client)
+HueGatewayLight::HueGatewayLight(const String& lightId, const String& name, HueGatewayClient* client)
     : _lightId(lightId)
     , _name(name)
     , _client(client)
@@ -19,11 +19,11 @@ HueBridgeLight::HueBridgeLight(const String& lightId, const String& name, HueBri
 {
 }
 
-HueBridgeLight::~HueBridgeLight()
+HueGatewayLight::~HueGatewayLight()
 {
 }
 
-void HueBridgeLight::begin(uint16_t koSwitch, uint16_t koBrightness, uint16_t koDimming,
+void HueGatewayLight::begin(uint16_t koSwitch, uint16_t koBrightness, uint16_t koDimming,
                      uint16_t koStatusSwitch, uint16_t koStatusBrightness)
 {
     _koSwitch = koSwitch;
@@ -34,27 +34,27 @@ void HueBridgeLight::begin(uint16_t koSwitch, uint16_t koBrightness, uint16_t ko
     _koStatus = koStatusSwitch;  // Backward compatibility
     _initialized = true;
     
-    Serial.printf("[HueBridgeLight] %s initialized - KO Switch:%d Brightness:%d Dimming:%d StatusSwitch:%d StatusBrightness:%d\n",
+    Serial.printf("[HueGatewayLight] %s initialized - KO Switch:%d Brightness:%d Dimming:%d StatusSwitch:%d StatusBrightness:%d\n",
                   _name.c_str(), _koSwitch, _koBrightness, _koDimming, _koStatusSwitch, _koStatusBrightness);
 }
 
-void HueBridgeLight::processKnxSwitch(bool value)
+void HueGatewayLight::processKnxSwitch(bool value)
 {
     if (!_initialized || !_client)
         return;
     
-    Serial.printf("[HueBridgeLight] %s - KNX Switch: %d\n", _name.c_str(), value);
+    Serial.printf("[HueGatewayLight] %s - KNX Switch: %d\n", _name.c_str(), value);
     
     _on = value;
     sendToHue();
 }
 
-void HueBridgeLight::processKnxBrightness(uint8_t value)
+void HueGatewayLight::processKnxBrightness(uint8_t value)
 {
     if (!_initialized || !_client)
         return;
     
-    Serial.printf("[HueBridgeLight] %s - KNX Brightness: %d%% (DPT 5.001)\n", _name.c_str(), value);
+    Serial.printf("[HueGatewayLight] %s - KNX Brightness: %d%% (DPT 5.001)\n", _name.c_str(), value);
     
     // KNX DPT 5.001: 0-100% → Hue 0-254
     _brightness = (uint8_t)((value / 100.0f) * 254.0f);
@@ -63,19 +63,19 @@ void HueBridgeLight::processKnxBrightness(uint8_t value)
     if (_brightness > 0 && !_on)
     {
         _on = true;
-        Serial.printf("[HueBridgeLight] %s - Auto-on due to brightness > 0\n", _name.c_str());
+        Serial.printf("[HueGatewayLight] %s - Auto-on due to brightness > 0\n", _name.c_str());
     }
     // Bei Brightness = 0 ausschalten
     else if (_brightness == 0 && _on)
     {
         _on = false;
-        Serial.printf("[HueBridgeLight] %s - Auto-off due to brightness = 0\n", _name.c_str());
+        Serial.printf("[HueGatewayLight] %s - Auto-off due to brightness = 0\n", _name.c_str());
     }
     
     sendToHue();
 }
 
-void HueBridgeLight::processKnxDimming(uint8_t control)
+void HueGatewayLight::processKnxDimming(uint8_t control)
 {
     if (!_initialized || !_client)
         return;
@@ -90,7 +90,7 @@ void HueBridgeLight::processKnxDimming(uint8_t control)
     // Stop-Telegramm ignorieren (0 Schritte)
     if (steps == 0)
     {
-        Serial.printf("[HueBridgeLight] %s - KNX Dimming STOP\n", _name.c_str());
+        Serial.printf("[HueGatewayLight] %s - KNX Dimming STOP\n", _name.c_str());
         return;
     }
     
@@ -108,26 +108,26 @@ void HueBridgeLight::processKnxDimming(uint8_t control)
     
     _brightness = (uint8_t)newBrightness;
     
-    Serial.printf("[HueBridgeLight] %s - KNX Dimming: %s %d steps -> Brightness: %d\n",
+    Serial.printf("[HueGatewayLight] %s - KNX Dimming: %s %d steps -> Brightness: %d\n",
                   _name.c_str(), brighter ? "BRIGHTER" : "DARKER", steps, _brightness);
     
     // Bei Brightness > 0 automatisch einschalten
     if (_brightness > 0 && !_on)
     {
         _on = true;
-        Serial.printf("[HueBridgeLight] %s - Auto-on due to dimming to > 0\n", _name.c_str());
+        Serial.printf("[HueGatewayLight] %s - Auto-on due to dimming to > 0\n", _name.c_str());
     }
     // Bei Brightness = 0 ausschalten
     else if (_brightness == 0 && _on)
     {
         _on = false;
-        Serial.printf("[HueBridgeLight] %s - Auto-off due to dimming to 0\n", _name.c_str());
+        Serial.printf("[HueGatewayLight] %s - Auto-off due to dimming to 0\n", _name.c_str());
     }
     
     sendToHue();
 }
 
-void HueBridgeLight::updateFromHue(bool on, uint8_t brightness)
+void HueGatewayLight::updateFromHue(bool on, uint8_t brightness)
 {
     bool changed = false;
     
@@ -146,14 +146,14 @@ void HueBridgeLight::updateFromHue(bool on, uint8_t brightness)
     if (changed)
     {
         _lastUpdate = millis();
-        Serial.printf("[HueBridgeLight] %s - Updated from Hue: On:%d Bri:%d\n",
+        Serial.printf("[HueGatewayLight] %s - Updated from Hue: On:%d Bri:%d\n",
                       _name.c_str(), _on, _brightness);
         
         sendStatusToKnx();
     }
 }
 
-void HueBridgeLight::sendStatusToKnx()
+void HueGatewayLight::sendStatusToKnx()
 {
     if (!_initialized)
         return;
@@ -168,17 +168,17 @@ void HueBridgeLight::sendStatusToKnx()
     // KO Status Brightness: DPT 5.001 (Percentage 0-100%) - Helligkeits-Feedback
     knx.getGroupObject(_koStatusBrightness).value(brightnessPercent, Dpt(5, 1));
     
-    Serial.printf("[HueBridgeLight] %s - Sent to KNX: On:%d Bri:%d%% (Hue:%d)\n",
+    Serial.printf("[HueGatewayLight] %s - Sent to KNX: On:%d Bri:%d%% (Hue:%d)\n",
                   _name.c_str(), _on, brightnessPercent, _brightness);
 }
 
 // ===== Private Methods =====
 
-void HueBridgeLight::sendToHue()
+void HueGatewayLight::sendToHue()
 {
     if (!_client || !_client->isInitialized())
     {
-        Serial.printf("[HueBridgeLight] %s - ERROR: Client not ready\n", _name.c_str());
+        Serial.printf("[HueGatewayLight] %s - ERROR: Client not ready\n", _name.c_str());
         return;
     }
     
@@ -187,16 +187,16 @@ void HueBridgeLight::sendToHue()
     if (success)
     {
         _lastUpdate = millis();
-        Serial.printf("[HueBridgeLight] %s - Sent to Hue: On:%d Bri:%d\n",
+        Serial.printf("[HueGatewayLight] %s - Sent to Hue: On:%d Bri:%d\n",
                       _name.c_str(), _on, _brightness);
     }
     else
     {
-        Serial.printf("[HueBridgeLight] %s - ERROR: Failed to send to Hue\n", _name.c_str());
+        Serial.printf("[HueGatewayLight] %s - ERROR: Failed to send to Hue\n", _name.c_str());
     }
 }
 
-uint8_t HueBridgeLight::knxToHueBrightness(uint8_t knxValue)
+uint8_t HueGatewayLight::knxToHueBrightness(uint8_t knxValue)
 {
     // KNX: 0-255
     // Hue: 0-254 (1-254 für dimmbares Licht, 0 = aus)
@@ -208,7 +208,7 @@ uint8_t HueBridgeLight::knxToHueBrightness(uint8_t knxValue)
     return (uint8_t)((knxValue / 255.0f) * 254.0f);
 }
 
-uint8_t HueBridgeLight::hueToKnxBrightness(uint8_t hueValue)
+uint8_t HueGatewayLight::hueToKnxBrightness(uint8_t hueValue)
 {
     // Hue: 0-254
     // KNX: 0-255

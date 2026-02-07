@@ -7,11 +7,11 @@
 #include <ArduinoJson.h>
 #include "OpenKNX.h"
 #include "knxprod.h"
-#include "HueBridgeAuth.h"
+#include "HueGatewayAuth.h"
 
 // Forward Declarations
-class HueBridgeClient;
-class HueBridgeLight;
+class HueGatewayClient;
+class HueGatewayLight;
 
 /**
  * @brief OpenKNX Hue Bridge Module - Philips Hue Integration
@@ -24,11 +24,11 @@ class HueBridgeLight;
  * @date 2026-02-03
  */
 
-class HueBridgeModule : public OpenKNX::Module
+class HueGatewayModule : public OpenKNX::Module
 {
 public:
-    HueBridgeModule();
-    ~HueBridgeModule();
+    HueGatewayModule();
+    ~HueGatewayModule();
     
     // OpenKNX::Module Interface
     const std::string name() override;
@@ -41,12 +41,12 @@ public:
 private:
     bool _initialized;
     unsigned long _lastLoop;
-    HueBridgeClient* _client;
+    HueGatewayClient* _client;
     WebServer* _webServer;
     
     // Device Management
     static const int MAX_LIGHTS = 20;
-    HueBridgeLight* _lights[MAX_LIGHTS];
+    HueGatewayLight* _lights[MAX_LIGHTS];
     int _lightCount;
     
     // KO numbers (relative to module offset 300)
@@ -66,7 +66,7 @@ private:
     unsigned long _ledBlinkTime;
 
     // Authentication state
-    HueBridgeAuth _auth;
+    HueGatewayAuth _auth;
     String _bridgeIP;
     bool _authPending;
     unsigned long _authStartTime;
@@ -106,4 +106,4 @@ private:
 };
 
 // Globale Instanz
-extern HueBridgeModule openknxHueBridgeModule;
+extern HueGatewayModule openknxHueGatewayModule;

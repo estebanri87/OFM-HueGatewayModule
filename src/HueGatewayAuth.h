@@ -10,10 +10,10 @@
  * 
  * Verwaltet die Authentifizierung mit der Hue Bridge (Button-Press Flow)
  */
-class HueBridgeAuth
+class HueGatewayAuth
 {
 public:
-    HueBridgeAuth();
+    HueGatewayAuth();
     
     /**
      * @brief Authentifizierung durchführen
