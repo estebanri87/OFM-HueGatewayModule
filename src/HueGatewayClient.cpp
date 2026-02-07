@@ -60,10 +60,10 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights)
     }
     
     // Parse Response
-    JsonArray data = doc["data"].as<JsonArray>();
+    JsonArrayConst data = doc["data"].as<JsonArrayConst>();
     int count = 0;
     
-    for (JsonObject light : data)
+    for (JsonObjectConst light : data)
     {
         if (count >= maxLights)
             break;
@@ -110,8 +110,8 @@ void HueGatewayClient::appendLocationsFromDoc(std::vector<LightLocation>& locati
         return;
     }
 
-    JsonArray data = doc["data"].as<JsonArray>();
-    for (JsonObject item : data)
+    JsonArrayConst data = doc["data"].as<JsonArrayConst>();
+    for (JsonObjectConst item : data)
     {
         const char* name = item["metadata"]["name"] | "";
         if (name[0] == '\0')
@@ -119,8 +119,8 @@ void HueGatewayClient::appendLocationsFromDoc(std::vector<LightLocation>& locati
             continue;
         }
 
-        JsonArray children = item["children"].as<JsonArray>();
-        for (JsonObject child : children)
+        JsonArrayConst children = item["children"].as<JsonArrayConst>();
+        for (JsonObjectConst child : children)
         {
             const char* rtype = child["rtype"] | "";
             if (strcmp(rtype, "light") != 0)
