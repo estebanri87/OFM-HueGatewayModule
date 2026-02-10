@@ -261,6 +261,54 @@ bool HueGatewayClient::setLightState(const String& lightId, bool on, uint8_t bri
     }
 }
 
+bool HueGatewayClient::setLightStateWithColorTemp(const String& lightId, bool on, uint8_t brightness, 
+                                                   uint16_t mirek, uint8_t fadeDurationSec)
+{
+    if (!_initialized)
+        return false;
+    
+    // Clamp mirek to valid range (153-500)
+    // 153 = cold/6536K, 500 = warm/2000K
+    uint16_t clampedMirek = mirek;
+    if (clampedMirek < 153) clampedMirek = 153;
+    if (clampedMirek > 500) clampedMirek = 500;
+    
+    // Brightness 0-254 -> 0-100%
+    float brightnessPct = (brightness / 254.0f) * 100.0f;
+    
+    // Fade-Dauer in Millisekunden (Hue API v2 dynamics.duration)
+    uint32_t fadeDurationMs = fadeDurationSec * 1000;
+    
+    String endpoint = "/clip/v2/resource/light/" + lightId;
+    
+    // API v2 structure with on, dimming, color_temperature, and dynamics
+    DynamicJsonDocument doc(512);
+    doc["on"]["on"] = on;
+    doc["dimming"]["brightness"] = brightnessPct;
+    doc["color_temperature"]["mirek"] = clampedMirek;
+    
+    if (fadeDurationSec > 0) {
+        doc["dynamics"]["duration"] = fadeDurationMs;
+    }
+    
+    String payload;
+    serializeJson(doc, payload);
+    
+    int statusCode = httpPut(endpoint, payload);
+    
+    if (statusCode == 200)
+    {
+        Serial.printf("[HueGatewayClient] Light %s -> On:%d Bri:%d CT:%d fade:%ds\n", 
+                      lightId.c_str(), on, brightness, clampedMirek, fadeDurationSec);
+        return true;
+    }
+    else
+    {
+        Serial.printf("[HueGatewayClient] ERROR: PUT state+CT failed - HTTP %d\n", statusCode);
+        return false;
+    }
+}
+
 bool HueGatewayClient::setLightColorTemperature(const String& lightId, uint16_t mirek)
 {
     if (!_initialized)

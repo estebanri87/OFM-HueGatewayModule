@@ -77,6 +77,18 @@ public:
     bool setLightState(const String& lightId, bool on, uint8_t brightness);
     
     /**
+     * @brief Setzt On/Off, Helligkeit und Farbtemperatur mit Fade-Dauer
+     * @param lightId Light Resource ID
+     * @param on true = ein
+     * @param brightness Helligkeit 0-254
+     * @param mirek Farbtemperatur in Mirek (153-500, wird geclampt)
+     * @param fadeDurationSec Fade-Dauer in Sekunden (0 = instant)
+     * @return true bei Erfolg
+     */
+    bool setLightStateWithColorTemp(const String& lightId, bool on, uint8_t brightness, 
+                                    uint16_t mirek, uint8_t fadeDurationSec);
+    
+    /**
      * @brief Setzt die Farbtemperatur eines Lichts
      * @param lightId Light Resource ID
      * @param mirek Farbtemperatur in Mirek (153-500, wird geclampt)

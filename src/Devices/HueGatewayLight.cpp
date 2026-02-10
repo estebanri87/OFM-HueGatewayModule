@@ -1,5 +1,6 @@
 #include "HueGatewayLight.h"
 #include "../HueGatewayClient.h"
+#include "../HCL/HCLMasterManager.h"
 #include <knx.h>
 
 HueGatewayLight::HueGatewayLight(const String& lightId, const String& name, HueGatewayClient* client)
@@ -14,6 +15,11 @@ HueGatewayLight::HueGatewayLight(const String& lightId, const String& name, HueG
     , _on(false)
     , _brightness(0)
     , _reachable(true)
+    , _hclMasterNum(0)
+    , _fadingActive(false)
+    , _currentKelvin(4000)
+    , _lastHCLUpdate(0)
+    , _lastHCLBrightness(0)
     , _initialized(false)
     , _lastUpdate(0)
 {
@@ -45,7 +51,34 @@ void HueGatewayLight::processKnxSwitch(bool value)
     
     Serial.printf("[HueGatewayLight] %s - KNX Switch: %d\n", _name.c_str(), value);
     
+    // Beim Ausschalten: Fade sofort abbrechen
+    if (!value && _fadingActive) {
+        _fadingActive = false;
+        Serial.printf("[HueGatewayLight] %s - Fade aborted by switch off\n", _name.c_str());
+    }
+    
     _on = value;
+    
+    // Beim Einschalten mit HCL: Aktuelle HCL-Werte anwenden
+    if (value && _hclMasterNum > 0 && _hclMasterNum <= 4) {
+        HCL::InterpolatedValue hclValue = HCL::masterManager.getCurrentValue(_hclMasterNum);
+        
+        // Helligkeit von % (0-100) zu Hue (0-254) konvertieren
+        _brightness = (uint8_t)((hclValue.brightness * 254) / 100);
+        
+        // Timer und letzte Werte aktualisieren für kontinuierliches Update
+        _lastHCLUpdate = millis();
+        _lastHCLBrightness = hclValue.brightness;
+        
+        Serial.printf("[HueGatewayLight] %s - Applying HCL Master %d values: %dK, %d%% (%d Hue)\n",
+                     _name.c_str(), _hclMasterNum, hclValue.kelvin, hclValue.brightness, _brightness);
+        
+        // Mit Farbtemperatur senden (Fade-Dauer aus HCL Manager)
+        uint8_t fadeDuration = HCL::masterManager.getFadeDuration();
+        sendToHueWithColorTemp(hclValue.kelvin, fadeDuration);
+        return;  // Frühzeitiger Exit, da sendToHueWithColorTemp bereits sendet
+    }
+    
     sendToHue();
 }
 
@@ -220,3 +253,87 @@ uint8_t HueGatewayLight::hueToKnxBrightness(uint8_t hueValue)
     return (uint8_t)((hueValue / 254.0f) * 255.0f);
 }
 
+uint16_t HueGatewayLight::kelvinToMirek(uint16_t kelvin)
+{
+    // Kelvin → mirek (Micro Reciprocal Kelvin)
+    // mirek = 1.000.000 / Kelvin
+    // Hue Range: 153-500 mirek (entspricht 6500K-2000K)
+    
+    if (kelvin < 2000) kelvin = 2000;
+    if (kelvin > 6500) kelvin = 6500;
+    
+    uint16_t mirek = 1000000 / kelvin;
+    
+    // Clamp to Hue's valid range
+    if (mirek < 153) mirek = 153;  // 6500K
+    if (mirek > 500) mirek = 500;  // 2000K
+    
+    return mirek;
+}
+
+void HueGatewayLight::sendToHueWithColorTemp(uint16_t kelvin, uint8_t fadeDuration)
+{
+    if (!_initialized || !_client)
+        return;
+    
+    uint16_t mirek = kelvinToMirek(kelvin);
+    _currentKelvin = kelvin;
+    
+    Serial.printf("[HueGatewayLight] %s - Sending to Hue: %s, %d%% (%d/254), %dK (%d mirek), fade:%ds\n",
+                  _name.c_str(), 
+                  _on ? "ON" : "OFF",
+                  (_brightness * 100) / 254,
+                  _brightness,
+                  kelvin,
+                  mirek,
+                  fadeDuration);
+    
+    _client->setLightStateWithColorTemp(_lightId, _on, _brightness, mirek, fadeDuration);
+    
+    // Status-KOs aktualisieren
+    updateKnxStatus();
+}
+
+void HueGatewayLight::loop()
+{
+    // Nur wenn initialisiert, eingeschaltet und einem HCL-Master zugeordnet
+    if (!_initialized || !_on || _hclMasterNum == 0 || _hclMasterNum > 4)
+        return;
+    
+    // Update-Intervall aus HCL-Manager abrufen (in Minuten)
+    uint8_t updateIntervalMin = HCL::masterManager.getUpdateInterval();
+    unsigned long updateIntervalMs = updateIntervalMin * 60000UL; // Minuten zu Millisekunden
+    
+    // Prüfen, ob genug Zeit vergangen ist
+    unsigned long now = millis();
+    if (updateIntervalMs > 0 && (now - _lastHCLUpdate) < updateIntervalMs)
+        return;
+    
+    // Aktuelle HCL-Werte abrufen
+    HCL::InterpolatedValue hclValue = HCL::masterManager.getCurrentValue(_hclMasterNum);
+    
+    // Prüfen, ob sich die Werte signifikant geändert haben
+    // Kelvin-Toleranz: ±10K, Brightness-Toleranz: ±2%
+    bool kelvinChanged = abs((int)hclValue.kelvin - (int)_currentKelvin) > 10;
+    bool brightnessChanged = abs((int)hclValue.brightness - (int)_lastHCLBrightness) > 2;
+    
+    if (!kelvinChanged && !brightnessChanged)
+        return;
+    
+    // Werte haben sich geändert - anwenden
+    _lastHCLUpdate = now;
+    _lastHCLBrightness = hclValue.brightness;
+    
+    // Helligkeit von % (0-100) zu Hue (0-254) konvertieren
+    _brightness = (uint8_t)((hclValue.brightness * 254) / 100);
+    
+    Serial.printf("[HueGatewayLight] %s - HCL Update: %dK → %dK, %d%% → %d%%\n",
+                 _name.c_str(), _currentKelvin, hclValue.kelvin, 
+                 (_currentKelvin * 100) / 254, hclValue.brightness);
+    
+    // Fade-Dauer aus HCL-Manager abrufen
+    uint8_t fadeDuration = HCL::masterManager.getFadeDuration();
+    
+    // Sende Update mit Farbtemperatur
+    sendToHueWithColorTemp(hclValue.kelvin, fadeDuration);
+}

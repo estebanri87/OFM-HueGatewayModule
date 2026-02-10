@@ -75,6 +75,12 @@ public:
     void sendStatusToKnx();
     
     /**
+     * @brief Loop-Methode für kontinuierliche HCL-Updates
+     * Prüft periodisch, ob HCL-Werte sich geändert haben und wendet sie an
+     */
+    void loop();
+    
+    /**
      * @brief Abrufen des Light IDs
      */
     String getLightId() const { return _lightId; }
@@ -90,6 +96,16 @@ public:
     bool isOn() const { return _on; }
     uint8_t getBrightness() const { return _brightness; }
     bool isReachable() const { return _reachable; }
+    
+    /**
+     * @brief HCL Master zuordnen (0 = kein HCL, 1-4 = Master Nr.)
+     */
+    void setHCLMaster(uint8_t masterNum) { _hclMasterNum = masterNum; }
+    
+    /**
+     * @brief HCL Master Nummer abrufen
+     */
+    uint8_t getHCLMaster() const { return _hclMasterNum; }
 
 private:
     String _lightId;
@@ -111,6 +127,13 @@ private:
     uint8_t _brightness;  // 0-254 (Hue API Range)
     bool _reachable;
     
+    // HCL Configuration
+    uint8_t _hclMasterNum;  // 0 = kein HCL, 1-4 = HCL Master Nummer
+    bool _fadingActive;     // true wenn gerade ein Fade läuft
+    uint16_t _currentKelvin; // Aktuelle Farbtemperatur in Kelvin (für HCL)
+    unsigned long _lastHCLUpdate; // Zeitstempel des letzten HCL-Updates (millis())
+    uint8_t _lastHCLBrightness; // Letzte angewendete HCL-Helligkeit (%)
+    
     // Flags
     bool _initialized;
     unsigned long _lastUpdate;
@@ -119,6 +142,20 @@ private:
      * @brief Sendet Update an Hue Bridge
      */
     void sendToHue();
+    
+    /**
+     * @brief Sendet Update mit Farbtemperatur an Hue Bridge
+     * @param kelvin Farbtemperatur in Kelvin (2000-6500)
+     * @param fadeDuration Überblendzeit in Sekunden (0 = sofort)
+     */
+    void sendToHueWithColorTemp(uint16_t kelvin, uint8_t fadeDuration = 0);
+    
+    /**
+     * @brief Konvertiert Kelvin zu mirek (Micro Reciprocal Kelvin)
+     * @param kelvin Farbtemperatur in Kelvin (2000-6500)
+     * @return mirek-Wert (153-500)
+     */
+    static uint16_t kelvinToMirek(uint16_t kelvin);
     
     /**
      * @brief Konvertiert KNX-Brightness (0-255) zu Hue (0-254)

@@ -8,6 +8,7 @@
 #include "OpenKNX.h"
 #include "knxprod.h"
 #include "HueGatewayAuth.h"
+#include "HCL/HCLMasterManager.h"
 
 // Forward Declarations
 class HueGatewayClient;
@@ -76,6 +77,7 @@ private:
     
     void setupBridge();
     void setupDevices();
+    void setupHCL();
     void checkConnection();
     void setupWebServer();
     void setupMDNS();
