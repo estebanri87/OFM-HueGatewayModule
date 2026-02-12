@@ -110,6 +110,11 @@
               <ParameterType Id="%AID%_PT-HUEHCLFadeDuration" Name="HUEHCLFadeDuration">
                 <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="1" maxInclusive="60" />
               </ParameterType>
+
+              <!-- HCL Master Name -->
+              <ParameterType Id="%AID%_PT-HUEHCLMasterName" Name="HUEHCLMasterName">
+                <TypeText SizeInBit="200" />
+              </ParameterType>
               
               <!-- HCL Master Selection -->
               <ParameterType Id="%AID%_PT-HUEHCLMasterSelect" Name="HUEHCLMasterSelect">
@@ -333,6 +338,12 @@
               <Parameter Id="%AID%_P-1440028" Name="HCLM4SP9Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M4 SP10 Zeit" Value=""><Memory CodeSegment="%MID%" Offset="348" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1440029" Name="HCLM4SP9Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M4 SP10 Kelvin" Value="4000"><Memory CodeSegment="%MID%" Offset="353" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1440030" Name="HCLM4SP9Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M4 SP10 Helligkeit" Value="100"><Memory CodeSegment="%MID%" Offset="355" BitOffset="0" /></Parameter>
+
+              <!-- HCL Master Names -->
+              <Parameter Id="%AID%_P-1410100" Name="HCLM1Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Master 1" Value=""><Memory CodeSegment="%MID%" Offset="356" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420100" Name="HCLM2Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Master 2" Value=""><Memory CodeSegment="%MID%" Offset="381" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430100" Name="HCLM3Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Master 3" Value=""><Memory CodeSegment="%MID%" Offset="406" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440100" Name="HCLM4Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Master 4" Value=""><Memory CodeSegment="%MID%" Offset="431" BitOffset="0" /></Parameter>
             </Parameters>
             
             <ParameterRefs>
@@ -347,6 +358,11 @@
               <ParameterRef Id="%AID%_P-1400011_R-140001101" RefId="%AID%_P-1400011" />
               <ParameterRef Id="%AID%_P-1400012_R-140001201" RefId="%AID%_P-1400012" />
               <ParameterRef Id="%AID%_P-1400013_R-140001301" RefId="%AID%_P-1400013" />
+
+              <ParameterRef Id="%AID%_P-1410100_R-141010001" RefId="%AID%_P-1410100" />
+              <ParameterRef Id="%AID%_P-1420100_R-142010001" RefId="%AID%_P-1420100" />
+              <ParameterRef Id="%AID%_P-1430100_R-143010001" RefId="%AID%_P-1430100" />
+              <ParameterRef Id="%AID%_P-1440100_R-144010001" RefId="%AID%_P-1440100" />
               
               <!-- HCL Master 1 ParameterRefs -->
               <ParameterRef Id="%AID%_P-1410001_R-141000101" RefId="%AID%_P-1410001" />
@@ -535,7 +551,9 @@
                 <ParameterSeparator Id="%AID%_PS-HUEDevices" Text="Lampen-Kanäle" UIHint="Headline" />
                 <ParameterSeparator Id="%AID%_PS-HUEScanInfo" Text="Um die Hue Lampen-IDs (UUIDs) abzurufen, öffnen Sie im Browser: http://openknx-bridge.local/hue/scan (bei geändertem HTTP-Port: http://openknx-bridge.local:[Port]/hue/scan)" UIHint="Information" />
                 <ParameterRefRef RefId="%AID%_P-1400005_R-140000501" />
-                
+              </ParameterBlock>
+              
+              <ParameterBlock Id="%AID%_PB-HUEHCL" Name="HueHCL" Text="HCL Manager" Icon="table-clock">
                 <ParameterSeparator Id="%AID%_PS-HUEHCL" Text="Human Centric Lighting (HCL)" UIHint="Headline" />
                 <ParameterRefRef RefId="%AID%_P-1400010_R-140001001" />
                 
@@ -547,279 +565,252 @@
                     <ParameterRefRef RefId="%AID%_P-1400012_R-140001201" />
                     <ParameterRefRef RefId="%AID%_P-1400013_R-140001301" />
                     
-                    <!-- HCL Master 1 Configuration -->
+                    <!-- HCL Master 1 Tab -->
                     <choose ParamRefId="%AID%_P-1400011_R-140001101">
                       <when test="&gt;=1">
-                        <ParameterSeparator Id="%AID%_PS-HUEHCLM1" Text="HCL Master 1 - Stützpunkte" UIHint="Headline" />
-                        <ParameterSeparator Id="%AID%_PS-HUEHCLM1Info" Text="Definieren Sie bis zu 10 Stützpunkte (Zeit, Kelvin, Helligkeit). Leere Zeiten werden ignoriert. Die Werte werden automatisch zwischen den Stützpunkten interpoliert." UIHint="Information" />
-                        
-                        <!-- Compact table-like presentation using smaller groups -->
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM1SP1" Name="M1SP1" Text="Stützpunkt 1" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1410001_R-141000101" />
-                          <ParameterRefRef RefId="%AID%_P-1410002_R-141000201" />
-                          <ParameterRefRef RefId="%AID%_P-1410003_R-141000301" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM1SP2" Name="M1SP2" Text="Stützpunkt 2" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1410004_R-141000401" />
-                          <ParameterRefRef RefId="%AID%_P-1410005_R-141000501" />
-                          <ParameterRefRef RefId="%AID%_P-1410006_R-141000601" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM1SP3" Name="M1SP3" Text="Stützpunkt 3" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1410007_R-141000701" />
-                          <ParameterRefRef RefId="%AID%_P-1410008_R-141000801" />
-                          <ParameterRefRef RefId="%AID%_P-1410009_R-141000901" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM1SP4" Name="M1SP4" Text="Stützpunkt 4" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1410010_R-141001001" />
-                          <ParameterRefRef RefId="%AID%_P-1410011_R-141001101" />
-                          <ParameterRefRef RefId="%AID%_P-1410012_R-141001201" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM1SP5" Name="M1SP5" Text="Stützpunkt 5" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1410013_R-141001301" />
-                          <ParameterRefRef RefId="%AID%_P-1410014_R-141001401" />
-                          <ParameterRefRef RefId="%AID%_P-1410015_R-141001501" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM1SP6" Name="M1SP6" Text="Stützpunkt 6" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1410016_R-141001601" />
-                          <ParameterRefRef RefId="%AID%_P-1410017_R-141001701" />
-                          <ParameterRefRef RefId="%AID%_P-1410018_R-141001801" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM1SP7" Name="M1SP7" Text="Stützpunkt 7" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1410019_R-141001901" />
-                          <ParameterRefRef RefId="%AID%_P-1410020_R-141002001" />
-                          <ParameterRefRef RefId="%AID%_P-1410021_R-141002101" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM1SP8" Name="M1SP8" Text="Stützpunkt 8" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1410022_R-141002201" />
-                          <ParameterRefRef RefId="%AID%_P-1410023_R-141002301" />
-                          <ParameterRefRef RefId="%AID%_P-1410024_R-141002401" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM1SP9" Name="M1SP9" Text="Stützpunkt 9" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1410025_R-141002501" />
-                          <ParameterRefRef RefId="%AID%_P-1410026_R-141002601" />
-                          <ParameterRefRef RefId="%AID%_P-1410027_R-141002701" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM1SP10" Name="M1SP10" Text="Stützpunkt 10" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1410028_R-141002801" />
-                          <ParameterRefRef RefId="%AID%_P-1410029_R-141002901" />
-                          <ParameterRefRef RefId="%AID%_P-1410030_R-141003001" />
+                        <ParameterBlock Id="%AID%_PB-HUEHCLM1" Name="HCLM1" Text="HCL Master 1">
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM1Name" Text="Bezeichnung" UIHint="Headline" />
+                          <ParameterRefRef RefId="%AID%_P-1410100_R-141010001" />
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM1" Text="Stützpunkte" UIHint="Headline" />
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM1Info" Text="Definieren Sie bis zu 10 Stützpunkte (Zeit, Kelvin, Helligkeit). Leere Zeiten werden ignoriert. Die Werte werden automatisch zwischen den Stützpunkten interpoliert." UIHint="Information" />
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM1SP1" Name="M1SP1" Text="Stützpunkt 1" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1410001_R-141000101" />
+                            <ParameterRefRef RefId="%AID%_P-1410002_R-141000201" />
+                            <ParameterRefRef RefId="%AID%_P-1410003_R-141000301" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM1SP2" Name="M1SP2" Text="Stützpunkt 2" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1410004_R-141000401" />
+                            <ParameterRefRef RefId="%AID%_P-1410005_R-141000501" />
+                            <ParameterRefRef RefId="%AID%_P-1410006_R-141000601" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM1SP3" Name="M1SP3" Text="Stützpunkt 3" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1410007_R-141000701" />
+                            <ParameterRefRef RefId="%AID%_P-1410008_R-141000801" />
+                            <ParameterRefRef RefId="%AID%_P-1410009_R-141000901" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM1SP4" Name="M1SP4" Text="Stützpunkt 4" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1410010_R-141001001" />
+                            <ParameterRefRef RefId="%AID%_P-1410011_R-141001101" />
+                            <ParameterRefRef RefId="%AID%_P-1410012_R-141001201" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM1SP5" Name="M1SP5" Text="Stützpunkt 5" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1410013_R-141001301" />
+                            <ParameterRefRef RefId="%AID%_P-1410014_R-141001401" />
+                            <ParameterRefRef RefId="%AID%_P-1410015_R-141001501" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM1SP6" Name="M1SP6" Text="Stützpunkt 6" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1410016_R-141001601" />
+                            <ParameterRefRef RefId="%AID%_P-1410017_R-141001701" />
+                            <ParameterRefRef RefId="%AID%_P-1410018_R-141001801" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM1SP7" Name="M1SP7" Text="Stützpunkt 7" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1410019_R-141001901" />
+                            <ParameterRefRef RefId="%AID%_P-1410020_R-141002001" />
+                            <ParameterRefRef RefId="%AID%_P-1410021_R-141002101" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM1SP8" Name="M1SP8" Text="Stützpunkt 8" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1410022_R-141002201" />
+                            <ParameterRefRef RefId="%AID%_P-1410023_R-141002301" />
+                            <ParameterRefRef RefId="%AID%_P-1410024_R-141002401" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM1SP9" Name="M1SP9" Text="Stützpunkt 9" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1410025_R-141002501" />
+                            <ParameterRefRef RefId="%AID%_P-1410026_R-141002601" />
+                            <ParameterRefRef RefId="%AID%_P-1410027_R-141002701" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM1SP10" Name="M1SP10" Text="Stützpunkt 10" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1410028_R-141002801" />
+                            <ParameterRefRef RefId="%AID%_P-1410029_R-141002901" />
+                            <ParameterRefRef RefId="%AID%_P-1410030_R-141003001" />
+                          </ParameterBlock>
                         </ParameterBlock>
                       </when>
                     </choose>
                     
-                    <!-- HCL Master 2 Configuration -->
+                    <!-- HCL Master 2 Tab -->
                     <choose ParamRefId="%AID%_P-1400011_R-140001101">
                       <when test="&gt;=2">
-                        <ParameterSeparator Id="%AID%_PS-HUEHCLM2" Text="HCL Master 2 - Stützpunkte" UIHint="Headline" />
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM2SP1" Name="M2SP1" Text="Stützpunkt 1" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1420001_R-142000101" />
-                          <ParameterRefRef RefId="%AID%_P-1420002_R-142000201" />
-                          <ParameterRefRef RefId="%AID%_P-1420003_R-142000301" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM2SP2" Name="M2SP2" Text="Stützpunkt 2" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1420004_R-142000401" />
-                          <ParameterRefRef RefId="%AID%_P-1420005_R-142000501" />
-                          <ParameterRefRef RefId="%AID%_P-1420006_R-142000601" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM2SP3" Name="M2SP3" Text="Stützpunkt 3" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1420007_R-142000701" />
-                          <ParameterRefRef RefId="%AID%_P-1420008_R-142000801" />
-                          <ParameterRefRef RefId="%AID%_P-1420009_R-142000901" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM2SP4" Name="M2SP4" Text="Stützpunkt 4" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1420010_R-142001001" />
-                          <ParameterRefRef RefId="%AID%_P-1420011_R-142001101" />
-                          <ParameterRefRef RefId="%AID%_P-1420012_R-142001201" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM2SP5" Name="M2SP5" Text="Stützpunkt 5" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1420013_R-142001301" />
-                          <ParameterRefRef RefId="%AID%_P-1420014_R-142001401" />
-                          <ParameterRefRef RefId="%AID%_P-1420015_R-142001501" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM2SP6" Name="M2SP6" Text="Stützpunkt 6" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1420016_R-142001601" />
-                          <ParameterRefRef RefId="%AID%_P-1420017_R-142001701" />
-                          <ParameterRefRef RefId="%AID%_P-1420018_R-142001801" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM2SP7" Name="M2SP7" Text="Stützpunkt 7" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1420019_R-142001901" />
-                          <ParameterRefRef RefId="%AID%_P-1420020_R-142002001" />
-                          <ParameterRefRef RefId="%AID%_P-1420021_R-142002101" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM2SP8" Name="M2SP8" Text="Stützpunkt 8" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1420022_R-142002201" />
-                          <ParameterRefRef RefId="%AID%_P-1420023_R-142002301" />
-                          <ParameterRefRef RefId="%AID%_P-1420024_R-142002401" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM2SP9" Name="M2SP9" Text="Stützpunkt 9" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1420025_R-142002501" />
-                          <ParameterRefRef RefId="%AID%_P-1420026_R-142002601" />
-                          <ParameterRefRef RefId="%AID%_P-1420027_R-142002701" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM2SP10" Name="M2SP10" Text="Stützpunkt 10" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1420028_R-142002801" />
-                          <ParameterRefRef RefId="%AID%_P-1420029_R-142002901" />
-                          <ParameterRefRef RefId="%AID%_P-1420030_R-142003001" />
+                        <ParameterBlock Id="%AID%_PB-HUEHCLM2" Name="HCLM2" Text="HCL Master 2">
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM2Name" Text="Bezeichnung" UIHint="Headline" />
+                          <ParameterRefRef RefId="%AID%_P-1420100_R-142010001" />
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM2" Text="Stützpunkte" UIHint="Headline" />
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM2SP1" Name="M2SP1" Text="Stützpunkt 1" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1420001_R-142000101" />
+                            <ParameterRefRef RefId="%AID%_P-1420002_R-142000201" />
+                            <ParameterRefRef RefId="%AID%_P-1420003_R-142000301" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM2SP2" Name="M2SP2" Text="Stützpunkt 2" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1420004_R-142000401" />
+                            <ParameterRefRef RefId="%AID%_P-1420005_R-142000501" />
+                            <ParameterRefRef RefId="%AID%_P-1420006_R-142000601" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM2SP3" Name="M2SP3" Text="Stützpunkt 3" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1420007_R-142000701" />
+                            <ParameterRefRef RefId="%AID%_P-1420008_R-142000801" />
+                            <ParameterRefRef RefId="%AID%_P-1420009_R-142000901" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM2SP4" Name="M2SP4" Text="Stützpunkt 4" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1420010_R-142001001" />
+                            <ParameterRefRef RefId="%AID%_P-1420011_R-142001101" />
+                            <ParameterRefRef RefId="%AID%_P-1420012_R-142001201" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM2SP5" Name="M2SP5" Text="Stützpunkt 5" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1420013_R-142001301" />
+                            <ParameterRefRef RefId="%AID%_P-1420014_R-142001401" />
+                            <ParameterRefRef RefId="%AID%_P-1420015_R-142001501" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM2SP6" Name="M2SP6" Text="Stützpunkt 6" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1420016_R-142001601" />
+                            <ParameterRefRef RefId="%AID%_P-1420017_R-142001701" />
+                            <ParameterRefRef RefId="%AID%_P-1420018_R-142001801" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM2SP7" Name="M2SP7" Text="Stützpunkt 7" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1420019_R-142001901" />
+                            <ParameterRefRef RefId="%AID%_P-1420020_R-142002001" />
+                            <ParameterRefRef RefId="%AID%_P-1420021_R-142002101" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM2SP8" Name="M2SP8" Text="Stützpunkt 8" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1420022_R-142002201" />
+                            <ParameterRefRef RefId="%AID%_P-1420023_R-142002301" />
+                            <ParameterRefRef RefId="%AID%_P-1420024_R-142002401" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM2SP9" Name="M2SP9" Text="Stützpunkt 9" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1420025_R-142002501" />
+                            <ParameterRefRef RefId="%AID%_P-1420026_R-142002601" />
+                            <ParameterRefRef RefId="%AID%_P-1420027_R-142002701" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM2SP10" Name="M2SP10" Text="Stützpunkt 10" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1420028_R-142002801" />
+                            <ParameterRefRef RefId="%AID%_P-1420029_R-142002901" />
+                            <ParameterRefRef RefId="%AID%_P-1420030_R-142003001" />
+                          </ParameterBlock>
                         </ParameterBlock>
                       </when>
                     </choose>
                     
-                    <!-- HCL Master 3 Configuration -->
+                    <!-- HCL Master 3 Tab -->
                     <choose ParamRefId="%AID%_P-1400011_R-140001101">
                       <when test="&gt;=3">
-                        <ParameterSeparator Id="%AID%_PS-HUEHCLM3" Text="HCL Master 3 - Stützpunkte" UIHint="Headline" />
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM3SP1" Name="M3SP1" Text="Stützpunkt 1" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1430001_R-143000101" />
-                          <ParameterRefRef RefId="%AID%_P-1430002_R-143000201" />
-                          <ParameterRefRef RefId="%AID%_P-1430003_R-143000301" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM3SP2" Name="M3SP2" Text="Stützpunkt 2" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1430004_R-143000401" />
-                          <ParameterRefRef RefId="%AID%_P-1430005_R-143000501" />
-                          <ParameterRefRef RefId="%AID%_P-1430006_R-143000601" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM3SP3" Name="M3SP3" Text="Stützpunkt 3" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1430007_R-143000701" />
-                          <ParameterRefRef RefId="%AID%_P-1430008_R-143000801" />
-                          <ParameterRefRef RefId="%AID%_P-1430009_R-143000901" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM3SP4" Name="M3SP4" Text="Stützpunkt 4" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1430010_R-143001001" />
-                          <ParameterRefRef RefId="%AID%_P-1430011_R-143001101" />
-                          <ParameterRefRef RefId="%AID%_P-1430012_R-143001201" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM3SP5" Name="M3SP5" Text="Stützpunkt 5" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1430013_R-143001301" />
-                          <ParameterRefRef RefId="%AID%_P-1430014_R-143001401" />
-                          <ParameterRefRef RefId="%AID%_P-1430015_R-143001501" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM3SP6" Name="M3SP6" Text="Stützpunkt 6" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1430016_R-143001601" />
-                          <ParameterRefRef RefId="%AID%_P-1430017_R-143001701" />
-                          <ParameterRefRef RefId="%AID%_P-1430018_R-143001801" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM3SP7" Name="M3SP7" Text="Stützpunkt 7" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1430019_R-143001901" />
-                          <ParameterRefRef RefId="%AID%_P-1430020_R-143002001" />
-                          <ParameterRefRef RefId="%AID%_P-1430021_R-143002101" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM3SP8" Name="M3SP8" Text="Stützpunkt 8" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1430022_R-143002201" />
-                          <ParameterRefRef RefId="%AID%_P-1430023_R-143002301" />
-                          <ParameterRefRef RefId="%AID%_P-1430024_R-143002401" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM3SP9" Name="M3SP9" Text="Stützpunkt 9" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1430025_R-143002501" />
-                          <ParameterRefRef RefId="%AID%_P-1430026_R-143002601" />
-                          <ParameterRefRef RefId="%AID%_P-1430027_R-143002701" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM3SP10" Name="M3SP10" Text="Stützpunkt 10" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1430028_R-143002801" />
-                          <ParameterRefRef RefId="%AID%_P-1430029_R-143002901" />
-                          <ParameterRefRef RefId="%AID%_P-1430030_R-143003001" />
+                        <ParameterBlock Id="%AID%_PB-HUEHCLM3" Name="HCLM3" Text="HCL Master 3">
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM3Name" Text="Bezeichnung" UIHint="Headline" />
+                          <ParameterRefRef RefId="%AID%_P-1430100_R-143010001" />
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM3" Text="Stützpunkte" UIHint="Headline" />
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM3SP1" Name="M3SP1" Text="Stützpunkt 1" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1430001_R-143000101" />
+                            <ParameterRefRef RefId="%AID%_P-1430002_R-143000201" />
+                            <ParameterRefRef RefId="%AID%_P-1430003_R-143000301" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM3SP2" Name="M3SP2" Text="Stützpunkt 2" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1430004_R-143000401" />
+                            <ParameterRefRef RefId="%AID%_P-1430005_R-143000501" />
+                            <ParameterRefRef RefId="%AID%_P-1430006_R-143000601" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM3SP3" Name="M3SP3" Text="Stützpunkt 3" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1430007_R-143000701" />
+                            <ParameterRefRef RefId="%AID%_P-1430008_R-143000801" />
+                            <ParameterRefRef RefId="%AID%_P-1430009_R-143000901" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM3SP4" Name="M3SP4" Text="Stützpunkt 4" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1430010_R-143001001" />
+                            <ParameterRefRef RefId="%AID%_P-1430011_R-143001101" />
+                            <ParameterRefRef RefId="%AID%_P-1430012_R-143001201" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM3SP5" Name="M3SP5" Text="Stützpunkt 5" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1430013_R-143001301" />
+                            <ParameterRefRef RefId="%AID%_P-1430014_R-143001401" />
+                            <ParameterRefRef RefId="%AID%_P-1430015_R-143001501" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM3SP6" Name="M3SP6" Text="Stützpunkt 6" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1430016_R-143001601" />
+                            <ParameterRefRef RefId="%AID%_P-1430017_R-143001701" />
+                            <ParameterRefRef RefId="%AID%_P-1430018_R-143001801" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM3SP7" Name="M3SP7" Text="Stützpunkt 7" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1430019_R-143001901" />
+                            <ParameterRefRef RefId="%AID%_P-1430020_R-143002001" />
+                            <ParameterRefRef RefId="%AID%_P-1430021_R-143002101" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM3SP8" Name="M3SP8" Text="Stützpunkt 8" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1430022_R-143002201" />
+                            <ParameterRefRef RefId="%AID%_P-1430023_R-143002301" />
+                            <ParameterRefRef RefId="%AID%_P-1430024_R-143002401" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM3SP9" Name="M3SP9" Text="Stützpunkt 9" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1430025_R-143002501" />
+                            <ParameterRefRef RefId="%AID%_P-1430026_R-143002601" />
+                            <ParameterRefRef RefId="%AID%_P-1430027_R-143002701" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM3SP10" Name="M3SP10" Text="Stützpunkt 10" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1430028_R-143002801" />
+                            <ParameterRefRef RefId="%AID%_P-1430029_R-143002901" />
+                            <ParameterRefRef RefId="%AID%_P-1430030_R-143003001" />
+                          </ParameterBlock>
                         </ParameterBlock>
                       </when>
                     </choose>
                     
-                    <!-- HCL Master 4 Configuration -->
+                    <!-- HCL Master 4 Tab -->
                     <choose ParamRefId="%AID%_P-1400011_R-140001101">
                       <when test="&gt;=4">
-                        <ParameterSeparator Id="%AID%_PS-HUEHCLM4" Text="HCL Master 4 - Stützpunkte" UIHint="Headline" />
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM4SP1" Name="M4SP1" Text="Stützpunkt 1" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1440001_R-144000101" />
-                          <ParameterRefRef RefId="%AID%_P-1440002_R-144000201" />
-                          <ParameterRefRef RefId="%AID%_P-1440003_R-144000301" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM4SP2" Name="M4SP2" Text="Stützpunkt 2" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1440004_R-144000401" />
-                          <ParameterRefRef RefId="%AID%_P-1440005_R-144000501" />
-                          <ParameterRefRef RefId="%AID%_P-1440006_R-144000601" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM4SP3" Name="M4SP3" Text="Stützpunkt 3" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1440007_R-144000701" />
-                          <ParameterRefRef RefId="%AID%_P-1440008_R-144000801" />
-                          <ParameterRefRef RefId="%AID%_P-1440009_R-144000901" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM4SP4" Name="M4SP4" Text="Stützpunkt 4" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1440010_R-144001001" />
-                          <ParameterRefRef RefId="%AID%_P-1440011_R-144001101" />
-                          <ParameterRefRef RefId="%AID%_P-1440012_R-144001201" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM4SP5" Name="M4SP5" Text="Stützpunkt 5" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1440013_R-144001301" />
-                          <ParameterRefRef RefId="%AID%_P-1440014_R-144001401" />
-                          <ParameterRefRef RefId="%AID%_P-1440015_R-144001501" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM4SP6" Name="M4SP6" Text="Stützpunkt 6" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1440016_R-144001601" />
-                          <ParameterRefRef RefId="%AID%_P-1440017_R-144001701" />
-                          <ParameterRefRef RefId="%AID%_P-1440018_R-144001801" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM4SP7" Name="M4SP7" Text="Stützpunkt 7" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1440019_R-144001901" />
-                          <ParameterRefRef RefId="%AID%_P-1440020_R-144002001" />
-                          <ParameterRefRef RefId="%AID%_P-1440021_R-144002101" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM4SP8" Name="M4SP8" Text="Stützpunkt 8" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1440022_R-144002201" />
-                          <ParameterRefRef RefId="%AID%_P-1440023_R-144002301" />
-                          <ParameterRefRef RefId="%AID%_P-1440024_R-144002401" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM4SP9" Name="M4SP9" Text="Stützpunkt 9" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1440025_R-144002501" />
-                          <ParameterRefRef RefId="%AID%_P-1440026_R-144002601" />
-                          <ParameterRefRef RefId="%AID%_P-1440027_R-144002701" />
-                        </ParameterBlock>
-                        
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM4SP10" Name="M4SP10" Text="Stützpunkt 10" Inline="true">
-                          <ParameterRefRef RefId="%AID%_P-1440028_R-144002801" />
-                          <ParameterRefRef RefId="%AID%_P-1440029_R-144002901" />
-                          <ParameterRefRef RefId="%AID%_P-1440030_R-144003001" />
+                        <ParameterBlock Id="%AID%_PB-HUEHCLM4" Name="HCLM4" Text="HCL Master 4">
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM4Name" Text="Bezeichnung" UIHint="Headline" />
+                          <ParameterRefRef RefId="%AID%_P-1440100_R-144010001" />
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM4" Text="Stützpunkte" UIHint="Headline" />
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM4SP1" Name="M4SP1" Text="Stützpunkt 1" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1440001_R-144000101" />
+                            <ParameterRefRef RefId="%AID%_P-1440002_R-144000201" />
+                            <ParameterRefRef RefId="%AID%_P-1440003_R-144000301" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM4SP2" Name="M4SP2" Text="Stützpunkt 2" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1440004_R-144000401" />
+                            <ParameterRefRef RefId="%AID%_P-1440005_R-144000501" />
+                            <ParameterRefRef RefId="%AID%_P-1440006_R-144000601" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM4SP3" Name="M4SP3" Text="Stützpunkt 3" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1440007_R-144000701" />
+                            <ParameterRefRef RefId="%AID%_P-1440008_R-144000801" />
+                            <ParameterRefRef RefId="%AID%_P-1440009_R-144000901" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM4SP4" Name="M4SP4" Text="Stützpunkt 4" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1440010_R-144001001" />
+                            <ParameterRefRef RefId="%AID%_P-1440011_R-144001101" />
+                            <ParameterRefRef RefId="%AID%_P-1440012_R-144001201" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM4SP5" Name="M4SP5" Text="Stützpunkt 5" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1440013_R-144001301" />
+                            <ParameterRefRef RefId="%AID%_P-1440014_R-144001401" />
+                            <ParameterRefRef RefId="%AID%_P-1440015_R-144001501" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM4SP6" Name="M4SP6" Text="Stützpunkt 6" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1440016_R-144001601" />
+                            <ParameterRefRef RefId="%AID%_P-1440017_R-144001701" />
+                            <ParameterRefRef RefId="%AID%_P-1440018_R-144001801" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM4SP7" Name="M4SP7" Text="Stützpunkt 7" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1440019_R-144001901" />
+                            <ParameterRefRef RefId="%AID%_P-1440020_R-144002001" />
+                            <ParameterRefRef RefId="%AID%_P-1440021_R-144002101" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM4SP8" Name="M4SP8" Text="Stützpunkt 8" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1440022_R-144002201" />
+                            <ParameterRefRef RefId="%AID%_P-1440023_R-144002301" />
+                            <ParameterRefRef RefId="%AID%_P-1440024_R-144002401" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM4SP9" Name="M4SP9" Text="Stützpunkt 9" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1440025_R-144002501" />
+                            <ParameterRefRef RefId="%AID%_P-1440026_R-144002601" />
+                            <ParameterRefRef RefId="%AID%_P-1440027_R-144002701" />
+                          </ParameterBlock>
+                          <ParameterBlock Id="%AID%_PB-HUEHCLM4SP10" Name="M4SP10" Text="Stützpunkt 10" Inline="true">
+                            <ParameterRefRef RefId="%AID%_P-1440028_R-144002801" />
+                            <ParameterRefRef RefId="%AID%_P-1440029_R-144002901" />
+                            <ParameterRefRef RefId="%AID%_P-1440030_R-144003001" />
+                          </ParameterBlock>
                         </ParameterBlock>
                       </when>
                     </choose>
-                    
                   </when>
                 </choose>
-                
               </ParameterBlock>
               
               <!-- Include Light Channel Template -->

@@ -66,10 +66,15 @@ bool HueGatewayDiscovery::discoverMDNS(String& ip)
 {
     Serial.println("[HueGatewayDiscovery] Starting mDNS discovery...");
     
-    if (!MDNS.begin("openknx-hue"))
+    static bool mdnsStarted = false;
+    if (!mdnsStarted)
     {
-        Serial.println("[HueGatewayDiscovery] mDNS init failed");
-        return false;
+        if (!MDNS.begin("openknx-hue"))
+        {
+            Serial.println("[HueGatewayDiscovery] mDNS init failed");
+            return false;
+        }
+        mdnsStarted = true;
     }
     
     Serial.println("[HueGatewayDiscovery] Querying for _hue._tcp.local...");

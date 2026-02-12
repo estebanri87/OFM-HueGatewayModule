@@ -291,7 +291,7 @@ void HueGatewayLight::sendToHueWithColorTemp(uint16_t kelvin, uint8_t fadeDurati
     _client->setLightStateWithColorTemp(_lightId, _on, _brightness, mirek, fadeDuration);
     
     // Status-KOs aktualisieren
-    updateKnxStatus();
+    sendStatusToKnx();
 }
 
 void HueGatewayLight::loop()

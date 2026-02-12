@@ -2,13 +2,13 @@
 
 #include <Arduino.h>
 #include <WiFi.h>
-#include <WebServer.h>
 #include <ESPmDNS.h>
 #include <ArduinoJson.h>
 #include "OpenKNX.h"
 #include "knxprod.h"
 #include "HueGatewayAuth.h"
 #include "HCL/HCLMasterManager.h"
+#include "WebUI.h"
 
 // Forward Declarations
 class HueGatewayClient;
@@ -43,7 +43,7 @@ private:
     bool _initialized;
     unsigned long _lastLoop;
     HueGatewayClient* _client;
-    WebServer* _webServer;
+    
     
     // Device Management
     static const int MAX_LIGHTS = 20;
@@ -79,18 +79,23 @@ private:
     void setupDevices();
     void setupHCL();
     void checkConnection();
-    void setupWebServer();
+    void refreshLightStatus();
+    void setupWebUI();
     void setupMDNS();
     void pollAuthentication();
     bool initClientWithAppKey();
     void startPairing();
     
-    // Web server handlers
-    void handleRoot();
-    void handleScan();
-    void handleScanText();
-    void handleStatus();
-    void handleNotFound();
+    // Web UI handlers (absolute URIs)
+    static esp_err_t handleWebRoot(httpd_req_t* req);
+    static esp_err_t handleWebScan(httpd_req_t* req);
+    static esp_err_t handleWebScanText(httpd_req_t* req);
+    static esp_err_t handleWebStatus(httpd_req_t* req);
+    
+    // Web UI pages (under WEBUI_BASE_URI)
+    static esp_err_t pageWebRoot(const char* uri, httpd_req_t* req, void* arg);
+    static esp_err_t pageWebScan(const char* uri, httpd_req_t* req, void* arg);
+    static esp_err_t pageWebStatus(const char* uri, httpd_req_t* req, void* arg);
     
     // Scan functions
     void performBridgeScan();

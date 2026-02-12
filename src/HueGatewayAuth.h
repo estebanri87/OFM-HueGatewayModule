@@ -16,11 +16,19 @@ public:
     HueGatewayAuth();
     
     /**
-     * @brief Authentifizierung durchführen
+     * @brief Authentifizierung durchführen (non-blocking)
      * @param bridgeIP IP-Adresse der Bridge
-     * @return true wenn erfolgreich
+     * @return true wenn App-Key vorhanden oder erfolgreich angefordert
      */
     bool authenticate(const char* bridgeIP);
+    
+    /**
+     * @brief Authentifizierung mit Wartefenster (blocking, fuer Konsole)
+     * @param bridgeIP IP-Adresse der Bridge
+     * @param timeoutMs Wartezeit in Millisekunden
+     * @return true wenn erfolgreich
+     */
+    bool authenticateBlocking(const char* bridgeIP, uint32_t timeoutMs = 30000);
     
     /**
      * @brief Prüft ob gültiger App-Key vorhanden
@@ -33,9 +41,11 @@ public:
      * @return App-Key oder leerer String
      */
     String getAppKey();
+    String getClientKey();
 
-    // Loads stored app key from preferences into memory.
+    // Loads stored app key (and client key if available) from preferences into memory.
     bool loadStoredAppKey();
+    bool loadStoredClientKey();
 
     // Attempts a single app-key request (non-blocking helper).
     bool requestAppKeyOnce(const char* ip);
@@ -45,8 +55,11 @@ public:
     
 private:
     String _appKey;
+    String _clientKey;
 
     void saveAppKey(const String& key);
+    void saveClientKey(const String& key);
     String loadAppKey();
+    String loadClientKey();
 };
 

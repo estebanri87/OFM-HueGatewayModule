@@ -8,7 +8,6 @@ HueGatewayModule::HueGatewayModule()
     : _initialized(false)
     , _lastLoop(0)
     , _client(nullptr)
-    , _webServer(nullptr)
     , _lightCount(0)
     , _bridgeStatus(BridgeStatus::DISCONNECTED)
     , _ledBlinkTime(0)
@@ -29,21 +28,13 @@ HueGatewayModule::HueGatewayModule()
 HueGatewayModule::~HueGatewayModule()
 {
     // Cleanup Lights
-    for (int i = 0; i < _lightCount; i++)
+    for (int i = 0; i < MAX_LIGHTS; i++)
     {
         if (_lights[i])
         {
             delete _lights[i];
             _lights[i] = nullptr;
         }
-    }
-    
-    // Cleanup WebServer
-    if (_webServer)
-    {
-        _webServer->stop();
-        delete _webServer;
-        _webServer = nullptr;
     }
     
     // Cleanup Client
@@ -62,7 +53,7 @@ void HueGatewayModule::setup()
     setupBridge();
     setupDevices();
     setupHCL();
-    setupWebServer();
+    setupWebUI();
     setupMDNS();
     
     _initialized = true;
@@ -73,12 +64,6 @@ void HueGatewayModule::loop()
 {
     if (!_initialized)
         return;
-    
-    // Handle web server requests
-    if (_webServer != nullptr)
-    {
-        _webServer->handleClient();
-    }
     
     // Update Info-LED pattern
     updateInfoLED();
@@ -94,7 +79,7 @@ void HueGatewayModule::loop()
     }
     
     // Update all lights with HCL loop
-    for (int i = 0; i < _lightCount; i++)
+    for (int i = 0; i < MAX_LIGHTS; i++)
     {
         if (_lights[i] != nullptr)
         {
@@ -109,6 +94,7 @@ void HueGatewayModule::loop()
     {
         _lastLoop = now;
         checkConnection();
+        refreshLightStatus();
     }
     
     // TODO: Event Stream handling
@@ -157,12 +143,16 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
     }
     
     // KO an entsprechendes Light weiterleiten
-    // Neue Struktur pro Kanal (5 KOs):
+    // Neue Struktur pro Kanal (9 KOs):
     // KO 0: Switch (DPT 1.001)
     // KO 1: Brightness absolut (DPT 5.001)
     // KO 2: Dimming relativ (DPT 3.007)
     // KO 3: Status Switch (DPT 1.001)
     // KO 4: Status Brightness (DPT 5.001)
+    // KO 5: ColorTemp (DPT 7.600)
+    // KO 6: Status ColorTemp (DPT 7.600)
+    // KO 7: ColorRGB (DPT 232.600)
+    // KO 8: Status ColorRGB (DPT 232.600)
     
     if (koNumber < KO_CHANNELS_START)
     {
@@ -171,12 +161,12 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
     }
     
     uint16_t channelOffset = koNumber - KO_CHANNELS_START;
-    uint8_t channel = channelOffset / 5;  // 5 KOs per channel (geändert von 3)
-    uint8_t koType = channelOffset % 5;   // 0=Switch, 1=Brightness, 2=Dimming, 3=StatusSwitch, 4=StatusBrightness
+    uint8_t channel = channelOffset / 9;  // 9 KOs per channel
+    uint8_t koType = channelOffset % 9;   // 0-8 siehe oben
     
-    if (channel >= _lightCount)
+    if (channel >= MAX_LIGHTS || _lights[channel] == nullptr)
     {
-        Serial.printf("[HueGatewayModule] Channel %d out of range\n", channel);
+        Serial.printf("[HueGatewayModule] Channel %d not configured\n", channel);
         return;
     }
     
@@ -203,6 +193,14 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
         case 3:  // Status Switch KO (read-only, no processing)
             break;
         case 4:  // Status Brightness KO (read-only, no processing)
+            break;
+        case 5:  // ColorTemp KO (TODO)
+            break;
+        case 6:  // Status ColorTemp KO (read-only, no processing)
+            break;
+        case 7:  // ColorRGB KO (TODO)
+            break;
+        case 8:  // Status ColorRGB KO (read-only, no processing)
             break;
     }
 }
@@ -240,7 +238,7 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
         
         // Authentication prüfen
         HueGatewayAuth auth;
-        if (!auth.authenticate(bridgeIP.c_str()))
+        if (!auth.authenticateBlocking(bridgeIP.c_str(), 30000))
         {
             Serial.println("ERROR: Authentication failed!");
             Serial.println("Press button on Hue Bridge and retry");
@@ -297,8 +295,10 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
         Serial.println("\nConfigured Devices:");
         Serial.println("---------------------------------");
         
-        for (int i = 0; i < _lightCount; i++)
+        for (int i = 0; i < MAX_LIGHTS; i++)
         {
+            if (_lights[i] == nullptr)
+                continue;
             Serial.printf("%2d: %-25s %s\n", i, 
                           _lights[i]->getName().c_str(),
                           _lights[i]->getLightId().c_str());
@@ -457,15 +457,15 @@ void HueGatewayModule::setupDevices()
         // KO+7/8: ColorRGB (bei Typ 3)
         
         // HueGatewayLight Instanz erstellen
-        _lights[_lightCount] = new HueGatewayLight(String(lightId), String(name), _client);
-        _lights[_lightCount]->begin(koSwitch, koBrightness, koDimming, koStatusSwitch, koStatusBrightness);
+        _lights[ch] = new HueGatewayLight(String(lightId), String(name), _client);
+        _lights[ch]->begin(koSwitch, koBrightness, koDimming, koStatusSwitch, koStatusBrightness);
         
         // HCL Master Zuordnung lesen (wenn Parameter verfügbar)
         #ifdef ParamHUE_CH1HCLMaster
         // TODO: Dies muss angepasst werden wenn die Parameter-Indizes verfügbar sind
         // Für jetzt: Placeholder - wird ignoriert bis XML komplett ist
         uint8_t hclMaster = 0;  // 0 = kein HCL, 1-4 = Master Nummer
-        _lights[_lightCount]->setHCLMaster(hclMaster);
+        _lights[ch]->setHCLMaster(hclMaster);
         #endif
         
         Serial.printf("[HueGatewayModule] Channel %d: %s (%s) -> KO %d/%d/%d/%d/%d\n",
@@ -517,7 +517,7 @@ void HueGatewayModule::setupHCL()
         Serial.println("[HueGatewayModule] Loading HCL Master 1 setpoints...");
         
         // Setpoint 0
-        const char* time0 = ParamHUE_HCLM1SP0Time;
+        const char* time0 = reinterpret_cast<const char*>(ParamHUE_HCLM1SP0Time);
         uint16_t kelvin0 = ParamHUE_HCLM1SP0Kelvin;
         uint8_t brightness0 = ParamHUE_HCLM1SP0Brightness;
         uint16_t minutes0 = HCL::Setpoint::parseTime(time0);
@@ -527,7 +527,7 @@ void HueGatewayModule::setupHCL()
         }
         
         // Setpoint 1
-        const char* time1 = ParamHUE_HCLM1SP1Time;
+        const char* time1 = reinterpret_cast<const char*>(ParamHUE_HCLM1SP1Time);
         uint16_t kelvin1 = ParamHUE_HCLM1SP1Kelvin;
         uint8_t brightness1 = ParamHUE_HCLM1SP1Brightness;
         uint16_t minutes1 = HCL::Setpoint::parseTime(time1);
@@ -537,7 +537,7 @@ void HueGatewayModule::setupHCL()
         }
         
         // Setpoint 2
-        const char* time2 = ParamHUE_HCLM1SP2Time;
+        const char* time2 = reinterpret_cast<const char*>(ParamHUE_HCLM1SP2Time);
         uint16_t kelvin2 = ParamHUE_HCLM1SP2Kelvin;
         uint8_t brightness2 = ParamHUE_HCLM1SP2Brightness;
         uint16_t minutes2 = HCL::Setpoint::parseTime(time2);
@@ -547,7 +547,7 @@ void HueGatewayModule::setupHCL()
         }
         
         // Setpoint 3
-        const char* time3 = ParamHUE_HCLM1SP3Time;
+        const char* time3 = reinterpret_cast<const char*>(ParamHUE_HCLM1SP3Time);
         uint16_t kelvin3 = ParamHUE_HCLM1SP3Kelvin;
         uint8_t brightness3 = ParamHUE_HCLM1SP3Brightness;
         uint16_t minutes3 = HCL::Setpoint::parseTime(time3);
@@ -557,7 +557,7 @@ void HueGatewayModule::setupHCL()
         }
         
         // Setpoint 4
-        const char* time4 = ParamHUE_HCLM1SP4Time;
+        const char* time4 = reinterpret_cast<const char*>(ParamHUE_HCLM1SP4Time);
         uint16_t kelvin4 = ParamHUE_HCLM1SP4Kelvin;
         uint8_t brightness4 = ParamHUE_HCLM1SP4Brightness;
         uint16_t minutes4 = HCL::Setpoint::parseTime(time4);
@@ -567,7 +567,7 @@ void HueGatewayModule::setupHCL()
         }
         
         // Setpoint 5
-        const char* time5 = ParamHUE_HCLM1SP5Time;
+        const char* time5 = reinterpret_cast<const char*>(ParamHUE_HCLM1SP5Time);
         uint16_t kelvin5 = ParamHUE_HCLM1SP5Kelvin;
         uint8_t brightness5 = ParamHUE_HCLM1SP5Brightness;
         uint16_t minutes5 = HCL::Setpoint::parseTime(time5);
@@ -577,7 +577,7 @@ void HueGatewayModule::setupHCL()
         }
         
         // Setpoint 6
-        const char* time6 = ParamHUE_HCLM1SP6Time;
+        const char* time6 = reinterpret_cast<const char*>(ParamHUE_HCLM1SP6Time);
         uint16_t kelvin6 = ParamHUE_HCLM1SP6Kelvin;
         uint8_t brightness6 = ParamHUE_HCLM1SP6Brightness;
         uint16_t minutes6 = HCL::Setpoint::parseTime(time6);
@@ -587,7 +587,7 @@ void HueGatewayModule::setupHCL()
         }
         
         // Setpoint 7
-        const char* time7 = ParamHUE_HCLM1SP7Time;
+        const char* time7 = reinterpret_cast<const char*>(ParamHUE_HCLM1SP7Time);
         uint16_t kelvin7 = ParamHUE_HCLM1SP7Kelvin;
         uint8_t brightness7 = ParamHUE_HCLM1SP7Brightness;
         uint16_t minutes7 = HCL::Setpoint::parseTime(time7);
@@ -597,7 +597,7 @@ void HueGatewayModule::setupHCL()
         }
         
         // Setpoint 8
-        const char* time8 = ParamHUE_HCLM1SP8Time;
+        const char* time8 = reinterpret_cast<const char*>(ParamHUE_HCLM1SP8Time);
         uint16_t kelvin8 = ParamHUE_HCLM1SP8Kelvin;
         uint8_t brightness8 = ParamHUE_HCLM1SP8Brightness;
         uint16_t minutes8 = HCL::Setpoint::parseTime(time8);
@@ -607,7 +607,7 @@ void HueGatewayModule::setupHCL()
         }
         
         // Setpoint 9
-        const char* time9 = ParamHUE_HCLM1SP9Time;
+        const char* time9 = reinterpret_cast<const char*>(ParamHUE_HCLM1SP9Time);
         uint16_t kelvin9 = ParamHUE_HCLM1SP9Kelvin;
         uint8_t brightness9 = ParamHUE_HCLM1SP9Brightness;
         uint16_t minutes9 = HCL::Setpoint::parseTime(time9);
@@ -629,9 +629,18 @@ void HueGatewayModule::setupHCL()
         Serial.println("[HueGatewayModule] Loading HCL Master 2 setpoints...");
         
         // Setpoints 0-9 for Master 2
-        const char* times[] = {ParamHUE_HCLM2SP0Time, ParamHUE_HCLM2SP1Time, ParamHUE_HCLM2SP2Time, 
-                               ParamHUE_HCLM2SP3Time, ParamHUE_HCLM2SP4Time, ParamHUE_HCLM2SP5Time,
-                               ParamHUE_HCLM2SP6Time, ParamHUE_HCLM2SP7Time, ParamHUE_HCLM2SP8Time, ParamHUE_HCLM2SP9Time};
+        const char* times[] = {
+            reinterpret_cast<const char*>(ParamHUE_HCLM2SP0Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM2SP1Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM2SP2Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM2SP3Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM2SP4Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM2SP5Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM2SP6Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM2SP7Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM2SP8Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM2SP9Time)
+        };
         uint16_t kelvins[] = {ParamHUE_HCLM2SP0Kelvin, ParamHUE_HCLM2SP1Kelvin, ParamHUE_HCLM2SP2Kelvin,
                               ParamHUE_HCLM2SP3Kelvin, ParamHUE_HCLM2SP4Kelvin, ParamHUE_HCLM2SP5Kelvin,
                               ParamHUE_HCLM2SP6Kelvin, ParamHUE_HCLM2SP7Kelvin, ParamHUE_HCLM2SP8Kelvin, ParamHUE_HCLM2SP9Kelvin};
@@ -658,9 +667,18 @@ void HueGatewayModule::setupHCL()
     if (master3) {
         Serial.println("[HueGatewayModule] Loading HCL Master 3 setpoints...");
         
-        const char* times[] = {ParamHUE_HCLM3SP0Time, ParamHUE_HCLM3SP1Time, ParamHUE_HCLM3SP2Time, 
-                               ParamHUE_HCLM3SP3Time, ParamHUE_HCLM3SP4Time, ParamHUE_HCLM3SP5Time,
-                               ParamHUE_HCLM3SP6Time, ParamHUE_HCLM3SP7Time, ParamHUE_HCLM3SP8Time, ParamHUE_HCLM3SP9Time};
+        const char* times[] = {
+            reinterpret_cast<const char*>(ParamHUE_HCLM3SP0Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM3SP1Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM3SP2Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM3SP3Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM3SP4Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM3SP5Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM3SP6Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM3SP7Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM3SP8Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM3SP9Time)
+        };
         uint16_t kelvins[] = {ParamHUE_HCLM3SP0Kelvin, ParamHUE_HCLM3SP1Kelvin, ParamHUE_HCLM3SP2Kelvin,
                               ParamHUE_HCLM3SP3Kelvin, ParamHUE_HCLM3SP4Kelvin, ParamHUE_HCLM3SP5Kelvin,
                               ParamHUE_HCLM3SP6Kelvin, ParamHUE_HCLM3SP7Kelvin, ParamHUE_HCLM3SP8Kelvin, ParamHUE_HCLM3SP9Kelvin};
@@ -687,9 +705,18 @@ void HueGatewayModule::setupHCL()
     if (master4) {
         Serial.println("[HueGatewayModule] Loading HCL Master 4 setpoints...");
         
-        const char* times[] = {ParamHUE_HCLM4SP0Time, ParamHUE_HCLM4SP1Time, ParamHUE_HCLM4SP2Time, 
-                               ParamHUE_HCLM4SP3Time, ParamHUE_HCLM4SP4Time, ParamHUE_HCLM4SP5Time,
-                               ParamHUE_HCLM4SP6Time, ParamHUE_HCLM4SP7Time, ParamHUE_HCLM4SP8Time, ParamHUE_HCLM4SP9Time};
+        const char* times[] = {
+            reinterpret_cast<const char*>(ParamHUE_HCLM4SP0Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM4SP1Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM4SP2Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM4SP3Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM4SP4Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM4SP5Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM4SP6Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM4SP7Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM4SP8Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM4SP9Time)
+        };
         uint16_t kelvins[] = {ParamHUE_HCLM4SP0Kelvin, ParamHUE_HCLM4SP1Kelvin, ParamHUE_HCLM4SP2Kelvin,
                               ParamHUE_HCLM4SP3Kelvin, ParamHUE_HCLM4SP4Kelvin, ParamHUE_HCLM4SP5Kelvin,
                               ParamHUE_HCLM4SP6Kelvin, ParamHUE_HCLM4SP7Kelvin, ParamHUE_HCLM4SP8Kelvin, ParamHUE_HCLM4SP9Kelvin};
@@ -719,6 +746,38 @@ void HueGatewayModule::checkConnection()
     // TODO: Bridge Verbindung prüfen
     // TODO: Bei Offline: Reconnect versuchen
     // Serial.println("[HueGatewayModule] Connection check (not implemented)");
+}
+
+void HueGatewayModule::refreshLightStatus()
+{
+    if (!_client || !_client->isInitialized())
+    {
+        return;
+    }
+
+    HueGatewayLightState lights[MAX_LIGHTS];
+    int count = _client->getLights(lights, MAX_LIGHTS);
+    if (count <= 0)
+    {
+        return;
+    }
+
+    for (int i = 0; i < MAX_LIGHTS; i++)
+    {
+        if (_lights[i] == nullptr)
+        {
+            continue;
+        }
+
+        for (int j = 0; j < count; j++)
+        {
+            if (lights[j].id == _lights[i]->getLightId())
+            {
+                _lights[i]->updateFromHue(lights[j].on, lights[j].brightness);
+                break;
+            }
+        }
+    }
 }
 
 // ===== Helper Methods =====
@@ -972,34 +1031,98 @@ void HueGatewayModule::updateInfoLED()
 }
 
 // ============================================
-// WebServer Implementation
+// WebUI Implementation
 // ============================================
 
-void HueGatewayModule::setupWebServer()
+static esp_err_t send_html(httpd_req_t* req, const String& html, int status)
 {
-    // Read port from ETS parameter (default 80)
-    uint16_t port = ParamHUE_HUEWebServerPort;
-    
-    if (port == 0)
-        port = 80;
-    
-    _webServer = new WebServer(port);
-    
-    // Define routes
-    _webServer->on("/", [this]() { this->handleRoot(); });
-    _webServer->on("/hue/scan", [this]() { this->handleScan(); });
-    _webServer->on("/hue/scan.txt", [this]() { this->handleScanText(); });
-    _webServer->on("/hue/status", [this]() { this->handleStatus(); });
-    _webServer->onNotFound([this]() { this->handleNotFound(); });
-    
-    _webServer->begin();
-    
-    Serial.printf("[HueGatewayModule] Webserver started on port %d\n", port);
-    Serial.printf("[HueGatewayModule] Access: http://%s:%d/hue/scan\n", WiFi.localIP().toString().c_str(), port);
+    httpd_resp_set_type(req, "text/html; charset=UTF-8");
+    httpd_resp_set_status(req, status == 200 ? "200 OK" : "500 Internal Server Error");
+    return httpd_resp_send(req, html.c_str(), HTTPD_RESP_USE_STRLEN);
 }
 
-void HueGatewayModule::handleRoot()
+static esp_err_t send_text(httpd_req_t* req, const String& text, int status)
 {
+    httpd_resp_set_type(req, "text/plain; charset=UTF-8");
+    httpd_resp_set_status(req, status == 200 ? "200 OK" : "500 Internal Server Error");
+    return httpd_resp_send(req, text.c_str(), HTTPD_RESP_USE_STRLEN);
+}
+
+static String maskKey(const String& key)
+{
+    if (key.length() == 0)
+        return "(none)";
+    if (key.length() <= 6)
+        return String("***") + key;
+    return String("***") + key.substring(key.length() - 6);
+}
+
+void HueGatewayModule::setupWebUI()
+{
+    WebHandler scanHandler;
+    scanHandler.name = "Hue Scan (HTML)";
+    scanHandler.uri = "/hue/scan";
+    scanHandler.httpd = {
+        .uri = "/hue/scan",
+        .method = HTTP_GET,
+        .handler = HueGatewayModule::handleWebScan,
+        .user_ctx = this
+    };
+    openknxWebUI.addHandler(scanHandler);
+
+    WebHandler scanTextHandler;
+    scanTextHandler.name = "Hue Scan (Text)";
+    scanTextHandler.uri = "/hue/scan.txt";
+    scanTextHandler.isVisible = false;
+    scanTextHandler.httpd = {
+        .uri = "/hue/scan.txt",
+        .method = HTTP_GET,
+        .handler = HueGatewayModule::handleWebScanText,
+        .user_ctx = this
+    };
+    openknxWebUI.addHandler(scanTextHandler);
+
+    WebHandler statusHandler;
+    statusHandler.name = "Hue Status";
+    statusHandler.uri = "/hue/status";
+    statusHandler.httpd = {
+        .uri = "/hue/status",
+        .method = HTTP_GET,
+        .handler = HueGatewayModule::handleWebStatus,
+        .user_ctx = this
+    };
+    openknxWebUI.addHandler(statusHandler);
+
+    WebPage rootPage;
+    rootPage.uri = "/hue";
+    rootPage.name = "Hue Gateway";
+    rootPage.handler = HueGatewayModule::pageWebRoot;
+    rootPage.arg = this;
+    openknxWebUI.addPage(rootPage);
+
+    WebPage scanPage;
+    scanPage.uri = "/hue/scan";
+    scanPage.name = "Hue Scan";
+    scanPage.handler = HueGatewayModule::pageWebScan;
+    scanPage.arg = this;
+    openknxWebUI.addPage(scanPage);
+
+    WebPage statusPage;
+    statusPage.uri = "/hue/status";
+    statusPage.name = "Hue Status";
+    statusPage.handler = HueGatewayModule::pageWebStatus;
+    statusPage.arg = this;
+    openknxWebUI.addPage(statusPage);
+
+    Serial.printf("[HueGatewayModule] WebUI pages registered at %s\n", openknxWebUI.getBaseUri());
+}
+
+esp_err_t HueGatewayModule::handleWebRoot(httpd_req_t* req)
+{
+    HueGatewayModule* self = static_cast<HueGatewayModule*>(req->user_ctx);
+    if (self == nullptr)
+        return httpd_resp_send_500(req);
+
     String html = "<!DOCTYPE html><html><head><meta charset='UTF-8'>";
     html += "<title>OpenKNX Hue Bridge Module</title>";
     html += "<style>body{font-family:Arial,sans-serif;margin:40px;background:#f5f5f5;}";
@@ -1013,41 +1136,63 @@ void HueGatewayModule::handleRoot()
     html += "</div>";
     html += "<div class='card'><h3>Info</h3>";
     html += "<p><strong>Device IP:</strong> " + WiFi.localIP().toString() + "</p>";
-    html += "<p><strong>Module Version:</strong> " + String(version().c_str()) + "</p>";
+    html += "<p><strong>Module Version:</strong> " + String(self->version().c_str()) + "</p>";
+    if (self->_bridgeStatus == BridgeStatus::WAIT_FOR_BUTTON)
+    {
+        html += "<p><strong>Auth:</strong> Waiting for Hue Bridge button press</p>";
+    }
+    else if (self->_bridgeStatus == BridgeStatus::CONNECTED)
+    {
+        html += "<p><strong>Auth:</strong> Connected</p>";
+    }
+    else
+    {
+        html += "<p><strong>Auth:</strong> Not connected</p>";
+    }
+    html += "<p><strong>App-Key:</strong> " + maskKey(self->_auth.getAppKey()) + "</p>";
+    html += "<p><strong>Client-Key:</strong> " + maskKey(self->_auth.getClientKey()) + "</p>";
     html += "</div></body></html>";
-    
-    _webServer->send(200, "text/html; charset=UTF-8", html);
+
+    return send_html(req, html, 200);
 }
 
-void HueGatewayModule::handleScan()
+esp_err_t HueGatewayModule::handleWebScan(httpd_req_t* req)
 {
-    if (!_client || !_initialized)
+    HueGatewayModule* self = static_cast<HueGatewayModule*>(req->user_ctx);
+    if (self == nullptr)
+        return httpd_resp_send_500(req);
+
+    if (!self->_client || !self->_initialized)
     {
         String html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Scan Error</title></head><body>";
         html += "<h1>❌ Error</h1><p>Module not initialized. Check bridge authentication.</p>";
         html += "<a href='/'>← Back</a></body></html>";
-        _webServer->send(500, "text/html; charset=UTF-8", html);
-        return;
-    }
-    
-    String html = getBridgeScanHTML();
-    _webServer->send(200, "text/html; charset=UTF-8", html);
-}
-
-void HueGatewayModule::handleScanText()
-{
-    if (!_client || !_initialized)
-    {
-        _webServer->send(500, "text/plain; charset=UTF-8", "Module not initialized. Check bridge authentication.\n");
-        return;
+        return send_html(req, html, 500);
     }
 
-    String text = getBridgeScanText();
-    _webServer->send(200, "text/plain; charset=UTF-8", text);
+    String html = self->getBridgeScanHTML();
+    return send_html(req, html, 200);
 }
 
-void HueGatewayModule::handleStatus()
+esp_err_t HueGatewayModule::handleWebScanText(httpd_req_t* req)
 {
+    HueGatewayModule* self = static_cast<HueGatewayModule*>(req->user_ctx);
+    if (self == nullptr)
+        return httpd_resp_send_500(req);
+
+    if (!self->_client || !self->_initialized)
+        return send_text(req, "Module not initialized. Check bridge authentication.\n", 500);
+
+    String text = self->getBridgeScanText();
+    return send_text(req, text, 200);
+}
+
+esp_err_t HueGatewayModule::handleWebStatus(httpd_req_t* req)
+{
+    HueGatewayModule* self = static_cast<HueGatewayModule*>(req->user_ctx);
+    if (self == nullptr)
+        return httpd_resp_send_500(req);
+
     String html = "<!DOCTYPE html><html><head><meta charset='UTF-8'>";
     html += "<title>Hue Status</title>";
     html += "<style>body{font-family:Arial,sans-serif;margin:40px;background:#f5f5f5;}";
@@ -1056,23 +1201,59 @@ void HueGatewayModule::handleStatus()
     html += "th{background:#007bff;color:white;}</style></head><body>";
     html += "<h1>📊 Module Status</h1>";
     html += "<table><tr><th>Parameter</th><th>Value</th></tr>";
-    html += "<tr><td>Initialized</td><td>" + String(_initialized ? "✅ Yes" : "❌ No") + "</td></tr>";
+    html += "<tr><td>Initialized</td><td>" + String(self->_initialized ? "✅ Yes" : "❌ No") + "</td></tr>";
     html += "<tr><td>Device IP</td><td>" + WiFi.localIP().toString() + "</td></tr>";
-    html += "<tr><td>Active Lights</td><td>" + String(_lightCount) + " / " + String(MAX_LIGHTS) + "</td></tr>";
+    html += "<tr><td>Active Lights</td><td>" + String(self->_lightCount) + " / " + String(MAX_LIGHTS) + "</td></tr>";
     html += "<tr><td>WiFi RSSI</td><td>" + String(WiFi.RSSI()) + " dBm</td></tr>";
+    String bridgeStatusText = "Unknown";
+    switch (self->_bridgeStatus)
+    {
+        case BridgeStatus::DISCONNECTED: bridgeStatusText = "Disconnected"; break;
+        case BridgeStatus::CONNECTING: bridgeStatusText = "Connecting"; break;
+        case BridgeStatus::WAIT_FOR_BUTTON: bridgeStatusText = "Waiting for button"; break;
+        case BridgeStatus::AUTHENTICATING: bridgeStatusText = "Authenticating"; break;
+        case BridgeStatus::CONNECTED: bridgeStatusText = "Connected"; break;
+    }
+    html += "<tr><td>Bridge Status</td><td>" + bridgeStatusText + "</td></tr>";
+    html += "<tr><td>App-Key</td><td>" + maskKey(self->_auth.getAppKey()) + "</td></tr>";
+    html += "<tr><td>Client-Key</td><td>" + maskKey(self->_auth.getClientKey()) + "</td></tr>";
     html += "</table>";
     html += "<br><a href='/'>← Back</a></body></html>";
-    
-    _webServer->send(200, "text/html; charset=UTF-8", html);
+
+    return send_html(req, html, 200);
 }
 
-void HueGatewayModule::handleNotFound()
+esp_err_t HueGatewayModule::pageWebRoot(const char* uri, httpd_req_t* req, void* arg)
 {
-    String html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>404</title></head><body>";
-    html += "<h1>404 - Not Found</h1><p>The requested URL was not found.</p>";
-    html += "<a href='/'>← Back to Home</a></body></html>";
-    
-    _webServer->send(404, "text/html; charset=UTF-8", html);
+    (void)uri;
+    HueGatewayModule* self = static_cast<HueGatewayModule*>(arg);
+    if (self == nullptr)
+        return httpd_resp_send_500(req);
+
+    req->user_ctx = self;
+    return HueGatewayModule::handleWebRoot(req);
+}
+
+esp_err_t HueGatewayModule::pageWebScan(const char* uri, httpd_req_t* req, void* arg)
+{
+    (void)uri;
+    HueGatewayModule* self = static_cast<HueGatewayModule*>(arg);
+    if (self == nullptr)
+        return httpd_resp_send_500(req);
+
+    req->user_ctx = self;
+    return HueGatewayModule::handleWebScan(req);
+}
+
+esp_err_t HueGatewayModule::pageWebStatus(const char* uri, httpd_req_t* req, void* arg)
+{
+    (void)uri;
+    HueGatewayModule* self = static_cast<HueGatewayModule*>(arg);
+    if (self == nullptr)
+        return httpd_resp_send_500(req);
+
+    req->user_ctx = self;
+    return HueGatewayModule::handleWebStatus(req);
 }
 
 String HueGatewayModule::getBridgeScanHTML()
@@ -1096,7 +1277,6 @@ String HueGatewayModule::getBridgeScanHTML()
     {
         html += "<div class='error'>❌ No lights found! Check bridge connection.</div>";
         html += "<br><a href='/'><button>← Back</button></a></body></html>";
-        _webServer->send(200, "text/html; charset=UTF-8", html);
         return html;
     }
     
