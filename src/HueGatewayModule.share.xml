@@ -111,6 +111,25 @@
                 <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="1" maxInclusive="60" />
               </ParameterType>
 
+              <!-- HCL Curve Type -->
+              <ParameterType Id="%AID%_PT-HUEHCLCurveType" Name="HUEHCLCurveType">
+                <TypeRestriction Base="Value" SizeInBit="8" UIHint="DropDown">
+                  <Enumeration Text="FixedTime (Stützpunkte)" Value="0" Id="%ENID%" />
+                  <Enumeration Text="SunPosition" Value="1" Id="%ENID%" />
+                  <Enumeration Text="Manual Kelvin" Value="2" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+
+              <!-- HCL Slew Rate (Kelvin per minute) -->
+              <ParameterType Id="%AID%_PT-HUEHCLSlewRate" Name="HUEHCLSlewRate">
+                <TypeNumber SizeInBit="16" Type="unsignedInt" minInclusive="0" maxInclusive="5000" />
+              </ParameterType>
+
+              <!-- HCL Time Offset in minutes -->
+              <ParameterType Id="%AID%_PT-HUEHCLOffsetMinutes" Name="HUEHCLOffsetMinutes">
+                <TypeNumber SizeInBit="16" Type="signedInt" minInclusive="-180" maxInclusive="180" />
+              </ParameterType>
+
               <!-- HCL Master Name -->
               <ParameterType Id="%AID%_PT-HUEHCLMasterName" Name="HUEHCLMasterName">
                 <TypeText SizeInBit="200" />
@@ -344,6 +363,42 @@
               <Parameter Id="%AID%_P-1420100" Name="HCLM2Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Master 2" Value=""><Memory CodeSegment="%MID%" Offset="381" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1430100" Name="HCLM3Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Master 3" Value=""><Memory CodeSegment="%MID%" Offset="406" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1440100" Name="HCLM4Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Master 4" Value=""><Memory CodeSegment="%MID%" Offset="431" BitOffset="0" /></Parameter>
+
+              <!-- HCL Master 1 Advanced -->
+              <Parameter Id="%AID%_P-1410201" Name="HCLM1CurveType" ParameterType="%AID%_PT-HUEHCLCurveType" Text="Kurventyp" Value="0"><Memory CodeSegment="%MID%" Offset="456" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410202" Name="HCLM1SlewRate" ParameterType="%AID%_PT-HUEHCLSlewRate" Text="Slew-Rate (K/min)" Value="0"><Memory CodeSegment="%MID%" Offset="457" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410203" Name="HCLM1ManualKelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="Manual Kelvin" Value="4000"><Memory CodeSegment="%MID%" Offset="459" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410204" Name="HCLM1Sunrise" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunrise (HH:MM)" Value="06:30"><Memory CodeSegment="%MID%" Offset="461" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410205" Name="HCLM1Sunset" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunset (HH:MM)" Value="19:30"><Memory CodeSegment="%MID%" Offset="466" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410206" Name="HCLM1SunriseOffset" ParameterType="%AID%_PT-HUEHCLOffsetMinutes" Text="Sunrise Offset (min)" Value="0"><Memory CodeSegment="%MID%" Offset="471" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410207" Name="HCLM1SunsetOffset" ParameterType="%AID%_PT-HUEHCLOffsetMinutes" Text="Sunset Offset (min)" Value="0"><Memory CodeSegment="%MID%" Offset="473" BitOffset="0" /></Parameter>
+
+              <!-- HCL Master 2 Advanced -->
+              <Parameter Id="%AID%_P-1420201" Name="HCLM2CurveType" ParameterType="%AID%_PT-HUEHCLCurveType" Text="Kurventyp" Value="0"><Memory CodeSegment="%MID%" Offset="475" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420202" Name="HCLM2SlewRate" ParameterType="%AID%_PT-HUEHCLSlewRate" Text="Slew-Rate (K/min)" Value="0"><Memory CodeSegment="%MID%" Offset="476" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420203" Name="HCLM2ManualKelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="Manual Kelvin" Value="4000"><Memory CodeSegment="%MID%" Offset="478" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420204" Name="HCLM2Sunrise" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunrise (HH:MM)" Value="06:30"><Memory CodeSegment="%MID%" Offset="480" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420205" Name="HCLM2Sunset" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunset (HH:MM)" Value="19:30"><Memory CodeSegment="%MID%" Offset="485" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420206" Name="HCLM2SunriseOffset" ParameterType="%AID%_PT-HUEHCLOffsetMinutes" Text="Sunrise Offset (min)" Value="0"><Memory CodeSegment="%MID%" Offset="490" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420207" Name="HCLM2SunsetOffset" ParameterType="%AID%_PT-HUEHCLOffsetMinutes" Text="Sunset Offset (min)" Value="0"><Memory CodeSegment="%MID%" Offset="492" BitOffset="0" /></Parameter>
+
+              <!-- HCL Master 3 Advanced -->
+              <Parameter Id="%AID%_P-1430201" Name="HCLM3CurveType" ParameterType="%AID%_PT-HUEHCLCurveType" Text="Kurventyp" Value="0"><Memory CodeSegment="%MID%" Offset="494" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430202" Name="HCLM3SlewRate" ParameterType="%AID%_PT-HUEHCLSlewRate" Text="Slew-Rate (K/min)" Value="0"><Memory CodeSegment="%MID%" Offset="495" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430203" Name="HCLM3ManualKelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="Manual Kelvin" Value="4000"><Memory CodeSegment="%MID%" Offset="497" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430204" Name="HCLM3Sunrise" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunrise (HH:MM)" Value="06:30"><Memory CodeSegment="%MID%" Offset="499" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430205" Name="HCLM3Sunset" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunset (HH:MM)" Value="19:30"><Memory CodeSegment="%MID%" Offset="504" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430206" Name="HCLM3SunriseOffset" ParameterType="%AID%_PT-HUEHCLOffsetMinutes" Text="Sunrise Offset (min)" Value="0"><Memory CodeSegment="%MID%" Offset="509" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430207" Name="HCLM3SunsetOffset" ParameterType="%AID%_PT-HUEHCLOffsetMinutes" Text="Sunset Offset (min)" Value="0"><Memory CodeSegment="%MID%" Offset="511" BitOffset="0" /></Parameter>
+
+              <!-- HCL Master 4 Advanced -->
+              <Parameter Id="%AID%_P-1440201" Name="HCLM4CurveType" ParameterType="%AID%_PT-HUEHCLCurveType" Text="Kurventyp" Value="0"><Memory CodeSegment="%MID%" Offset="513" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440202" Name="HCLM4SlewRate" ParameterType="%AID%_PT-HUEHCLSlewRate" Text="Slew-Rate (K/min)" Value="0"><Memory CodeSegment="%MID%" Offset="514" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440203" Name="HCLM4ManualKelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="Manual Kelvin" Value="4000"><Memory CodeSegment="%MID%" Offset="516" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440204" Name="HCLM4Sunrise" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunrise (HH:MM)" Value="06:30"><Memory CodeSegment="%MID%" Offset="518" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440205" Name="HCLM4Sunset" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunset (HH:MM)" Value="19:30"><Memory CodeSegment="%MID%" Offset="523" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440206" Name="HCLM4SunriseOffset" ParameterType="%AID%_PT-HUEHCLOffsetMinutes" Text="Sunrise Offset (min)" Value="0"><Memory CodeSegment="%MID%" Offset="528" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440207" Name="HCLM4SunsetOffset" ParameterType="%AID%_PT-HUEHCLOffsetMinutes" Text="Sunset Offset (min)" Value="0"><Memory CodeSegment="%MID%" Offset="530" BitOffset="0" /></Parameter>
             </Parameters>
             
             <ParameterRefs>
@@ -363,6 +418,38 @@
               <ParameterRef Id="%AID%_P-1420100_R-142010001" RefId="%AID%_P-1420100" />
               <ParameterRef Id="%AID%_P-1430100_R-143010001" RefId="%AID%_P-1430100" />
               <ParameterRef Id="%AID%_P-1440100_R-144010001" RefId="%AID%_P-1440100" />
+
+              <ParameterRef Id="%AID%_P-1410201_R-141020101" RefId="%AID%_P-1410201" />
+              <ParameterRef Id="%AID%_P-1410202_R-141020201" RefId="%AID%_P-1410202" />
+              <ParameterRef Id="%AID%_P-1410203_R-141020301" RefId="%AID%_P-1410203" />
+              <ParameterRef Id="%AID%_P-1410204_R-141020401" RefId="%AID%_P-1410204" />
+              <ParameterRef Id="%AID%_P-1410205_R-141020501" RefId="%AID%_P-1410205" />
+              <ParameterRef Id="%AID%_P-1410206_R-141020601" RefId="%AID%_P-1410206" />
+              <ParameterRef Id="%AID%_P-1410207_R-141020701" RefId="%AID%_P-1410207" />
+
+              <ParameterRef Id="%AID%_P-1420201_R-142020101" RefId="%AID%_P-1420201" />
+              <ParameterRef Id="%AID%_P-1420202_R-142020201" RefId="%AID%_P-1420202" />
+              <ParameterRef Id="%AID%_P-1420203_R-142020301" RefId="%AID%_P-1420203" />
+              <ParameterRef Id="%AID%_P-1420204_R-142020401" RefId="%AID%_P-1420204" />
+              <ParameterRef Id="%AID%_P-1420205_R-142020501" RefId="%AID%_P-1420205" />
+              <ParameterRef Id="%AID%_P-1420206_R-142020601" RefId="%AID%_P-1420206" />
+              <ParameterRef Id="%AID%_P-1420207_R-142020701" RefId="%AID%_P-1420207" />
+
+              <ParameterRef Id="%AID%_P-1430201_R-143020101" RefId="%AID%_P-1430201" />
+              <ParameterRef Id="%AID%_P-1430202_R-143020201" RefId="%AID%_P-1430202" />
+              <ParameterRef Id="%AID%_P-1430203_R-143020301" RefId="%AID%_P-1430203" />
+              <ParameterRef Id="%AID%_P-1430204_R-143020401" RefId="%AID%_P-1430204" />
+              <ParameterRef Id="%AID%_P-1430205_R-143020501" RefId="%AID%_P-1430205" />
+              <ParameterRef Id="%AID%_P-1430206_R-143020601" RefId="%AID%_P-1430206" />
+              <ParameterRef Id="%AID%_P-1430207_R-143020701" RefId="%AID%_P-1430207" />
+
+              <ParameterRef Id="%AID%_P-1440201_R-144020101" RefId="%AID%_P-1440201" />
+              <ParameterRef Id="%AID%_P-1440202_R-144020201" RefId="%AID%_P-1440202" />
+              <ParameterRef Id="%AID%_P-1440203_R-144020301" RefId="%AID%_P-1440203" />
+              <ParameterRef Id="%AID%_P-1440204_R-144020401" RefId="%AID%_P-1440204" />
+              <ParameterRef Id="%AID%_P-1440205_R-144020501" RefId="%AID%_P-1440205" />
+              <ParameterRef Id="%AID%_P-1440206_R-144020601" RefId="%AID%_P-1440206" />
+              <ParameterRef Id="%AID%_P-1440207_R-144020701" RefId="%AID%_P-1440207" />
               
               <!-- HCL Master 1 ParameterRefs -->
               <ParameterRef Id="%AID%_P-1410001_R-141000101" RefId="%AID%_P-1410001" />
@@ -571,6 +658,14 @@
                         <ParameterBlock Id="%AID%_PB-HUEHCLM1" Name="HCLM1" Text="HCL Master 1">
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM1Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1410100_R-141010001" />
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM1Advanced" Text="Erweiterte Kurve" UIHint="Headline" />
+                          <ParameterRefRef RefId="%AID%_P-1410201_R-141020101" />
+                          <ParameterRefRef RefId="%AID%_P-1410202_R-141020201" />
+                          <ParameterRefRef RefId="%AID%_P-1410203_R-141020301" />
+                          <ParameterRefRef RefId="%AID%_P-1410204_R-141020401" />
+                          <ParameterRefRef RefId="%AID%_P-1410205_R-141020501" />
+                          <ParameterRefRef RefId="%AID%_P-1410206_R-141020601" />
+                          <ParameterRefRef RefId="%AID%_P-1410207_R-141020701" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM1" Text="Stützpunkte" UIHint="Headline" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM1Info" Text="Definieren Sie bis zu 10 Stützpunkte (Zeit, Kelvin, Helligkeit). Leere Zeiten werden ignoriert. Die Werte werden automatisch zwischen den Stützpunkten interpoliert." UIHint="Information" />
                           <ParameterBlock Id="%AID%_PB-HUEHCLM1SP1" Name="M1SP1" Text="Stützpunkt 1" Inline="true">
@@ -633,6 +728,14 @@
                         <ParameterBlock Id="%AID%_PB-HUEHCLM2" Name="HCLM2" Text="HCL Master 2">
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM2Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1420100_R-142010001" />
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM2Advanced" Text="Erweiterte Kurve" UIHint="Headline" />
+                          <ParameterRefRef RefId="%AID%_P-1420201_R-142020101" />
+                          <ParameterRefRef RefId="%AID%_P-1420202_R-142020201" />
+                          <ParameterRefRef RefId="%AID%_P-1420203_R-142020301" />
+                          <ParameterRefRef RefId="%AID%_P-1420204_R-142020401" />
+                          <ParameterRefRef RefId="%AID%_P-1420205_R-142020501" />
+                          <ParameterRefRef RefId="%AID%_P-1420206_R-142020601" />
+                          <ParameterRefRef RefId="%AID%_P-1420207_R-142020701" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM2" Text="Stützpunkte" UIHint="Headline" />
                           <ParameterBlock Id="%AID%_PB-HUEHCLM2SP1" Name="M2SP1" Text="Stützpunkt 1" Inline="true">
                             <ParameterRefRef RefId="%AID%_P-1420001_R-142000101" />
@@ -694,6 +797,14 @@
                         <ParameterBlock Id="%AID%_PB-HUEHCLM3" Name="HCLM3" Text="HCL Master 3">
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM3Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1430100_R-143010001" />
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM3Advanced" Text="Erweiterte Kurve" UIHint="Headline" />
+                          <ParameterRefRef RefId="%AID%_P-1430201_R-143020101" />
+                          <ParameterRefRef RefId="%AID%_P-1430202_R-143020201" />
+                          <ParameterRefRef RefId="%AID%_P-1430203_R-143020301" />
+                          <ParameterRefRef RefId="%AID%_P-1430204_R-143020401" />
+                          <ParameterRefRef RefId="%AID%_P-1430205_R-143020501" />
+                          <ParameterRefRef RefId="%AID%_P-1430206_R-143020601" />
+                          <ParameterRefRef RefId="%AID%_P-1430207_R-143020701" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM3" Text="Stützpunkte" UIHint="Headline" />
                           <ParameterBlock Id="%AID%_PB-HUEHCLM3SP1" Name="M3SP1" Text="Stützpunkt 1" Inline="true">
                             <ParameterRefRef RefId="%AID%_P-1430001_R-143000101" />
@@ -755,6 +866,14 @@
                         <ParameterBlock Id="%AID%_PB-HUEHCLM4" Name="HCLM4" Text="HCL Master 4">
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM4Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1440100_R-144010001" />
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM4Advanced" Text="Erweiterte Kurve" UIHint="Headline" />
+                          <ParameterRefRef RefId="%AID%_P-1440201_R-144020101" />
+                          <ParameterRefRef RefId="%AID%_P-1440202_R-144020201" />
+                          <ParameterRefRef RefId="%AID%_P-1440203_R-144020301" />
+                          <ParameterRefRef RefId="%AID%_P-1440204_R-144020401" />
+                          <ParameterRefRef RefId="%AID%_P-1440205_R-144020501" />
+                          <ParameterRefRef RefId="%AID%_P-1440206_R-144020601" />
+                          <ParameterRefRef RefId="%AID%_P-1440207_R-144020701" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM4" Text="Stützpunkte" UIHint="Headline" />
                           <ParameterBlock Id="%AID%_PB-HUEHCLM4SP1" Name="M4SP1" Text="Stützpunkt 1" Inline="true">
                             <ParameterRefRef RefId="%AID%_P-1440001_R-144000101" />

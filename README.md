@@ -26,6 +26,118 @@ cd OFM-HueBridgeModule
 pio run
 ```
 
+## ETS Runtime-Verhalten
+
+- `SyncDir` steuert die Datenrichtung pro Kanal:
+  - `1` = nur KNX → Hue
+  - `2` = nur Hue → KNX
+  - `3` = bidirektional
+- `PollInterval` gilt pro Kanal für Hue → KNX Status-Übernahme:
+  - `0` = deaktiviert (kein Polling auf diesem Kanal)
+  - `>0` = Pollingintervall in Sekunden
+- `MinBrightness` wird bei KNX → Hue Helligkeitswerten erzwungen (Switch-On, absolut, relativ), solange der Wert > 0 ist.
+
+## Runtime-Feldtest
+
+1. Vorbereitung
+  - Einen Hue-Kanal aktivieren und einer realen Leuchte zuordnen (UUID gesetzt).
+  - Für den Test dieselbe Leuchte in der Hue App sichtbar lassen.
+
+2. `SyncDir = 1` (nur KNX → Hue)
+  - ETS senden: Schalten, Helligkeit, Dimmen.
+  - Erwartung: Leuchte reagiert in Hue.
+  - Änderung in Hue App (manuell):
+  - Erwartung: keine Status-Rückmeldung nach KNX (Status-KOs bleiben unverändert).
+
+3. `SyncDir = 2` (nur Hue → KNX)
+  - ETS senden: Schalten/Helligkeit.
+  - Erwartung: wird ignoriert (keine Änderung an der Leuchte).
+  - Änderung in Hue App (manuell):
+  - Erwartung: Status-KOs werden gemäß `PollInterval` aktualisiert.
+
+4. `SyncDir = 3` (bidirektional)
+  - ETS und Hue App abwechselnd verwenden.
+  - Erwartung: beide Richtungen funktionieren.
+
+5. `PollInterval`
+  - `PollInterval = 0`:
+  - Erwartung: Hue → KNX Polling für diesen Kanal deaktiviert.
+  - `PollInterval = 5`:
+  - Erwartung: Hue-seitige Änderungen erscheinen innerhalb von ca. 5-10s in KNX.
+
+6. `MinBrightness`
+  - `MinBrightness = 30` setzen.
+  - ETS Helligkeit auf 1..29% senden.
+  - Erwartung: Leuchte fährt mindestens auf ~30%.
+  - ETS Helligkeit = 0%:
+  - Erwartung: Leuchte AUS (MinBrightness greift nicht bei AUS).
+
+## P3 Verhalten (Polling-Scheduler)
+
+- Das Modul prüft Hue→KNX in 1s-Ticks, damit auch kleine `PollInterval`-Werte korrekt aufgelöst werden.
+- Der Abruf von `/clip/v2/resource/light` erfolgt nur, wenn mindestens ein Kanal wirklich fällig ist.
+- Damit sinkt unnötige Last auf der Hue Bridge bei deaktivierten oder langen Kanal-Intervallen.
+
+## Inbetriebnahme: Log-Cheat-Sheet
+
+### 1) Discovery (Bridge finden)
+
+- `Commissioning: Discovery start`  
+  Start der Bridge-Suche.
+- `Using saved IP: ...` + `Reachability check passed`  
+  Gespeicherte Bridge-IP ist gültig und erreichbar.
+- `No Hue Bridge found via mDNS` + `Falling back to N-UPnP`  
+  mDNS erfolglos, Cloud-Discovery wird versucht.
+- `N-UPnP HTTP begin failed (TLS/connection)`  
+  TLS/Netzwerkproblem beim Discovery-Endpunkt.
+- `Commissioning: Discovery failed`  
+  Keine Bridge gefunden.
+
+### 2) Pairing/Auth (erstes Koppeln)
+
+- `No stored App-Key found, entering pairing workflow`  
+  Erstinbetriebnahme / kein Key in NVS.
+- `Awaiting Hue Bridge link button...`  
+  Modul wartet auf Button an der Hue Bridge.
+- `Pairing attempt at t=... (remaining=...)`  
+  Zyklische Pairing-Versuche laufen.
+- `Bridge reports button not pressed yet (error 101)`  
+  Erwartetes Verhalten, Button noch nicht gedrückt.
+- `Authentication successful`  
+  App-Key wurde akzeptiert.
+- `Authentication timeout after ...`  
+  Pairingfenster abgelaufen.
+
+### 3) Laufbetrieb (nach dem Pairing)
+
+- `EventStream initial start: ok`  
+  Echtzeit-Events aktiv.
+- `EventStream initial start: failed (fallback polling active)`  
+  EventStream fehlgeschlagen, Polling übernimmt.
+- `Polling fallback active (EventStream disconnected)`  
+  Fallback aktiv.
+- `EventStream active, polling fallback suspended`  
+  EventStream wieder aktiv, Polling-Fallback aus.
+- `Event applied -> channel ...`  
+  Hue-Event wurde auf KNX-Kanal gemappt und verarbeitet.
+
+### 4) Typische Erstdiagnose bei Problemen
+
+- Discovery scheitert sofort: Netzwerk/IP/Gateway prüfen.
+- Pairing läuft, aber kein Erfolg: Bridge-Button innerhalb Fenster drücken.
+- Auth erfolgreich, aber keine Updates: `SyncDir`, Kanal-UUID und Event-/Polling-Logs prüfen.
+
+## 5-Minuten Inbetriebnahme
+
+1. Firmware starten und auf Log warten: `Commissioning: Bridge setup start`.
+2. Prüfen, ob Discovery erfolgreich war (`Using saved IP` oder `Found via mDNS/N-UPnP`).
+3. Falls kein Key vorhanden: auf `Awaiting Hue Bridge link button...` achten und Bridge-Button drücken.
+4. Erfolg prüfen: `Authentication successful` und danach `HueGatewayClient ready`.
+5. Laufmodus prüfen:
+  - bevorzugt `EventStream initial start: ok`
+  - alternativ `fallback polling active` (funktional, aber nicht Echtzeit)
+6. End-to-End prüfen: Hue App ändern und auf `Event applied -> channel ...` bzw. Polling-Update im Log achten.
+
 ## Lizenz
 
 GPL-3.0 (wie alle OpenKNX Module)
