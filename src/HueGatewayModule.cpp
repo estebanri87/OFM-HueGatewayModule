@@ -27,15 +27,7 @@ HueGatewayModule::HueGatewayModule()
 
 HueGatewayModule::~HueGatewayModule()
 {
-    // Cleanup Lights
-    for (int i = 0; i < MAX_LIGHTS; i++)
-    {
-        if (_lights[i])
-        {
-            delete _lights[i];
-            _lights[i] = nullptr;
-        }
-    }
+    resetDevices();
     
     // Cleanup Client
     if (_client)
@@ -130,20 +122,8 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
         return;
     }
 
-    // Check if it's the Scan Trigger KO
-    if (koNumber == KO_SCAN_TRIGGER)
-    {
-        bool trigger = ko.value(Dpt(1, 17));  // DPT 1.017 Trigger
-        if (trigger)
-        {
-            Serial.println("\n[HueGatewayModule] Bridge scan triggered via ETS Button/KO");
-            performBridgeScan();
-        }
-        return;
-    }
-    
     // KO an entsprechendes Light weiterleiten
-    // Neue Struktur pro Kanal (9 KOs):
+    // Struktur pro Kanal (9 KOs):
     // KO 0: Switch (DPT 1.001)
     // KO 1: Brightness absolut (DPT 5.001)
     // KO 2: Dimming relativ (DPT 3.007)
@@ -154,17 +134,16 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
     // KO 7: ColorRGB (DPT 232.600)
     // KO 8: Status ColorRGB (DPT 232.600)
     
-    if (koNumber < KO_CHANNELS_START)
+    int32_t channel = HUE_KoCalcChannel(koNumber);
+    if (channel < 0 || channel >= MAX_LIGHTS)
     {
-        Serial.printf("[HueGatewayModule] KO %d below channel range\n", koNumber);
+        Serial.printf("[HueGatewayModule] KO %d outside Hue channel range\n", koNumber);
         return;
     }
-    
-    uint16_t channelOffset = koNumber - KO_CHANNELS_START;
-    uint8_t channel = channelOffset / 9;  // 9 KOs per channel
-    uint8_t koType = channelOffset % 9;   // 0-8 siehe oben
-    
-    if (channel >= MAX_LIGHTS || _lights[channel] == nullptr)
+
+    uint8_t koType = static_cast<uint8_t>((koNumber - HUE_KoBlockOffset) % HUE_KoBlockSize);
+
+    if (_lights[channel] == nullptr)
     {
         Serial.printf("[HueGatewayModule] Channel %d not configured\n", channel);
         return;
@@ -195,11 +174,19 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
         case 4:  // Status Brightness KO (read-only, no processing)
             break;
         case 5:  // ColorTemp KO (TODO)
+        {
+            uint16_t kelvin = ko.value(Dpt(7, 600));
+            _lights[channel]->processKnxColorTemp(kelvin);
             break;
+        }
         case 6:  // Status ColorTemp KO (read-only, no processing)
             break;
         case 7:  // ColorRGB KO (TODO)
+        {
+            uint8_t* rgb = ko.valueRef();
+            _lights[channel]->processKnxColorRGB(rgb[0], rgb[1], rgb[2]);
             break;
+        }
         case 8:  // Status ColorRGB KO (read-only, no processing)
             break;
     }
@@ -341,6 +328,7 @@ void HueGatewayModule::setupBridge()
     {
         Serial.println("[HueGatewayModule] ERROR: WiFi not connected!");
         Serial.println("[HueGatewayModule] Network must be initialized by OFM-Network or WLAN module first");
+        updateStatus(BridgeStatus::BRIDGE_UNREACHABLE);
         return;
     }
     
@@ -352,7 +340,7 @@ void HueGatewayModule::setupBridge()
     if (_bridgeIP.isEmpty())
     {
         Serial.println("[HueGatewayModule] ERROR: Bridge IP not configured!");
-        updateStatus(BridgeStatus::DISCONNECTED);
+        updateStatus(BridgeStatus::BRIDGE_UNREACHABLE);
         return;
     }
     
@@ -380,7 +368,7 @@ void HueGatewayModule::setupBridge()
         }
         else
         {
-            updateStatus(BridgeStatus::DISCONNECTED);
+            updateStatus(BridgeStatus::BRIDGE_UNREACHABLE);
         }
         return;
     }
@@ -395,11 +383,7 @@ void HueGatewayModule::setupBridge()
 void HueGatewayModule::setupDevices()
 {
     Serial.println("[HueGatewayModule] Setting up Devices...");
-
-    if (_devicesInitialized)
-    {
-        return;
-    }
+    resetDevices();
     
     if (!_client || !_client->isInitialized())
     {
@@ -423,53 +407,64 @@ void HueGatewayModule::setupDevices()
     Serial.printf("[HueGatewayModule] Bridge has %d lights\n", bridgeLightCount);
     
     // Kanäle aus ETS-Parametern laden
-    for (uint8_t ch = 0; ch < channelCount && ch < MAX_LIGHTS; ch++)
+    // Kanal -> Bridge-Licht per Index (0..N-1)
+    uint8_t maxChannels = channelCount;
+    if (maxChannels > MAX_LIGHTS)
     {
-        // Parameter für diesen Kanal lesen
-        uint16_t paramBase = getChannelParamIndex(ch, 0);
-        
-        bool enabled = knx.paramByte(paramBase + 0) & 0x01; // HUE_Ch%C%_Enabled
-        
-        if (!enabled)
+        maxChannels = MAX_LIGHTS;
+    }
+    if (maxChannels > bridgeLightCount)
+    {
+        maxChannels = static_cast<uint8_t>(bridgeLightCount);
+    }
+    for (uint8_t ch = 0; ch < maxChannels; ch++)
+    {
+        uint8_t _channelIndex = ch;
+
+        if (ParamHUE_CHDisabled)
         {
-            Serial.printf("[HueGatewayModule] Channel %d: Disabled\n", ch);
+            Serial.printf("[HueGatewayModule] Channel %d: Disabled\n", ch + 1);
             continue;
         }
-        
-        // Light ID lesen (String-Parameter)
-        const char* lightId = (const char*)knx.paramData(paramBase + 1); // HUE_Ch%C%_LightId
-        const char* name = (const char*)knx.paramData(paramBase + 2);    // HUE_Ch%C%_Name
-        
-        if (strlen(lightId) == 0)
+
+        const HueGatewayLightState& bridgeLight = allLights[ch];
+        if (bridgeLight.id.isEmpty())
         {
-            Serial.printf("[HueGatewayModule] Channel %d: No Light ID configured\n", ch);
+            Serial.printf("[HueGatewayModule] Channel %d: Empty light id from bridge\n", ch + 1);
             continue;
         }
-        
-        // KO-Nummern berechnen (9 KOs pro Kanal mit KoBlockSize=9)
-        uint16_t koBase = KO_CHANNELS_START + (ch * 9);
+
+        uint16_t koBase = HUE_KoBlockOffset + (ch * HUE_KoBlockSize);
         uint16_t koSwitch = koBase + 0;
         uint16_t koBrightness = koBase + 1;
         uint16_t koDimming = koBase + 2;
         uint16_t koStatusSwitch = koBase + 3;
         uint16_t koStatusBrightness = koBase + 4;
-        // KO+5/6: ColorTemp (bei Typ 2/3)
-        // KO+7/8: ColorRGB (bei Typ 3)
+        uint16_t koStatusColorTemp = koBase + 6;
+        uint16_t koStatusColorRGB = koBase + 8;
         
         // HueGatewayLight Instanz erstellen
-        _lights[ch] = new HueGatewayLight(String(lightId), String(name), _client);
-        _lights[ch]->begin(koSwitch, koBrightness, koDimming, koStatusSwitch, koStatusBrightness);
-        
-        // HCL Master Zuordnung lesen (wenn Parameter verfügbar)
-        #ifdef ParamHUE_CH1HCLMaster
-        // TODO: Dies muss angepasst werden wenn die Parameter-Indizes verfügbar sind
-        // Für jetzt: Placeholder - wird ignoriert bis XML komplett ist
-        uint8_t hclMaster = 0;  // 0 = kein HCL, 1-4 = Master Nummer
+        _lights[ch] = new HueGatewayLight(bridgeLight.id, bridgeLight.name, _client);
+        _lights[ch]->begin(koSwitch, koBrightness, koDimming, koStatusSwitch, koStatusBrightness, koStatusColorTemp, koStatusColorRGB);
+
+        uint8_t lightType = ParamHUE_CHLightType;
+        _lights[ch]->setLightType(lightType);
+
+        uint8_t hclMaster = ParamHUE_CHHCLMaster;
+        if (hclMaster > 4)
+        {
+            hclMaster = 0;
+        }
         _lights[ch]->setHCLMaster(hclMaster);
-        #endif
-        
-        Serial.printf("[HueGatewayModule] Channel %d: %s (%s) -> KO %d/%d/%d/%d/%d\n",
-                      ch, name, lightId, koSwitch, koBrightness, koDimming, koStatusSwitch, koStatusBrightness);
+
+        Serial.printf("[HueGatewayModule] Channel %d: %s (%s), Type:%u Sync:%u HCL:%u -> KO %d/%d/%d/%d/%d\n",
+                      ch + 1,
+                      bridgeLight.name.c_str(),
+                      bridgeLight.id.c_str(),
+                      static_cast<unsigned>(lightType),
+                      static_cast<unsigned>(ParamHUE_CHSyncDir),
+                      static_cast<unsigned>(hclMaster),
+                      koSwitch, koBrightness, koDimming, koStatusSwitch, koStatusBrightness);
         
         _lightCount++;
     }
@@ -743,9 +738,28 @@ void HueGatewayModule::setupHCL()
 
 void HueGatewayModule::checkConnection()
 {
-    // TODO: Bridge Verbindung prüfen
-    // TODO: Bei Offline: Reconnect versuchen
-    // Serial.println("[HueGatewayModule] Connection check (not implemented)");
+    if (WiFi.status() != WL_CONNECTED)
+    {
+        updateStatus(BridgeStatus::BRIDGE_UNREACHABLE);
+        return;
+    }
+
+    if (_bridgeIP.isEmpty())
+    {
+        updateStatus(BridgeStatus::BRIDGE_UNREACHABLE);
+        return;
+    }
+
+    if (!_client || !_client->isInitialized())
+    {
+        updateStatus(BridgeStatus::CONNECTION_LOST);
+        return;
+    }
+
+    if (!_authPending && _bridgeStatus != BridgeStatus::CONNECTED)
+    {
+        updateStatus(BridgeStatus::CONNECTED);
+    }
 }
 
 void HueGatewayModule::refreshLightStatus()
@@ -759,7 +773,16 @@ void HueGatewayModule::refreshLightStatus()
     int count = _client->getLights(lights, MAX_LIGHTS);
     if (count <= 0)
     {
+        if (_bridgeStatus == BridgeStatus::CONNECTED)
+        {
+            updateStatus(BridgeStatus::CONNECTION_LOST);
+        }
         return;
+    }
+
+    if (_bridgeStatus == BridgeStatus::CONNECTION_LOST || _bridgeStatus == BridgeStatus::BRIDGE_UNREACHABLE)
+    {
+        updateStatus(BridgeStatus::CONNECTED);
     }
 
     for (int i = 0; i < MAX_LIGHTS; i++)
@@ -773,7 +796,13 @@ void HueGatewayModule::refreshLightStatus()
         {
             if (lights[j].id == _lights[i]->getLightId())
             {
-                _lights[i]->updateFromHue(lights[j].on, lights[j].brightness);
+                _lights[i]->updateFromHue(
+                    lights[j].on,
+                    lights[j].brightness,
+                    lights[j].colorTempKelvin,
+                    lights[j].red,
+                    lights[j].green,
+                    lights[j].blue);
                 break;
             }
         }
@@ -813,17 +842,19 @@ String HueGatewayModule::getBridgeIP()
     }
 }
 
-uint16_t HueGatewayModule::getChannelParamIndex(uint8_t channel, uint16_t paramOffset)
+void HueGatewayModule::resetDevices()
 {
-    // OpenKNXproducer berechnet: BlockOffset + (channel * BlockSize) + paramOffset
-    // Wir müssen die tatsächlichen Offsets aus knxprod.h nutzen
-    // Vereinfachte Berechnung für 20 Kanäle
-    
-    // Base Parameter Block Start (nach General Settings)
-    const uint16_t HUE_PARAM_BASE = 1000; // Placeholder - wird von knxprod.h generiert
-    const uint16_t HUE_PARAM_BLOCK_SIZE = 10; // Pro Kanal: Enabled + LightId + Name + Settings
-    
-    return HUE_PARAM_BASE + (channel * HUE_PARAM_BLOCK_SIZE) + paramOffset;
+    for (int i = 0; i < MAX_LIGHTS; i++)
+    {
+        if (_lights[i])
+        {
+            delete _lights[i];
+            _lights[i] = nullptr;
+        }
+    }
+
+    _lightCount = 0;
+    _devicesInitialized = false;
 }
 
 void HueGatewayModule::performBridgeScan()
@@ -894,6 +925,15 @@ void HueGatewayModule::updateStatus(BridgeStatus status)
         case BridgeStatus::CONNECTED:
             statusText = "Verbunden";
             break;
+        case BridgeStatus::CONNECTION_LOST:
+            statusText = "Verbindung verloren";
+            break;
+        case BridgeStatus::BRIDGE_UNREACHABLE:
+            statusText = "Bridge nicht erreichbar";
+            break;
+        case BridgeStatus::ERROR:
+            statusText = "Fehler";
+            break;
     }
     
     sendStatusKO(status == BridgeStatus::CONNECTED);
@@ -922,7 +962,7 @@ void HueGatewayModule::pollAuthentication()
     if (now - _authStartTime > _authWindowMs)
     {
         _authPending = false;
-        updateStatus(BridgeStatus::DISCONNECTED);
+        updateStatus(BridgeStatus::CONNECTION_LOST);
         Serial.println("[HueGatewayModule] Authentication timeout - button not pressed");
         return;
     }
@@ -947,13 +987,15 @@ void HueGatewayModule::pollAuthentication()
         }
         else
         {
-            updateStatus(BridgeStatus::DISCONNECTED);
+            updateStatus(BridgeStatus::BRIDGE_UNREACHABLE);
         }
     }
 }
 
 bool HueGatewayModule::initClientWithAppKey()
 {
+    resetDevices();
+
     if (_client)
     {
         delete _client;
@@ -982,10 +1024,11 @@ void HueGatewayModule::startPairing()
     if (_bridgeIP.isEmpty())
     {
         Serial.println("[HueGatewayModule] ERROR: Bridge IP not configured!");
-        updateStatus(BridgeStatus::DISCONNECTED);
+        updateStatus(BridgeStatus::BRIDGE_UNREACHABLE);
         return;
     }
 
+    resetDevices();
     _auth.clearAppKey();
     _authPending = true;
     _authStartTime = millis();
@@ -1026,6 +1069,15 @@ void HueGatewayModule::updateInfoLED()
             break;
         case BridgeStatus::CONNECTED:
             led->on(true);
+            break;
+        case BridgeStatus::CONNECTION_LOST:
+            led->blinking(500);
+            break;
+        case BridgeStatus::BRIDGE_UNREACHABLE:
+            led->blinking(1500);
+            break;
+        case BridgeStatus::ERROR:
+            led->blinking(100);
             break;
     }
 }
@@ -1213,6 +1265,9 @@ esp_err_t HueGatewayModule::handleWebStatus(httpd_req_t* req)
         case BridgeStatus::WAIT_FOR_BUTTON: bridgeStatusText = "Waiting for button"; break;
         case BridgeStatus::AUTHENTICATING: bridgeStatusText = "Authenticating"; break;
         case BridgeStatus::CONNECTED: bridgeStatusText = "Connected"; break;
+        case BridgeStatus::CONNECTION_LOST: bridgeStatusText = "Connection lost"; break;
+        case BridgeStatus::BRIDGE_UNREACHABLE: bridgeStatusText = "Bridge unreachable"; break;
+        case BridgeStatus::ERROR: bridgeStatusText = "Error"; break;
     }
     html += "<tr><td>Bridge Status</td><td>" + bridgeStatusText + "</td></tr>";
     html += "<tr><td>App-Key</td><td>" + maskKey(self->_auth.getAppKey()) + "</td></tr>";

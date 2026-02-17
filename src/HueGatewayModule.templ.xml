@@ -18,7 +18,7 @@
                 <Memory CodeSegment="%MID%" Offset="4" BitOffset="0" />
               </Parameter>
               
-              <Union SizeInBit="16">
+              <Union Id="%AID%_U-%TT%5%CC%002" SizeInBit="16">
                 <Memory CodeSegment="%MID%" Offset="0" BitOffset="0" />
                 
                 <!-- Light Type -->
@@ -33,7 +33,7 @@
                 <!-- 5 Bits free -->
               </Union>
               
-              <Union SizeInBit="16">
+              <Union Id="%AID%_U-%TT%5%CC%005" SizeInBit="16">
                 <Memory CodeSegment="%MID%" Offset="2" BitOffset="0" />
                 
                 <!-- Polling Interval (seconds) -->

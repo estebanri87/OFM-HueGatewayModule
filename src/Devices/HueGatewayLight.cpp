@@ -2,6 +2,7 @@
 #include "../HueGatewayClient.h"
 #include "../HCL/HCLMasterManager.h"
 #include <knx.h>
+#include <math.h>
 
 HueGatewayLight::HueGatewayLight(const String& lightId, const String& name, HueGatewayClient* client)
     : _lightId(lightId)
@@ -12,9 +13,15 @@ HueGatewayLight::HueGatewayLight(const String& lightId, const String& name, HueG
     , _koDimming(0)
     , _koStatusSwitch(0)
     , _koStatusBrightness(0)
+    , _koStatusColorTemp(0)
+    , _koStatusColorRGB(0)
     , _on(false)
     , _brightness(0)
     , _reachable(true)
+    , _currentRed(255)
+    , _currentGreen(255)
+    , _currentBlue(255)
+    , _lightType(0)
     , _hclMasterNum(0)
     , _fadingActive(false)
     , _currentKelvin(4000)
@@ -30,18 +37,21 @@ HueGatewayLight::~HueGatewayLight()
 }
 
 void HueGatewayLight::begin(uint16_t koSwitch, uint16_t koBrightness, uint16_t koDimming,
-                     uint16_t koStatusSwitch, uint16_t koStatusBrightness)
+                            uint16_t koStatusSwitch, uint16_t koStatusBrightness,
+                            uint16_t koStatusColorTemp, uint16_t koStatusColorRGB)
 {
     _koSwitch = koSwitch;
     _koBrightness = koBrightness;
     _koDimming = koDimming;
     _koStatusSwitch = koStatusSwitch;
     _koStatusBrightness = koStatusBrightness;
+    _koStatusColorTemp = koStatusColorTemp;
+    _koStatusColorRGB = koStatusColorRGB;
     _koStatus = koStatusSwitch;  // Backward compatibility
     _initialized = true;
     
-    Serial.printf("[HueGatewayLight] %s initialized - KO Switch:%d Brightness:%d Dimming:%d StatusSwitch:%d StatusBrightness:%d\n",
-                  _name.c_str(), _koSwitch, _koBrightness, _koDimming, _koStatusSwitch, _koStatusBrightness);
+    Serial.printf("[HueGatewayLight] %s initialized - KO Switch:%d Brightness:%d Dimming:%d StatusSwitch:%d StatusBrightness:%d StatusColorTemp:%d StatusRGB:%d\n",
+                  _name.c_str(), _koSwitch, _koBrightness, _koDimming, _koStatusSwitch, _koStatusBrightness, _koStatusColorTemp, _koStatusColorRGB);
 }
 
 void HueGatewayLight::processKnxSwitch(bool value)
@@ -160,7 +170,66 @@ void HueGatewayLight::processKnxDimming(uint8_t control)
     sendToHue();
 }
 
-void HueGatewayLight::updateFromHue(bool on, uint8_t brightness)
+void HueGatewayLight::processKnxColorTemp(uint16_t kelvin)
+{
+    if (!_initialized || !_client)
+        return;
+
+    if (_lightType < 2)
+    {
+        Serial.printf("[HueGatewayLight] %s - Ignoring ColorTemp for non-CT light type %u\n", _name.c_str(), _lightType);
+        return;
+    }
+
+    if (kelvin < 2000) kelvin = 2000;
+    if (kelvin > 6500) kelvin = 6500;
+
+    uint16_t mirek = kelvinToMirek(kelvin);
+    if (_client->setLightColorTemperature(_lightId, mirek))
+    {
+        _currentKelvin = kelvin;
+        _lastUpdate = millis();
+        sendStatusToKnx();
+        Serial.printf("[HueGatewayLight] %s - KNX ColorTemp: %uK (%u mirek)\n", _name.c_str(), kelvin, mirek);
+    }
+    else
+    {
+        Serial.printf("[HueGatewayLight] %s - ERROR: Failed to set ColorTemp\n", _name.c_str());
+    }
+}
+
+void HueGatewayLight::processKnxColorRGB(uint8_t red, uint8_t green, uint8_t blue)
+{
+    if (!_initialized || !_client)
+        return;
+
+    if (_lightType < 3)
+    {
+        Serial.printf("[HueGatewayLight] %s - Ignoring RGB for non-RGB light type %u\n", _name.c_str(), _lightType);
+        return;
+    }
+
+    float x = 0.0f;
+    float y = 0.0f;
+    rgbToXy(red, green, blue, x, y);
+
+    if (_client->setLightColor(_lightId, x, y))
+    {
+        _currentRed = red;
+        _currentGreen = green;
+        _currentBlue = blue;
+        _lastUpdate = millis();
+        sendStatusToKnx();
+        Serial.printf("[HueGatewayLight] %s - KNX RGB: (%u,%u,%u) -> XY:(%.3f,%.3f)\n",
+                      _name.c_str(), red, green, blue, x, y);
+    }
+    else
+    {
+        Serial.printf("[HueGatewayLight] %s - ERROR: Failed to set RGB\n", _name.c_str());
+    }
+}
+
+void HueGatewayLight::updateFromHue(bool on, uint8_t brightness, uint16_t colorTempKelvin, uint8_t red, uint8_t green, uint8_t blue)
 {
     bool changed = false;
     
@@ -173,6 +242,20 @@ void HueGatewayLight::updateFromHue(bool on, uint8_t brightness)
     if (_brightness != brightness)
     {
         _brightness = brightness;
+        changed = true;
+    }
+
+    if (colorTempKelvin >= 2000 && colorTempKelvin <= 6500 && _currentKelvin != colorTempKelvin)
+    {
+        _currentKelvin = colorTempKelvin;
+        changed = true;
+    }
+
+    if (_currentRed != red || _currentGreen != green || _currentBlue != blue)
+    {
+        _currentRed = red;
+        _currentGreen = green;
+        _currentBlue = blue;
         changed = true;
     }
     
@@ -200,6 +283,21 @@ void HueGatewayLight::sendStatusToKnx()
     
     // KO Status Brightness: DPT 5.001 (Percentage 0-100%) - Helligkeits-Feedback
     knx.getGroupObject(_koStatusBrightness).value(brightnessPercent, Dpt(5, 1));
+
+    if (_koStatusColorTemp > 0)
+    {
+        knx.getGroupObject(_koStatusColorTemp).value(_currentKelvin, Dpt(7, 600));
+    }
+
+    if (_koStatusColorRGB > 0)
+    {
+        GroupObject& rgbKo = knx.getGroupObject(_koStatusColorRGB);
+        uint8_t* rgb = rgbKo.valueRef();
+        rgb[0] = _currentRed;
+        rgb[1] = _currentGreen;
+        rgb[2] = _currentBlue;
+        rgbKo.objectWritten();
+    }
     
     Serial.printf("[HueGatewayLight] %s - Sent to KNX: On:%d Bri:%d%% (Hue:%d)\n",
                   _name.c_str(), _on, brightnessPercent, _brightness);
@@ -271,6 +369,32 @@ uint16_t HueGatewayLight::kelvinToMirek(uint16_t kelvin)
     return mirek;
 }
 
+void HueGatewayLight::rgbToXy(uint8_t red, uint8_t green, uint8_t blue, float& x, float& y)
+{
+    float r = red / 255.0f;
+    float g = green / 255.0f;
+    float b = blue / 255.0f;
+
+    r = (r > 0.04045f) ? powf((r + 0.055f) / 1.055f, 2.4f) : (r / 12.92f);
+    g = (g > 0.04045f) ? powf((g + 0.055f) / 1.055f, 2.4f) : (g / 12.92f);
+    b = (b > 0.04045f) ? powf((b + 0.055f) / 1.055f, 2.4f) : (b / 12.92f);
+
+    float X = r * 0.664511f + g * 0.154324f + b * 0.162028f;
+    float Y = r * 0.283881f + g * 0.668433f + b * 0.047685f;
+    float Z = r * 0.000088f + g * 0.072310f + b * 0.986039f;
+
+    float sum = X + Y + Z;
+    if (sum <= 0.000001f)
+    {
+        x = 0.3127f;
+        y = 0.3290f;
+        return;
+    }
+
+    x = X / sum;
+    y = Y / sum;
+}
+
 void HueGatewayLight::sendToHueWithColorTemp(uint16_t kelvin, uint8_t fadeDuration)
 {
     if (!_initialized || !_client)
@@ -300,9 +424,9 @@ void HueGatewayLight::loop()
     if (!_initialized || !_on || _hclMasterNum == 0 || _hclMasterNum > 4)
         return;
     
-    // Update-Intervall aus HCL-Manager abrufen (in Minuten)
-    uint8_t updateIntervalMin = HCL::masterManager.getUpdateInterval();
-    unsigned long updateIntervalMs = updateIntervalMin * 60000UL; // Minuten zu Millisekunden
+    // Update-Intervall aus HCL-Manager abrufen (in Sekunden)
+    uint32_t updateIntervalSec = HCL::masterManager.getUpdateInterval();
+    unsigned long updateIntervalMs = updateIntervalSec * 1000UL;
     
     // Prüfen, ob genug Zeit vergangen ist
     unsigned long now = millis();

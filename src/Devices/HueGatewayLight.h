@@ -37,8 +37,9 @@ public:
      * @param koStatusSwitch KO-Nummer für Status-Rückmeldung Ein/Aus (DPT 1.001)
      * @param koStatusBrightness KO-Nummer für Status-Rückmeldung Helligkeit (DPT 5.001)
      */
-    void begin(uint16_t koSwitch, uint16_t koBrightness, uint16_t koDimming, 
-               uint16_t koStatusSwitch, uint16_t koStatusBrightness);
+    void begin(uint16_t koSwitch, uint16_t koBrightness, uint16_t koDimming,
+               uint16_t koStatusSwitch, uint16_t koStatusBrightness,
+               uint16_t koStatusColorTemp, uint16_t koStatusColorRGB);
     
     /**
      * @brief Verarbeitet KNX-Update (Schalten)
@@ -59,6 +60,17 @@ public:
      *               Bit 0-2: Anzahl Schritte (0=Stop, 1-7=Schritte)
      */
     void processKnxDimming(uint8_t control);
+
+    /**
+     * @brief Verarbeitet KNX-Update (Farbtemperatur)
+     * @param kelvin Farbtemperatur in Kelvin (DPT 7.600)
+     */
+    void processKnxColorTemp(uint16_t kelvin);
+
+    /**
+     * @brief Verarbeitet KNX-Update (RGB)
+     */
+    void processKnxColorRGB(uint8_t red, uint8_t green, uint8_t blue);
     
     /**
      * @brief Aktualisiert lokalen Status von Hue Bridge
@@ -66,7 +78,7 @@ public:
      * @param on Schaltzustand
      * @param brightness Helligkeit 0-254 (Hue Range)
      */
-    void updateFromHue(bool on, uint8_t brightness);
+    void updateFromHue(bool on, uint8_t brightness, uint16_t colorTempKelvin, uint8_t red, uint8_t green, uint8_t blue);
     
     /**
      * @brief Sendet aktuellen Status an KNX
@@ -107,6 +119,11 @@ public:
      */
     uint8_t getHCLMaster() const { return _hclMasterNum; }
 
+    /**
+     * @brief Lampentyp aus ETS (0=switch,1=dimm,2=ct,3=rgb)
+     */
+    void setLightType(uint8_t lightType) { _lightType = lightType; }
+
 private:
     String _lightId;
     String _name;
@@ -118,6 +135,8 @@ private:
     uint16_t _koDimming;
     uint16_t _koStatusSwitch;
     uint16_t _koStatusBrightness;
+    uint16_t _koStatusColorTemp;
+    uint16_t _koStatusColorRGB;
     
     // Alte Status-KO (deprecated)
     uint16_t _koStatus;
@@ -126,6 +145,10 @@ private:
     bool _on;
     uint8_t _brightness;  // 0-254 (Hue API Range)
     bool _reachable;
+    uint8_t _currentRed;
+    uint8_t _currentGreen;
+    uint8_t _currentBlue;
+    uint8_t _lightType;
     
     // HCL Configuration
     uint8_t _hclMasterNum;  // 0 = kein HCL, 1-4 = HCL Master Nummer
@@ -156,6 +179,8 @@ private:
      * @return mirek-Wert (153-500)
      */
     static uint16_t kelvinToMirek(uint16_t kelvin);
+
+    static void rgbToXy(uint8_t red, uint8_t green, uint8_t blue, float& x, float& y);
     
     /**
      * @brief Konvertiert KNX-Brightness (0-255) zu Hue (0-254)

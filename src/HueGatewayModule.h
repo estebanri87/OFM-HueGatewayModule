@@ -50,17 +50,16 @@ private:
     HueGatewayLight* _lights[MAX_LIGHTS];
     int _lightCount;
     
-    // KO numbers (relative to module offset 300)
-    static constexpr uint16_t KO_SCAN_TRIGGER = 300;
-    static constexpr uint16_t KO_CHANNELS_START = 301;  // First channel KO
-    
     // Status values
     enum class BridgeStatus {
         DISCONNECTED,
         CONNECTING,
         WAIT_FOR_BUTTON,
         AUTHENTICATING,
-        CONNECTED
+        CONNECTED,
+        CONNECTION_LOST,
+        BRIDGE_UNREACHABLE,
+        ERROR
     };
     
     BridgeStatus _bridgeStatus;
@@ -101,10 +100,10 @@ private:
     void performBridgeScan();
     String getBridgeScanHTML();
     String getBridgeScanText();
+    void resetDevices();
     
     // Helper Methods
     String getBridgeIP();
-    uint16_t getChannelParamIndex(uint8_t channel, uint16_t paramOffset);
     
     // Status Methods
     void updateStatus(BridgeStatus status);

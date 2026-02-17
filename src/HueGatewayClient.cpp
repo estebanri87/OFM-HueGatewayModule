@@ -1,5 +1,6 @@
 #include "HueGatewayClient.h"
 #include <cstring>
+#include <math.h>
 
 HueGatewayClient::HueGatewayClient()
     : _initialized(false)
@@ -78,6 +79,25 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights)
         
         // Status (erreichbar wenn owner vorhanden)
         lights[count].reachable = light["owner"].isNull() == false;
+
+        lights[count].colorTempKelvin = 0;
+        lights[count].red = 255;
+        lights[count].green = 255;
+        lights[count].blue = 255;
+
+        JsonVariantConst mirekVar = light["color_temperature"]["mirek"];
+        if (!mirekVar.isNull())
+        {
+            uint16_t mirek = mirekVar.as<uint16_t>();
+            lights[count].colorTempKelvin = mirekToKelvin(mirek);
+        }
+
+        JsonVariantConst xVar = light["color"]["xy"]["x"];
+        JsonVariantConst yVar = light["color"]["xy"]["y"];
+        if (!xVar.isNull() && !yVar.isNull())
+        {
+            xyToRgb(xVar.as<float>(), yVar.as<float>(), lights[count].red, lights[count].green, lights[count].blue);
+        }
 
         lights[count].room = "";
         lights[count].zone = "";
@@ -462,5 +482,58 @@ String HueGatewayClient::buildUrl(const String& endpoint)
 {
     // Hue API access should use HTTPS (HTTP deprecated by Signify).
     return "https://" + _bridgeIP + endpoint;
+}
+
+void HueGatewayClient::xyToRgb(float x, float y, uint8_t& red, uint8_t& green, uint8_t& blue)
+{
+    if (y <= 0.00001f)
+    {
+        red = 255;
+        green = 255;
+        blue = 255;
+        return;
+    }
+
+    float z = 1.0f - x - y;
+    float Y = 1.0f;
+    float X = (Y / y) * x;
+    float Z = (Y / y) * z;
+
+    float r = X * 1.656492f - Y * 0.354851f - Z * 0.255038f;
+    float g = -X * 0.707196f + Y * 1.655397f + Z * 0.036152f;
+    float b = X * 0.051713f - Y * 0.121364f + Z * 1.011530f;
+
+    if (r < 0.0f) r = 0.0f;
+    if (g < 0.0f) g = 0.0f;
+    if (b < 0.0f) b = 0.0f;
+
+    float maxValue = r;
+    if (g > maxValue) maxValue = g;
+    if (b > maxValue) maxValue = b;
+    if (maxValue > 1.0f)
+    {
+        r /= maxValue;
+        g /= maxValue;
+        b /= maxValue;
+    }
+
+    auto gamma = [](float c) -> float {
+        return (c <= 0.0031308f) ? (12.92f * c) : ((1.0f + 0.055f) * powf(c, 1.0f / 2.4f) - 0.055f);
+    };
+
+    r = gamma(r);
+    g = gamma(g);
+    b = gamma(b);
+
+    if (r < 0.0f) r = 0.0f;
+    if (r > 1.0f) r = 1.0f;
+    if (g < 0.0f) g = 0.0f;
+    if (g > 1.0f) g = 1.0f;
+    if (b < 0.0f) b = 0.0f;
+    if (b > 1.0f) b = 1.0f;
+
+    red = static_cast<uint8_t>(r * 255.0f);
+    green = static_cast<uint8_t>(g * 255.0f);
+    blue = static_cast<uint8_t>(b * 255.0f);
 }
 

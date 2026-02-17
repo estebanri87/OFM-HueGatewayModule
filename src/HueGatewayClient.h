@@ -23,6 +23,10 @@ struct HueGatewayLightState
     bool on;
     uint8_t brightness;  // 0-254 (Hue API Range)
     bool reachable;
+    uint16_t colorTempKelvin;
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
     String id;
     String name;
     String room;
@@ -164,6 +168,7 @@ private:
      * @brief Erstellt volle URL
      */
     String buildUrl(const String& endpoint);
+    static void xyToRgb(float x, float y, uint8_t& red, uint8_t& green, uint8_t& blue);
 
     void appendLocationsFromDoc(std::vector<LightLocation>& locations, const JsonDocument& doc, bool isRoom);
     void upsertLocation(std::vector<LightLocation>& locations, const String& id, const String& room, const String& zone);
