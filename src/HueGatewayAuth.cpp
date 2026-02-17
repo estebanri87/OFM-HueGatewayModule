@@ -84,6 +84,9 @@ bool HueGatewayAuth::loadStoredAppKey()
 {
     _appKey = loadAppKey();
     _clientKey = loadClientKey();
+    Serial.printf("[HueGatewayAuth] Stored App-Key available: %s (length=%u)\n",
+                  _appKey.length() > 0 ? "yes" : "no",
+                  static_cast<unsigned>(_appKey.length()));
     return _appKey.length() > 0;
 }
 
@@ -100,8 +103,14 @@ bool HueGatewayAuth::requestAppKeyOnce(const char* ip)
     HTTPClient http;
     String url = String("https://") + ip + "/api";
     bool success = false;
+
+    Serial.printf("[HueGatewayAuth] POST %s\n", url.c_str());
     
-    http.begin(client, url);
+    if (!http.begin(client, url))
+    {
+        Serial.println("[HueGatewayAuth] ERROR: HTTP begin failed (TLS/connection)");
+        return false;
+    }
     http.addHeader("Content-Type", "application/json");
     http.setTimeout(5000);
     
@@ -130,6 +139,7 @@ bool HueGatewayAuth::requestAppKeyOnce(const char* ip)
                     if (errorType == 101)
                     {
                         // Normal - Button noch nicht gedrückt
+                        Serial.println("[HueGatewayAuth] Bridge reports button not pressed yet (error 101)");
                         success = false;
                     }
                     else
@@ -160,7 +170,8 @@ bool HueGatewayAuth::requestAppKeyOnce(const char* ip)
     }
     else
     {
-        Serial.printf("[HueGatewayAuth] HTTP Error: %d\n", httpCode);
+        String response = http.getString();
+        Serial.printf("[HueGatewayAuth] HTTP Error: %d, response: %s\n", httpCode, response.c_str());
     }
     
     http.end();

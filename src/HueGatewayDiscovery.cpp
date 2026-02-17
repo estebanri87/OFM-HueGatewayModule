@@ -10,7 +10,7 @@ HueGatewayDiscovery::HueGatewayDiscovery()
 
 bool HueGatewayDiscovery::findBridge(String& ipAddress)
 {
-    Serial.println("[HueGatewayDiscovery] Searching for Hue Bridge...");
+    Serial.println("[HueGatewayDiscovery] ===== Commissioning: Discovery start =====");
     
     // Zuerst gespeicherte IP laden
     String savedIP = loadIP();
@@ -24,6 +24,7 @@ bool HueGatewayDiscovery::findBridge(String& ipAddress)
         }
 
         Serial.printf("[HueGatewayDiscovery] Saved IP not reachable: %s\n", savedIP.c_str());
+        Serial.println("[HueGatewayDiscovery] Trying mDNS discovery next...");
     }
     
     // mDNS Discovery versuchen
@@ -43,6 +44,7 @@ bool HueGatewayDiscovery::findBridge(String& ipAddress)
     }
     
     Serial.println("[HueGatewayDiscovery] No bridge found");
+    Serial.println("[HueGatewayDiscovery] ===== Commissioning: Discovery failed =====");
     return false;
 }
 
@@ -84,6 +86,7 @@ bool HueGatewayDiscovery::discoverMDNS(String& ip)
     if (n == 0)
     {
         Serial.println("[HueGatewayDiscovery] No Hue Bridge found via mDNS");
+        Serial.println("[HueGatewayDiscovery] Falling back to N-UPnP");
         return false;
     }
     
@@ -107,9 +110,11 @@ bool HueGatewayDiscovery::discoverNupnp(String& ip)
     HTTPClient http;
     http.setTimeout(5000);
 
-    if (!http.begin(client, "https://discovery.meethue.com/"))
+    const char* nupnpUrl = "https://discovery.meethue.com/";
+    Serial.printf("[HueGatewayDiscovery] GET %s\n", nupnpUrl);
+    if (!http.begin(client, nupnpUrl))
     {
-        Serial.println("[HueGatewayDiscovery] N-UPnP HTTP begin failed");
+        Serial.println("[HueGatewayDiscovery] N-UPnP HTTP begin failed (TLS/connection)");
         return false;
     }
 
@@ -117,6 +122,7 @@ bool HueGatewayDiscovery::discoverNupnp(String& ip)
     if (httpCode != 200)
     {
         Serial.printf("[HueGatewayDiscovery] N-UPnP HTTP error: %d\n", httpCode);
+        Serial.println("[HueGatewayDiscovery] N-UPnP could not provide bridge address");
         http.end();
         return false;
     }
@@ -157,17 +163,35 @@ bool HueGatewayDiscovery::isBridgeReachable(const String& ip)
     client.setInsecure();
 
     HTTPClient http;
-    String url = String("https://") + ip + "/api/config";
+    String url = String("https://") + ip + "/clip/v2/resource/bridge";
 
-    http.begin(client, url);
+    Serial.printf("[HueGatewayDiscovery] Reachability check: %s\n", url.c_str());
+
+    if (!http.begin(client, url))
+    {
+        Serial.println("[HueGatewayDiscovery] Reachability HTTP begin failed (TLS/connection)");
+        return false;
+    }
     http.setTimeout(2000);
 
-    int httpCode = http.GET();
-    if (httpCode != 200)
+    prefs.begin("hue", true);
+    String appKey = prefs.getString("app_key", "");
+    prefs.end();
+
+    if (appKey.length() > 0)
     {
+        http.addHeader("hue-application-key", appKey);
+    }
+
+    int httpCode = http.GET();
+    if (httpCode <= 0)
+    {
+        Serial.printf("[HueGatewayDiscovery] Reachability HTTP status: %d\n", httpCode);
         http.end();
         return false;
     }
+
+    Serial.printf("[HueGatewayDiscovery] Reachability check passed for %s (HTTP %d)\n", ip.c_str(), httpCode);
 
     http.end();
     return true;

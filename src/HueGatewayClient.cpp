@@ -4,11 +4,15 @@
 
 HueGatewayClient::HueGatewayClient()
     : _initialized(false)
+    , _eventStreamConnected(false)
+    , _eventHandshakePending(false)
+    , _eventHandshakeStartMs(0)
 {
 }
 
 HueGatewayClient::~HueGatewayClient()
 {
+    stopEventStream();
     _http.end();
 }
 
@@ -24,6 +28,12 @@ bool HueGatewayClient::begin(const String& bridgeIP, const String& appKey)
     _appKey = appKey;
     _initialized = true;
     _secureClient.setInsecure();
+    _eventClient.setInsecure();
+    _secureClient.setTimeout(5000);
+    _eventClient.setTimeout(100);
+    _eventLineBuffer = "";
+    _eventDataBuffer = "";
+    _eventStreamConnected = false;
     
     Serial.printf("[HueGatewayClient] Initialized - Bridge: %s\n", _bridgeIP.c_str());
     return true;
@@ -79,6 +89,8 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights)
         
         // Status (erreichbar wenn owner vorhanden)
         lights[count].reachable = light["owner"].isNull() == false;
+        lights[count].supportsColorTemp = !light["color_temperature"].isNull();
+        lights[count].supportsColor = !light["color"].isNull();
 
         lights[count].colorTempKelvin = 0;
         lights[count].red = 255;
@@ -403,6 +415,282 @@ bool HueGatewayClient::setLightColor(const String& lightId, float x, float y)
     }
 }
 
+bool HueGatewayClient::pingBridgeApiV2()
+{
+    if (!_initialized)
+    {
+        return false;
+    }
+
+    DynamicJsonDocument doc(1024);
+    int statusCode = httpGet("/clip/v2/resource/bridge", doc);
+    if (statusCode == 200)
+    {
+        return true;
+    }
+
+    Serial.printf("[HueGatewayClient] Bridge API v2 ping failed - HTTP %d\n", statusCode);
+    return false;
+}
+
+bool HueGatewayClient::startEventStream()
+{
+    if (!_initialized)
+    {
+        return false;
+    }
+
+    if (_eventStreamConnected && _eventClient.connected())
+    {
+        return true;
+    }
+
+    if (_eventHandshakePending && _eventClient.connected())
+    {
+        return false;
+    }
+
+    stopEventStream();
+
+    _eventClient.setTimeout(100);
+    Serial.printf("[HueGatewayClient] EventStream connecting to %s:443\n", _bridgeIP.c_str());
+    if (!_eventClient.connect(_bridgeIP.c_str(), 443))
+    {
+        Serial.println("[HueGatewayClient] EventStream connect failed");
+        return false;
+    }
+
+    _eventClient.printf("GET /eventstream/clip/v2 HTTP/1.1\r\n");
+    _eventClient.printf("Host: %s\r\n", _bridgeIP.c_str());
+    _eventClient.printf("hue-application-key: %s\r\n", _appKey.c_str());
+    _eventClient.print("Accept: text/event-stream\r\n");
+    _eventClient.print("Connection: keep-alive\r\n\r\n");
+
+    _eventHandshakePending = true;
+    _eventHandshakeStartMs = millis();
+    _eventStreamConnected = false;
+    _eventLineBuffer = "";
+    _eventDataBuffer = "";
+
+    return false;
+}
+
+void HueGatewayClient::stopEventStream()
+{
+    _eventStreamConnected = false;
+    _eventHandshakePending = false;
+    _eventHandshakeStartMs = 0;
+    _eventLineBuffer = "";
+    _eventDataBuffer = "";
+    if (_eventClient.connected())
+    {
+        Serial.println("[HueGatewayClient] EventStream stopping");
+        _eventClient.stop();
+    }
+}
+
+int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int maxUpdates)
+{
+    if (_eventHandshakePending)
+    {
+        if (!_eventClient.connected())
+        {
+            Serial.println("[HueGatewayClient] EventStream handshake failed: disconnected");
+            stopEventStream();
+            return 0;
+        }
+
+        if ((millis() - _eventHandshakeStartMs) > 3000UL && !_eventClient.available())
+        {
+            Serial.println("[HueGatewayClient] EventStream header timeout");
+            stopEventStream();
+            return 0;
+        }
+
+        if (!_eventClient.available())
+        {
+            return 0;
+        }
+
+        String statusLine = _eventClient.readStringUntil('\n');
+        statusLine.trim();
+        Serial.printf("[HueGatewayClient] EventStream status: %s\n", statusLine.c_str());
+        if (statusLine.indexOf("200") < 0)
+        {
+            Serial.printf("[HueGatewayClient] EventStream HTTP error: %s\n", statusLine.c_str());
+            stopEventStream();
+            return 0;
+        }
+
+        while (_eventClient.connected())
+        {
+            if (!_eventClient.available())
+            {
+                return 0;
+            }
+
+            String headerLine = _eventClient.readStringUntil('\n');
+            headerLine.trim();
+            if (headerLine.length() == 0)
+            {
+                break;
+            }
+        }
+
+        _eventHandshakePending = false;
+        _eventHandshakeStartMs = 0;
+        _eventLineBuffer = "";
+        _eventDataBuffer = "";
+        _eventStreamConnected = true;
+        Serial.println("[HueGatewayClient] EventStream connected");
+    }
+
+    if (!_eventStreamConnected || !_eventClient.connected() || updates == nullptr || maxUpdates <= 0)
+    {
+        return 0;
+    }
+
+    int updateCount = 0;
+    while (_eventClient.available() && updateCount < maxUpdates)
+    {
+        char ch = static_cast<char>(_eventClient.read());
+        if (ch == '\r')
+        {
+            continue;
+        }
+
+        if (ch != '\n')
+        {
+            _eventLineBuffer += ch;
+            if (_eventLineBuffer.length() > 4096)
+            {
+                _eventLineBuffer = "";
+            }
+            continue;
+        }
+
+        if (_eventLineBuffer.length() == 0)
+        {
+            if (_eventDataBuffer.length() > 0)
+            {
+                updateCount += parseEventPayload(_eventDataBuffer, updates + updateCount, maxUpdates - updateCount);
+                _eventDataBuffer = "";
+            }
+        }
+        else if (_eventLineBuffer.startsWith("data:"))
+        {
+            String dataPart = _eventLineBuffer.substring(5);
+            dataPart.trim();
+            _eventDataBuffer += dataPart;
+        }
+
+        _eventLineBuffer = "";
+    }
+
+    if (!_eventClient.connected())
+    {
+        Serial.println("[HueGatewayClient] EventStream disconnected");
+        stopEventStream();
+    }
+
+    if (updateCount > 0)
+    {
+        Serial.printf("[HueGatewayClient] EventStream parsed %d update(s)\n", updateCount);
+    }
+
+    return updateCount;
+}
+
+int HueGatewayClient::parseEventPayload(const String& payload, HueGatewayEventLightUpdate* updates, int maxUpdates)
+{
+    if (payload.length() == 0 || updates == nullptr || maxUpdates <= 0)
+    {
+        return 0;
+    }
+
+    DynamicJsonDocument doc(8192);
+    DeserializationError error = deserializeJson(doc, payload);
+    if (error)
+    {
+        Serial.printf("[HueGatewayClient] Event payload JSON parse error: %s\n", error.c_str());
+        return 0;
+    }
+
+    JsonArrayConst events = doc.as<JsonArrayConst>();
+    int updateCount = 0;
+
+    for (JsonObjectConst eventObj : events)
+    {
+        JsonArrayConst data = eventObj["data"].as<JsonArrayConst>();
+        for (JsonObjectConst item : data)
+        {
+            const char* type = item["type"] | "";
+            if (strcmp(type, "light") != 0)
+            {
+                continue;
+            }
+
+            const char* id = item["id"] | "";
+            if (id[0] == '\0' || updateCount >= maxUpdates)
+            {
+                continue;
+            }
+
+            HueGatewayEventLightUpdate& update = updates[updateCount];
+            update.lightId = String(id);
+            update.hasOn = false;
+            update.on = false;
+            update.hasBrightness = false;
+            update.brightness = 0;
+            update.hasColorTemp = false;
+            update.colorTempKelvin = 0;
+            update.hasColorRgb = false;
+            update.red = 255;
+            update.green = 255;
+            update.blue = 255;
+
+            JsonVariantConst onVar = item["on"]["on"];
+            if (!onVar.isNull())
+            {
+                update.hasOn = true;
+                update.on = onVar.as<bool>();
+            }
+
+            JsonVariantConst brightnessVar = item["dimming"]["brightness"];
+            if (!brightnessVar.isNull())
+            {
+                float brightnessPct = brightnessVar.as<float>();
+                if (brightnessPct < 0.0f) brightnessPct = 0.0f;
+                if (brightnessPct > 100.0f) brightnessPct = 100.0f;
+                update.hasBrightness = true;
+                update.brightness = static_cast<uint8_t>(brightnessPct * 2.54f);
+            }
+
+            JsonVariantConst mirekVar = item["color_temperature"]["mirek"];
+            if (!mirekVar.isNull())
+            {
+                update.hasColorTemp = true;
+                update.colorTempKelvin = mirekToKelvin(mirekVar.as<uint16_t>());
+            }
+
+            JsonVariantConst xVar = item["color"]["xy"]["x"];
+            JsonVariantConst yVar = item["color"]["xy"]["y"];
+            if (!xVar.isNull() && !yVar.isNull())
+            {
+                update.hasColorRgb = true;
+                xyToRgb(xVar.as<float>(), yVar.as<float>(), update.red, update.green, update.blue);
+            }
+
+            if (update.hasOn || update.hasBrightness || update.hasColorTemp || update.hasColorRgb)
+            {
+                updateCount++;
+            }
+        }
+    }
+
+    return updateCount;
+}
+
 uint16_t HueGatewayClient::kelvinToMirek(uint16_t kelvin)
 {
     // Mirek = 1,000,000 / Kelvin
@@ -436,6 +724,7 @@ uint16_t HueGatewayClient::mirekToKelvin(uint16_t mirek)
 int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc)
 {
     String url = buildUrl(endpoint);
+    Serial.printf("[HueGatewayClient] HTTP GET %s\n", url.c_str());
     
     _http.begin(_secureClient, url);
     _http.addHeader("hue-application-key", _appKey);
@@ -453,6 +742,11 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc)
             statusCode = -1;
         }
     }
+    else
+    {
+        String response = _http.getString();
+        Serial.printf("[HueGatewayClient] HTTP GET failed (%d): %s\n", statusCode, response.c_str());
+    }
     
     _http.end();
     return statusCode;
@@ -461,6 +755,7 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc)
 int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
 {
     String url = buildUrl(endpoint);
+    Serial.printf("[HueGatewayClient] HTTP PUT %s payload=%s\n", url.c_str(), payload.c_str());
     
     _http.begin(_secureClient, url);
     _http.addHeader("Content-Type", "application/json");
@@ -471,7 +766,7 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
     if (statusCode != 200)
     {
         String response = _http.getString();
-        Serial.printf("[HueGatewayClient] Response: %s\n", response.c_str());
+        Serial.printf("[HueGatewayClient] HTTP PUT failed (%d): %s\n", statusCode, response.c_str());
     }
     
     _http.end();

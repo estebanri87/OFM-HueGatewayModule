@@ -13,6 +13,7 @@
 // Forward Declarations
 class HueGatewayClient;
 class HueGatewayLight;
+struct HueGatewayEventLightUpdate;
 
 /**
  * @brief OpenKNX Hue Bridge Module - Philips Hue Integration
@@ -41,13 +42,16 @@ public:
     
 private:
     bool _initialized;
-    unsigned long _lastLoop;
+    unsigned long _lastConnectionCheckMs;
+    unsigned long _lastRefreshTickMs;
+    unsigned long _lastEventStreamRetryMs;
     HueGatewayClient* _client;
     
     
     // Device Management
     static const int MAX_LIGHTS = 20;
     HueGatewayLight* _lights[MAX_LIGHTS];
+    unsigned long _channelLastPollMs[MAX_LIGHTS];
     int _lightCount;
     
     // Status values
@@ -72,6 +76,8 @@ private:
     unsigned long _authStartTime;
     unsigned long _authLastTry;
     unsigned long _authWindowMs;
+    unsigned long _lastReconnectTryMs;
+    unsigned long _reconnectBackoffMs;
     bool _devicesInitialized;
     
     void setupBridge();
@@ -79,6 +85,7 @@ private:
     void setupHCL();
     void checkConnection();
     void refreshLightStatus();
+    void applyEventStreamUpdates(const HueGatewayEventLightUpdate* updates, int updateCount);
     void setupWebUI();
     void setupMDNS();
     void pollAuthentication();
@@ -90,11 +97,13 @@ private:
     static esp_err_t handleWebScan(httpd_req_t* req);
     static esp_err_t handleWebScanText(httpd_req_t* req);
     static esp_err_t handleWebStatus(httpd_req_t* req);
+    static esp_err_t handleWebPair(httpd_req_t* req);
     
     // Web UI pages (under WEBUI_BASE_URI)
     static esp_err_t pageWebRoot(const char* uri, httpd_req_t* req, void* arg);
     static esp_err_t pageWebScan(const char* uri, httpd_req_t* req, void* arg);
     static esp_err_t pageWebStatus(const char* uri, httpd_req_t* req, void* arg);
+    static esp_err_t pageWebPair(const char* uri, httpd_req_t* req, void* arg);
     
     // Scan functions
     void performBridgeScan();

@@ -6,7 +6,9 @@
 
 HueGatewayModule::HueGatewayModule()
     : _initialized(false)
-    , _lastLoop(0)
+    , _lastConnectionCheckMs(0)
+    , _lastRefreshTickMs(0)
+    , _lastEventStreamRetryMs(0)
     , _client(nullptr)
     , _lightCount(0)
     , _bridgeStatus(BridgeStatus::DISCONNECTED)
@@ -16,12 +18,15 @@ HueGatewayModule::HueGatewayModule()
     , _authStartTime(0)
     , _authLastTry(0)
     , _authWindowMs(30000)
+    , _lastReconnectTryMs(0)
+    , _reconnectBackoffMs(10000)
     , _devicesInitialized(false)
 {
     // Light-Array initialisieren
     for (int i = 0; i < MAX_LIGHTS; i++)
     {
         _lights[i] = nullptr;
+        _channelLastPollMs[i] = 0;
     }
 }
 
@@ -54,6 +59,8 @@ void HueGatewayModule::setup()
 
 void HueGatewayModule::loop()
 {
+    static bool fallbackActiveLogged = false;
+
     if (!_initialized)
         return;
     
@@ -81,16 +88,103 @@ void HueGatewayModule::loop()
     
     unsigned long now = millis();
     
-    // Alle 5 Sekunden Status prüfen
-    if (now - _lastLoop > 5000)
+    // Verbindung alle 5 Sekunden prüfen
+    if (now - _lastConnectionCheckMs > 5000)
     {
-        _lastLoop = now;
+        _lastConnectionCheckMs = now;
         checkConnection();
-        refreshLightStatus();
     }
-    
-    // TODO: Event Stream handling
-    // TODO: Status updates
+
+    if (_client && _client->isInitialized() && !_authPending)
+    {
+        if (!_client->isEventStreamConnected())
+        {
+            if (now - _lastEventStreamRetryMs >= 10000)
+            {
+                _lastEventStreamRetryMs = now;
+                Serial.printf("[HueGatewayModule] EventStream retry at %lu ms\n", static_cast<unsigned long>(now));
+                _client->startEventStream();
+            }
+
+            HueGatewayEventLightUpdate updates[MAX_LIGHTS];
+            int updateCount = _client->pollEventStream(updates, MAX_LIGHTS);
+            if (updateCount > 0)
+            {
+                Serial.printf("[HueGatewayModule] EventStream updates received: %d\n", updateCount);
+                applyEventStreamUpdates(updates, updateCount);
+            }
+        }
+        else
+        {
+            if (fallbackActiveLogged)
+            {
+                Serial.println("[HueGatewayModule] EventStream active, polling fallback suspended");
+                fallbackActiveLogged = false;
+            }
+
+            HueGatewayEventLightUpdate updates[MAX_LIGHTS];
+            int updateCount = _client->pollEventStream(updates, MAX_LIGHTS);
+            if (updateCount > 0)
+            {
+                Serial.printf("[HueGatewayModule] EventStream updates received: %d\n", updateCount);
+                applyEventStreamUpdates(updates, updateCount);
+            }
+        }
+    }
+
+    if (!_authPending && (_bridgeStatus == BridgeStatus::CONNECTION_LOST || _bridgeStatus == BridgeStatus::BRIDGE_UNREACHABLE || !_client || !_client->isInitialized()))
+    {
+        if (_bridgeIP.isEmpty())
+        {
+            _bridgeIP = getBridgeIP();
+        }
+
+        bool hasStoredKey = _auth.loadStoredAppKey();
+        if (!hasStoredKey)
+        {
+            _authPending = true;
+            _authStartTime = now;
+            _authLastTry = 0;
+            updateStatus(BridgeStatus::WAIT_FOR_BUTTON);
+            Serial.println("[HueGatewayModule] No stored App-Key during reconnect, entering pairing workflow");
+            return;
+        }
+
+        if (!_bridgeIP.isEmpty() && (now - _lastReconnectTryMs >= _reconnectBackoffMs))
+        {
+            _lastReconnectTryMs = now;
+            Serial.printf("[HueGatewayModule] Reconnect attempt (backoff=%lus)\n", static_cast<unsigned long>(_reconnectBackoffMs / 1000UL));
+
+            if (initClientWithAppKey())
+            {
+                setupDevices();
+                updateStatus(BridgeStatus::CONNECTED);
+                _reconnectBackoffMs = 10000;
+                Serial.println("[HueGatewayModule] Reconnect successful");
+            }
+            else
+            {
+                _reconnectBackoffMs = min<unsigned long>(_reconnectBackoffMs * 2UL, 120000UL);
+                updateStatus(BridgeStatus::CONNECTION_LOST);
+                Serial.println("[HueGatewayModule] Reconnect failed");
+            }
+        }
+    }
+
+    // Hue->KNX Refresh in 1s-Ticks (kanalspezifisches PollInterval greift in refreshLightStatus)
+    if (now - _lastRefreshTickMs >= 1000)
+    {
+        _lastRefreshTickMs = now;
+        if (!(_client && _client->isEventStreamConnected()))
+        {
+            if (!fallbackActiveLogged)
+            {
+                Serial.println("[HueGatewayModule] Polling fallback active (EventStream disconnected)");
+                fallbackActiveLogged = true;
+            }
+            refreshLightStatus();
+        }
+    }
 }
 
 const std::string HueGatewayModule::name()
@@ -142,6 +236,20 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
     }
 
     uint8_t koType = static_cast<uint8_t>((koNumber - HUE_KoBlockOffset) % HUE_KoBlockSize);
+
+    uint8_t _channelIndex = static_cast<uint8_t>(channel);
+    uint8_t syncDir = ParamHUE_CHSyncDir;
+
+    // SyncDir: 0=None, 1=KNX->Hue, 2=Hue->KNX, 3=Bidirectional
+    bool isCommandKo = (koType == 0 || koType == 1 || koType == 2 || koType == 5 || koType == 7);
+    if (isCommandKo && !(syncDir == 1 || syncDir == 3))
+    {
+        Serial.printf("[HueGatewayModule] Channel %d SyncDir=%u blocks KNX->Hue command (KO type %u)\n",
+                      channel + 1,
+                      static_cast<unsigned>(syncDir),
+                      static_cast<unsigned>(koType));
+        return;
+    }
 
     if (_lights[channel] == nullptr)
     {
@@ -197,7 +305,16 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
     if (cmd == "hue")
     {
         openknx.console.printHelpLine("hue scan", "Scan for Hue Bridge and list all lights");
+        openknx.console.printHelpLine("hue pair", "Start pairing workflow (press bridge button)");
         openknx.console.printHelpLine("hue status", "Show current module status");
+        openknx.console.printHelpLine("hue hcl", "Show HCL runtime and advanced master settings");
+        return true;
+    }
+
+    if (cmd == "hue pair")
+    {
+        startPairing();
+        Serial.println("[HueGatewayModule] Pairing command accepted. Press Hue Bridge button now.");
         return true;
     }
     
@@ -293,9 +410,276 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
                           _lights[i]->isOn() ? "ON " : "OFF",
                           _lights[i]->getBrightness());
         }
+
+        Serial.println("\nHCL Status:");
+        Serial.println("---------------------------------");
+
+        #ifdef ParamHUE_HUEHCLEnable
+        const bool hclEnabled = (ParamHUE_HUEHCLEnable != 0);
+        Serial.printf("Enabled: %s\n", hclEnabled ? "Yes" : "No");
+        #else
+        const bool hclEnabled = false;
+        Serial.println("Enabled: No");
+        #endif
+
+        if (hclEnabled)
+        {
+            #ifdef ParamHUE_HUEHCLMasterCount
+            const uint8_t masterCount = ParamHUE_HUEHCLMasterCount;
+            #else
+            const uint8_t masterCount = 0;
+            #endif
+
+            #ifdef ParamHUE_HUEHCLUpdateInterval
+            Serial.printf("Update interval: %us\n", static_cast<unsigned>(ParamHUE_HUEHCLUpdateInterval));
+            #endif
+
+            #ifdef ParamHUE_HUEHCLFadeDuration
+            Serial.printf("Fade duration: %us\n", static_cast<unsigned>(ParamHUE_HUEHCLFadeDuration));
+            #endif
+
+            for (uint8_t masterNumber = 1; masterNumber <= 4; masterNumber++)
+            {
+                if (masterNumber > masterCount)
+                {
+                    break;
+                }
+
+                HCL::Master* master = HCL::masterManager.getMaster(masterNumber);
+                if (!master)
+                {
+                    continue;
+                }
+
+                HCL::InterpolatedValue current = HCL::masterManager.getCurrentValue(masterNumber);
+                Serial.printf("M%u: current=%uK/%u%% setpoints=%u\n",
+                              static_cast<unsigned>(masterNumber),
+                              static_cast<unsigned>(current.kelvin),
+                              static_cast<unsigned>(current.brightness),
+                              static_cast<unsigned>(master->getValidSetpointCount()));
+
+                uint8_t curveTypeValue = 0;
+                uint16_t slewRate = 0;
+                uint16_t manualKelvin = 4000;
+                String sunrise = "";
+                String sunset = "";
+                int16_t sunriseOffset = 0;
+                int16_t sunsetOffset = 0;
+
+                switch (masterNumber)
+                {
+                    case 1:
+                        #ifdef ParamHUE_HCLM1CurveType
+                        curveTypeValue = ParamHUE_HCLM1CurveType;
+                        slewRate = ParamHUE_HCLM1SlewRate;
+                        manualKelvin = ParamHUE_HCLM1ManualKelvin;
+                        sunrise = reinterpret_cast<const char*>(ParamHUE_HCLM1Sunrise);
+                        sunset = reinterpret_cast<const char*>(ParamHUE_HCLM1Sunset);
+                        sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM1SunriseOffset);
+                        sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM1SunsetOffset);
+                        #endif
+                        break;
+                    case 2:
+                        #ifdef ParamHUE_HCLM2CurveType
+                        curveTypeValue = ParamHUE_HCLM2CurveType;
+                        slewRate = ParamHUE_HCLM2SlewRate;
+                        manualKelvin = ParamHUE_HCLM2ManualKelvin;
+                        sunrise = reinterpret_cast<const char*>(ParamHUE_HCLM2Sunrise);
+                        sunset = reinterpret_cast<const char*>(ParamHUE_HCLM2Sunset);
+                        sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM2SunriseOffset);
+                        sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM2SunsetOffset);
+                        #endif
+                        break;
+                    case 3:
+                        #ifdef ParamHUE_HCLM3CurveType
+                        curveTypeValue = ParamHUE_HCLM3CurveType;
+                        slewRate = ParamHUE_HCLM3SlewRate;
+                        manualKelvin = ParamHUE_HCLM3ManualKelvin;
+                        sunrise = reinterpret_cast<const char*>(ParamHUE_HCLM3Sunrise);
+                        sunset = reinterpret_cast<const char*>(ParamHUE_HCLM3Sunset);
+                        sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM3SunriseOffset);
+                        sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM3SunsetOffset);
+                        #endif
+                        break;
+                    case 4:
+                        #ifdef ParamHUE_HCLM4CurveType
+                        curveTypeValue = ParamHUE_HCLM4CurveType;
+                        slewRate = ParamHUE_HCLM4SlewRate;
+                        manualKelvin = ParamHUE_HCLM4ManualKelvin;
+                        sunrise = reinterpret_cast<const char*>(ParamHUE_HCLM4Sunrise);
+                        sunset = reinterpret_cast<const char*>(ParamHUE_HCLM4Sunset);
+                        sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM4SunriseOffset);
+                        sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM4SunsetOffset);
+                        #endif
+                        break;
+                    default:
+                        break;
+                }
+
+                const char* curveText = "FixedTime";
+                if (curveTypeValue == 1)
+                {
+                    curveText = "SunPosition";
+                }
+                else if (curveTypeValue == 2)
+                {
+                    curveText = "Manual";
+                }
+
+                Serial.printf("    curve=%s slew=%uK/min manual=%uK sun=%s/%s offset=%d/%d applied=%uK\n",
+                              curveText,
+                              static_cast<unsigned>(slewRate),
+                              static_cast<unsigned>(manualKelvin),
+                              sunrise.c_str(),
+                              sunset.c_str(),
+                              static_cast<int>(sunriseOffset),
+                              static_cast<int>(sunsetOffset),
+                              static_cast<unsigned>(master->getAppliedKelvin()));
+            }
+        }
         
         Serial.println("=================================");
         
+        return true;
+    }
+
+    if (cmd == "hue hcl")
+    {
+        Serial.println("=================================");
+        Serial.println("Hue HCL Diagnostics");
+        Serial.println("=================================");
+
+        #ifdef ParamHUE_HUEHCLEnable
+        const bool hclEnabled = (ParamHUE_HUEHCLEnable != 0);
+        Serial.printf("Enabled: %s\n", hclEnabled ? "Yes" : "No");
+        #else
+        const bool hclEnabled = false;
+        Serial.println("Enabled: No");
+        #endif
+
+        if (!hclEnabled)
+        {
+            Serial.println("HCL is disabled in ETS.");
+            Serial.println("=================================");
+            return true;
+        }
+
+        #ifdef ParamHUE_HUEHCLMasterCount
+        const uint8_t masterCount = ParamHUE_HUEHCLMasterCount;
+        Serial.printf("Master count: %u\n", static_cast<unsigned>(masterCount));
+        #else
+        const uint8_t masterCount = 0;
+        Serial.println("Master count: 0");
+        #endif
+
+        #ifdef ParamHUE_HUEHCLUpdateInterval
+        Serial.printf("Update interval: %us\n", static_cast<unsigned>(ParamHUE_HUEHCLUpdateInterval));
+        #endif
+
+        #ifdef ParamHUE_HUEHCLFadeDuration
+        Serial.printf("Fade duration: %us\n", static_cast<unsigned>(ParamHUE_HUEHCLFadeDuration));
+        #endif
+
+        for (uint8_t masterNumber = 1; masterNumber <= 4; masterNumber++)
+        {
+            if (masterNumber > masterCount)
+            {
+                break;
+            }
+
+            HCL::Master* master = HCL::masterManager.getMaster(masterNumber);
+            if (!master)
+            {
+                continue;
+            }
+
+            HCL::InterpolatedValue current = HCL::masterManager.getCurrentValue(masterNumber);
+            Serial.printf("M%u: current=%uK/%u%% setpoints=%u applied=%uK\n",
+                          static_cast<unsigned>(masterNumber),
+                          static_cast<unsigned>(current.kelvin),
+                          static_cast<unsigned>(current.brightness),
+                          static_cast<unsigned>(master->getValidSetpointCount()),
+                          static_cast<unsigned>(master->getAppliedKelvin()));
+
+            uint8_t curveTypeValue = 0;
+            uint16_t slewRate = 0;
+            uint16_t manualKelvin = 4000;
+            String sunrise = "";
+            String sunset = "";
+            int16_t sunriseOffset = 0;
+            int16_t sunsetOffset = 0;
+
+            switch (masterNumber)
+            {
+                case 1:
+                    #ifdef ParamHUE_HCLM1CurveType
+                    curveTypeValue = ParamHUE_HCLM1CurveType;
+                    slewRate = ParamHUE_HCLM1SlewRate;
+                    manualKelvin = ParamHUE_HCLM1ManualKelvin;
+                    sunrise = reinterpret_cast<const char*>(ParamHUE_HCLM1Sunrise);
+                    sunset = reinterpret_cast<const char*>(ParamHUE_HCLM1Sunset);
+                    sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM1SunriseOffset);
+                    sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM1SunsetOffset);
+                    #endif
+                    break;
+                case 2:
+                    #ifdef ParamHUE_HCLM2CurveType
+                    curveTypeValue = ParamHUE_HCLM2CurveType;
+                    slewRate = ParamHUE_HCLM2SlewRate;
+                    manualKelvin = ParamHUE_HCLM2ManualKelvin;
+                    sunrise = reinterpret_cast<const char*>(ParamHUE_HCLM2Sunrise);
+                    sunset = reinterpret_cast<const char*>(ParamHUE_HCLM2Sunset);
+                    sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM2SunriseOffset);
+                    sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM2SunsetOffset);
+                    #endif
+                    break;
+                case 3:
+                    #ifdef ParamHUE_HCLM3CurveType
+                    curveTypeValue = ParamHUE_HCLM3CurveType;
+                    slewRate = ParamHUE_HCLM3SlewRate;
+                    manualKelvin = ParamHUE_HCLM3ManualKelvin;
+                    sunrise = reinterpret_cast<const char*>(ParamHUE_HCLM3Sunrise);
+                    sunset = reinterpret_cast<const char*>(ParamHUE_HCLM3Sunset);
+                    sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM3SunriseOffset);
+                    sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM3SunsetOffset);
+                    #endif
+                    break;
+                case 4:
+                    #ifdef ParamHUE_HCLM4CurveType
+                    curveTypeValue = ParamHUE_HCLM4CurveType;
+                    slewRate = ParamHUE_HCLM4SlewRate;
+                    manualKelvin = ParamHUE_HCLM4ManualKelvin;
+                    sunrise = reinterpret_cast<const char*>(ParamHUE_HCLM4Sunrise);
+                    sunset = reinterpret_cast<const char*>(ParamHUE_HCLM4Sunset);
+                    sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM4SunriseOffset);
+                    sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM4SunsetOffset);
+                    #endif
+                    break;
+                default:
+                    break;
+            }
+
+            const char* curveText = "FixedTime";
+            if (curveTypeValue == 1)
+            {
+                curveText = "SunPosition";
+            }
+            else if (curveTypeValue == 2)
+            {
+                curveText = "Manual";
+            }
+
+            Serial.printf("    curve=%s slew=%uK/min manual=%uK sun=%s/%s offset=%d/%d\n",
+                          curveText,
+                          static_cast<unsigned>(slewRate),
+                          static_cast<unsigned>(manualKelvin),
+                          sunrise.c_str(),
+                          sunset.c_str(),
+                          static_cast<int>(sunriseOffset),
+                          static_cast<int>(sunsetOffset));
+        }
+
+        Serial.println("=================================");
         return true;
     }
     
@@ -321,7 +705,7 @@ void HueGatewayModule::setupMDNS()
 
 void HueGatewayModule::setupBridge()
 {
-    Serial.println("[HueGatewayModule] Setting up Bridge connection...");
+    Serial.println("[HueGatewayModule] ===== Commissioning: Bridge setup start =====");
     
     // Prüfen ob Netzwerk verfügbar (von OFM-Network/WLAN bereitgestellt)
     if (WiFi.status() != WL_CONNECTED)
@@ -332,7 +716,7 @@ void HueGatewayModule::setupBridge()
         return;
     }
     
-    Serial.printf("[HueGatewayModule] Network OK - IP: %s\n", WiFi.localIP().toString().c_str());
+    Serial.printf("[HueGatewayModule] Network OK - Device IP: %s\n", WiFi.localIP().toString().c_str());
     
     // Bridge IP aus ETS-Parameter lesen
     _bridgeIP = getBridgeIP();
@@ -346,8 +730,18 @@ void HueGatewayModule::setupBridge()
     
     Serial.printf("[HueGatewayModule] Bridge configured: %s\n", _bridgeIP.c_str());
 
+    if (ParamHUE_HUEBridgeMode == 0)
+    {
+        Serial.println("[HueGatewayModule] Discovery mode: Automatic (mDNS/N-UPnP fallback)");
+    }
+    else
+    {
+        Serial.println("[HueGatewayModule] Discovery mode: Manual IP");
+    }
+
     if (ParamHUE_HUEResetAuth)
     {
+        Serial.println("[HueGatewayModule] Commissioning flag active: reset stored authentication");
         _auth.clearAppKey();
     }
 
@@ -357,10 +751,14 @@ void HueGatewayModule::setupBridge()
         pairingWindowSec = 30;
     }
     _authWindowMs = static_cast<unsigned long>(pairingWindowSec) * 1000UL;
+    _reconnectBackoffMs = 10000;
+    _lastReconnectTryMs = 0;
+    Serial.printf("[HueGatewayModule] Pairing window: %u seconds\n", static_cast<unsigned>(pairingWindowSec));
     
     // Authentication (non-blocking if no stored key)
     if (_auth.loadStoredAppKey())
     {
+        Serial.println("[HueGatewayModule] Stored App-Key found, trying direct client init");
         if (initClientWithAppKey())
         {
             updateStatus(BridgeStatus::CONNECTED);
@@ -368,16 +766,20 @@ void HueGatewayModule::setupBridge()
         }
         else
         {
+            Serial.println("[HueGatewayModule] Stored App-Key unusable, bridge currently unreachable or TLS/auth mismatch");
             updateStatus(BridgeStatus::BRIDGE_UNREACHABLE);
         }
         return;
     }
+
+    Serial.println("[HueGatewayModule] No stored App-Key found, entering pairing workflow");
 
     updateStatus(BridgeStatus::WAIT_FOR_BUTTON);
     _authPending = true;
     _authStartTime = millis();
     _authLastTry = 0;
     Serial.println("[HueGatewayModule] Awaiting Hue Bridge link button...");
+    Serial.println("[HueGatewayModule] ===== Commissioning: Bridge setup pending pairing =====");
 }
 
 void HueGatewayModule::setupDevices()
@@ -407,7 +809,7 @@ void HueGatewayModule::setupDevices()
     Serial.printf("[HueGatewayModule] Bridge has %d lights\n", bridgeLightCount);
     
     // Kanäle aus ETS-Parametern laden
-    // Kanal -> Bridge-Licht per Index (0..N-1)
+    // Bevorzugt UUID-Mapping aus ETS, Fallback auf Index bei leerer UUID
     uint8_t maxChannels = channelCount;
     if (maxChannels > MAX_LIGHTS)
     {
@@ -427,10 +829,38 @@ void HueGatewayModule::setupDevices()
             continue;
         }
 
-        const HueGatewayLightState& bridgeLight = allLights[ch];
-        if (bridgeLight.id.isEmpty())
+        std::string configuredUuidStd = ParamHUE_CHLightUUIDStr;
+        String configuredUuid(configuredUuidStd.c_str());
+        configuredUuid.trim();
+
+        const HueGatewayLightState* selectedLight = nullptr;
+        if (configuredUuid.length() > 0)
         {
-            Serial.printf("[HueGatewayModule] Channel %d: Empty light id from bridge\n", ch + 1);
+            for (int i = 0; i < bridgeLightCount; i++)
+            {
+                if (allLights[i].id.equalsIgnoreCase(configuredUuid))
+                {
+                    selectedLight = &allLights[i];
+                    break;
+                }
+            }
+
+            if (selectedLight == nullptr)
+            {
+                Serial.printf("[HueGatewayModule] Channel %d: Configured UUID not found on bridge: %s\n", ch + 1, configuredUuid.c_str());
+                continue;
+            }
+        }
+        else if (ch < bridgeLightCount)
+        {
+            selectedLight = &allLights[ch];
+            Serial.printf("[HueGatewayModule] Channel %d: No UUID configured, fallback to bridge index %d (%s)\n",
+                          ch + 1, ch, selectedLight->id.c_str());
+        }
+
+        if (selectedLight == nullptr || selectedLight->id.isEmpty())
+        {
+            Serial.printf("[HueGatewayModule] Channel %d: No valid bridge light selected\n", ch + 1);
             continue;
         }
 
@@ -444,11 +874,39 @@ void HueGatewayModule::setupDevices()
         uint16_t koStatusColorRGB = koBase + 8;
         
         // HueGatewayLight Instanz erstellen
-        _lights[ch] = new HueGatewayLight(bridgeLight.id, bridgeLight.name, _client);
+        _lights[ch] = new HueGatewayLight(selectedLight->id, selectedLight->name, _client);
         _lights[ch]->begin(koSwitch, koBrightness, koDimming, koStatusSwitch, koStatusBrightness, koStatusColorTemp, koStatusColorRGB);
 
         uint8_t lightType = ParamHUE_CHLightType;
-        _lights[ch]->setLightType(lightType);
+        uint8_t effectiveLightType = lightType;
+
+        if (effectiveLightType >= 3 && !selectedLight->supportsColor)
+        {
+            if (selectedLight->supportsColorTemp)
+            {
+                effectiveLightType = 2;
+            }
+            else
+            {
+                effectiveLightType = 1;
+            }
+
+            Serial.printf("[HueGatewayModule] Channel %d: ETS type %u downgraded to %u (light has no RGB support)\n",
+                          ch + 1,
+                          static_cast<unsigned>(lightType),
+                          static_cast<unsigned>(effectiveLightType));
+        }
+
+        if (effectiveLightType == 2 && !selectedLight->supportsColorTemp)
+        {
+            effectiveLightType = 1;
+            Serial.printf("[HueGatewayModule] Channel %d: ETS type %u downgraded to %u (light has no CT support)\n",
+                          ch + 1,
+                          static_cast<unsigned>(lightType),
+                          static_cast<unsigned>(effectiveLightType));
+        }
+
+        _lights[ch]->setLightType(effectiveLightType);
 
         uint8_t hclMaster = ParamHUE_CHHCLMaster;
         if (hclMaster > 4)
@@ -457,12 +915,18 @@ void HueGatewayModule::setupDevices()
         }
         _lights[ch]->setHCLMaster(hclMaster);
 
-        Serial.printf("[HueGatewayModule] Channel %d: %s (%s), Type:%u Sync:%u HCL:%u -> KO %d/%d/%d/%d/%d\n",
+        uint8_t minBrightness = ParamHUE_CHMinBrightness;
+        _lights[ch]->setMinBrightness(minBrightness);
+        _channelLastPollMs[ch] = 0;
+
+        Serial.printf("[HueGatewayModule] Channel %d: %s (%s), Type:%u Sync:%u Poll:%us MinBri:%u%% HCL:%u -> KO %d/%d/%d/%d/%d\n",
                       ch + 1,
-                      bridgeLight.name.c_str(),
-                      bridgeLight.id.c_str(),
-                      static_cast<unsigned>(lightType),
+                      selectedLight->name.c_str(),
+                      selectedLight->id.c_str(),
+                      static_cast<unsigned>(effectiveLightType),
                       static_cast<unsigned>(ParamHUE_CHSyncDir),
+                      static_cast<unsigned>(ParamHUE_CHPollInterval),
+                      static_cast<unsigned>(minBrightness),
                       static_cast<unsigned>(hclMaster),
                       koSwitch, koBrightness, koDimming, koStatusSwitch, koStatusBrightness);
         
@@ -504,127 +968,128 @@ void HueGatewayModule::setupHCL()
     HCL::masterManager.setFadeDuration(fadeDuration);
     Serial.printf("[HueGatewayModule] HCL fade duration: %d seconds\n", fadeDuration);
     #endif
-    
-    // Load HCL Master 1 setpoints from ETS
+
+    auto loadMasterSetpoints = [](uint8_t masterNumber,
+                                  const char* const (&times)[10],
+                                  const uint16_t (&kelvins)[10],
+                                  const uint8_t (&brightnesses)[10]) {
+        HCL::Master* master = HCL::masterManager.getMaster(masterNumber);
+        if (!master)
+        {
+            Serial.printf("[HueGatewayModule] HCL Master %u not available\n", masterNumber);
+            return;
+        }
+
+        Serial.printf("[HueGatewayModule] Loading HCL Master %u setpoints...\n", masterNumber);
+
+        for (int i = 0; i < 10; i++)
+        {
+            uint16_t minutes = HCL::Setpoint::parseTime(times[i]);
+            if (minutes == 0xFFFF)
+            {
+                continue;
+            }
+
+            master->setSetpoint(i, HCL::Setpoint(minutes, kelvins[i], brightnesses[i]));
+            Serial.printf("  SP%d: %s (%dmin) -> %dK, %d%%\n", i + 1, times[i], minutes, kelvins[i], brightnesses[i]);
+        }
+
+        master->sortSetpoints();
+        Serial.printf("[HueGatewayModule] HCL Master %u loaded with %d valid setpoints\n",
+                      masterNumber,
+                      master->getValidSetpointCount());
+    };
+
+    auto applyMasterAdvanced = [](uint8_t masterNumber,
+                                  uint8_t curveType,
+                                  uint16_t slewRateKelvinPerMinute,
+                                  uint16_t manualKelvin,
+                                  const char* sunriseTime,
+                                  const char* sunsetTime,
+                                  int16_t sunriseOffset,
+                                  int16_t sunsetOffset) {
+        HCL::Master* master = HCL::masterManager.getMaster(masterNumber);
+        if (!master)
+        {
+            return;
+        }
+
+        if (curveType > static_cast<uint8_t>(HCL::CurveType::Manual))
+        {
+            curveType = static_cast<uint8_t>(HCL::CurveType::FixedTime);
+        }
+
+        master->setCurveType(static_cast<HCL::CurveType>(curveType));
+        master->setSlewRateKelvinPerMinute(slewRateKelvinPerMinute);
+        master->setManualKelvin(manualKelvin);
+
+        uint16_t sunriseMinutes = HCL::Setpoint::parseTime(sunriseTime);
+        uint16_t sunsetMinutes = HCL::Setpoint::parseTime(sunsetTime);
+        if (sunriseMinutes != 0xFFFF && sunsetMinutes != 0xFFFF)
+        {
+            master->setSunTimes(sunriseMinutes, sunsetMinutes);
+        }
+        else
+        {
+            master->clearSunTimes();
+        }
+
+        master->setSunOffsets(sunriseOffset, sunsetOffset);
+
+        Serial.printf("[HueGatewayModule] HCL Master %u advanced: curve=%u slew=%uK/min manual=%uK sunrise=%s sunset=%s offsets=%d/%d\n",
+                      masterNumber,
+                      static_cast<unsigned>(curveType),
+                      static_cast<unsigned>(slewRateKelvinPerMinute),
+                      static_cast<unsigned>(manualKelvin),
+                      sunriseTime,
+                      sunsetTime,
+                      static_cast<int>(sunriseOffset),
+                      static_cast<int>(sunsetOffset));
+    };
+
     #ifdef ParamHUE_HCLM1SP0Time
-    HCL::Master* master1 = HCL::masterManager.getMaster(1);
-    if (master1) {
-        Serial.println("[HueGatewayModule] Loading HCL Master 1 setpoints...");
-        
-        // Setpoint 0
-        const char* time0 = reinterpret_cast<const char*>(ParamHUE_HCLM1SP0Time);
-        uint16_t kelvin0 = ParamHUE_HCLM1SP0Kelvin;
-        uint8_t brightness0 = ParamHUE_HCLM1SP0Brightness;
-        uint16_t minutes0 = HCL::Setpoint::parseTime(time0);
-        if (minutes0 != 0xFFFF) {
-            master1->setSetpoint(0, HCL::Setpoint(minutes0, kelvin0, brightness0));
-            Serial.printf("  SP1: %s (%dmin) -> %dK, %d%%\n", time0, minutes0, kelvin0, brightness0);
-        }
-        
-        // Setpoint 1
-        const char* time1 = reinterpret_cast<const char*>(ParamHUE_HCLM1SP1Time);
-        uint16_t kelvin1 = ParamHUE_HCLM1SP1Kelvin;
-        uint8_t brightness1 = ParamHUE_HCLM1SP1Brightness;
-        uint16_t minutes1 = HCL::Setpoint::parseTime(time1);
-        if (minutes1 != 0xFFFF) {
-            master1->setSetpoint(1, HCL::Setpoint(minutes1, kelvin1, brightness1));
-            Serial.printf("  SP2: %s (%dmin) -> %dK, %d%%\n", time1, minutes1, kelvin1, brightness1);
-        }
-        
-        // Setpoint 2
-        const char* time2 = reinterpret_cast<const char*>(ParamHUE_HCLM1SP2Time);
-        uint16_t kelvin2 = ParamHUE_HCLM1SP2Kelvin;
-        uint8_t brightness2 = ParamHUE_HCLM1SP2Brightness;
-        uint16_t minutes2 = HCL::Setpoint::parseTime(time2);
-        if (minutes2 != 0xFFFF) {
-            master1->setSetpoint(2, HCL::Setpoint(minutes2, kelvin2, brightness2));
-            Serial.printf("  SP3: %s (%dmin) -> %dK, %d%%\n", time2, minutes2, kelvin2, brightness2);
-        }
-        
-        // Setpoint 3
-        const char* time3 = reinterpret_cast<const char*>(ParamHUE_HCLM1SP3Time);
-        uint16_t kelvin3 = ParamHUE_HCLM1SP3Kelvin;
-        uint8_t brightness3 = ParamHUE_HCLM1SP3Brightness;
-        uint16_t minutes3 = HCL::Setpoint::parseTime(time3);
-        if (minutes3 != 0xFFFF) {
-            master1->setSetpoint(3, HCL::Setpoint(minutes3, kelvin3, brightness3));
-            Serial.printf("  SP4: %s (%dmin) -> %dK, %d%%\n", time3, minutes3, kelvin3, brightness3);
-        }
-        
-        // Setpoint 4
-        const char* time4 = reinterpret_cast<const char*>(ParamHUE_HCLM1SP4Time);
-        uint16_t kelvin4 = ParamHUE_HCLM1SP4Kelvin;
-        uint8_t brightness4 = ParamHUE_HCLM1SP4Brightness;
-        uint16_t minutes4 = HCL::Setpoint::parseTime(time4);
-        if (minutes4 != 0xFFFF) {
-            master1->setSetpoint(4, HCL::Setpoint(minutes4, kelvin4, brightness4));
-            Serial.printf("  SP5: %s (%dmin) -> %dK, %d%%\n", time4, minutes4, kelvin4, brightness4);
-        }
-        
-        // Setpoint 5
-        const char* time5 = reinterpret_cast<const char*>(ParamHUE_HCLM1SP5Time);
-        uint16_t kelvin5 = ParamHUE_HCLM1SP5Kelvin;
-        uint8_t brightness5 = ParamHUE_HCLM1SP5Brightness;
-        uint16_t minutes5 = HCL::Setpoint::parseTime(time5);
-        if (minutes5 != 0xFFFF) {
-            master1->setSetpoint(5, HCL::Setpoint(minutes5, kelvin5, brightness5));
-            Serial.printf("  SP6: %s (%dmin) -> %dK, %d%%\n", time5, minutes5, kelvin5, brightness5);
-        }
-        
-        // Setpoint 6
-        const char* time6 = reinterpret_cast<const char*>(ParamHUE_HCLM1SP6Time);
-        uint16_t kelvin6 = ParamHUE_HCLM1SP6Kelvin;
-        uint8_t brightness6 = ParamHUE_HCLM1SP6Brightness;
-        uint16_t minutes6 = HCL::Setpoint::parseTime(time6);
-        if (minutes6 != 0xFFFF) {
-            master1->setSetpoint(6, HCL::Setpoint(minutes6, kelvin6, brightness6));
-            Serial.printf("  SP7: %s (%dmin) -> %dK, %d%%\n", time6, minutes6, kelvin6, brightness6);
-        }
-        
-        // Setpoint 7
-        const char* time7 = reinterpret_cast<const char*>(ParamHUE_HCLM1SP7Time);
-        uint16_t kelvin7 = ParamHUE_HCLM1SP7Kelvin;
-        uint8_t brightness7 = ParamHUE_HCLM1SP7Brightness;
-        uint16_t minutes7 = HCL::Setpoint::parseTime(time7);
-        if (minutes7 != 0xFFFF) {
-            master1->setSetpoint(7, HCL::Setpoint(minutes7, kelvin7, brightness7));
-            Serial.printf("  SP8: %s (%dmin) -> %dK, %d%%\n", time7, minutes7, kelvin7, brightness7);
-        }
-        
-        // Setpoint 8
-        const char* time8 = reinterpret_cast<const char*>(ParamHUE_HCLM1SP8Time);
-        uint16_t kelvin8 = ParamHUE_HCLM1SP8Kelvin;
-        uint8_t brightness8 = ParamHUE_HCLM1SP8Brightness;
-        uint16_t minutes8 = HCL::Setpoint::parseTime(time8);
-        if (minutes8 != 0xFFFF) {
-            master1->setSetpoint(8, HCL::Setpoint(minutes8, kelvin8, brightness8));
-            Serial.printf("  SP9: %s (%dmin) -> %dK, %d%%\n", time8, minutes8, kelvin8, brightness8);
-        }
-        
-        // Setpoint 9
-        const char* time9 = reinterpret_cast<const char*>(ParamHUE_HCLM1SP9Time);
-        uint16_t kelvin9 = ParamHUE_HCLM1SP9Kelvin;
-        uint8_t brightness9 = ParamHUE_HCLM1SP9Brightness;
-        uint16_t minutes9 = HCL::Setpoint::parseTime(time9);
-        if (minutes9 != 0xFFFF) {
-            master1->setSetpoint(9, HCL::Setpoint(minutes9, kelvin9, brightness9));
-            Serial.printf("  SP10: %s (%dmin) -> %dK, %d%%\n", time9, minutes9, kelvin9, brightness9);
-        }
-        
-        // Sort setpoints by time
-        master1->sortSetpoints();
-        Serial.printf("[HueGatewayModule] HCL Master 1 loaded with %d valid setpoints\n", master1->getValidSetpointCount());
+    {
+        const char* const times[10] = {
+            reinterpret_cast<const char*>(ParamHUE_HCLM1SP0Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM1SP1Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM1SP2Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM1SP3Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM1SP4Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM1SP5Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM1SP6Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM1SP7Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM1SP8Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM1SP9Time)
+        };
+        const uint16_t kelvins[10] = {
+            ParamHUE_HCLM1SP0Kelvin, ParamHUE_HCLM1SP1Kelvin, ParamHUE_HCLM1SP2Kelvin,
+            ParamHUE_HCLM1SP3Kelvin, ParamHUE_HCLM1SP4Kelvin, ParamHUE_HCLM1SP5Kelvin,
+            ParamHUE_HCLM1SP6Kelvin, ParamHUE_HCLM1SP7Kelvin, ParamHUE_HCLM1SP8Kelvin, ParamHUE_HCLM1SP9Kelvin
+        };
+        const uint8_t brightnesses[10] = {
+            ParamHUE_HCLM1SP0Brightness, ParamHUE_HCLM1SP1Brightness, ParamHUE_HCLM1SP2Brightness,
+            ParamHUE_HCLM1SP3Brightness, ParamHUE_HCLM1SP4Brightness, ParamHUE_HCLM1SP5Brightness,
+            ParamHUE_HCLM1SP6Brightness, ParamHUE_HCLM1SP7Brightness, ParamHUE_HCLM1SP8Brightness, ParamHUE_HCLM1SP9Brightness
+        };
+        loadMasterSetpoints(1, times, kelvins, brightnesses);
+
+        #ifdef ParamHUE_HCLM1CurveType
+        applyMasterAdvanced(
+            1,
+            ParamHUE_HCLM1CurveType,
+            ParamHUE_HCLM1SlewRate,
+            ParamHUE_HCLM1ManualKelvin,
+            reinterpret_cast<const char*>(ParamHUE_HCLM1Sunrise),
+            reinterpret_cast<const char*>(ParamHUE_HCLM1Sunset),
+            static_cast<int16_t>(ParamHUE_HCLM1SunriseOffset),
+            static_cast<int16_t>(ParamHUE_HCLM1SunsetOffset));
+        #endif
     }
     #endif
-    
-    // Load HCL Master 2 setpoints from ETS
+
     #ifdef ParamHUE_HCLM2SP0Time
-    HCL::Master* master2 = HCL::masterManager.getMaster(2);
-    if (master2) {
-        Serial.println("[HueGatewayModule] Loading HCL Master 2 setpoints...");
-        
-        // Setpoints 0-9 for Master 2
-        const char* times[] = {
+    {
+        const char* const times[10] = {
             reinterpret_cast<const char*>(ParamHUE_HCLM2SP0Time),
             reinterpret_cast<const char*>(ParamHUE_HCLM2SP1Time),
             reinterpret_cast<const char*>(ParamHUE_HCLM2SP2Time),
@@ -636,33 +1101,35 @@ void HueGatewayModule::setupHCL()
             reinterpret_cast<const char*>(ParamHUE_HCLM2SP8Time),
             reinterpret_cast<const char*>(ParamHUE_HCLM2SP9Time)
         };
-        uint16_t kelvins[] = {ParamHUE_HCLM2SP0Kelvin, ParamHUE_HCLM2SP1Kelvin, ParamHUE_HCLM2SP2Kelvin,
-                              ParamHUE_HCLM2SP3Kelvin, ParamHUE_HCLM2SP4Kelvin, ParamHUE_HCLM2SP5Kelvin,
-                              ParamHUE_HCLM2SP6Kelvin, ParamHUE_HCLM2SP7Kelvin, ParamHUE_HCLM2SP8Kelvin, ParamHUE_HCLM2SP9Kelvin};
-        uint8_t brightnesses[] = {ParamHUE_HCLM2SP0Brightness, ParamHUE_HCLM2SP1Brightness, ParamHUE_HCLM2SP2Brightness,
-                                  ParamHUE_HCLM2SP3Brightness, ParamHUE_HCLM2SP4Brightness, ParamHUE_HCLM2SP5Brightness,
-                                  ParamHUE_HCLM2SP6Brightness, ParamHUE_HCLM2SP7Brightness, ParamHUE_HCLM2SP8Brightness, ParamHUE_HCLM2SP9Brightness};
-        
-        for (int i = 0; i < 10; i++) {
-            uint16_t minutes = HCL::Setpoint::parseTime(times[i]);
-            if (minutes != 0xFFFF) {
-                master2->setSetpoint(i, HCL::Setpoint(minutes, kelvins[i], brightnesses[i]));
-                Serial.printf("  SP%d: %s (%dmin) -> %dK, %d%%\n", i+1, times[i], minutes, kelvins[i], brightnesses[i]);
-            }
-        }
-        
-        master2->sortSetpoints();
-        Serial.printf("[HueGatewayModule] HCL Master 2 loaded with %d valid setpoints\n", master2->getValidSetpointCount());
+        const uint16_t kelvins[10] = {
+            ParamHUE_HCLM2SP0Kelvin, ParamHUE_HCLM2SP1Kelvin, ParamHUE_HCLM2SP2Kelvin,
+            ParamHUE_HCLM2SP3Kelvin, ParamHUE_HCLM2SP4Kelvin, ParamHUE_HCLM2SP5Kelvin,
+            ParamHUE_HCLM2SP6Kelvin, ParamHUE_HCLM2SP7Kelvin, ParamHUE_HCLM2SP8Kelvin, ParamHUE_HCLM2SP9Kelvin
+        };
+        const uint8_t brightnesses[10] = {
+            ParamHUE_HCLM2SP0Brightness, ParamHUE_HCLM2SP1Brightness, ParamHUE_HCLM2SP2Brightness,
+            ParamHUE_HCLM2SP3Brightness, ParamHUE_HCLM2SP4Brightness, ParamHUE_HCLM2SP5Brightness,
+            ParamHUE_HCLM2SP6Brightness, ParamHUE_HCLM2SP7Brightness, ParamHUE_HCLM2SP8Brightness, ParamHUE_HCLM2SP9Brightness
+        };
+        loadMasterSetpoints(2, times, kelvins, brightnesses);
+
+        #ifdef ParamHUE_HCLM2CurveType
+        applyMasterAdvanced(
+            2,
+            ParamHUE_HCLM2CurveType,
+            ParamHUE_HCLM2SlewRate,
+            ParamHUE_HCLM2ManualKelvin,
+            reinterpret_cast<const char*>(ParamHUE_HCLM2Sunrise),
+            reinterpret_cast<const char*>(ParamHUE_HCLM2Sunset),
+            static_cast<int16_t>(ParamHUE_HCLM2SunriseOffset),
+            static_cast<int16_t>(ParamHUE_HCLM2SunsetOffset));
+        #endif
     }
     #endif
-    
-    // Load HCL Master 3 setpoints from ETS
+
     #ifdef ParamHUE_HCLM3SP0Time
-    HCL::Master* master3 = HCL::masterManager.getMaster(3);
-    if (master3) {
-        Serial.println("[HueGatewayModule] Loading HCL Master 3 setpoints...");
-        
-        const char* times[] = {
+    {
+        const char* const times[10] = {
             reinterpret_cast<const char*>(ParamHUE_HCLM3SP0Time),
             reinterpret_cast<const char*>(ParamHUE_HCLM3SP1Time),
             reinterpret_cast<const char*>(ParamHUE_HCLM3SP2Time),
@@ -674,33 +1141,35 @@ void HueGatewayModule::setupHCL()
             reinterpret_cast<const char*>(ParamHUE_HCLM3SP8Time),
             reinterpret_cast<const char*>(ParamHUE_HCLM3SP9Time)
         };
-        uint16_t kelvins[] = {ParamHUE_HCLM3SP0Kelvin, ParamHUE_HCLM3SP1Kelvin, ParamHUE_HCLM3SP2Kelvin,
-                              ParamHUE_HCLM3SP3Kelvin, ParamHUE_HCLM3SP4Kelvin, ParamHUE_HCLM3SP5Kelvin,
-                              ParamHUE_HCLM3SP6Kelvin, ParamHUE_HCLM3SP7Kelvin, ParamHUE_HCLM3SP8Kelvin, ParamHUE_HCLM3SP9Kelvin};
-        uint8_t brightnesses[] = {ParamHUE_HCLM3SP0Brightness, ParamHUE_HCLM3SP1Brightness, ParamHUE_HCLM3SP2Brightness,
-                                  ParamHUE_HCLM3SP3Brightness, ParamHUE_HCLM3SP4Brightness, ParamHUE_HCLM3SP5Brightness,
-                                  ParamHUE_HCLM3SP6Brightness, ParamHUE_HCLM3SP7Brightness, ParamHUE_HCLM3SP8Brightness, ParamHUE_HCLM3SP9Brightness};
-        
-        for (int i = 0; i < 10; i++) {
-            uint16_t minutes = HCL::Setpoint::parseTime(times[i]);
-            if (minutes != 0xFFFF) {
-                master3->setSetpoint(i, HCL::Setpoint(minutes, kelvins[i], brightnesses[i]));
-                Serial.printf("  SP%d: %s (%dmin) -> %dK, %d%%\n", i+1, times[i], minutes, kelvins[i], brightnesses[i]);
-            }
-        }
-        
-        master3->sortSetpoints();
-        Serial.printf("[HueGatewayModule] HCL Master 3 loaded with %d valid setpoints\n", master3->getValidSetpointCount());
+        const uint16_t kelvins[10] = {
+            ParamHUE_HCLM3SP0Kelvin, ParamHUE_HCLM3SP1Kelvin, ParamHUE_HCLM3SP2Kelvin,
+            ParamHUE_HCLM3SP3Kelvin, ParamHUE_HCLM3SP4Kelvin, ParamHUE_HCLM3SP5Kelvin,
+            ParamHUE_HCLM3SP6Kelvin, ParamHUE_HCLM3SP7Kelvin, ParamHUE_HCLM3SP8Kelvin, ParamHUE_HCLM3SP9Kelvin
+        };
+        const uint8_t brightnesses[10] = {
+            ParamHUE_HCLM3SP0Brightness, ParamHUE_HCLM3SP1Brightness, ParamHUE_HCLM3SP2Brightness,
+            ParamHUE_HCLM3SP3Brightness, ParamHUE_HCLM3SP4Brightness, ParamHUE_HCLM3SP5Brightness,
+            ParamHUE_HCLM3SP6Brightness, ParamHUE_HCLM3SP7Brightness, ParamHUE_HCLM3SP8Brightness, ParamHUE_HCLM3SP9Brightness
+        };
+        loadMasterSetpoints(3, times, kelvins, brightnesses);
+
+        #ifdef ParamHUE_HCLM3CurveType
+        applyMasterAdvanced(
+            3,
+            ParamHUE_HCLM3CurveType,
+            ParamHUE_HCLM3SlewRate,
+            ParamHUE_HCLM3ManualKelvin,
+            reinterpret_cast<const char*>(ParamHUE_HCLM3Sunrise),
+            reinterpret_cast<const char*>(ParamHUE_HCLM3Sunset),
+            static_cast<int16_t>(ParamHUE_HCLM3SunriseOffset),
+            static_cast<int16_t>(ParamHUE_HCLM3SunsetOffset));
+        #endif
     }
     #endif
-    
-    // Load HCL Master 4 setpoints from ETS
+
     #ifdef ParamHUE_HCLM4SP0Time
-    HCL::Master* master4 = HCL::masterManager.getMaster(4);
-    if (master4) {
-        Serial.println("[HueGatewayModule] Loading HCL Master 4 setpoints...");
-        
-        const char* times[] = {
+    {
+        const char* const times[10] = {
             reinterpret_cast<const char*>(ParamHUE_HCLM4SP0Time),
             reinterpret_cast<const char*>(ParamHUE_HCLM4SP1Time),
             reinterpret_cast<const char*>(ParamHUE_HCLM4SP2Time),
@@ -712,23 +1181,29 @@ void HueGatewayModule::setupHCL()
             reinterpret_cast<const char*>(ParamHUE_HCLM4SP8Time),
             reinterpret_cast<const char*>(ParamHUE_HCLM4SP9Time)
         };
-        uint16_t kelvins[] = {ParamHUE_HCLM4SP0Kelvin, ParamHUE_HCLM4SP1Kelvin, ParamHUE_HCLM4SP2Kelvin,
-                              ParamHUE_HCLM4SP3Kelvin, ParamHUE_HCLM4SP4Kelvin, ParamHUE_HCLM4SP5Kelvin,
-                              ParamHUE_HCLM4SP6Kelvin, ParamHUE_HCLM4SP7Kelvin, ParamHUE_HCLM4SP8Kelvin, ParamHUE_HCLM4SP9Kelvin};
-        uint8_t brightnesses[] = {ParamHUE_HCLM4SP0Brightness, ParamHUE_HCLM4SP1Brightness, ParamHUE_HCLM4SP2Brightness,
-                                  ParamHUE_HCLM4SP3Brightness, ParamHUE_HCLM4SP4Brightness, ParamHUE_HCLM4SP5Brightness,
-                                  ParamHUE_HCLM4SP6Brightness, ParamHUE_HCLM4SP7Brightness, ParamHUE_HCLM4SP8Brightness, ParamHUE_HCLM4SP9Brightness};
-        
-        for (int i = 0; i < 10; i++) {
-            uint16_t minutes = HCL::Setpoint::parseTime(times[i]);
-            if (minutes != 0xFFFF) {
-                master4->setSetpoint(i, HCL::Setpoint(minutes, kelvins[i], brightnesses[i]));
-                Serial.printf("  SP%d: %s (%dmin) -> %dK, %d%%\n", i+1, times[i], minutes, kelvins[i], brightnesses[i]);
-            }
-        }
-        
-        master4->sortSetpoints();
-        Serial.printf("[HueGatewayModule] HCL Master 4 loaded with %d valid setpoints\n", master4->getValidSetpointCount());
+        const uint16_t kelvins[10] = {
+            ParamHUE_HCLM4SP0Kelvin, ParamHUE_HCLM4SP1Kelvin, ParamHUE_HCLM4SP2Kelvin,
+            ParamHUE_HCLM4SP3Kelvin, ParamHUE_HCLM4SP4Kelvin, ParamHUE_HCLM4SP5Kelvin,
+            ParamHUE_HCLM4SP6Kelvin, ParamHUE_HCLM4SP7Kelvin, ParamHUE_HCLM4SP8Kelvin, ParamHUE_HCLM4SP9Kelvin
+        };
+        const uint8_t brightnesses[10] = {
+            ParamHUE_HCLM4SP0Brightness, ParamHUE_HCLM4SP1Brightness, ParamHUE_HCLM4SP2Brightness,
+            ParamHUE_HCLM4SP3Brightness, ParamHUE_HCLM4SP4Brightness, ParamHUE_HCLM4SP5Brightness,
+            ParamHUE_HCLM4SP6Brightness, ParamHUE_HCLM4SP7Brightness, ParamHUE_HCLM4SP8Brightness, ParamHUE_HCLM4SP9Brightness
+        };
+        loadMasterSetpoints(4, times, kelvins, brightnesses);
+
+        #ifdef ParamHUE_HCLM4CurveType
+        applyMasterAdvanced(
+            4,
+            ParamHUE_HCLM4CurveType,
+            ParamHUE_HCLM4SlewRate,
+            ParamHUE_HCLM4ManualKelvin,
+            reinterpret_cast<const char*>(ParamHUE_HCLM4Sunrise),
+            reinterpret_cast<const char*>(ParamHUE_HCLM4Sunset),
+            static_cast<int16_t>(ParamHUE_HCLM4SunriseOffset),
+            static_cast<int16_t>(ParamHUE_HCLM4SunsetOffset));
+        #endif
     }
     #endif
     
@@ -752,7 +1227,19 @@ void HueGatewayModule::checkConnection()
 
     if (!_client || !_client->isInitialized())
     {
-        updateStatus(BridgeStatus::CONNECTION_LOST);
+        if (!_authPending)
+        {
+            updateStatus(BridgeStatus::CONNECTION_LOST);
+        }
+        return;
+    }
+
+    if (!_client->pingBridgeApiV2())
+    {
+        if (!_authPending)
+        {
+            updateStatus(BridgeStatus::CONNECTION_LOST);
+        }
         return;
     }
 
@@ -769,8 +1256,47 @@ void HueGatewayModule::refreshLightStatus()
         return;
     }
 
+    unsigned long now = millis();
+    bool anyChannelDue = false;
+    int dueChannels = 0;
+    for (int i = 0; i < MAX_LIGHTS; i++)
+    {
+        if (_lights[i] == nullptr)
+        {
+            continue;
+        }
+
+        uint8_t _channelIndex = static_cast<uint8_t>(i);
+        uint8_t syncDir = ParamHUE_CHSyncDir;
+        if (!(syncDir == 2 || syncDir == 3))
+        {
+            continue;
+        }
+
+        uint8_t pollIntervalSec = ParamHUE_CHPollInterval;
+        if (pollIntervalSec == 0)
+        {
+            continue;
+        }
+
+        unsigned long pollIntervalMs = static_cast<unsigned long>(pollIntervalSec) * 1000UL;
+        if ((now - _channelLastPollMs[i]) >= pollIntervalMs)
+        {
+            anyChannelDue = true;
+            dueChannels++;
+        }
+    }
+
+    if (!anyChannelDue)
+    {
+        return;
+    }
+
+    Serial.printf("[HueGatewayModule] Polling Hue bridge for %d due channel(s)\n", dueChannels);
+
     HueGatewayLightState lights[MAX_LIGHTS];
     int count = _client->getLights(lights, MAX_LIGHTS);
+    Serial.printf("[HueGatewayModule] Polling returned %d light(s)\n", count);
     if (count <= 0)
     {
         if (_bridgeStatus == BridgeStatus::CONNECTED)
@@ -791,6 +1317,26 @@ void HueGatewayModule::refreshLightStatus()
         {
             continue;
         }
+
+        uint8_t _channelIndex = static_cast<uint8_t>(i);
+        uint8_t syncDir = ParamHUE_CHSyncDir;
+        if (!(syncDir == 2 || syncDir == 3))
+        {
+            continue;
+        }
+
+        uint8_t pollIntervalSec = ParamHUE_CHPollInterval;
+        if (pollIntervalSec == 0)
+        {
+            continue;
+        }
+
+        unsigned long pollIntervalMs = static_cast<unsigned long>(pollIntervalSec) * 1000UL;
+        if ((now - _channelLastPollMs[i]) < pollIntervalMs)
+        {
+            continue;
+        }
+        _channelLastPollMs[i] = now;
 
         for (int j = 0; j < count; j++)
         {
@@ -851,6 +1397,7 @@ void HueGatewayModule::resetDevices()
             delete _lights[i];
             _lights[i] = nullptr;
         }
+        _channelLastPollMs[i] = 0;
     }
 
     _lightCount = 0;
@@ -963,7 +1510,8 @@ void HueGatewayModule::pollAuthentication()
     {
         _authPending = false;
         updateStatus(BridgeStatus::CONNECTION_LOST);
-        Serial.println("[HueGatewayModule] Authentication timeout - button not pressed");
+        Serial.printf("[HueGatewayModule] Authentication timeout after %lu ms - button not pressed\n",
+                      static_cast<unsigned long>(now - _authStartTime));
         return;
     }
 
@@ -975,6 +1523,12 @@ void HueGatewayModule::pollAuthentication()
     _authLastTry = now;
     updateStatus(BridgeStatus::AUTHENTICATING);
 
+    unsigned long elapsedMs = now - _authStartTime;
+    unsigned long remainingMs = (_authWindowMs > elapsedMs) ? (_authWindowMs - elapsedMs) : 0;
+    Serial.printf("[HueGatewayModule] Pairing attempt at t=%lus (remaining=%lus)\n",
+                  static_cast<unsigned long>(elapsedMs / 1000UL),
+                  static_cast<unsigned long>(remainingMs / 1000UL));
+
     if (_auth.requestAppKeyOnce(_bridgeIP.c_str()))
     {
         _authPending = false;
@@ -983,10 +1537,13 @@ void HueGatewayModule::pollAuthentication()
         if (initClientWithAppKey())
         {
             updateStatus(BridgeStatus::CONNECTED);
+            _reconnectBackoffMs = 10000;
+            _lastReconnectTryMs = 0;
             setupDevices();
         }
         else
         {
+            Serial.println("[HueGatewayModule] Authentication succeeded, but client initialization failed");
             updateStatus(BridgeStatus::BRIDGE_UNREACHABLE);
         }
     }
@@ -1003,6 +1560,7 @@ bool HueGatewayModule::initClientWithAppKey()
     }
 
     _client = new HueGatewayClient();
+    Serial.println("[HueGatewayModule] Initializing HueGatewayClient with stored/new App-Key...");
     if (!_client->begin(_bridgeIP, _auth.getAppKey()))
     {
         Serial.println("[HueGatewayModule] ERROR: HueGatewayClient init failed!");
@@ -1011,11 +1569,78 @@ bool HueGatewayModule::initClientWithAppKey()
         return false;
     }
 
+    _lastEventStreamRetryMs = 0;
+    _reconnectBackoffMs = 10000;
+    bool eventStreamStarted = _client->startEventStream();
+    Serial.printf("[HueGatewayModule] EventStream initial start: %s\n", eventStreamStarted ? "ok" : "failed (fallback polling active)");
+
     return true;
+}
+
+void HueGatewayModule::applyEventStreamUpdates(const HueGatewayEventLightUpdate* updates, int updateCount)
+{
+    if (updates == nullptr || updateCount <= 0)
+    {
+        return;
+    }
+
+    for (int u = 0; u < updateCount; u++)
+    {
+        bool applied = false;
+        for (int i = 0; i < MAX_LIGHTS; i++)
+        {
+            if (_lights[i] == nullptr)
+            {
+                continue;
+            }
+
+            if (_lights[i]->getLightId() != updates[u].lightId)
+            {
+                continue;
+            }
+
+            uint8_t _channelIndex = static_cast<uint8_t>(i);
+            uint8_t syncDir = ParamHUE_CHSyncDir;
+            if (!(syncDir == 2 || syncDir == 3))
+            {
+                Serial.printf("[HueGatewayModule] EventStream update ignored by SyncDir on channel %d (SyncDir=%u)\n",
+                              i + 1,
+                              static_cast<unsigned>(syncDir));
+                break;
+            }
+
+            bool on = updates[u].hasOn ? updates[u].on : _lights[i]->isOn();
+            uint8_t brightness = updates[u].hasBrightness ? updates[u].brightness : _lights[i]->getBrightness();
+            uint16_t colorTempKelvin = updates[u].hasColorTemp ? updates[u].colorTempKelvin : _lights[i]->getColorTempKelvin();
+            uint8_t red = updates[u].hasColorRgb ? updates[u].red : _lights[i]->getRed();
+            uint8_t green = updates[u].hasColorRgb ? updates[u].green : _lights[i]->getGreen();
+            uint8_t blue = updates[u].hasColorRgb ? updates[u].blue : _lights[i]->getBlue();
+
+            _lights[i]->updateFromHue(on, brightness, colorTempKelvin, red, green, blue);
+            Serial.printf("[HueGatewayModule] Event applied -> channel %d id=%s on=%d bri=%u ct=%u rgb=(%u,%u,%u)\n",
+                          i + 1,
+                          updates[u].lightId.c_str(),
+                          on ? 1 : 0,
+                          static_cast<unsigned>(brightness),
+                          static_cast<unsigned>(colorTempKelvin),
+                          static_cast<unsigned>(red),
+                          static_cast<unsigned>(green),
+                          static_cast<unsigned>(blue));
+            applied = true;
+            break;
+        }
+
+        if (!applied)
+        {
+            Serial.printf("[HueGatewayModule] Event light id not mapped in configured channels: %s\n",
+                          updates[u].lightId.c_str());
+        }
+    }
 }
 
 void HueGatewayModule::startPairing()
 {
+    Serial.println("[HueGatewayModule] ===== Manual commissioning trigger: Pairing start =====");
     if (_bridgeIP.isEmpty())
     {
         _bridgeIP = getBridgeIP();
@@ -1033,6 +1658,8 @@ void HueGatewayModule::startPairing()
     _authPending = true;
     _authStartTime = millis();
     _authLastTry = 0;
+    _lastReconnectTryMs = 0;
+    _reconnectBackoffMs = 10000;
     updateStatus(BridgeStatus::WAIT_FOR_BUTTON);
     Serial.println("[HueGatewayModule] Pairing started - press Hue Bridge button");
 }
@@ -1145,6 +1772,17 @@ void HueGatewayModule::setupWebUI()
     };
     openknxWebUI.addHandler(statusHandler);
 
+    WebHandler pairHandler;
+    pairHandler.name = "Hue Pairing";
+    pairHandler.uri = "/hue/pair";
+    pairHandler.httpd = {
+        .uri = "/hue/pair",
+        .method = HTTP_GET,
+        .handler = HueGatewayModule::handleWebPair,
+        .user_ctx = this
+    };
+    openknxWebUI.addHandler(pairHandler);
+
     WebPage rootPage;
     rootPage.uri = "/hue";
     rootPage.name = "Hue Gateway";
@@ -1166,6 +1804,13 @@ void HueGatewayModule::setupWebUI()
     statusPage.arg = this;
     openknxWebUI.addPage(statusPage);
 
+    WebPage pairPage;
+    pairPage.uri = "/hue/pair";
+    pairPage.name = "Hue Pairing";
+    pairPage.handler = HueGatewayModule::pageWebPair;
+    pairPage.arg = this;
+    openknxWebUI.addPage(pairPage);
+
     Serial.printf("[HueGatewayModule] WebUI pages registered at %s\n", openknxWebUI.getBaseUri());
 }
 
@@ -1184,6 +1829,7 @@ esp_err_t HueGatewayModule::handleWebRoot(httpd_req_t* req)
     html += "<h1>🏠 OpenKNX Hue Bridge Module</h1>";
     html += "<div class='card'><h2>Funktionen</h2>";
     html += "<a href='/hue/scan'>🔍 Bridge Scannen</a>";
+    html += "<a href='/hue/pair'>🔗 Pairing starten</a>";
     html += "<a href='/hue/status'>📊 Status</a>";
     html += "</div>";
     html += "<div class='card'><h3>Info</h3>";
@@ -1218,7 +1864,7 @@ esp_err_t HueGatewayModule::handleWebScan(httpd_req_t* req)
     {
         String html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Scan Error</title></head><body>";
         html += "<h1>❌ Error</h1><p>Module not initialized. Check bridge authentication.</p>";
-        html += "<a href='/'>← Back</a></body></html>";
+        html += "<a href='/hue'>← Back</a></body></html>";
         return send_html(req, html, 500);
     }
 
@@ -1272,8 +1918,151 @@ esp_err_t HueGatewayModule::handleWebStatus(httpd_req_t* req)
     html += "<tr><td>Bridge Status</td><td>" + bridgeStatusText + "</td></tr>";
     html += "<tr><td>App-Key</td><td>" + maskKey(self->_auth.getAppKey()) + "</td></tr>";
     html += "<tr><td>Client-Key</td><td>" + maskKey(self->_auth.getClientKey()) + "</td></tr>";
+
+    #ifdef ParamHUE_HUEHCLEnable
+    const bool hclEnabled = (ParamHUE_HUEHCLEnable != 0);
+    html += "<tr><td>HCL Enabled</td><td>" + String(hclEnabled ? "Yes" : "No") + "</td></tr>";
+    #else
+    const bool hclEnabled = false;
+    html += "<tr><td>HCL Enabled</td><td>No</td></tr>";
+    #endif
+
+    if (hclEnabled)
+    {
+        #ifdef ParamHUE_HUEHCLMasterCount
+        const uint8_t masterCount = ParamHUE_HUEHCLMasterCount;
+        html += "<tr><td>HCL Masters</td><td>" + String(masterCount) + "</td></tr>";
+        #else
+        const uint8_t masterCount = 0;
+        html += "<tr><td>HCL Masters</td><td>0</td></tr>";
+        #endif
+
+        #ifdef ParamHUE_HUEHCLUpdateInterval
+        html += "<tr><td>HCL Update Interval</td><td>" + String(ParamHUE_HUEHCLUpdateInterval) + " s</td></tr>";
+        #endif
+
+        #ifdef ParamHUE_HUEHCLFadeDuration
+        html += "<tr><td>HCL Fade Duration</td><td>" + String(ParamHUE_HUEHCLFadeDuration) + " s</td></tr>";
+        #endif
+
+        for (uint8_t masterNumber = 1; masterNumber <= 4; masterNumber++)
+        {
+            if (masterNumber > masterCount)
+            {
+                break;
+            }
+
+            HCL::Master* master = HCL::masterManager.getMaster(masterNumber);
+            if (!master)
+            {
+                continue;
+            }
+
+            HCL::InterpolatedValue current = HCL::masterManager.getCurrentValue(masterNumber);
+            html += "<tr><td>HCL M" + String(masterNumber) + " Current</td><td>" +
+                    String(current.kelvin) + " K / " + String(current.brightness) + "%</td></tr>";
+
+            uint8_t curveTypeValue = 0;
+            uint16_t slewRate = 0;
+            uint16_t manualKelvin = 4000;
+            String sunrise = "";
+            String sunset = "";
+            int16_t sunriseOffset = 0;
+            int16_t sunsetOffset = 0;
+
+            switch (masterNumber)
+            {
+                case 1:
+                    #ifdef ParamHUE_HCLM1CurveType
+                    curveTypeValue = ParamHUE_HCLM1CurveType;
+                    slewRate = ParamHUE_HCLM1SlewRate;
+                    manualKelvin = ParamHUE_HCLM1ManualKelvin;
+                    sunrise = reinterpret_cast<const char*>(ParamHUE_HCLM1Sunrise);
+                    sunset = reinterpret_cast<const char*>(ParamHUE_HCLM1Sunset);
+                    sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM1SunriseOffset);
+                    sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM1SunsetOffset);
+                    #endif
+                    break;
+                case 2:
+                    #ifdef ParamHUE_HCLM2CurveType
+                    curveTypeValue = ParamHUE_HCLM2CurveType;
+                    slewRate = ParamHUE_HCLM2SlewRate;
+                    manualKelvin = ParamHUE_HCLM2ManualKelvin;
+                    sunrise = reinterpret_cast<const char*>(ParamHUE_HCLM2Sunrise);
+                    sunset = reinterpret_cast<const char*>(ParamHUE_HCLM2Sunset);
+                    sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM2SunriseOffset);
+                    sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM2SunsetOffset);
+                    #endif
+                    break;
+                case 3:
+                    #ifdef ParamHUE_HCLM3CurveType
+                    curveTypeValue = ParamHUE_HCLM3CurveType;
+                    slewRate = ParamHUE_HCLM3SlewRate;
+                    manualKelvin = ParamHUE_HCLM3ManualKelvin;
+                    sunrise = reinterpret_cast<const char*>(ParamHUE_HCLM3Sunrise);
+                    sunset = reinterpret_cast<const char*>(ParamHUE_HCLM3Sunset);
+                    sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM3SunriseOffset);
+                    sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM3SunsetOffset);
+                    #endif
+                    break;
+                case 4:
+                    #ifdef ParamHUE_HCLM4CurveType
+                    curveTypeValue = ParamHUE_HCLM4CurveType;
+                    slewRate = ParamHUE_HCLM4SlewRate;
+                    manualKelvin = ParamHUE_HCLM4ManualKelvin;
+                    sunrise = reinterpret_cast<const char*>(ParamHUE_HCLM4Sunrise);
+                    sunset = reinterpret_cast<const char*>(ParamHUE_HCLM4Sunset);
+                    sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM4SunriseOffset);
+                    sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM4SunsetOffset);
+                    #endif
+                    break;
+                default:
+                    break;
+            }
+
+            String curveText = "FixedTime";
+            if (curveTypeValue == 1)
+            {
+                curveText = "SunPosition";
+            }
+            else if (curveTypeValue == 2)
+            {
+                curveText = "Manual";
+            }
+
+            html += "<tr><td>HCL M" + String(masterNumber) + " Curve</td><td>" + curveText + "</td></tr>";
+            html += "<tr><td>HCL M" + String(masterNumber) + " Slew</td><td>" + String(slewRate) + " K/min</td></tr>";
+            html += "<tr><td>HCL M" + String(masterNumber) + " Manual</td><td>" + String(manualKelvin) + " K</td></tr>";
+            html += "<tr><td>HCL M" + String(masterNumber) + " Sun</td><td>" + sunrise + " / " + sunset + "</td></tr>";
+            html += "<tr><td>HCL M" + String(masterNumber) + " Offset</td><td>" + String(sunriseOffset) + " / " + String(sunsetOffset) + " min</td></tr>";
+            html += "<tr><td>HCL M" + String(masterNumber) + " Applied</td><td>" + String(master->getAppliedKelvin()) + " K</td></tr>";
+        }
+    }
+
     html += "</table>";
-    html += "<br><a href='/'>← Back</a></body></html>";
+    html += "<br><a href='/hue'>← Back</a></body></html>";
+
+    return send_html(req, html, 200);
+}
+
+esp_err_t HueGatewayModule::handleWebPair(httpd_req_t* req)
+{
+    HueGatewayModule* self = static_cast<HueGatewayModule*>(req->user_ctx);
+    if (self == nullptr)
+        return httpd_resp_send_500(req);
+
+    self->startPairing();
+
+    String html = "<!DOCTYPE html><html><head><meta charset='UTF-8'>";
+    html += "<title>Hue Pairing</title>";
+    html += "<meta http-equiv='refresh' content='3;url=/hue/status'>";
+    html += "<style>body{font-family:Arial,sans-serif;margin:40px;background:#f5f5f5;}";
+    html += ".card{background:white;padding:20px;border-radius:5px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}a{display:inline-block;padding:10px 16px;margin:5px;background:#007bff;color:#fff;text-decoration:none;border-radius:3px;}</style></head><body>";
+    html += "<div class='card'><h1>🔗 Pairing gestartet</h1>";
+    html += "<p>Bitte jetzt den Link-Button an der Hue Bridge drücken.</p>";
+    html += "<p>Weiterleitung auf Statusseite in 3 Sekunden...</p>";
+    html += "<a href='/hue/status'>Status jetzt öffnen</a>";
+    html += "<a href='/hue'>Zurück</a></div></body></html>";
 
     return send_html(req, html, 200);
 }
@@ -1311,6 +2100,17 @@ esp_err_t HueGatewayModule::pageWebStatus(const char* uri, httpd_req_t* req, voi
     return HueGatewayModule::handleWebStatus(req);
 }
 
+esp_err_t HueGatewayModule::pageWebPair(const char* uri, httpd_req_t* req, void* arg)
+{
+    (void)uri;
+    HueGatewayModule* self = static_cast<HueGatewayModule*>(arg);
+    if (self == nullptr)
+        return httpd_resp_send_500(req);
+
+    req->user_ctx = self;
+    return HueGatewayModule::handleWebPair(req);
+}
+
 String HueGatewayModule::getBridgeScanHTML()
 {
     HueGatewayLightState lights[MAX_LIGHTS];
@@ -1331,7 +2131,7 @@ String HueGatewayModule::getBridgeScanHTML()
     if (count <= 0)
     {
         html += "<div class='error'>❌ No lights found! Check bridge connection.</div>";
-        html += "<br><a href='/'><button>← Back</button></a></body></html>";
+        html += "<br><a href='/hue'><button>← Back</button></a></body></html>";
         return html;
     }
     
@@ -1353,7 +2153,7 @@ String HueGatewayModule::getBridgeScanHTML()
     html += "<br><p><strong>Tip:</strong> Copy the Light ID and paste it into ETS channel parameters.</p>";
     html += "<button onclick='location.reload()'>Refresh</button>";
     html += "<a href='/hue/scan.txt'><button>Download TXT</button></a>";
-    html += "<a href='/'><button>Back</button></a>";
+    html += "<a href='/hue'><button>Back</button></a>";
     html += "</body></html>";
     
     return html;

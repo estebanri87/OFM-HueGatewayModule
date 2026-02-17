@@ -27,10 +27,27 @@ struct HueGatewayLightState
     uint8_t red;
     uint8_t green;
     uint8_t blue;
+    bool supportsColorTemp;
+    bool supportsColor;
     String id;
     String name;
     String room;
     String zone;
+};
+
+struct HueGatewayEventLightUpdate
+{
+    String lightId;
+    bool hasOn;
+    bool on;
+    bool hasBrightness;
+    uint8_t brightness;
+    bool hasColorTemp;
+    uint16_t colorTempKelvin;
+    bool hasColorRgb;
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
 };
 
 class HueGatewayClient
@@ -109,6 +126,13 @@ public:
      * @return true bei Erfolg
      */
     bool setLightColor(const String& lightId, float x, float y);
+
+    bool pingBridgeApiV2();
+
+    bool startEventStream();
+    void stopEventStream();
+    bool isEventStreamConnected() { return _eventStreamConnected && _eventClient.connected(); }
+    int pollEventStream(HueGatewayEventLightUpdate* updates, int maxUpdates);
     
     /**
      * @brief Konvertiert Kelvin zu Mirek
@@ -140,6 +164,12 @@ private:
     String _appKey;
     HTTPClient _http;
     WiFiClientSecure _secureClient;
+    WiFiClientSecure _eventClient;
+    bool _eventStreamConnected;
+    bool _eventHandshakePending;
+    unsigned long _eventHandshakeStartMs;
+    String _eventLineBuffer;
+    String _eventDataBuffer;
 
     struct LightLocation
     {
@@ -169,6 +199,7 @@ private:
      */
     String buildUrl(const String& endpoint);
     static void xyToRgb(float x, float y, uint8_t& red, uint8_t& green, uint8_t& blue);
+    int parseEventPayload(const String& payload, HueGatewayEventLightUpdate* updates, int maxUpdates);
 
     void appendLocationsFromDoc(std::vector<LightLocation>& locations, const JsonDocument& doc, bool isRoom);
     void upsertLocation(std::vector<LightLocation>& locations, const String& id, const String& room, const String& zone);
