@@ -22,6 +22,8 @@ HueGatewayLight::HueGatewayLight(const String& lightId, const String& name, HueG
     , _currentGreen(255)
     , _currentBlue(255)
     , _lightType(0)
+    , _minBrightnessPercent(0)
+    , _minBrightnessHue(0)
     , _hclMasterNum(0)
     , _fadingActive(false)
     , _currentKelvin(4000)
@@ -68,6 +70,11 @@ void HueGatewayLight::processKnxSwitch(bool value)
     }
     
     _on = value;
+
+    if (_on && _brightness == 0 && _minBrightnessHue > 0)
+    {
+        _brightness = _minBrightnessHue;
+    }
     
     // Beim Einschalten mit HCL: Aktuelle HCL-Werte anwenden
     if (value && _hclMasterNum > 0 && _hclMasterNum <= 4) {
@@ -83,10 +90,15 @@ void HueGatewayLight::processKnxSwitch(bool value)
         Serial.printf("[HueGatewayLight] %s - Applying HCL Master %d values: %dK, %d%% (%d Hue)\n",
                      _name.c_str(), _hclMasterNum, hclValue.kelvin, hclValue.brightness, _brightness);
         
-        // Mit Farbtemperatur senden (Fade-Dauer aus HCL Manager)
         uint8_t fadeDuration = HCL::masterManager.getFadeDuration();
-        sendToHueWithColorTemp(hclValue.kelvin, fadeDuration);
-        return;  // Frühzeitiger Exit, da sendToHueWithColorTemp bereits sendet
+        if (_lightType >= 2)
+        {
+            sendToHueWithColorTemp(hclValue.kelvin, fadeDuration);
+            return;
+        }
+
+        sendToHue();
+        return;
     }
     
     sendToHue();
@@ -101,6 +113,11 @@ void HueGatewayLight::processKnxBrightness(uint8_t value)
     
     // KNX DPT 5.001: 0-100% → Hue 0-254
     _brightness = (uint8_t)((value / 100.0f) * 254.0f);
+
+    if (_brightness > 0 && _brightness < _minBrightnessHue)
+    {
+        _brightness = _minBrightnessHue;
+    }
     
     // Bei Brightness > 0 automatisch einschalten
     if (_brightness > 0 && !_on)
@@ -150,6 +167,11 @@ void HueGatewayLight::processKnxDimming(uint8_t control)
     if (newBrightness > 254) newBrightness = 254;
     
     _brightness = (uint8_t)newBrightness;
+
+    if (_brightness > 0 && _brightness < _minBrightnessHue)
+    {
+        _brightness = _minBrightnessHue;
+    }
     
     Serial.printf("[HueGatewayLight] %s - KNX Dimming: %s %d steps -> Brightness: %d\n",
                   _name.c_str(), brighter ? "BRIGHTER" : "DARKER", steps, _brightness);
@@ -245,13 +267,13 @@ void HueGatewayLight::updateFromHue(bool on, uint8_t brightness, uint16_t colorT
         changed = true;
     }
 
-    if (colorTempKelvin >= 2000 && colorTempKelvin <= 6500 && _currentKelvin != colorTempKelvin)
+    if (_lightType >= 2 && colorTempKelvin >= 2000 && colorTempKelvin <= 6500 && _currentKelvin != colorTempKelvin)
     {
         _currentKelvin = colorTempKelvin;
         changed = true;
     }
 
-    if (_currentRed != red || _currentGreen != green || _currentBlue != blue)
+    if (_lightType >= 3 && (_currentRed != red || _currentGreen != green || _currentBlue != blue))
     {
         _currentRed = red;
         _currentGreen = green;
@@ -284,12 +306,12 @@ void HueGatewayLight::sendStatusToKnx()
     // KO Status Brightness: DPT 5.001 (Percentage 0-100%) - Helligkeits-Feedback
     knx.getGroupObject(_koStatusBrightness).value(brightnessPercent, Dpt(5, 1));
 
-    if (_koStatusColorTemp > 0)
+    if (_lightType >= 2 && _koStatusColorTemp > 0)
     {
         knx.getGroupObject(_koStatusColorTemp).value(_currentKelvin, Dpt(7, 600));
     }
 
-    if (_koStatusColorRGB > 0)
+    if (_lightType >= 3 && _koStatusColorRGB > 0)
     {
         GroupObject& rgbKo = knx.getGroupObject(_koStatusColorRGB);
         uint8_t* rgb = rgbKo.valueRef();
@@ -349,6 +371,17 @@ uint8_t HueGatewayLight::hueToKnxBrightness(uint8_t hueValue)
     
     // Linear mapping: 0-254 → 0-255
     return (uint8_t)((hueValue / 254.0f) * 255.0f);
+}
+
+void HueGatewayLight::setMinBrightness(uint8_t minBrightness)
+{
+    if (minBrightness > 100)
+    {
+        minBrightness = 100;
+    }
+
+    _minBrightnessPercent = minBrightness;
+    _minBrightnessHue = static_cast<uint8_t>((static_cast<uint16_t>(_minBrightnessPercent) * 254U) / 100U);
 }
 
 uint16_t HueGatewayLight::kelvinToMirek(uint16_t kelvin)
@@ -412,10 +445,17 @@ void HueGatewayLight::sendToHueWithColorTemp(uint16_t kelvin, uint8_t fadeDurati
                   mirek,
                   fadeDuration);
     
-    _client->setLightStateWithColorTemp(_lightId, _on, _brightness, mirek, fadeDuration);
-    
-    // Status-KOs aktualisieren
-    sendStatusToKnx();
+    bool success = _client->setLightStateWithColorTemp(_lightId, _on, _brightness, mirek, fadeDuration);
+
+    if (success)
+    {
+        _lastUpdate = millis();
+        sendStatusToKnx();
+    }
+    else
+    {
+        Serial.printf("[HueGatewayLight] %s - ERROR: Failed to send color-temp state to Hue\n", _name.c_str());
+    }
 }
 
 void HueGatewayLight::loop()
@@ -453,11 +493,17 @@ void HueGatewayLight::loop()
     
     Serial.printf("[HueGatewayLight] %s - HCL Update: %dK → %dK, %d%% → %d%%\n",
                  _name.c_str(), _currentKelvin, hclValue.kelvin, 
-                 (_currentKelvin * 100) / 254, hclValue.brightness);
+                 _lastHCLBrightness, hclValue.brightness);
     
     // Fade-Dauer aus HCL-Manager abrufen
     uint8_t fadeDuration = HCL::masterManager.getFadeDuration();
     
-    // Sende Update mit Farbtemperatur
-    sendToHueWithColorTemp(hclValue.kelvin, fadeDuration);
+    if (_lightType >= 2)
+    {
+        sendToHueWithColorTemp(hclValue.kelvin, fadeDuration);
+    }
+    else
+    {
+        sendToHue();
+    }
 }

@@ -70,9 +70,10 @@ uint32_t MasterManager::getTimeUntilNextUpdate() const {
 }
 
 void MasterManager::updateCurrentValues(uint16_t currentTimeMinutes) {
+    uint32_t now = millis();
     for (uint8_t i = 0; i < MAX_MASTERS; i++) {
         if (_masters[i].isValid()) {
-            _currentValues[i] = _masters[i].calculateValue(currentTimeMinutes);
+            _currentValues[i] = _masters[i].calculateValue(currentTimeMinutes, now);
             
             #ifdef DEBUG_HCL
             Serial.printf("[HCL] Master %d: %dK, %d%%\n", 

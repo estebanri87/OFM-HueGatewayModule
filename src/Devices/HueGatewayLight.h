@@ -108,6 +108,10 @@ public:
     bool isOn() const { return _on; }
     uint8_t getBrightness() const { return _brightness; }
     bool isReachable() const { return _reachable; }
+    uint16_t getColorTempKelvin() const { return _currentKelvin; }
+    uint8_t getRed() const { return _currentRed; }
+    uint8_t getGreen() const { return _currentGreen; }
+    uint8_t getBlue() const { return _currentBlue; }
     
     /**
      * @brief HCL Master zuordnen (0 = kein HCL, 1-4 = Master Nr.)
@@ -123,6 +127,11 @@ public:
      * @brief Lampentyp aus ETS (0=switch,1=dimm,2=ct,3=rgb)
      */
     void setLightType(uint8_t lightType) { _lightType = lightType; }
+
+    /**
+     * @brief Mindesthelligkeit in Prozent (0-100)
+     */
+    void setMinBrightness(uint8_t minBrightness);
 
 private:
     String _lightId;
@@ -149,6 +158,8 @@ private:
     uint8_t _currentGreen;
     uint8_t _currentBlue;
     uint8_t _lightType;
+    uint8_t _minBrightnessPercent;
+    uint8_t _minBrightnessHue;
     
     // HCL Configuration
     uint8_t _hclMasterNum;  // 0 = kein HCL, 1-4 = HCL Master Nummer

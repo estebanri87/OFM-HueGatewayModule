@@ -9,6 +9,27 @@ Master::Master() {
         _setpoints[i] = Setpoint();
         _setpoints[i].timeMinutes = 0xFFFF; // Mark as invalid
     }
+
+    _curveType = CurveType::FixedTime;
+    _manualKelvin = 4000;
+    _appliedKelvin = 4000;
+    _slewRateKelvinPerMinute = 0;
+    _lastSlewUpdateMs = 0;
+    _sunriseMinutes = 390; // 06:30
+    _sunsetMinutes = 1170; // 19:30
+    _sunTimesValid = false;
+    _sunriseOffsetMin = 0;
+    _sunsetOffsetMin = 0;
+}
+
+void Master::setSunTimes(uint16_t sunriseMinutes, uint16_t sunsetMinutes) {
+    if (sunriseMinutes >= 1440 || sunsetMinutes >= 1440) {
+        return;
+    }
+
+    _sunriseMinutes = sunriseMinutes;
+    _sunsetMinutes = sunsetMinutes;
+    _sunTimesValid = true;
 }
 
 bool Master::setSetpoint(uint8_t index, const Setpoint& setpoint) {
@@ -96,7 +117,7 @@ bool Master::findInterpolationPoints(uint16_t currentTime, uint8_t& prevIndex, u
     return true;
 }
 
-InterpolatedValue Master::calculateValue(uint16_t currentTimeMinutes) const {
+InterpolatedValue Master::calculateFixedTimeValue(uint16_t currentTimeMinutes) const {
     InterpolatedValue result;
     
     uint8_t prevIdx, nextIdx;
@@ -142,6 +163,148 @@ InterpolatedValue Master::calculateValue(uint16_t currentTimeMinutes) const {
     result.brightness = constrain(result.brightness, 0, 100);
     
     return result;
+}
+
+void Master::getSetpointRanges(uint16_t& minKelvin, uint16_t& maxKelvin, uint8_t& minBrightness, uint8_t& maxBrightness) const {
+    minKelvin = 2700;
+    maxKelvin = 6500;
+    minBrightness = 0;
+    maxBrightness = 100;
+
+    bool found = false;
+    for (uint8_t i = 0; i < MAX_SETPOINTS; i++) {
+        if (_setpoints[i].timeMinutes >= 1440) {
+            continue;
+        }
+
+        if (!found) {
+            minKelvin = maxKelvin = _setpoints[i].kelvin;
+            minBrightness = maxBrightness = _setpoints[i].brightness;
+            found = true;
+            continue;
+        }
+
+        minKelvin = min(minKelvin, _setpoints[i].kelvin);
+        maxKelvin = max(maxKelvin, _setpoints[i].kelvin);
+        minBrightness = min(minBrightness, _setpoints[i].brightness);
+        maxBrightness = max(maxBrightness, _setpoints[i].brightness);
+    }
+}
+
+InterpolatedValue Master::calculateSunPositionValue(uint16_t currentTimeMinutes) const {
+    InterpolatedValue result = calculateFixedTimeValue(currentTimeMinutes);
+
+    uint16_t minKelvin;
+    uint16_t maxKelvin;
+    uint8_t minBrightness;
+    uint8_t maxBrightness;
+    getSetpointRanges(minKelvin, maxKelvin, minBrightness, maxBrightness);
+
+    int32_t sunrise = static_cast<int32_t>(_sunriseMinutes) + _sunriseOffsetMin;
+    int32_t sunset = static_cast<int32_t>(_sunsetMinutes) + _sunsetOffsetMin;
+    if (sunrise < 0) sunrise = 0;
+    if (sunrise > 1439) sunrise = 1439;
+    if (sunset < 0) sunset = 0;
+    if (sunset > 1439) sunset = 1439;
+
+    if (sunset <= sunrise) {
+        result.kelvin = minKelvin;
+        result.brightness = minBrightness;
+        return result;
+    }
+
+    if (currentTimeMinutes < sunrise || currentTimeMinutes > sunset) {
+        result.kelvin = minKelvin;
+        result.brightness = minBrightness;
+        return result;
+    }
+
+    uint16_t midpoint = static_cast<uint16_t>(sunrise + ((sunset - sunrise) / 2));
+    uint16_t kelvinRange = maxKelvin - minKelvin;
+    uint8_t brightnessRange = maxBrightness - minBrightness;
+
+    if (currentTimeMinutes <= midpoint) {
+        uint16_t riseDuration = max<uint16_t>(1, midpoint - sunrise);
+        uint16_t elapsed = currentTimeMinutes - sunrise;
+        result.kelvin = minKelvin + static_cast<uint16_t>((static_cast<uint32_t>(kelvinRange) * elapsed) / riseDuration);
+        result.brightness = minBrightness + static_cast<uint8_t>((static_cast<uint32_t>(brightnessRange) * elapsed) / riseDuration);
+    } else {
+        uint16_t fallDuration = max<uint16_t>(1, sunset - midpoint);
+        uint16_t elapsed = currentTimeMinutes - midpoint;
+        result.kelvin = maxKelvin - static_cast<uint16_t>((static_cast<uint32_t>(kelvinRange) * elapsed) / fallDuration);
+        result.brightness = maxBrightness - static_cast<uint8_t>((static_cast<uint32_t>(brightnessRange) * elapsed) / fallDuration);
+    }
+
+    result.kelvin = constrain(result.kelvin, 2000, 6500);
+    result.brightness = constrain(result.brightness, 0, 100);
+    return result;
+}
+
+InterpolatedValue Master::calculateManualValue(uint16_t currentTimeMinutes) const {
+    InterpolatedValue result = calculateFixedTimeValue(currentTimeMinutes);
+    result.kelvin = constrain(_manualKelvin, 2000, 6500);
+    return result;
+}
+
+void Master::applySlew(uint16_t targetKelvin, uint32_t currentTimeMs) {
+    if (_appliedKelvin < 2000 || _appliedKelvin > 6500) {
+        _appliedKelvin = constrain(targetKelvin, 2000, 6500);
+        _lastSlewUpdateMs = currentTimeMs;
+        return;
+    }
+
+    if (_slewRateKelvinPerMinute == 0) {
+        _appliedKelvin = constrain(targetKelvin, 2000, 6500);
+        _lastSlewUpdateMs = currentTimeMs;
+        return;
+    }
+
+    if (_lastSlewUpdateMs == 0) {
+        _lastSlewUpdateMs = currentTimeMs;
+    }
+
+    uint32_t deltaMs = currentTimeMs - _lastSlewUpdateMs;
+    _lastSlewUpdateMs = currentTimeMs;
+    if (deltaMs == 0) {
+        return;
+    }
+
+    uint32_t maxStep = (static_cast<uint32_t>(_slewRateKelvinPerMinute) * deltaMs) / 60000UL;
+    if (maxStep == 0) {
+        maxStep = 1;
+    }
+
+    if (_appliedKelvin < targetKelvin) {
+        uint32_t nextKelvin = static_cast<uint32_t>(_appliedKelvin) + maxStep;
+        _appliedKelvin = static_cast<uint16_t>(min<uint32_t>(targetKelvin, nextKelvin));
+    } else if (_appliedKelvin > targetKelvin) {
+        uint32_t currentKelvin = _appliedKelvin;
+        uint32_t nextKelvin = (currentKelvin > maxStep) ? (currentKelvin - maxStep) : 0;
+        _appliedKelvin = static_cast<uint16_t>(max<uint32_t>(targetKelvin, nextKelvin));
+    }
+
+    _appliedKelvin = constrain(_appliedKelvin, 2000, 6500);
+}
+
+InterpolatedValue Master::calculateValue(uint16_t currentTimeMinutes, uint32_t currentTimeMs) {
+    InterpolatedValue target;
+
+    switch (_curveType) {
+        case CurveType::SunPosition:
+            target = calculateSunPositionValue(currentTimeMinutes);
+            break;
+        case CurveType::Manual:
+            target = calculateManualValue(currentTimeMinutes);
+            break;
+        case CurveType::FixedTime:
+        default:
+            target = calculateFixedTimeValue(currentTimeMinutes);
+            break;
+    }
+
+    applySlew(target.kelvin, currentTimeMs);
+    target.kelvin = _appliedKelvin;
+    return target;
 }
 
 } // namespace HCL
