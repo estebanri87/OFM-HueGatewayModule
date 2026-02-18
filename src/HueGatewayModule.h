@@ -18,9 +18,9 @@ struct HueGatewayEventLightUpdate;
 /**
  * @brief OpenKNX Hue Bridge Module - Philips Hue Integration
  * 
- * Dieses Modul ermöglicht die Integration von Philips Hue Geräten in KNX-Systeme.
- * Es kommuniziert mit der Hue Bridge via Hue API v2 und stellt die Geräte als
- * KNX-Kommunikationsobjekte bereit.
+ * This module integrates Philips Hue devices into KNX systems.
+ * It communicates with the Hue Bridge via Hue API v2 and exposes device
+ * functions through KNX communication objects.
  * 
  * @version 0.1.0
  * @date 2026-02-03
@@ -52,6 +52,8 @@ private:
     static const int MAX_LIGHTS = 20;
     HueGatewayLight* _lights[MAX_LIGHTS];
     unsigned long _channelLastPollMs[MAX_LIGHTS];
+    // Round-robin cursor for chunked polling fallback.
+    uint8_t _pollCursor;
     int _lightCount;
     
     // Status values
@@ -120,5 +122,5 @@ private:
     void updateInfoLED();
 };
 
-// Globale Instanz
+// Global module instance used by OpenKNX module registration.
 extern HueGatewayModule openknxHueGatewayModule;

@@ -3,6 +3,7 @@
 #include "HueGatewayAuth.h"
 #include "HueGatewayClient.h"
 #include "Devices/HueGatewayLight.h"
+#include "OpenKNX/Led/RGB.h"
 
 HueGatewayModule::HueGatewayModule()
     : _initialized(false)
@@ -11,6 +12,7 @@ HueGatewayModule::HueGatewayModule()
     , _lastEventStreamRetryMs(0)
     , _client(nullptr)
     , _lightCount(0)
+    , _pollCursor(0)
     , _bridgeStatus(BridgeStatus::DISCONNECTED)
     , _ledBlinkTime(0)
     , _bridgeIP("")
@@ -88,7 +90,7 @@ void HueGatewayModule::loop()
     
     unsigned long now = millis();
     
-    // Verbindung alle 5 Sekunden prüfen
+    // Re-check bridge connectivity every 5 seconds.
     if (now - _lastConnectionCheckMs > 5000)
     {
         _lastConnectionCheckMs = now;
@@ -154,6 +156,8 @@ void HueGatewayModule::loop()
         {
             _lastReconnectTryMs = now;
             Serial.printf("[HueGatewayModule] Reconnect attempt (backoff=%lus)\n", static_cast<unsigned long>(_reconnectBackoffMs / 1000UL));
+
+            updateStatus(BridgeStatus::CONNECTING);
 
             if (initClientWithAppKey())
             {
@@ -281,7 +285,7 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
             break;
         case 4:  // Status Brightness KO (read-only, no processing)
             break;
-        case 5:  // ColorTemp KO (TODO)
+        case 5:  // ColorTemp KO
         {
             uint16_t kelvin = ko.value(Dpt(7, 600));
             _lights[channel]->processKnxColorTemp(kelvin);
@@ -289,7 +293,7 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
         }
         case 6:  // Status ColorTemp KO (read-only, no processing)
             break;
-        case 7:  // ColorRGB KO (TODO)
+        case 7:  // ColorRGB KO
         {
             uint8_t* rgb = ko.valueRef();
             _lights[channel]->processKnxColorRGB(rgb[0], rgb[1], rgb[2]);
@@ -340,7 +344,7 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
         
         Serial.printf("\nBridge found: %s\n\n", bridgeIP.c_str());
         
-        // Authentication prüfen
+        // Check whether authentication is available.
         HueGatewayAuth auth;
         if (!auth.authenticateBlocking(bridgeIP.c_str(), 30000))
         {
@@ -349,7 +353,7 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
             return true;
         }
         
-        // Lichter abrufen
+        // Fetch available lights from the bridge.
         HueGatewayClient client;
         if (!client.begin(bridgeIP, auth.getAppKey()))
         {
@@ -688,7 +692,7 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
 
 void HueGatewayModule::setupMDNS()
 {
-    // mDNS Service registrieren für einfachen Zugriff via openknx-bridge.local
+    // Register mDNS service for convenient local access via openknx-bridge.local.
     if (!MDNS.begin("openknx-bridge"))
     {
         logErrorP("mDNS start failed!");
@@ -707,7 +711,7 @@ void HueGatewayModule::setupBridge()
 {
     Serial.println("[HueGatewayModule] ===== Commissioning: Bridge setup start =====");
     
-    // Prüfen ob Netzwerk verfügbar (von OFM-Network/WLAN bereitgestellt)
+    // Check whether network connectivity is available (provided by OFM-Network/WLAN).
     if (WiFi.status() != WL_CONNECTED)
     {
         Serial.println("[HueGatewayModule] ERROR: WiFi not connected!");
@@ -729,6 +733,7 @@ void HueGatewayModule::setupBridge()
     }
     
     Serial.printf("[HueGatewayModule] Bridge configured: %s\n", _bridgeIP.c_str());
+    updateStatus(BridgeStatus::CONNECTING);
 
     if (ParamHUE_HUEBridgeMode == 0)
     {
@@ -759,6 +764,7 @@ void HueGatewayModule::setupBridge()
     if (_auth.loadStoredAppKey())
     {
         Serial.println("[HueGatewayModule] Stored App-Key found, trying direct client init");
+        updateStatus(BridgeStatus::CONNECTING);
         if (initClientWithAppKey())
         {
             updateStatus(BridgeStatus::CONNECTED);
@@ -803,7 +809,7 @@ void HueGatewayModule::setupDevices()
         return;
     }
     
-    // Alle Lichter von der Bridge abrufen (zum Validieren)
+    // Retrieve all lights from the bridge for validation/mapping.
     HueGatewayLightState allLights[MAX_LIGHTS];
     int bridgeLightCount = _client->getLights(allLights, MAX_LIGHTS);
     Serial.printf("[HueGatewayModule] Bridge has %d lights\n", bridgeLightCount);
@@ -873,7 +879,7 @@ void HueGatewayModule::setupDevices()
         uint16_t koStatusColorTemp = koBase + 6;
         uint16_t koStatusColorRGB = koBase + 8;
         
-        // HueGatewayLight Instanz erstellen
+        // Create a HueGatewayLight instance for this channel.
         _lights[ch] = new HueGatewayLight(selectedLight->id, selectedLight->name, _client);
         _lights[ch]->begin(koSwitch, koBrightness, koDimming, koStatusSwitch, koStatusBrightness, koStatusColorTemp, koStatusColorRGB);
 
@@ -1257,7 +1263,7 @@ void HueGatewayModule::refreshLightStatus()
     }
 
     unsigned long now = millis();
-    bool anyChannelDue = false;
+    bool dueFlags[MAX_LIGHTS] = {false};
     int dueChannels = 0;
     for (int i = 0; i < MAX_LIGHTS; i++)
     {
@@ -1282,12 +1288,12 @@ void HueGatewayModule::refreshLightStatus()
         unsigned long pollIntervalMs = static_cast<unsigned long>(pollIntervalSec) * 1000UL;
         if ((now - _channelLastPollMs[i]) >= pollIntervalMs)
         {
-            anyChannelDue = true;
+            dueFlags[i] = true;
             dueChannels++;
         }
     }
 
-    if (!anyChannelDue)
+    if (dueChannels == 0)
     {
         return;
     }
@@ -1311,9 +1317,20 @@ void HueGatewayModule::refreshLightStatus()
         updateStatus(BridgeStatus::CONNECTED);
     }
 
-    for (int i = 0; i < MAX_LIGHTS; i++)
+    static constexpr uint8_t kMaxChannelsPerTick = 5;
+    uint8_t processedThisTick = 0;
+    uint8_t lastProcessedIndex = _pollCursor;
+
+    for (int offset = 0; offset < MAX_LIGHTS && processedThisTick < kMaxChannelsPerTick; offset++)
     {
+        int i = (_pollCursor + offset) % MAX_LIGHTS;
+
         if (_lights[i] == nullptr)
+        {
+            continue;
+        }
+
+        if (!dueFlags[i])
         {
             continue;
         }
@@ -1337,6 +1354,8 @@ void HueGatewayModule::refreshLightStatus()
             continue;
         }
         _channelLastPollMs[i] = now;
+        processedThisTick++;
+        lastProcessedIndex = static_cast<uint8_t>(i);
 
         for (int j = 0; j < count; j++)
         {
@@ -1352,6 +1371,15 @@ void HueGatewayModule::refreshLightStatus()
                 break;
             }
         }
+    }
+
+    _pollCursor = static_cast<uint8_t>((lastProcessedIndex + 1) % MAX_LIGHTS);
+
+    if (dueChannels > processedThisTick)
+    {
+        Serial.printf("[HueGatewayModule] Poll chunk processed %u/%d due channel(s), remaining queued for next tick\n",
+                      static_cast<unsigned>(processedThisTick),
+                      dueChannels);
     }
 }
 
@@ -1381,7 +1409,7 @@ String HueGatewayModule::getBridgeIP()
     }
     else
     {
-        // Manuelle IP
+        // Manual IP
         std::string ipStr = ParamHUE_HUEBridgeIPStr;
         Serial.printf("[HueGatewayModule] Using manual IP: %s\n", ipStr.c_str());
         return String(ipStr.c_str());
@@ -1521,7 +1549,6 @@ void HueGatewayModule::pollAuthentication()
     }
 
     _authLastTry = now;
-    updateStatus(BridgeStatus::AUTHENTICATING);
 
     unsigned long elapsedMs = now - _authStartTime;
     unsigned long remainingMs = (_authWindowMs > elapsedMs) ? (_authWindowMs - elapsedMs) : 0;
@@ -1533,6 +1560,7 @@ void HueGatewayModule::pollAuthentication()
     {
         _authPending = false;
         Serial.println("[HueGatewayModule] Authentication successful");
+        updateStatus(BridgeStatus::AUTHENTICATING);
 
         if (initClientWithAppKey())
         {
@@ -1680,31 +1708,52 @@ void HueGatewayModule::updateInfoLED()
         return;
     }
 
+    auto applyPattern = [led](OpenKNX::Led::Color color, uint16_t blinkMs, bool steadyOn) {
+        if (led->isColor())
+        {
+            static_cast<OpenKNX::Led::RGB*>(led)->color(color);
+        }
+
+        if (steadyOn)
+        {
+            led->on(true);
+            return;
+        }
+
+        if (blinkMs > 0)
+        {
+            led->blinking(blinkMs);
+            return;
+        }
+
+        led->off();
+    };
+
     switch (_bridgeStatus)
     {
         case BridgeStatus::DISCONNECTED:
-            led->blinking(1000);
+            applyPattern(OpenKNX::Led::Color::Red, 1000, false);
             break;
         case BridgeStatus::CONNECTING:
-            led->blinking(200);
+            applyPattern(OpenKNX::Led::Color::Blue, 200, false);
             break;
         case BridgeStatus::WAIT_FOR_BUTTON:
-            led->pulsing(1000);
+            applyPattern(OpenKNX::Led::Color::Blue, 1000, false);
             break;
         case BridgeStatus::AUTHENTICATING:
-            led->blinking(200);
+            applyPattern(OpenKNX::Led::Color::Cyan, 200, false);
             break;
         case BridgeStatus::CONNECTED:
-            led->on(true);
+            applyPattern(OpenKNX::Led::Color::Green, 0, true);
             break;
         case BridgeStatus::CONNECTION_LOST:
-            led->blinking(500);
+            applyPattern(OpenKNX::Led::Color::Red, 500, false);
             break;
         case BridgeStatus::BRIDGE_UNREACHABLE:
-            led->blinking(1500);
+            applyPattern(OpenKNX::Led::Color::Red, 1500, false);
             break;
         case BridgeStatus::ERROR:
-            led->blinking(100);
+            applyPattern(OpenKNX::Led::Color::Red, 100, false);
             break;
     }
 }
@@ -1738,17 +1787,6 @@ static String maskKey(const String& key)
 
 void HueGatewayModule::setupWebUI()
 {
-    WebHandler scanHandler;
-    scanHandler.name = "Hue Scan (HTML)";
-    scanHandler.uri = "/hue/scan";
-    scanHandler.httpd = {
-        .uri = "/hue/scan",
-        .method = HTTP_GET,
-        .handler = HueGatewayModule::handleWebScan,
-        .user_ctx = this
-    };
-    openknxWebUI.addHandler(scanHandler);
-
     WebHandler scanTextHandler;
     scanTextHandler.name = "Hue Scan (Text)";
     scanTextHandler.uri = "/hue/scan.txt";
@@ -1760,28 +1798,6 @@ void HueGatewayModule::setupWebUI()
         .user_ctx = this
     };
     openknxWebUI.addHandler(scanTextHandler);
-
-    WebHandler statusHandler;
-    statusHandler.name = "Hue Status";
-    statusHandler.uri = "/hue/status";
-    statusHandler.httpd = {
-        .uri = "/hue/status",
-        .method = HTTP_GET,
-        .handler = HueGatewayModule::handleWebStatus,
-        .user_ctx = this
-    };
-    openknxWebUI.addHandler(statusHandler);
-
-    WebHandler pairHandler;
-    pairHandler.name = "Hue Pairing";
-    pairHandler.uri = "/hue/pair";
-    pairHandler.httpd = {
-        .uri = "/hue/pair",
-        .method = HTTP_GET,
-        .handler = HueGatewayModule::handleWebPair,
-        .user_ctx = this
-    };
-    openknxWebUI.addHandler(pairHandler);
 
     WebPage rootPage;
     rootPage.uri = "/hue";
@@ -1820,7 +1836,9 @@ esp_err_t HueGatewayModule::handleWebRoot(httpd_req_t* req)
     if (self == nullptr)
         return httpd_resp_send_500(req);
 
-    String html = "<!DOCTYPE html><html><head><meta charset='UTF-8'>";
+    String html;
+    html.reserve(1536);
+    html = "<!DOCTYPE html><html><head><meta charset='UTF-8'>";
     html += "<title>OpenKNX Hue Bridge Module</title>";
     html += "<style>body{font-family:Arial,sans-serif;margin:40px;background:#f5f5f5;}";
     html += "h1{color:#333;}.card{background:white;padding:20px;margin:10px 0;border-radius:5px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}";
@@ -1862,7 +1880,9 @@ esp_err_t HueGatewayModule::handleWebScan(httpd_req_t* req)
 
     if (!self->_client || !self->_initialized)
     {
-        String html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Scan Error</title></head><body>";
+        String html;
+        html.reserve(256);
+        html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Scan Error</title></head><body>";
         html += "<h1>❌ Error</h1><p>Module not initialized. Check bridge authentication.</p>";
         html += "<a href='/hue'>← Back</a></body></html>";
         return send_html(req, html, 500);
@@ -1891,7 +1911,9 @@ esp_err_t HueGatewayModule::handleWebStatus(httpd_req_t* req)
     if (self == nullptr)
         return httpd_resp_send_500(req);
 
-    String html = "<!DOCTYPE html><html><head><meta charset='UTF-8'>";
+    String html;
+    html.reserve(8192);
+    html = "<!DOCTYPE html><html><head><meta charset='UTF-8'>";
     html += "<title>Hue Status</title>";
     html += "<style>body{font-family:Arial,sans-serif;margin:40px;background:#f5f5f5;}";
     html += "table{width:100%;border-collapse:collapse;background:white;border-radius:5px;overflow:hidden;}";
@@ -2053,7 +2075,9 @@ esp_err_t HueGatewayModule::handleWebPair(httpd_req_t* req)
 
     self->startPairing();
 
-    String html = "<!DOCTYPE html><html><head><meta charset='UTF-8'>";
+    String html;
+    html.reserve(1024);
+    html = "<!DOCTYPE html><html><head><meta charset='UTF-8'>";
     html += "<title>Hue Pairing</title>";
     html += "<meta http-equiv='refresh' content='3;url=/hue/status'>";
     html += "<style>body{font-family:Arial,sans-serif;margin:40px;background:#f5f5f5;}";
@@ -2116,7 +2140,9 @@ String HueGatewayModule::getBridgeScanHTML()
     HueGatewayLightState lights[MAX_LIGHTS];
     int count = _client->getLights(lights, MAX_LIGHTS);
     
-    String html = "<!DOCTYPE html><html><head><meta charset='UTF-8'>";
+    String html;
+    html.reserve(2048 + (count > 0 ? (count * 320) : 256));
+    html = "<!DOCTYPE html><html><head><meta charset='UTF-8'>";
     html += "<title>Hue Bridge Scan</title>";
     html += "<style>body{font-family:'Courier New',monospace;margin:40px;background:#1e1e1e;color:#d4d4d4;}";
     html += "h1{color:#4ec9b0;}";
@@ -2164,7 +2190,9 @@ String HueGatewayModule::getBridgeScanText()
     HueGatewayLightState lights[MAX_LIGHTS];
     int count = _client->getLights(lights, MAX_LIGHTS);
 
-    String text = "OpenKNX Hue Bridge Scan\n";
+    String text;
+    text.reserve(256 + (count > 0 ? (count * 180) : 64));
+    text = "OpenKNX Hue Bridge Scan\n";
     text += "---------------------------------\n";
 
     if (count <= 0)

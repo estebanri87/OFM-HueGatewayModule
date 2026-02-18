@@ -1,5 +1,5 @@
 #include "HueGatewayModule.h"
 
-// Globale Instanz für OpenKNX Integration
+// Global instance used by OpenKNX runtime/module registration.
 HueGatewayModule openknxHueGatewayModule;
 
