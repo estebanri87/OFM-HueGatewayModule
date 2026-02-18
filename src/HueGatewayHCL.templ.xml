@@ -7,13 +7,13 @@
         <ApplicationProgram>
           <Static>
             <Parameters>
-              <!-- HCL Master %M% Setpoint %S% - Time (HH:MM) -->
+              <!-- HCL-Master %M% Stützpunkt %S% - Uhrzeit (HH:MM) -->
               <Parameter Id="%AID%_P-%TT%%MM%%SS%01" Name="HCLM%M%SP%S%Time" ParameterType="%AID%_PT-HUEHCLTime" Text="Uhrzeit" Value="00:00" />
               
-              <!-- HCL Master %M% Setpoint %S% - Kelvin -->
+              <!-- HCL-Master %M% Stützpunkt %S% - Kelvin -->
               <Parameter Id="%AID%_P-%TT%%MM%%SS%02" Name="HCLM%M%SP%S%Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="Farbtemperatur (Kelvin)" Value="4000" />
               
-              <!-- HCL Master %M% Setpoint %S% - Brightness -->
+              <!-- HCL-Master %M% Stützpunkt %S% - Helligkeit -->
               <Parameter Id="%AID%_P-%TT%%MM%%SS%03" Name="HCLM%M%SP%S%Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="Helligkeit (%)" Value="100" />
             </Parameters>
             
@@ -26,7 +26,7 @@
           
           <Dynamic>
             <ChannelIndependentBlock>
-              <!-- Setpoint Block for HCL Master -->
+              <!-- Stützpunkt-Block für den HCL-Master -->
               <ParameterBlock Id="%AID%_PB-HCL%MM%%SS%" Name="HCL_M%M%_SP%S%" Text="Stützpunkt %S%" Inline="true">
                 <ParameterRefRef RefId="%AID%_P-%TT%%MM%%SS%01_R-%TT%%MM%%SS%0101" />
                 <ParameterRefRef RefId="%AID%_P-%TT%%MM%%SS%02_R-%TT%%MM%%SS%0201" />
