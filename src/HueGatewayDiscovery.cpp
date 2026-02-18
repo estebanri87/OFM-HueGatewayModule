@@ -1,4 +1,5 @@
 #include "HueGatewayDiscovery.h"
+#include "HueGatewayNvsKeys.h"
 #include <ArduinoJson.h>
 #include <Preferences.h>
 
@@ -12,7 +13,7 @@ bool HueGatewayDiscovery::findBridge(String& ipAddress)
 {
     Serial.println("[HueGatewayDiscovery] ===== Commissioning: Discovery start =====");
     
-    // Zuerst gespeicherte IP laden
+    // Try the persisted bridge IP first to avoid unnecessary discovery traffic.
     String savedIP = loadIP();
     if (savedIP.length() > 0)
     {
@@ -27,7 +28,7 @@ bool HueGatewayDiscovery::findBridge(String& ipAddress)
         Serial.println("[HueGatewayDiscovery] Trying mDNS discovery next...");
     }
     
-    // mDNS Discovery versuchen
+    // Try local mDNS discovery.
     if (discoverMDNS(ipAddress))
     {
         Serial.printf("[HueGatewayDiscovery] Found via mDNS: %s\n", ipAddress.c_str());
@@ -52,7 +53,7 @@ bool HueGatewayDiscovery::setManualIP(const char* ip)
 {
     Serial.printf("[HueGatewayDiscovery] Manual IP set: %s\n", ip);
     
-    // Einfache IP-Validierung
+    // Basic IPv4 validation.
     IPAddress testIP;
     if (!testIP.fromString(ip))
     {
@@ -92,7 +93,7 @@ bool HueGatewayDiscovery::discoverMDNS(String& ip)
     
     Serial.printf("[HueGatewayDiscovery] Found %d service(s)\n", n);
     
-    // Erste gefundene Bridge verwenden
+    // Use the first discovered bridge entry.
     ip = MDNS.address(0).toString();
     Serial.printf("[HueGatewayDiscovery] Bridge IP: %s\n", ip.c_str());
     Serial.printf("[HueGatewayDiscovery] Bridge Hostname: %s\n", MDNS.hostname(0).c_str());
@@ -174,8 +175,8 @@ bool HueGatewayDiscovery::isBridgeReachable(const String& ip)
     }
     http.setTimeout(2000);
 
-    prefs.begin("hue", true);
-    String appKey = prefs.getString("app_key", "");
+    prefs.begin(HueGatewayNvs::Namespace, true);
+    String appKey = prefs.getString(HueGatewayNvs::AppKey, "");
     prefs.end();
 
     if (appKey.length() > 0)
@@ -199,16 +200,16 @@ bool HueGatewayDiscovery::isBridgeReachable(const String& ip)
 
 void HueGatewayDiscovery::saveIP(const String& ip)
 {
-    prefs.begin("hue", false);
-    prefs.putString("bridge_ip", ip);
+    prefs.begin(HueGatewayNvs::Namespace, false);
+    prefs.putString(HueGatewayNvs::BridgeIp, ip);
     prefs.end();
     Serial.printf("[HueGatewayDiscovery] IP saved: %s\n", ip.c_str());
 }
 
 String HueGatewayDiscovery::loadIP()
 {
-    prefs.begin("hue", true); // read-only
-    String ip = prefs.getString("bridge_ip", "");
+    prefs.begin(HueGatewayNvs::Namespace, true); // read-only
+    String ip = prefs.getString(HueGatewayNvs::BridgeIp, "");
     prefs.end();
     return ip;
 }

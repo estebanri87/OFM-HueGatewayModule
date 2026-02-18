@@ -1,4 +1,5 @@
 #include "HueGatewayAuth.h"
+#include "HueGatewayNvsKeys.h"
 #include <ArduinoJson.h>
 #include <Preferences.h>
 
@@ -138,7 +139,7 @@ bool HueGatewayAuth::requestAppKeyOnce(const char* ip)
                     int errorType = obj["error"]["type"];
                     if (errorType == 101)
                     {
-                        // Normal - Button noch nicht gedrückt
+                        // Expected during pairing: bridge button has not been pressed yet.
                         Serial.println("[HueGatewayAuth] Bridge reports button not pressed yet (error 101)");
                         success = false;
                     }
@@ -151,7 +152,7 @@ bool HueGatewayAuth::requestAppKeyOnce(const char* ip)
                     }
                 }
                 
-                // Success: App-Key erhalten
+                // Success: store the newly issued app key/client key.
                 if (obj.containsKey("success"))
                 {
                     String username = obj["success"]["username"].as<String>();
@@ -180,9 +181,9 @@ bool HueGatewayAuth::requestAppKeyOnce(const char* ip)
 
 void HueGatewayAuth::clearAppKey()
 {
-    prefs.begin("hue", false);
-    prefs.remove("app_key");
-    prefs.remove("client_key");
+    prefs.begin(HueGatewayNvs::Namespace, false);
+    prefs.remove(HueGatewayNvs::AppKey);
+    prefs.remove(HueGatewayNvs::ClientKey);
     prefs.end();
     _appKey = "";
     _clientKey = "";
@@ -191,8 +192,8 @@ void HueGatewayAuth::clearAppKey()
 
 void HueGatewayAuth::saveAppKey(const String& key)
 {
-    prefs.begin("hue", false);
-    prefs.putString("app_key", key);
+    prefs.begin(HueGatewayNvs::Namespace, false);
+    prefs.putString(HueGatewayNvs::AppKey, key);
     prefs.end();
     _appKey = key;
     Serial.println("[HueGatewayAuth] App-Key saved to flash");
@@ -200,16 +201,16 @@ void HueGatewayAuth::saveAppKey(const String& key)
 
 void HueGatewayAuth::saveClientKey(const String& key)
 {
-    prefs.begin("hue", false);
-    prefs.putString("client_key", key);
+    prefs.begin(HueGatewayNvs::Namespace, false);
+    prefs.putString(HueGatewayNvs::ClientKey, key);
     prefs.end();
     _clientKey = key;
 }
 
 String HueGatewayAuth::loadAppKey()
 {
-    prefs.begin("hue", true); // read-only
-    String key = prefs.getString("app_key", "");
+    prefs.begin(HueGatewayNvs::Namespace, true); // read-only
+    String key = prefs.getString(HueGatewayNvs::AppKey, "");
     prefs.end();
     
     if (key.length() > 0)
@@ -222,8 +223,8 @@ String HueGatewayAuth::loadAppKey()
 
 String HueGatewayAuth::loadClientKey()
 {
-    prefs.begin("hue", true); // read-only
-    String key = prefs.getString("client_key", "");
+    prefs.begin(HueGatewayNvs::Namespace, true); // read-only
+    String key = prefs.getString(HueGatewayNvs::ClientKey, "");
     prefs.end();
     return key;
 }
