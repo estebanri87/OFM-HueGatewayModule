@@ -49,7 +49,7 @@ void HueGatewayLight::begin(uint16_t koSwitch, uint16_t koBrightness, uint16_t k
     _koStatusBrightness = koStatusBrightness;
     _koStatusColorTemp = koStatusColorTemp;
     _koStatusColorRGB = koStatusColorRGB;
-    _koStatus = koStatusSwitch;  // Backward compatibility
+    _koStatus = koStatusSwitch;  // Backward compatibility for older code paths.
     _initialized = true;
     
     Serial.printf("[HueGatewayLight] %s initialized - KO Switch:%d Brightness:%d Dimming:%d StatusSwitch:%d StatusBrightness:%d StatusColorTemp:%d StatusRGB:%d\n",
@@ -63,7 +63,7 @@ void HueGatewayLight::processKnxSwitch(bool value)
     
     Serial.printf("[HueGatewayLight] %s - KNX Switch: %d\n", _name.c_str(), value);
     
-    // Beim Ausschalten: Fade sofort abbrechen
+    // Stop ongoing fade immediately when switching off.
     if (!value && _fadingActive) {
         _fadingActive = false;
         Serial.printf("[HueGatewayLight] %s - Fade aborted by switch off\n", _name.c_str());
@@ -76,14 +76,14 @@ void HueGatewayLight::processKnxSwitch(bool value)
         _brightness = _minBrightnessHue;
     }
     
-    // Beim Einschalten mit HCL: Aktuelle HCL-Werte anwenden
+    // On switch-on with HCL assignment, apply the current interpolated HCL target.
     if (value && _hclMasterNum > 0 && _hclMasterNum <= 4) {
         HCL::InterpolatedValue hclValue = HCL::masterManager.getCurrentValue(_hclMasterNum);
         
-        // Helligkeit von % (0-100) zu Hue (0-254) konvertieren
+        // Convert brightness percent (0-100) to Hue scale (0-254).
         _brightness = (uint8_t)((hclValue.brightness * 254) / 100);
         
-        // Timer und letzte Werte aktualisieren für kontinuierliches Update
+        // Prime loop state for continuous HCL updates.
         _lastHCLUpdate = millis();
         _lastHCLBrightness = hclValue.brightness;
         
@@ -111,7 +111,7 @@ void HueGatewayLight::processKnxBrightness(uint8_t value)
     
     Serial.printf("[HueGatewayLight] %s - KNX Brightness: %d%% (DPT 5.001)\n", _name.c_str(), value);
     
-    // KNX DPT 5.001: 0-100% → Hue 0-254
+    // KNX DPT 5.001: 0-100% -> Hue 0-254.
     _brightness = (uint8_t)((value / 100.0f) * 254.0f);
 
     if (_brightness > 0 && _brightness < _minBrightnessHue)
@@ -119,13 +119,13 @@ void HueGatewayLight::processKnxBrightness(uint8_t value)
         _brightness = _minBrightnessHue;
     }
     
-    // Bei Brightness > 0 automatisch einschalten
+    // Auto-turn on when brightness is set above zero.
     if (_brightness > 0 && !_on)
     {
         _on = true;
         Serial.printf("[HueGatewayLight] %s - Auto-on due to brightness > 0\n", _name.c_str());
     }
-    // Bei Brightness = 0 ausschalten
+    // Auto-turn off when brightness reaches zero.
     else if (_brightness == 0 && _on)
     {
         _on = false;
@@ -140,28 +140,28 @@ void HueGatewayLight::processKnxDimming(uint8_t control)
     if (!_initialized || !_client)
         return;
     
-    // DPT 3.007: 4-Bit Dimm-Steuerung
-    // Bit 3: 0=dunkler, 1=heller
-    // Bit 0-2: Anzahl Schritte (0=Stop, 1-7=Schritte)
+    // DPT 3.007: 4-bit dimming control.
+    // Bit 3: 0=darker, 1=brighter
+    // Bit 0-2: number of steps (0=stop, 1-7=steps)
     
     uint8_t steps = control & 0x07;  // Bits 0-2
     bool brighter = (control & 0x08) != 0;  // Bit 3
     
-    // Stop-Telegramm ignorieren (0 Schritte)
+    // Ignore stop telegram (0 steps).
     if (steps == 0)
     {
         Serial.printf("[HueGatewayLight] %s - KNX Dimming STOP\n", _name.c_str());
         return;
     }
     
-    // Berechne Helligkeitsänderung
-    // Pro Schritt ca. 10% (254/25 ≈ 10)
-    int16_t brightnessChange = steps * 10;  // 10 Einheiten pro Schritt
+    // Compute brightness delta.
+    // Approx. 10 units per step (254/25 ~= 10).
+    int16_t brightnessChange = steps * 10;  // 10 units per step
     
     if (!brighter)
         brightnessChange = -brightnessChange;
     
-    // Neue Helligkeit berechnen (mit Clamping)
+    // Compute new brightness with explicit clamping.
     int16_t newBrightness = _brightness + brightnessChange;
     if (newBrightness < 0) newBrightness = 0;
     if (newBrightness > 254) newBrightness = 254;
@@ -176,13 +176,13 @@ void HueGatewayLight::processKnxDimming(uint8_t control)
     Serial.printf("[HueGatewayLight] %s - KNX Dimming: %s %d steps -> Brightness: %d\n",
                   _name.c_str(), brighter ? "BRIGHTER" : "DARKER", steps, _brightness);
     
-    // Bei Brightness > 0 automatisch einschalten
+    // Auto-turn on when dimming results in brightness > 0.
     if (_brightness > 0 && !_on)
     {
         _on = true;
         Serial.printf("[HueGatewayLight] %s - Auto-on due to dimming to > 0\n", _name.c_str());
     }
-    // Bei Brightness = 0 ausschalten
+    // Auto-turn off when dimming reaches 0.
     else if (_brightness == 0 && _on)
     {
         _on = false;
@@ -296,14 +296,14 @@ void HueGatewayLight::sendStatusToKnx()
     if (!_initialized)
         return;
     
-    // Status an separate Status-KOs schreiben
-    // Hue 0-254 → KNX 0-100%
+    // Publish status to dedicated feedback KOs.
+    // Hue 0-254 -> KNX 0-100%.
     uint8_t brightnessPercent = (uint8_t)((_brightness / 254.0f) * 100.0f);
     
-    // KO Status Switch: DPT 1.001 (Bool) - Ein/Aus Feedback
+    // KO Status Switch: DPT 1.001 (bool) - On/Off feedback.
     knx.getGroupObject(_koStatusSwitch).value(_on, Dpt(1, 1));
     
-    // KO Status Brightness: DPT 5.001 (Percentage 0-100%) - Helligkeits-Feedback
+    // KO Status Brightness: DPT 5.001 (0-100%) - brightness feedback.
     knx.getGroupObject(_koStatusBrightness).value(brightnessPercent, Dpt(5, 1));
 
     if (_lightType >= 2 && _koStatusColorTemp > 0)
@@ -352,12 +352,12 @@ void HueGatewayLight::sendToHue()
 uint8_t HueGatewayLight::knxToHueBrightness(uint8_t knxValue)
 {
     // KNX: 0-255
-    // Hue: 0-254 (1-254 für dimmbares Licht, 0 = aus)
+    // Hue: 0-254 (1-254 for dimmable light, 0 = off)
     
     if (knxValue == 0)
         return 0;
     
-    // Linear mapping: 1-255 → 1-254
+    // Linear mapping: 1-255 -> 1-254
     return (uint8_t)((knxValue / 255.0f) * 254.0f);
 }
 
@@ -369,7 +369,7 @@ uint8_t HueGatewayLight::hueToKnxBrightness(uint8_t hueValue)
     if (hueValue == 0)
         return 0;
     
-    // Linear mapping: 0-254 → 0-255
+    // Linear mapping: 0-254 -> 0-255
     return (uint8_t)((hueValue / 254.0f) * 255.0f);
 }
 
@@ -386,9 +386,9 @@ void HueGatewayLight::setMinBrightness(uint8_t minBrightness)
 
 uint16_t HueGatewayLight::kelvinToMirek(uint16_t kelvin)
 {
-    // Kelvin → mirek (Micro Reciprocal Kelvin)
+    // Kelvin -> mirek (micro reciprocal kelvin)
     // mirek = 1.000.000 / Kelvin
-    // Hue Range: 153-500 mirek (entspricht 6500K-2000K)
+    // Hue range: 153-500 mirek (equivalent to 6500K-2000K)
     
     if (kelvin < 2000) kelvin = 2000;
     if (kelvin > 6500) kelvin = 6500;
@@ -460,42 +460,42 @@ void HueGatewayLight::sendToHueWithColorTemp(uint16_t kelvin, uint8_t fadeDurati
 
 void HueGatewayLight::loop()
 {
-    // Nur wenn initialisiert, eingeschaltet und einem HCL-Master zugeordnet
+    // Only run HCL loop when initialized, switched on, and assigned to a valid master.
     if (!_initialized || !_on || _hclMasterNum == 0 || _hclMasterNum > 4)
         return;
     
-    // Update-Intervall aus HCL-Manager abrufen (in Sekunden)
+    // Read update interval from HCL manager (seconds).
     uint32_t updateIntervalSec = HCL::masterManager.getUpdateInterval();
     unsigned long updateIntervalMs = updateIntervalSec * 1000UL;
     
-    // Prüfen, ob genug Zeit vergangen ist
+    // Enforce update interval.
     unsigned long now = millis();
     if (updateIntervalMs > 0 && (now - _lastHCLUpdate) < updateIntervalMs)
         return;
     
-    // Aktuelle HCL-Werte abrufen
+    // Fetch current interpolated HCL target values.
     HCL::InterpolatedValue hclValue = HCL::masterManager.getCurrentValue(_hclMasterNum);
     
-    // Prüfen, ob sich die Werte signifikant geändert haben
-    // Kelvin-Toleranz: ±10K, Brightness-Toleranz: ±2%
+    // Update only if values changed beyond tolerance.
+    // Kelvin tolerance: +/-10K, brightness tolerance: +/-2%.
     bool kelvinChanged = abs((int)hclValue.kelvin - (int)_currentKelvin) > 10;
     bool brightnessChanged = abs((int)hclValue.brightness - (int)_lastHCLBrightness) > 2;
     
     if (!kelvinChanged && !brightnessChanged)
         return;
     
-    // Werte haben sich geändert - anwenden
+    // Apply changed values and publish update.
     _lastHCLUpdate = now;
     _lastHCLBrightness = hclValue.brightness;
     
-    // Helligkeit von % (0-100) zu Hue (0-254) konvertieren
+    // Convert brightness percent (0-100) to Hue scale (0-254).
     _brightness = (uint8_t)((hclValue.brightness * 254) / 100);
     
     Serial.printf("[HueGatewayLight] %s - HCL Update: %dK → %dK, %d%% → %d%%\n",
                  _name.c_str(), _currentKelvin, hclValue.kelvin, 
                  _lastHCLBrightness, hclValue.brightness);
     
-    // Fade-Dauer aus HCL-Manager abrufen
+    // Read transition duration from HCL manager.
     uint8_t fadeDuration = HCL::masterManager.getFadeDuration();
     
     if (_lightType >= 2)

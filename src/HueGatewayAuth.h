@@ -8,7 +8,7 @@
 /**
  * @brief Hue Bridge Authentication
  * 
- * Verwaltet die Authentifizierung mit der Hue Bridge (Button-Press Flow)
+ * Manages Hue Bridge authentication using the button-press flow.
  */
 class HueGatewayAuth
 {
@@ -16,29 +16,29 @@ public:
     HueGatewayAuth();
     
     /**
-     * @brief Authentifizierung durchführen (non-blocking)
-     * @param bridgeIP IP-Adresse der Bridge
-     * @return true wenn App-Key vorhanden oder erfolgreich angefordert
+    * @brief Performs authentication (non-blocking).
+    * @param bridgeIP Bridge IP address
+    * @return true if an app key is already available or was requested successfully
      */
     bool authenticate(const char* bridgeIP);
     
     /**
-     * @brief Authentifizierung mit Wartefenster (blocking, fuer Konsole)
-     * @param bridgeIP IP-Adresse der Bridge
-     * @param timeoutMs Wartezeit in Millisekunden
-     * @return true wenn erfolgreich
+    * @brief Performs authentication with timeout (blocking, for console usage).
+    * @param bridgeIP Bridge IP address
+    * @param timeoutMs Timeout in milliseconds
+    * @return true on success
      */
     bool authenticateBlocking(const char* bridgeIP, uint32_t timeoutMs = 30000);
     
     /**
-     * @brief Prüft ob gültiger App-Key vorhanden
-     * @return true wenn App-Key vorhanden
+    * @brief Checks whether a valid app key exists.
+    * @return true if an app key is available
      */
     bool hasValidAppKey();
     
     /**
-     * @brief Gibt gespeicherten App-Key zurück
-     * @return App-Key oder leerer String
+    * @brief Returns the stored app key.
+    * @return app key or empty string
      */
     String getAppKey();
     String getClientKey();

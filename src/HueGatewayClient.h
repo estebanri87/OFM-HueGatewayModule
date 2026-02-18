@@ -9,13 +9,13 @@
 /**
  * @brief Hue API v2 Client
  * 
- * Kommuniziert mit der Hue Bridge über die Hue API v2.
- * Unterstützt:
- * - Abrufen von Geräten (Lights, Grouped Lights, etc.)
- * - Steuern von Lichtern (On/Off, Brightness, Color)
- * - Fehlerbehandlung und Retry-Logik
+ * Communicates with the Hue Bridge using Hue API v2.
+ * Supports:
+ * - Fetching devices (lights, grouped lights, etc.)
+ * - Controlling lights (on/off, brightness, color)
+ * - Error handling and retry logic
  * 
- * API v2 Dokumentation: https://developers.meethue.com/develop/hue-api-v2/
+ * API v2 documentation: https://developers.meethue.com/develop/hue-api-v2/
  */
 
 struct HueGatewayLightState
@@ -57,73 +57,73 @@ public:
     ~HueGatewayClient();
     
     /**
-     * @brief Initialisiert den Client mit Bridge-Daten
-     * @param bridgeIP IP-Adresse der Bridge
-     * @param appKey Application Key (von HueGatewayAuth)
-     * @return true bei Erfolg
+    * @brief Initializes the client with bridge connection data.
+    * @param bridgeIP Bridge IP address
+    * @param appKey Application key (provided by HueGatewayAuth)
+    * @return true on success
      */
     bool begin(const String& bridgeIP, const String& appKey);
     
     /**
-     * @brief Ruft alle Lichter von der Bridge ab
-     * @param lights Array für Light States (wird gefüllt)
-     * @param maxLights Maximale Anzahl (Array-Größe)
-     * @return Anzahl der gefundenen Lichter
+    * @brief Fetches all lights from the bridge.
+    * @param lights Array that receives light states
+    * @param maxLights Maximum number of entries (array size)
+    * @return number of discovered lights
      */
     int getLights(HueGatewayLightState* lights, int maxLights);
     
     /**
-     * @brief Schaltet ein Licht ein/aus
+    * @brief Switches a light on or off.
      * @param lightId Light Resource ID (z.B. "abc12345-...")
-     * @param on true = ein, false = aus
-     * @return true bei Erfolg
+    * @param on true = on, false = off
+    * @return true on success
      */
     bool setLightOnOff(const String& lightId, bool on);
     
     /**
-     * @brief Setzt die Helligkeit eines Lichts
+    * @brief Sets the brightness of a light.
      * @param lightId Light Resource ID
-     * @param brightness Helligkeit 0-254
-     * @return true bei Erfolg
+    * @param brightness Brightness 0-254
+    * @return true on success
      */
     bool setLightBrightness(const String& lightId, uint8_t brightness);
     
     /**
-     * @brief Setzt On/Off und Helligkeit gleichzeitig
+    * @brief Sets on/off and brightness in one request.
      * @param lightId Light Resource ID
-     * @param on true = ein
-     * @param brightness Helligkeit 0-254
-     * @return true bei Erfolg
+    * @param on true = on
+    * @param brightness Brightness 0-254
+    * @return true on success
      */
     bool setLightState(const String& lightId, bool on, uint8_t brightness);
     
     /**
-     * @brief Setzt On/Off, Helligkeit und Farbtemperatur mit Fade-Dauer
+    * @brief Sets on/off, brightness, and color temperature with fade duration.
      * @param lightId Light Resource ID
-     * @param on true = ein
-     * @param brightness Helligkeit 0-254
-     * @param mirek Farbtemperatur in Mirek (153-500, wird geclampt)
-     * @param fadeDurationSec Fade-Dauer in Sekunden (0 = instant)
-     * @return true bei Erfolg
+    * @param on true = on
+    * @param brightness Brightness 0-254
+    * @param mirek Color temperature in mirek (153-500, clamped)
+    * @param fadeDurationSec Fade duration in seconds (0 = instant)
+    * @return true on success
      */
     bool setLightStateWithColorTemp(const String& lightId, bool on, uint8_t brightness, 
                                     uint16_t mirek, uint8_t fadeDurationSec);
     
     /**
-     * @brief Setzt die Farbtemperatur eines Lichts
+    * @brief Sets the color temperature of a light.
      * @param lightId Light Resource ID
-     * @param mirek Farbtemperatur in Mirek (153-500, wird geclampt)
-     *              153 = kalt/6536K, 500 = warm/2000K
-     * @return true bei Erfolg
+    * @param mirek Color temperature in mirek (153-500, clamped)
+    *              153 = cold/6536K, 500 = warm/2000K
+    * @return true on success
      */
     bool setLightColorTemperature(const String& lightId, uint16_t mirek);
     
     /**
-     * @brief Setzt die XY-Farbe eines Lichts (CIE 1931 Farbraum)
+    * @brief Sets the XY color of a light (CIE 1931 color space).
      * @param lightId Light Resource ID
-     * @param x X-Koordinate (0.0-1.0, wird geclampt)
-     * @param y Y-Koordinate (0.0-1.0, wird geclampt)
-     * @return true bei Erfolg
+    * @param x X coordinate (0.0-1.0, clamped)
+    * @param y Y coordinate (0.0-1.0, clamped)
+    * @return true on success
      */
     bool setLightColor(const String& lightId, float x, float y);
 
@@ -135,26 +135,26 @@ public:
     int pollEventStream(HueGatewayEventLightUpdate* updates, int maxUpdates);
     
     /**
-     * @brief Konvertiert Kelvin zu Mirek
-     * @param kelvin Farbtemperatur in Kelvin (2000-6536)
-     * @return Mirek-Wert (153-500)
+    * @brief Converts Kelvin to mirek.
+    * @param kelvin Color temperature in Kelvin (2000-6536)
+    * @return mirek value (153-500)
      */
     static uint16_t kelvinToMirek(uint16_t kelvin);
     
     /**
-     * @brief Konvertiert Mirek zu Kelvin
-     * @param mirek Farbtemperatur in Mirek (153-500)
-     * @return Kelvin-Wert (2000-6536)
+    * @brief Converts mirek to Kelvin.
+    * @param mirek Color temperature in mirek (153-500)
+    * @return Kelvin value (2000-6536)
      */
     static uint16_t mirekToKelvin(uint16_t mirek);
     
     /**
-     * @brief Prüft ob Client initialisiert ist
+    * @brief Returns whether the client has been initialized.
      */
     bool isInitialized() const { return _initialized; }
     
     /**
-     * @brief Gibt die Bridge IP zurück
+    * @brief Returns the configured bridge IP.
      */
     String getBridgeIP() const { return _bridgeIP; }
 
@@ -179,15 +179,15 @@ private:
     };
     
     /**
-     * @brief HTTP GET Request
+    * @brief Executes an HTTP GET request.
      * @param endpoint API Endpoint (z.B. "/clip/v2/resource/light")
-     * @param doc JsonDocument für Response
+    * @param doc JsonDocument for the response payload
      * @return HTTP Status Code
      */
     int httpGet(const String& endpoint, JsonDocument& doc);
     
     /**
-     * @brief HTTP PUT Request
+    * @brief Executes an HTTP PUT request.
      * @param endpoint API Endpoint
      * @param payload JSON Payload
      * @return HTTP Status Code
@@ -195,7 +195,7 @@ private:
     int httpPut(const String& endpoint, const String& payload);
     
     /**
-     * @brief Erstellt volle URL
+    * @brief Builds the full request URL.
      */
     String buildUrl(const String& endpoint);
     static void xyToRgb(float x, float y, uint8_t& red, uint8_t& green, uint8_t& blue);

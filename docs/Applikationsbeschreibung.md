@@ -1,8 +1,24 @@
-# Applikationsbeschreibung Philips Hue Bridge Modul
+# Applikationsbeschreibung Philips Hue Gateway Modul
 
-Das OFM-HueBridgeModule verbindet Philips Hue Leuchten mit dem KNX-Bus.
+Das OFM-HueGatewayModule verbindet Philips Hue Leuchten mit dem KNX-Bus.
 Die Steuerung erfolgt über eine Hue Bridge, die im lokalen Netzwerk verfügbar ist.
 Pro KNX-Kanal wird eine Hue-Leuchte gesteuert mit Funktionen wie Ein/Aus, Helligkeit, Farbtemperatur und RGB-Farbe - abhängig vom gewählten Lampentyp.
+
+**Wichtiger Hinweis zur Projektierung:**
+- Das Modul arbeitet mit der Hue API v2.
+- Parameter und Kommunikationsobjekte müssen konsistent in ETS gepflegt werden (insbesondere Synchronisationsrichtung, Polling und Status-KOs).
+
+## Schnellstart (5 Schritte)
+
+1. **Bridge-Erkennung wählen** (automatisch oder manuell per IP).
+2. **Authentifizieren** (Link-Button an der Hue Bridge innerhalb des Pairing-Fensters drücken).
+3. **Anzahl aktiver Kanäle** setzen (nur tatsächlich benötigte Kanäle).
+4. **Pro Kanal** UUID, Lampentyp und Synchronisationsrichtung konfigurieren.
+5. **Gruppenadressen** für Eingangs- und Status-KOs zuordnen und Funktionstest durchführen.
+
+**Schnelltest nach Download:**
+- `Schalten` senden → Lampe reagiert.
+- Änderung in Hue-App → Status-KOs werden (je nach Sync/Polling) aktualisiert.
 
 ## Funktionsumfang
 
@@ -49,6 +65,26 @@ Die Synchronisation kann pro Kanal in vier Modi betrieben werden:
 - **Nur Hue zu KNX**: Status wird von Hue gelesen und auf KNX gesendet (Polling)
 - **Bidirektional**: Volle Synchronisation in beide Richtungen
 
+### HCL-Manager (Human Centric Lighting)
+
+Der HCL-Manager ermöglicht zeitabhängige Verläufe für Farbtemperatur und Helligkeit über bis zu 4 HCL-Master.
+
+**Kurventypen:**
+
+- **FixedTime (Stützpunkte)**  
+   Verwendet Stützpunkte mit **Zeit, Kelvin, Helligkeit**.
+
+- **SunPosition**  
+   Verwendet ebenfalls Stützpunkte mit **Zeit, Kelvin, Helligkeit** und zusätzlich Sunrise/Sunset inkl. Offsets.
+
+- **Manual Kelvin**  
+   Die Farbtemperatur wird fest über den Parameter "Manual Kelvin" vorgegeben.  
+   In den Stützpunkten werden in ETS nur **Zeit und Helligkeit** angezeigt (Kelvin ist ausgeblendet).
+
+**Wichtiger Hinweis:**
+- Für einen gültigen HCL-Master werden weiterhin mindestens **2 gültige Stützpunkte** benötigt.
+- Im Modus **Manual Kelvin** dienen die Stützpunkte damit der Helligkeitskurve.
+
 ### Diagnose und Monitoring
 
 - **LED-Signalisierung**: Zeigt den Verbindungsstatus zur Hue Bridge an
@@ -63,9 +99,21 @@ Die Synchronisation kann pro Kanal in vier Modi betrieben werden:
 
 (c) OpenKNX, Steffen Rittmeier 2026
 
-Die vollständige Anwendungsbeschreibung ist im Web unter https://github.com/OpenKNX/OFM-HueBridgeModule zu finden.
+Die vollständige Anwendungsbeschreibung ist im Web unter https://github.com/OpenKNX/OFM-HueGatewayModule zu finden.
 
-Das OFM-HueBridgeModule ist ein OpenKNX-Modul zur Integration von Philips Hue Beleuchtung in KNX-Anlagen. Es verwendet die Hue API v2 für eine zuverlässige und performante Kommunikation mit der Hue Bridge.
+Das OFM-HueGatewayModule ist ein OpenKNX-Modul zur Integration von Philips Hue Beleuchtung in KNX-Anlagen. Es verwendet die Hue API v2 für eine zuverlässige und performante Kommunikation mit der Hue Bridge.
+
+**Datenfluss (vereinfacht):**
+
+`KNX Telegramm` → `OFM-HueGatewayModule` → `Hue Bridge API` → `Hue-Leuchte`
+
+und für Rückmeldungen:
+
+`Hue-Leuchte/Bridge` → `OFM-HueGatewayModule` → `KNX Status-KO`
+
+**Abgrenzung:**
+- Das Modul übernimmt die Kopplung zwischen KNX und Hue.
+- Logikverknüpfungen (z.B. Zentralfunktionen, Zeitlogik) sollten weiterhin in dafür vorgesehenen KNX-/OpenKNX-Logikmodulen erfolgen.
 
 
 <!-- DOC -->
@@ -104,11 +152,11 @@ Bei der ersten Inbetriebnahme muss das Modul mit der Hue Bridge authentifiziert 
 
 1. Laden Sie die Konfiguration per ETS-Download auf das OpenKNX-Gerät
 2. Das Gerät startet neu und sucht automatisch nach der Hue Bridge im Netzwerk
-3. Während der Suche blinkt die Prog-LED schnell (ca. 5 Hz / 0,2 Sekunden)
-4. Sobald die Bridge gefunden wurde, blinkt die Prog-LED langsam (ca. 1 Hz / 1 Sekunde) für ca. 30 Sekunden
+3. Während der Suche blinkt die FUNC-LED (Info1) schnell blau (ca. 5 Hz / 0,2 Sekunden)
+4. Sobald die Bridge gefunden wurde, blinkt die FUNC-LED (Info1) langsam blau (ca. 1 Hz / 1 Sekunde) für ca. 30 Sekunden
 5. **JETZT: Drücken Sie den Link-Button an der Hue Bridge** (innerhalb von 30 Sekunden)
 6. Das Gerät authentifiziert sich automatisch
-7. Bei erfolgreicher Verbindung leuchtet die Prog-LED dauerhaft
+7. Bei erfolgreicher Verbindung leuchtet die FUNC-LED (Info1) dauerhaft grün
 8. Der App-Key wird im Speicher abgelegt und bleibt auch nach Neustarts erhalten
 
 #### Manuelle IP-Adresse:
@@ -116,18 +164,22 @@ Bei der ersten Inbetriebnahme muss das Modul mit der Hue Bridge authentifiziert 
 1. Geben Sie die IP-Adresse der Hue Bridge in der ETS ein
 2. Laden Sie die Konfiguration per ETS-Download auf das OpenKNX-Gerät
 3. Das Gerät startet neu und verbindet sich mit der eingegebenen IP-Adresse
-4. Bei erstmaliger Verbindung blinkt die Prog-LED langsam (ca. 1 Hz / 1 Sekunde) für ca. 30 Sekunden
+4. Bei erstmaliger Verbindung blinkt die FUNC-LED (Info1) langsam blau (ca. 1 Hz / 1 Sekunde) für ca. 30 Sekunden
 5. **JETZT: Drücken Sie den Link-Button an der Hue Bridge** (innerhalb von 30 Sekunden)
 6. Das Gerät authentifiziert sich automatisch
-7. Bei erfolgreicher Verbindung leuchtet die Prog-LED dauerhaft
+7. Bei erfolgreicher Verbindung leuchtet die FUNC-LED (Info1) dauerhaft grün
 8. Der App-Key wird im Speicher abgelegt und bleibt auch nach Neustarts erhalten
 
 #### LED-Signale im Überblick:
 
-- **Blinkt schnell (0,2s)**: Sucht Bridge im Netzwerk (nur bei automatischer Erkennung)
-- **Blinkt langsam (1s)**: Wartet auf Link-Button - **JETZT an der Bridge drücken!**
-- **Leuchtet dauerhaft**: Verbunden und betriebsbereit
-- **Aus**: Keine Bridge gefunden oder Verbindung fehlgeschlagen
+- **FUNC-LED (Info1) blau schnell blinkend (0,2s)**: Sucht Bridge im Netzwerk (nur bei automatischer Erkennung)
+- **FUNC-LED (Info1) blau langsam blinkend (1s)**: Wartet auf Link-Button - **JETZT an der Bridge drücken!**
+- **FUNC-LED (Info1) cyan schnell blinkend (0,2s)**: Authentifizierung läuft
+- **FUNC-LED (Info1) grün dauerhaft**: Verbunden und betriebsbereit
+- **FUNC-LED (Info1) rot blinkend (0,5s)**: Verbindung zur Bridge verloren
+- **FUNC-LED (Info1) rot blinkend (1,5s)**: Bridge nicht erreichbar / nicht konfiguriert
+
+Hinweis: Die Prog-LED bleibt unverändert im Standardverhalten des OpenKNX-Frameworks.
 
 <!-- DOC -->
 ### Authentication zurücksetzen
@@ -159,7 +211,9 @@ Legt den Port für den integrierten HTTP-Server fest (Standard: 80).
 Der HTTP-Server bietet:
 - Statusseite unter `http://<ip-adresse>:<port>/`
 - Bridge-Scan unter `http://<ip-adresse>:<port>/hue/scan`
+- Pairing-Workflow unter `http://<ip-adresse>:<port>/hue/pair`
 - Status-Informationen unter `http://<ip-adresse>:<port>/hue/status`
+- Text-Export des Bridge-Scans unter `http://<ip-adresse>:<port>/hue/scan.txt`
 
 **Hinweis:** Wenn Port 80 bereits durch einen anderen Dienst belegt ist, wählen Sie einen anderen Port (z.B. 8080).
 
@@ -212,7 +266,7 @@ Es gibt mehrere Möglichkeiten:
    - Es werden alle Lampen mit ihren UUIDs aufgelistet
 
 3. **Über die Hue API:**
-   - Rufen Sie `https://<bridge-ip>/api/<app-key>/lights` auf
+   - Rufen Sie `https://<bridge-ip>/clip/v2/resource/light` auf (mit Header `hue-application-key: <app-key>`)
    - Die UUID findet sich im `id`-Feld jeder Lampe
 
 **Format:** Die UUID hat das Format `01234567-89ab-cdef-0123-456789abcdef` (8-4-4-4-12 Hexadezimalzeichen).
@@ -284,6 +338,11 @@ Es stehen vier Modi zur Verfügung:
 
 **Empfehlung:** In den meisten Fällen ist "Bidirektional" die richtige Wahl, da sie maximale Flexibilität bietet.
 
+**Praxisbeispiel:**
+- Wohnzimmerlampe wird über Taster (KNX) und Hue-App bedient.
+- Einstellung: `Bidirektional`, Polling 10s.
+- Ergebnis: Bedienung aus beiden Welten möglich, Visualisierung bleibt konsistent.
+
 <!-- DOC -->
 ### Polling-Intervall
 
@@ -310,6 +369,11 @@ Legt fest, in welchem Zeitintervall (in Sekunden) der Lampenstatus von der Hue B
 - Bei Wert 0 ist das Polling deaktiviert (nur bei Synchronisationsrichtung "Keine" oder "Nur KNX zu Hue" sinnvoll)
 - Die Hue Bridge hat ein API-Limit. Bei vielen Kanälen sollte das Intervall nicht zu kurz gewählt werden
 
+**Empfohlene Startwerte nach Kanalzahl:**
+- 1-5 Kanäle: 5-10s
+- 6-12 Kanäle: 10-20s
+- 13-20 Kanäle: 20-30s
+
 <!-- DOC -->
 ### Minimale Helligkeit
 
@@ -328,10 +392,18 @@ Legt die minimale Helligkeit fest, die an die Hue-Leuchte gesendet wird, wenn ei
 
 **Hinweis:** Ein Wert von 0% vom KNX schaltet die Lampe immer aus, unabhängig von dieser Einstellung.
 
+**Praxisregel:**
+- Starten Sie mit 5% bei LED-Leuchten, die bei kleinen Werten flackern.
+- Bei sichtbaren Sprüngen reduzieren Sie schrittweise auf 3% oder 2%.
+
 <!-- DOC -->
 ## Kommunikationsobjekte
 
 Die verfügbaren Kommunikationsobjekte hängen vom konfigurierten Lampentyp ab.
+
+**OpenKNX-Projektierungshinweis:**
+- Für stabile Rückmeldungen sollten Status-KOs immer mit Gruppenadressen verbunden werden, wenn eine Visualisierung oder Logik den Zustand auswertet.
+- Nicht benötigte Status-KOs können unverbunden bleiben, um die Projektkomplexität zu reduzieren.
 
 ### Globale Kommunikationsobjekte
 
@@ -469,6 +541,10 @@ Die folgenden Objekte sind pro Lampen-Kanal verfügbar. Die Verfügbarkeit häng
 
 **Hinweis:** Die Lampe schaltet automatisch ein, wenn eine Farbe gesetzt wird.
 
+**Hinweis zur Geräteabhängigkeit:**
+- Nicht jede als „Farbe“ konfigurierte Leuchte setzt RGB identisch um.
+- Farbwirkung kann je nach Leuchtmittel (Gamut, Kalibrierung) sichtbar abweichen.
+
 <!-- DOC -->
 #### Status RGB
 
@@ -480,6 +556,39 @@ Die folgenden Objekte sind pro Lampen-Kanal verfügbar. Die Verfügbarkeit häng
 **Format:** 3 Bytes (Rot, Grün, Blau), jeweils 0-255
 
 **Update:** Wird beim Polling-Intervall aktualisiert (bei Synchronisationsrichtung "Nur Hue zu KNX" oder "Bidirektional").
+
+<!-- DOC -->
+## Projektierungsbeispiele (ETS)
+
+Die folgenden Beispiele dienen als praxistaugliche Startkonfigurationen.
+
+### Beispiel 1: Einfaches Schalten im Flur
+
+- **Lampentyp:** Nur schalten
+- **Synchronisation:** Nur KNX zu Hue
+- **Polling-Intervall:** 0
+- **Verwendete KOs:** Schalten
+
+**Vorteil:** Sehr geringe Netzwerklast, einfache Inbetriebnahme.
+
+### Beispiel 2: Wohnraum mit Visualisierung
+
+- **Lampentyp:** Dimmbar
+- **Synchronisation:** Bidirektional
+- **Polling-Intervall:** 10
+- **Verwendete KOs:** Schalten, Helligkeit, Status Schalten, Status Helligkeit
+
+**Vorteil:** Bedienung per Taster, App und Visualisierung mit konsistenten Statuswerten.
+
+### Beispiel 3: Farbige Akzentbeleuchtung
+
+- **Lampentyp:** Farbe (RGB)
+- **Synchronisation:** Bidirektional
+- **Polling-Intervall:** 15
+- **Minimale Helligkeit:** 5
+- **Verwendete KOs:** Schalten, Helligkeit, Farbe RGB, Statusobjekte
+
+**Vorteil:** Gute Balance aus Reaktionszeit, Stabilität und Bus-/Netzlast.
 
 <!-- DOC -->
 ## Häufige Fehler und Problemlösungen
@@ -552,6 +661,19 @@ Die folgenden Objekte sind pro Lampen-Kanal verfügbar. Die Verfügbarkeit häng
 3. **Zu viele API-Anfragen**  
    Lösung: Polling-Intervall erhöhen (mind. 10 Sekunden bei vielen Kanälen)
 
+### HCL Master wirkt nicht (insbesondere bei "Manual Kelvin")
+
+**Mögliche Ursachen und Lösungen:**
+
+1. **Zu wenige gültige Stützpunkte konfiguriert**  
+   Lösung: Mindestens 2 gültige Stützpunkte mit Zeitwert setzen (auch im Modus "Manual Kelvin").
+
+2. **HCL-Master nicht zugeordnet**  
+   Lösung: Im jeweiligen Lampenkanal einen HCL-Master (1-4) zuweisen.
+
+3. **HCL global deaktiviert**  
+   Lösung: Im HCL-Manager die HCL-Funktion aktivieren.
+
 <!-- DOC -->
 ## Technische Hinweise
 
@@ -562,6 +684,10 @@ Das Modul verwendet die Hue API v2, die gegenüber der alten API v1 folgende Vor
 - Unterstützung für neue Hue-Geräte
 - Stabilere Verbindungen
 - Bessere Performance bei vielen Lampen
+
+**Wichtig für Integratoren:**
+- API v2 arbeitet mit Ressourcenmodellen und Application-Key.
+- Bei manuellen Tests (z.B. per REST-Tool) muss der Header `hue-application-key` gesetzt werden.
 
 ### Speicherung des App-Keys
 
@@ -598,6 +724,19 @@ Das Modul unterstützt bis zu 20 Kanäle. Diese Begrenzung ergibt sich aus:
 - Anzahl Kanäle × (1 / Polling-Intervall) = Anfragen pro Sekunde
 - Beispiel: 10 Kanäle mit 10s Intervall = 1 Anfrage/s (unkritisch)
 - Beispiel: 20 Kanäle mit 5s Intervall = 4 Anfragen/s (noch OK)
+
+## Inbetriebnahme-Checkliste
+
+Vor Übergabe an den Kunden sollten folgende Punkte geprüft sein:
+
+- Bridge wurde gefunden und erfolgreich authentifiziert
+- Alle verwendeten Kanäle haben korrekte UUIDs
+- Lampentyp pro Kanal passt zur realen Leuchte
+- Synchronisationsrichtung pro Kanal ist passend zur Nutzung
+- Status-KOs sind in ETS sinnvoll mit Gruppenadressen verbunden
+- Reaktionszeit wurde unter realer Last getestet (mehrere gleichzeitige Befehle)
+
+Diese Checkliste reduziert typische Servicefälle nach der Erstinbetriebnahme deutlich.
 
 <!-- DOC -->
 ## Lizenz und Haftung

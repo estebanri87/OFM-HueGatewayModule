@@ -83,11 +83,11 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights)
         lights[count].name = light["metadata"]["name"].as<String>();
         lights[count].on = light["on"]["on"].as<bool>();
         
-        // Brightness: API gibt 0.0-100.0, wir brauchen 0-254
+        // Brightness: API reports 0.0-100.0, module uses 0-254.
         float brightnessPct = light["dimming"]["brightness"].as<float>();
         lights[count].brightness = (uint8_t)(brightnessPct * 2.54f);
         
-        // Status (erreichbar wenn owner vorhanden)
+        // Reachability heuristic: treat light as reachable when owner is present.
         lights[count].reachable = light["owner"].isNull() == false;
         lights[count].supportsColorTemp = !light["color_temperature"].isNull();
         lights[count].supportsColor = !light["color"].isNull();

@@ -1,12 +1,18 @@
-# OFM-HueBridgeModule
+# OFM-HueGatewayModule
 
 OpenKNX Funktionsmodul zur Integration von Philips Hue Geräten in KNX-Systeme.
 
 ## Status
 
-🚧 **In Entwicklung** - Version 0.1.0 (Proof of Concept)
+🧪 **Beta-Kandidat** - Version 0.1.x
 
-## Features (Phase 1 - geplant)
+### Bekannte Einschränkungen
+
+- RGB/Farbtemperatur-Funktionen hängen von den Fähigkeiten der gewählten Hue-Leuchte ab.
+- Der Polling-Fallback ist funktional, liefert aber keine Echtzeit-Updates wie der Event-Stream.
+- Die Stabilität hängt von einem korrekt funktionierenden lokalen Netzwerk (mDNS/HTTP) ab.
+
+## Features
 
 - Automatische Hue Bridge Discovery (mDNS)
 - Button-Press Authentifizierung
@@ -22,7 +28,7 @@ OpenKNX Funktionsmodul zur Integration von Philips Hue Geräten in KNX-Systeme.
 
 ```bash
 git clone https://github.com/estebanri87/OFM-HueGatewayModule
-cd OFM-HueBridgeModule
+cd OFM-HueGatewayModule
 pio run
 ```
 

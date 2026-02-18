@@ -5,14 +5,14 @@
 /**
  * STANDALONE TEST APPLICATION
  * 
- * Dieses main.cpp ist NUR für isolierte Tests des HueGatewayModule gedacht.
+ * This main.cpp is ONLY intended for isolated module testing.
  * 
- * In einer echten OpenKNX Firmware (z.B. SmartHomeBridge) würde:
- * - OFM-Network oder WLAN Module das Netzwerk bereitstellen
- * - HueGatewayModule das vorhandene WiFi/Ethernet nutzen
- * - Keine WiFi-Credentials hier notwendig
+ * In real OpenKNX firmware (for example OAM-HueGateway):
+ * - OFM-Network or WLAN modules provide network connectivity
+ * - HueGatewayModule uses the existing WiFi/Ethernet stack
+ * - No credentials are required in this file
  * 
- * Für Tests: WiFi Credentials hier eintragen
+ * For local testing only: provide WiFi credentials below.
  */
 
 const char* WIFI_SSID = "YOUR_WIFI_SSID";
@@ -30,7 +30,7 @@ void setup()
     Serial.println("provided by OFM-Network or WLAN module");
     Serial.println("========================================\n");
     
-    // WiFi verbinden (nur für standalone Tests!)
+    // Connect WiFi (standalone test mode only).
     Serial.printf("Connecting to WiFi: %s\n", WIFI_SSID);
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     
@@ -52,7 +52,7 @@ void setup()
         Serial.println("\nWiFi connection failed!");
     }
     
-    // HueGatewayModule initialisieren
+    // Initialize and start module lifecycle.
     Serial.println("\nInitializing HueGatewayModule...");
     openknxHueGatewayModule.setup();
     
@@ -63,7 +63,7 @@ void loop()
 {
     openknxHueGatewayModule.loop();
     
-    // Einfacher Heartbeat
+    // Lightweight heartbeat for quick runtime diagnostics.
     static unsigned long lastHeartbeat = 0;
     if (millis() - lastHeartbeat > 10000)
     {

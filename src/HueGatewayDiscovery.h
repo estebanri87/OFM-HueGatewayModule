@@ -9,7 +9,7 @@
 /**
  * @brief Hue Bridge Discovery via mDNS
  * 
- * Findet automatisch Philips Hue Bridges im lokalen Netzwerk
+ * Automatically discovers Philips Hue Bridges in the local network.
  */
 class HueGatewayDiscovery
 {
@@ -17,16 +17,16 @@ public:
     HueGatewayDiscovery();
     
     /**
-     * @brief Sucht nach Hue Bridge im Netzwerk
-     * @param ipAddress Gefundene IP-Adresse wird hier gespeichert
-     * @return true wenn Bridge gefunden
+    * @brief Searches for a Hue Bridge in the network.
+    * @param ipAddress Receives the discovered bridge IP address
+    * @return true if a bridge was found
      */
     bool findBridge(String& ipAddress);
     
     /**
-     * @brief Setzt manuelle IP-Adresse
-     * @param ip IP-Adresse der Bridge
-     * @return true wenn gültige IP
+    * @brief Sets a manual bridge IP address.
+    * @param ip Bridge IP address
+    * @return true if the IP is valid
      */
     bool setManualIP(const char* ip);
     

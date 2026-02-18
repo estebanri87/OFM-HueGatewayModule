@@ -6,12 +6,12 @@
 class HueGatewayClient;
 
 /**
- * @brief Einzelnes Hue Licht mit KNX-Mapping
+ * @brief Single Hue light abstraction with KNX mapping.
  * 
- * Repräsentiert ein Philips Hue Licht und verwaltet:
- * - Bidirektionale Synchronisation zwischen KNX und Hue
- * - Status-Caching für Performance
- * - KO-Mapping (Switch, Brightness, etc.)
+ * Represents one Philips Hue light and manages:
+ * - Bidirectional synchronization between KNX and Hue
+ * - State caching for reduced bus/API traffic
+ * - KO mapping (switch, brightness, dimming, status objects)
  * 
  * KNX → Hue: processKnxUpdate()
  * Hue → KNX: updateFromHue()
@@ -21,89 +21,88 @@ class HueGatewayLight
 {
 public:
     /**
-     * @brief Konstruktor
+    * @brief Constructor.
      * @param lightId Hue Light Resource ID
-     * @param name Gerätename
-     * @param client Pointer auf HueGatewayClient
+    * @param name Device name
+    * @param client Pointer to HueGatewayClient
      */
     HueGatewayLight(const String& lightId, const String& name, HueGatewayClient* client);
     ~HueGatewayLight();
     
     /**
-     * @brief Initialisierung
-     * @param koSwitch KO-Nummer für Schalten (Ein/Aus)
-     * @param koBrightness KO-Nummer für Helligkeit absolut (DPT 5.001, 0-100%)
-     * @param koDimming KO-Nummer für Helligkeit relativ (DPT 3.007, 4-Bit)
-     * @param koStatusSwitch KO-Nummer für Status-Rückmeldung Ein/Aus (DPT 1.001)
-     * @param koStatusBrightness KO-Nummer für Status-Rückmeldung Helligkeit (DPT 5.001)
+    * @brief Initializes KO mapping for this light channel.
+    * @param koSwitch KO number for switch command (On/Off)
+    * @param koBrightness KO number for absolute brightness (DPT 5.001, 0-100%)
+    * @param koDimming KO number for relative dimming (DPT 3.007, 4-bit)
+    * @param koStatusSwitch KO number for On/Off status feedback (DPT 1.001)
+    * @param koStatusBrightness KO number for brightness status feedback (DPT 5.001)
      */
     void begin(uint16_t koSwitch, uint16_t koBrightness, uint16_t koDimming,
                uint16_t koStatusSwitch, uint16_t koStatusBrightness,
                uint16_t koStatusColorTemp, uint16_t koStatusColorRGB);
     
     /**
-     * @brief Verarbeitet KNX-Update (Schalten)
-     * @param value true = Ein, false = Aus
+    * @brief Processes KNX switch command.
+    * @param value true = on, false = off
      */
     void processKnxSwitch(bool value);
     
     /**
-     * @brief Verarbeitet KNX-Update (Helligkeit in %)
-     * @param value Helligkeit 0-100% (DPT 5.001 - Absolut)
+    * @brief Processes KNX absolute brightness command.
+    * @param value Brightness 0-100% (DPT 5.001)
      */
     void processKnxBrightness(uint8_t value);
     
     /**
-     * @brief Verarbeitet KNX-Update (Relatives Dimmen)
-     * @param control DPT 3.007 Dimm-Steuerung (4-Bit: 3-Bit Schritte + 1-Bit Richtung)
-     *               Bit 3: 0=dunkler, 1=heller
-     *               Bit 0-2: Anzahl Schritte (0=Stop, 1-7=Schritte)
+    * @brief Processes KNX relative dimming command.
+    * @param control DPT 3.007 control nibble (3-bit steps + 1-bit direction)
+    *               Bit 3: 0=darker, 1=brighter
+    *               Bit 0-2: number of steps (0=stop, 1-7=steps)
      */
     void processKnxDimming(uint8_t control);
 
     /**
-     * @brief Verarbeitet KNX-Update (Farbtemperatur)
-     * @param kelvin Farbtemperatur in Kelvin (DPT 7.600)
+    * @brief Processes KNX color temperature command.
+    * @param kelvin Color temperature in Kelvin (DPT 7.600)
      */
     void processKnxColorTemp(uint16_t kelvin);
 
     /**
-     * @brief Verarbeitet KNX-Update (RGB)
+    * @brief Processes KNX RGB color command.
      */
     void processKnxColorRGB(uint8_t red, uint8_t green, uint8_t blue);
     
     /**
-     * @brief Aktualisiert lokalen Status von Hue Bridge
-     * Wird vom Event Stream oder periodisch aufgerufen
-     * @param on Schaltzustand
-     * @param brightness Helligkeit 0-254 (Hue Range)
+    * @brief Updates local state from Hue Bridge data.
+    * Called by event stream updates or by polling fallback.
+    * @param on On/off state
+    * @param brightness Brightness 0-254 (Hue range)
      */
     void updateFromHue(bool on, uint8_t brightness, uint16_t colorTempKelvin, uint8_t red, uint8_t green, uint8_t blue);
     
     /**
-     * @brief Sendet aktuellen Status an KNX
-     * Schreibt Werte in KOs
+    * @brief Sends current state feedback to KNX status KOs.
      */
     void sendStatusToKnx();
     
     /**
-     * @brief Loop-Methode für kontinuierliche HCL-Updates
-     * Prüft periodisch, ob HCL-Werte sich geändert haben und wendet sie an
+    * @brief Loop handler for continuous HCL updates.
+    * Periodically checks interpolated HCL values and applies deltas.
      */
     void loop();
     
     /**
-     * @brief Abrufen des Light IDs
+    * @brief Returns the Hue light resource ID.
      */
     String getLightId() const { return _lightId; }
     
     /**
-     * @brief Abrufen des Namens
+    * @brief Returns the user-visible light name.
      */
     String getName() const { return _name; }
     
     /**
-     * @brief Status-Abfrage
+    * @brief State accessors.
      */
     bool isOn() const { return _on; }
     uint8_t getBrightness() const { return _brightness; }
@@ -114,22 +113,22 @@ public:
     uint8_t getBlue() const { return _currentBlue; }
     
     /**
-     * @brief HCL Master zuordnen (0 = kein HCL, 1-4 = Master Nr.)
+    * @brief Assigns HCL master (0 = none, 1-4 = master number).
      */
     void setHCLMaster(uint8_t masterNum) { _hclMasterNum = masterNum; }
     
     /**
-     * @brief HCL Master Nummer abrufen
+    * @brief Returns assigned HCL master number.
      */
     uint8_t getHCLMaster() const { return _hclMasterNum; }
 
     /**
-     * @brief Lampentyp aus ETS (0=switch,1=dimm,2=ct,3=rgb)
+    * @brief Sets ETS light type (0=switch,1=dimm,2=ct,3=rgb).
      */
     void setLightType(uint8_t lightType) { _lightType = lightType; }
 
     /**
-     * @brief Mindesthelligkeit in Prozent (0-100)
+    * @brief Sets minimum allowed brightness in percent (0-100).
      */
     void setMinBrightness(uint8_t minBrightness);
 
@@ -138,7 +137,7 @@ private:
     String _name;
     HueGatewayClient* _client;
     
-    // KO-Nummern
+    // KNX communication object numbers.
     uint16_t _koSwitch;
     uint16_t _koBrightness;
     uint16_t _koDimming;
@@ -147,10 +146,10 @@ private:
     uint16_t _koStatusColorTemp;
     uint16_t _koStatusColorRGB;
     
-    // Alte Status-KO (deprecated)
+    // Legacy status KO (deprecated).
     uint16_t _koStatus;
     
-    // Status-Cache
+    // Cached runtime state.
     bool _on;
     uint8_t _brightness;  // 0-254 (Hue API Range)
     bool _reachable;
@@ -161,45 +160,45 @@ private:
     uint8_t _minBrightnessPercent;
     uint8_t _minBrightnessHue;
     
-    // HCL Configuration
-    uint8_t _hclMasterNum;  // 0 = kein HCL, 1-4 = HCL Master Nummer
-    bool _fadingActive;     // true wenn gerade ein Fade läuft
-    uint16_t _currentKelvin; // Aktuelle Farbtemperatur in Kelvin (für HCL)
-    unsigned long _lastHCLUpdate; // Zeitstempel des letzten HCL-Updates (millis())
-    uint8_t _lastHCLBrightness; // Letzte angewendete HCL-Helligkeit (%)
+    // HCL configuration and current interpolation state.
+    uint8_t _hclMasterNum;  // 0 = no HCL, 1-4 = HCL master number
+    bool _fadingActive;     // true while a fade transition is active
+    uint16_t _currentKelvin; // Current color temperature in Kelvin
+    unsigned long _lastHCLUpdate; // Timestamp of last HCL update (millis)
+    uint8_t _lastHCLBrightness; // Last applied HCL brightness (%)
     
-    // Flags
+    // Lifecycle flags.
     bool _initialized;
     unsigned long _lastUpdate;
     
     /**
-     * @brief Sendet Update an Hue Bridge
+    * @brief Sends current on/brightness state to Hue Bridge.
      */
     void sendToHue();
     
     /**
-     * @brief Sendet Update mit Farbtemperatur an Hue Bridge
-     * @param kelvin Farbtemperatur in Kelvin (2000-6500)
-     * @param fadeDuration Überblendzeit in Sekunden (0 = sofort)
+    * @brief Sends current state including color temperature to Hue Bridge.
+    * @param kelvin Color temperature in Kelvin (2000-6500)
+    * @param fadeDuration Transition duration in seconds (0 = immediate)
      */
     void sendToHueWithColorTemp(uint16_t kelvin, uint8_t fadeDuration = 0);
     
     /**
-     * @brief Konvertiert Kelvin zu mirek (Micro Reciprocal Kelvin)
-     * @param kelvin Farbtemperatur in Kelvin (2000-6500)
-     * @return mirek-Wert (153-500)
+    * @brief Converts Kelvin to mirek (micro reciprocal kelvin).
+    * @param kelvin Color temperature in Kelvin (2000-6500)
+    * @return mirek value (153-500)
      */
     static uint16_t kelvinToMirek(uint16_t kelvin);
 
     static void rgbToXy(uint8_t red, uint8_t green, uint8_t blue, float& x, float& y);
     
     /**
-     * @brief Konvertiert KNX-Brightness (0-255) zu Hue (0-254)
+    * @brief Converts KNX brightness (0-255) to Hue scale (0-254).
      */
     uint8_t knxToHueBrightness(uint8_t knxValue);
     
     /**
-     * @brief Konvertiert Hue-Brightness (0-254) zu KNX (0-255)
+    * @brief Converts Hue brightness (0-254) to KNX scale (0-255).
      */
     uint8_t hueToKnxBrightness(uint8_t hueValue);
 };
