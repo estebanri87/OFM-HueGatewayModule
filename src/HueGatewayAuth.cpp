@@ -83,6 +83,11 @@ String HueGatewayAuth::getClientKey()
 
 bool HueGatewayAuth::loadStoredAppKey()
 {
+    if (_appKey.length() > 0)
+    {
+        return true;
+    }
+
     _appKey = loadAppKey();
     _clientKey = loadClientKey();
     Serial.printf("[HueGatewayAuth] Stored App-Key available: %s (length=%u)\n",

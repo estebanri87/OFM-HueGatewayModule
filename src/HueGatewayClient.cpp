@@ -29,7 +29,7 @@ bool HueGatewayClient::begin(const String& bridgeIP, const String& appKey)
     _initialized = true;
     _secureClient.setInsecure();
     _eventClient.setInsecure();
-    _secureClient.setTimeout(5000);
+    _secureClient.setTimeout(2000);
     _eventClient.setTimeout(100);
     _eventLineBuffer = "";
     _eventDataBuffer = "";
@@ -46,48 +46,32 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights)
         Serial.println("[HueGatewayClient] ERROR: Not initialized");
         return 0;
     }
-    
-    // Build location index (room/zone -> light id)
-    std::vector<LightLocation> locations;
-    DynamicJsonDocument roomsDoc(8192);
-    if (httpGet("/clip/v2/resource/room", roomsDoc) == 200)
-    {
-        appendLocationsFromDoc(locations, roomsDoc, true);
-    }
-    DynamicJsonDocument zonesDoc(8192);
-    if (httpGet("/clip/v2/resource/zone", zonesDoc) == 200)
-    {
-        appendLocationsFromDoc(locations, zonesDoc, false);
-    }
 
-    // API v2: GET /clip/v2/resource/light
-    DynamicJsonDocument doc(8192);
+    DynamicJsonDocument doc(16384);
     int statusCode = httpGet("/clip/v2/resource/light", doc);
-    
+
     if (statusCode != 200)
     {
-        Serial.printf("[HueGatewayClient] ERROR: GET lights failed - HTTP %d\n", statusCode);
+        Serial.print("[HueGatewayClient] ERROR: GET lights failed - HTTP ");
+        Serial.println(statusCode);
         return 0;
     }
-    
-    // Parse Response
+
     JsonArrayConst data = doc["data"].as<JsonArrayConst>();
     int count = 0;
-    
+
     for (JsonObjectConst light : data)
     {
         if (count >= maxLights)
             break;
-        
+
         lights[count].id = light["id"].as<String>();
         lights[count].name = light["metadata"]["name"].as<String>();
         lights[count].on = light["on"]["on"].as<bool>();
-        
-        // Brightness: API reports 0.0-100.0, module uses 0-254.
+
         float brightnessPct = light["dimming"]["brightness"].as<float>();
-        lights[count].brightness = (uint8_t)(brightnessPct * 2.54f);
-        
-        // Reachability heuristic: treat light as reachable when owner is present.
+        lights[count].brightness = static_cast<uint8_t>(brightnessPct * 2.54f);
+
         lights[count].reachable = light["owner"].isNull() == false;
         lights[count].supportsColorTemp = !light["color_temperature"].isNull();
         lights[count].supportsColor = !light["color"].isNull();
@@ -111,27 +95,13 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights)
             xyToRgb(xVar.as<float>(), yVar.as<float>(), lights[count].red, lights[count].green, lights[count].blue);
         }
 
-        lights[count].room = "";
-        lights[count].zone = "";
-        for (const auto& loc : locations)
-        {
-            if (loc.id == lights[count].id)
-            {
-                lights[count].room = loc.room;
-                lights[count].zone = loc.zone;
-                break;
-            }
-        }
-        
-        Serial.printf("[HueGatewayClient] Light %d: %s (%s) - On:%d Bri:%d Room:%s Zone:%s\n",
-                  count, lights[count].name.c_str(), lights[count].id.c_str(),
-                  lights[count].on, lights[count].brightness,
-                  lights[count].room.c_str(), lights[count].zone.c_str());
-        
+        lights[count].room = "-";
+        lights[count].zone = "-";
         count++;
     }
-    
-    Serial.printf("[HueGatewayClient] Found %d lights\n", count);
+
+    Serial.print("[HueGatewayClient] Found lights: ");
+    Serial.println(count);
     return count;
 }
 
@@ -207,29 +177,25 @@ bool HueGatewayClient::setLightOnOff(const String& lightId, bool on)
 {
     if (!_initialized)
         return false;
-    
-    // API v2: PUT /clip/v2/resource/light/{id}
+
     String endpoint = "/clip/v2/resource/light/" + lightId;
-    
-    // JSON Payload
+
     DynamicJsonDocument doc(256);
     doc["on"]["on"] = on;
-    
+
     String payload;
     serializeJson(doc, payload);
-    
+
     int statusCode = httpPut(endpoint, payload);
-    
+
     if (statusCode == 200)
     {
         Serial.printf("[HueGatewayClient] Light %s -> %s\n", lightId.c_str(), on ? "ON" : "OFF");
         return true;
     }
-    else
-    {
-        Serial.printf("[HueGatewayClient] ERROR: PUT failed - HTTP %d\n", statusCode);
-        return false;
-    }
+
+    Serial.printf("[HueGatewayClient] ERROR: PUT failed - HTTP %d\n", statusCode);
+    return false;
 }
 
 bool HueGatewayClient::setLightBrightness(const String& lightId, uint8_t brightness)
@@ -239,12 +205,12 @@ bool HueGatewayClient::setLightBrightness(const String& lightId, uint8_t brightn
     
     // Brightness: 0-254 -> 0.0-100.0%
     float brightnessPct = (brightness / 254.0f) * 100.0f;
-    
+
     String endpoint = "/clip/v2/resource/light/" + lightId;
-    
+
     DynamicJsonDocument doc(256);
     doc["dimming"]["brightness"] = brightnessPct;
-    
+
     String payload;
     serializeJson(doc, payload);
     
@@ -447,7 +413,7 @@ bool HueGatewayClient::startEventStream()
 
     if (_eventHandshakePending && _eventClient.connected())
     {
-        return false;
+        return true;
     }
 
     stopEventStream();
@@ -472,7 +438,7 @@ bool HueGatewayClient::startEventStream()
     _eventLineBuffer = "";
     _eventDataBuffer = "";
 
-    return false;
+    return true;
 }
 
 void HueGatewayClient::stopEventStream()
@@ -724,7 +690,10 @@ uint16_t HueGatewayClient::mirekToKelvin(uint16_t mirek)
 int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc)
 {
     String url = buildUrl(endpoint);
-    Serial.printf("[HueGatewayClient] HTTP GET %s\n", url.c_str());
+    Serial.print("[HueGatewayClient] HTTP GET ");
+    Serial.println(url);
+    _http.setTimeout(2000);
+    _http.setTimeout(2000);
     
     _http.begin(_secureClient, url);
     _http.addHeader("hue-application-key", _appKey);
@@ -738,14 +707,18 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc)
         
         if (error)
         {
-            Serial.printf("[HueGatewayClient] JSON parse error: %s\n", error.c_str());
+            Serial.print("[HueGatewayClient] JSON parse error: ");
+            Serial.println(error.c_str());
+            Serial.print("[HueGatewayClient] JSON payload length: ");
+            Serial.println(response.length());
             statusCode = -1;
         }
     }
     else
     {
-        String response = _http.getString();
-        Serial.printf("[HueGatewayClient] HTTP GET failed (%d): %s\n", statusCode, response.c_str());
+        Serial.print("[HueGatewayClient] HTTP GET failed (");
+        Serial.print(statusCode);
+        Serial.println(")");
     }
     
     _http.end();
@@ -756,6 +729,8 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
 {
     String url = buildUrl(endpoint);
     Serial.printf("[HueGatewayClient] HTTP PUT %s payload=%s\n", url.c_str(), payload.c_str());
+    _http.setTimeout(2000);
+    _http.setTimeout(2000);
     
     _http.begin(_secureClient, url);
     _http.addHeader("Content-Type", "application/json");

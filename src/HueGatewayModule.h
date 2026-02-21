@@ -45,6 +45,9 @@ private:
     unsigned long _lastConnectionCheckMs;
     unsigned long _lastRefreshTickMs;
     unsigned long _lastEventStreamRetryMs;
+    unsigned long _eventStreamRetryBackoffMs;
+    unsigned long _eventStreamPauseUntilMs;
+    uint8_t _eventStreamFailureCount;
     HueGatewayClient* _client;
     
     
@@ -80,7 +83,15 @@ private:
     unsigned long _authWindowMs;
     unsigned long _lastReconnectTryMs;
     unsigned long _reconnectBackoffMs;
+    bool _manualPairingRequired;
+    bool _pairingTriggerLastState;
     bool _devicesInitialized;
+    bool _webScanRequested;
+    bool _webScanInProgress;
+    unsigned long _lastWebScanMs;
+    int _lastWebScanLightCount;
+    String _lastWebScanHtml;
+    String _lastWebScanText;
     
     void setupBridge();
     void setupDevices();
@@ -109,11 +120,13 @@ private:
     
     // Scan functions
     void performBridgeScan();
+    void updateWebScanCache();
     String getBridgeScanHTML();
     String getBridgeScanText();
     void resetDevices();
     
     // Helper Methods
+    bool hasNetworkConnectivity() const;
     String getBridgeIP();
     
     // Status Methods

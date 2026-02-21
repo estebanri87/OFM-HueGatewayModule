@@ -13,6 +13,9 @@
         "type": "git",
         "url": "https://github.com/estebanri87/OFM-HueGatewayModule"
     },
+    "build": {
+        "srcFilter": "+<*> -<main.cpp>"
+    },
     "dependencies": {
         "bblanchon/ArduinoJson": "^6.21.0"
     }
