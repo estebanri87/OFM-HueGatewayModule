@@ -358,6 +358,7 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
     }
 
     uint8_t koType = static_cast<uint8_t>((koNumber - HUE_KoBlockOffset) % HUE_KoBlockSize);
+    uint32_t nowMs = millis();
 
     uint8_t _channelIndex = static_cast<uint8_t>(channel);
     uint8_t syncDir = ParamHUE_CHSyncDir;
@@ -375,8 +376,24 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
 
     if (_lights[channel] == nullptr)
     {
-        Serial.printf("[HueGatewayModule] Channel %d not configured\n", channel);
-        return;
+        static uint32_t lastRecoverTryMs = 0;
+        if (_client && _client->isInitialized() && ((nowMs - lastRecoverTryMs) >= 5000 || nowMs < lastRecoverTryMs))
+        {
+            lastRecoverTryMs = nowMs;
+            Serial.println("[HueGatewayModule] Channel map missing, retrying setupDevices()...");
+            setupDevices();
+        }
+
+        if (_lights[channel] == nullptr)
+        {
+            static uint32_t lastNotConfiguredLogMs = 0;
+            if ((nowMs - lastNotConfiguredLogMs) >= 10000 || nowMs < lastNotConfiguredLogMs)
+            {
+                Serial.printf("[HueGatewayModule] Channel %d not configured\n", channel + 1);
+                lastNotConfiguredLogMs = nowMs;
+            }
+            return;
+        }
     }
     
     switch (koType)
@@ -935,10 +952,6 @@ void HueGatewayModule::setupDevices()
     {
         maxChannels = MAX_LIGHTS;
     }
-    if (maxChannels > bridgeLightCount)
-    {
-        maxChannels = static_cast<uint8_t>(bridgeLightCount);
-    }
     for (uint8_t ch = 0; ch < maxChannels; ch++)
     {
         uint8_t _channelIndex = ch;
@@ -954,6 +967,7 @@ void HueGatewayModule::setupDevices()
         configuredUuid.trim();
 
         const HueGatewayLightState* selectedLight = nullptr;
+        HueGatewayLightState fallbackLight;
         if (configuredUuid.length() > 0)
         {
             for (int i = 0; i < bridgeLightCount; i++)
@@ -967,8 +981,15 @@ void HueGatewayModule::setupDevices()
 
             if (selectedLight == nullptr)
             {
-                Serial.printf("[HueGatewayModule] Channel %d: Configured UUID not found on bridge: %s\n", ch + 1, configuredUuid.c_str());
-                continue;
+                fallbackLight.id = configuredUuid;
+                fallbackLight.name = String("Channel ") + String(ch + 1);
+                fallbackLight.supportsColorTemp = true;
+                fallbackLight.supportsColor = true;
+                selectedLight = &fallbackLight;
+
+                Serial.printf("[HueGatewayModule] Channel %d: UUID %s currently not in scan result, using ETS UUID fallback\n",
+                              ch + 1,
+                              configuredUuid.c_str());
             }
         }
         else if (ch < bridgeLightCount)
