@@ -63,6 +63,7 @@ HueGatewayModule::HueGatewayModule()
     : _initialized(false)
     , _lastConnectionCheckMs(0)
     , _lastRefreshTickMs(0)
+    , _lastDeviceSetupRetryMs(0)
     , _lastEventStreamRetryMs(0)
     , _eventStreamRetryBackoffMs(10000)
     , _eventStreamPauseUntilMs(0)
@@ -269,6 +270,21 @@ void HueGatewayModule::loop()
                 _reconnectBackoffMs = min<unsigned long>(_reconnectBackoffMs * 2UL, 120000UL);
                 updateStatus(BridgeStatus::CONNECTION_LOST);
                 Serial.println("[HueGatewayModule] Reconnect failed");
+            }
+        }
+    }
+
+    if (_client && _client->isInitialized() && !_authPending)
+    {
+        uint8_t enabledChannels = countEnabledChannels();
+        if (enabledChannels > 0 && _lightCount == 0)
+        {
+            if ((now - _lastDeviceSetupRetryMs) >= 5000UL)
+            {
+                _lastDeviceSetupRetryMs = now;
+                Serial.printf("[HueGatewayModule] No mapped lights (%u configured), retrying setupDevices()\n",
+                              static_cast<unsigned>(enabledChannels));
+                setupDevices();
             }
         }
     }
@@ -924,6 +940,7 @@ void HueGatewayModule::setupBridge()
 void HueGatewayModule::setupDevices()
 {
     Serial.println("[HueGatewayModule] Setting up Devices...");
+    _lastDeviceSetupRetryMs = millis();
     resetDevices();
     
     if (!_client || !_client->isInitialized())
@@ -1525,6 +1542,27 @@ bool HueGatewayModule::hasNetworkConnectivity() const
     }
 
     return WiFi.status() == WL_CONNECTED;
+}
+
+uint8_t HueGatewayModule::countEnabledChannels() const
+{
+    uint8_t channelCount = ParamHUE_HUEChannelCount;
+    if (channelCount > MAX_LIGHTS)
+    {
+        channelCount = MAX_LIGHTS;
+    }
+
+    uint8_t enabledCount = 0;
+    for (uint8_t ch = 0; ch < channelCount; ch++)
+    {
+        uint8_t _channelIndex = ch;
+        if (!ParamHUE_CHDisabled)
+        {
+            enabledCount++;
+        }
+    }
+
+    return enabledCount;
 }
 
 String HueGatewayModule::getBridgeIP()

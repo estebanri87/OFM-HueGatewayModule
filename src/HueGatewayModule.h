@@ -44,6 +44,7 @@ private:
     bool _initialized;
     unsigned long _lastConnectionCheckMs;
     unsigned long _lastRefreshTickMs;
+    unsigned long _lastDeviceSetupRetryMs;
     unsigned long _lastEventStreamRetryMs;
     unsigned long _eventStreamRetryBackoffMs;
     unsigned long _eventStreamPauseUntilMs;
@@ -128,6 +129,7 @@ private:
     // Helper Methods
     bool hasNetworkConnectivity() const;
     String getBridgeIP();
+    uint8_t countEnabledChannels() const;
     
     // Status Methods
     void updateStatus(BridgeStatus status);
