@@ -206,6 +206,7 @@ void HueGatewayLight::processKnxDimming(uint8_t control)
             _relativeDimErrorStreak = 0;
             _relativeDimCooldownUntilMs = 0;
             applyRelativeDimmingCache(brighter, steps);
+            sendStatusToKnx();
             return;
         }
 
@@ -414,6 +415,7 @@ void HueGatewayLight::sendToHue()
     if (success)
     {
         _lastUpdate = millis();
+        sendStatusToKnx();
         Serial.printf("[HueGatewayLight] %s - Sent to Hue: On:%d Bri:%d\n",
                       _name.c_str(), _on, _brightness);
     }

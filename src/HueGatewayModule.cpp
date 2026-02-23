@@ -8,6 +8,14 @@
 #include <lwip/sockets.h>
 #include <lwip/inet.h>
 
+namespace
+{
+static constexpr unsigned long kFastTrackFirstDelayMs = 200UL;
+static constexpr unsigned long kFastTrackSecondDelayMs = 300UL;
+static constexpr unsigned long kFastTrackCooldownMs = 800UL;
+static constexpr uint8_t kFastTrackChecksPerCommand = 2;
+}
+
 static bool isUsableIp(const IPAddress& ip)
 {
     return (ip[0] != 0) || (ip[1] != 0) || (ip[2] != 0) || (ip[3] != 0);
@@ -93,6 +101,9 @@ HueGatewayModule::HueGatewayModule()
     {
         _lights[i] = nullptr;
         _channelLastPollMs[i] = 0;
+        _channelFastTrackNextMs[i] = 0;
+        _channelFastTrackCooldownUntilMs[i] = 0;
+        _channelFastTrackRemaining[i] = 0;
     }
 
     _lastWebScanHtml = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Hue-Geräte laden</title></head><body><h1>🔍 Hue-Geräte laden</h1><p>Noch kein Scan durchgeführt.</p></body></html>";
@@ -454,6 +465,19 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
         }
         case 8:  // Status ColorRGB KO (read-only, no processing)
             break;
+    }
+
+    if (isCommandKo && _lights[channel] != nullptr)
+    {
+        if (syncDir == 2 || syncDir == 3)
+        {
+            if (_channelFastTrackCooldownUntilMs[channel] == 0 || nowMs >= _channelFastTrackCooldownUntilMs[channel])
+            {
+                _channelFastTrackRemaining[channel] = kFastTrackChecksPerCommand;
+                _channelFastTrackNextMs[channel] = nowMs + kFastTrackFirstDelayMs;
+                _channelFastTrackCooldownUntilMs[channel] = nowMs + kFastTrackCooldownMs;
+            }
+        }
     }
 }
 
@@ -1420,6 +1444,16 @@ void HueGatewayModule::refreshLightStatus()
             continue;
         }
 
+        bool fastTrackDue = (_channelFastTrackRemaining[i] > 0) &&
+                            (_channelFastTrackNextMs[i] != 0) &&
+                            (now >= _channelFastTrackNextMs[i]);
+        if (fastTrackDue)
+        {
+            dueFlags[i] = true;
+            dueChannels++;
+            continue;
+        }
+
         uint8_t _channelIndex = static_cast<uint8_t>(i);
         uint8_t syncDir = ParamHUE_CHSyncDir;
         if (!(syncDir == 2 || syncDir == 3))
@@ -1483,6 +1517,10 @@ void HueGatewayModule::refreshLightStatus()
             continue;
         }
 
+        bool fastTrackDue = (_channelFastTrackRemaining[i] > 0) &&
+                            (_channelFastTrackNextMs[i] != 0) &&
+                            (now >= _channelFastTrackNextMs[i]);
+
         uint8_t _channelIndex = static_cast<uint8_t>(i);
         uint8_t syncDir = ParamHUE_CHSyncDir;
         if (!(syncDir == 2 || syncDir == 3))
@@ -1491,17 +1529,20 @@ void HueGatewayModule::refreshLightStatus()
         }
 
         uint8_t pollIntervalSec = ParamHUE_CHPollInterval;
-        if (pollIntervalSec == 0)
+        if (!fastTrackDue && pollIntervalSec == 0)
         {
             continue;
         }
 
         unsigned long pollIntervalMs = static_cast<unsigned long>(pollIntervalSec) * 1000UL;
-        if ((now - _channelLastPollMs[i]) < pollIntervalMs)
+        if (!fastTrackDue && (now - _channelLastPollMs[i]) < pollIntervalMs)
         {
             continue;
         }
-        _channelLastPollMs[i] = now;
+        if (!fastTrackDue)
+        {
+            _channelLastPollMs[i] = now;
+        }
         processedThisTick++;
         lastProcessedIndex = static_cast<uint8_t>(i);
 
@@ -1516,6 +1557,23 @@ void HueGatewayModule::refreshLightStatus()
                     lights[j].red,
                     lights[j].green,
                     lights[j].blue);
+
+                if (fastTrackDue)
+                {
+                    if (_channelFastTrackRemaining[i] > 0)
+                    {
+                        _channelFastTrackRemaining[i]--;
+                    }
+
+                    if (_channelFastTrackRemaining[i] > 0)
+                    {
+                        _channelFastTrackNextMs[i] = now + kFastTrackSecondDelayMs;
+                    }
+                    else
+                    {
+                        _channelFastTrackNextMs[i] = 0;
+                    }
+                }
                 break;
             }
         }
@@ -1606,6 +1664,9 @@ void HueGatewayModule::resetDevices()
             _lights[i] = nullptr;
         }
         _channelLastPollMs[i] = 0;
+        _channelFastTrackNextMs[i] = 0;
+        _channelFastTrackCooldownUntilMs[i] = 0;
+        _channelFastTrackRemaining[i] = 0;
     }
 
     _lightCount = 0;
@@ -1851,6 +1912,10 @@ void HueGatewayModule::applyEventStreamUpdates(const HueGatewayEventLightUpdate*
                           static_cast<unsigned>(red),
                           static_cast<unsigned>(green),
                           static_cast<unsigned>(blue));
+
+            _channelFastTrackRemaining[i] = 0;
+            _channelFastTrackNextMs[i] = 0;
+
             applied = true;
             break;
         }

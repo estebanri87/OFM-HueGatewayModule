@@ -56,6 +56,9 @@ private:
     static const int MAX_LIGHTS = 20;
     HueGatewayLight* _lights[MAX_LIGHTS];
     unsigned long _channelLastPollMs[MAX_LIGHTS];
+    unsigned long _channelFastTrackNextMs[MAX_LIGHTS];
+    unsigned long _channelFastTrackCooldownUntilMs[MAX_LIGHTS];
+    uint8_t _channelFastTrackRemaining[MAX_LIGHTS];
     // Round-robin cursor for chunked polling fallback.
     uint8_t _pollCursor;
     int _lightCount;
