@@ -8,7 +8,7 @@
           <Static>
             <Parameters>
               <!-- Kanalbezeichnung -->
-              <Parameter Id="%AID%_P-%TT%5%CC%000" Name="CH%C%Name" ParameterType="%AID%_PT-Text40Byte" Text="Kanalbezeichnung" Value="" />
+              <Parameter Id="%AID%_P-%TT%5%CC%000" Name="CH%C%Name" ParameterType="%AID%_PT-Text40Byte" Text="Bezeichnung" Value="" />
               
               <!-- Hue-Lampen-UUID -->
               <Parameter Id="%AID%_P-%TT%5%CC%001" Name="CH%C%LightUUID" ParameterType="%AID%_PT-Text40Byte" Text="Hue Lampen-ID (UUID)" Value="01234567-89ab-cdef-0123-456789abcdef">
@@ -24,7 +24,7 @@
                 <Memory CodeSegment="%MID%" Offset="0" BitOffset="0" />
                 
                 <!-- Lampentyp -->
-                <Parameter Id="%AID%_UP-%TT%5%CC%002" Name="CH%C%LightType" ParameterType="%AID%_PT-HUELightType" Offset="0" BitOffset="0" Text="Lampentyp" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%002" Name="CH%C%LightType" ParameterType="%AID%_PT-HUELightType" Offset="0" BitOffset="0" Text="Lampentyp" Value="3" />
                 
                 <!-- Kanal deaktiviert -->
                 <Parameter Id="%AID%_UP-%TT%5%CC%003" Name="CH%C%Disabled" ParameterType="%AID%_PT-CheckBox" Offset="1" BitOffset="0" Text="Kanal deaktivieren (zu Testzwecken)" Value="0" />
@@ -46,65 +46,40 @@
               </Union>
               
             </Parameters>
-            
+
             <ParameterRefs>
-              <!-- Kanalbezeichnung -->
               <ParameterRef Id="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" RefId="%AID%_P-%TT%5%CC%000" />
-              <!-- Lampen-UUID -->
               <ParameterRef Id="%AID%_P-%TT%5%CC%001_R-%TT%5%CC%00101" RefId="%AID%_P-%TT%5%CC%001" />
-              <!-- HCL-Master-Zuordnung -->
               <ParameterRef Id="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701" RefId="%AID%_P-%TT%5%CC%007" />
-              <!-- Lampentyp -->
               <ParameterRef Id="%AID%_UP-%TT%5%CC%002_R-%TT%5%CC%00201" RefId="%AID%_UP-%TT%5%CC%002" />
-              <!-- Kanal deaktiviert -->
               <ParameterRef Id="%AID%_UP-%TT%5%CC%003_R-%TT%5%CC%00301" RefId="%AID%_UP-%TT%5%CC%003" />
-              <!-- Synchronisationsrichtung -->
               <ParameterRef Id="%AID%_UP-%TT%5%CC%004_R-%TT%5%CC%00401" RefId="%AID%_UP-%TT%5%CC%004" />
-              <!-- Polling-Intervall -->
               <ParameterRef Id="%AID%_UP-%TT%5%CC%005_R-%TT%5%CC%00501" RefId="%AID%_UP-%TT%5%CC%005" />
-              <!-- Mindesthelligkeit -->
               <ParameterRef Id="%AID%_UP-%TT%5%CC%006_R-%TT%5%CC%00601" RefId="%AID%_UP-%TT%5%CC%006" />
             </ParameterRefs>
             
             <ComObjectTable>
-              <!-- Schalten-KO - alle Typen -->
               <ComObject Id="%AID%_O-%TT%5%CC%000" Name="CH%C%Switch" Text="Schalten" FunctionText="Lampe ein/aus" Number="%K00%" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
-              
-              <!-- Helligkeit-KO - Typ 1,2,3 (dimmbar, Farbtemperatur, RGB) -->
               <ComObject Id="%AID%_O-%TT%5%CC%001" Name="CH%C%Brightness" Text="Helligkeit" FunctionText="Helligkeit absolut 0-100%" Number="%K01%" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
-              
-              <!-- Dimmen-KO - Typ 1,2,3 -->
               <ComObject Id="%AID%_O-%TT%5%CC%002" Name="CH%C%Dimming" Text="Dimmen" FunctionText="Helligkeit relativ dimmen" Number="%K02%" ObjectSize="4 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-3-7" />
-              
-              <!-- Status-Schalten-KO - alle Typen -->
               <ComObject Id="%AID%_O-%TT%5%CC%003" Name="CH%C%StatusSwitch" Text="Status Schalten" FunctionText="Lampenstatus Ein/Aus" Number="%K03%" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
-              
-              <!-- Status-Helligkeit-KO - Typ 1,2,3 -->
               <ComObject Id="%AID%_O-%TT%5%CC%004" Name="CH%C%StatusBrightness" Text="Status Helligkeit" FunctionText="Lampenstatus Helligkeit 0-100%" Number="%K04%" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
-              
-              <!-- Farbtemperatur-KO - Typ 2,3 -->
               <ComObject Id="%AID%_O-%TT%5%CC%005" Name="CH%C%ColorTemp" Text="Farbtemperatur" FunctionText="Farbtemperatur in Kelvin (2000-6500K)" Number="%K05%" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
-              
-              <!-- Status-Farbtemperatur-KO - Typ 2,3 -->
               <ComObject Id="%AID%_O-%TT%5%CC%006" Name="CH%C%StatusColorTemp" Text="Status Farbtemp." FunctionText="Status Farbtemperatur in Kelvin" Number="%K06%" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
-              
-              <!-- RGB-Farb-KO - Typ 3 -->
               <ComObject Id="%AID%_O-%TT%5%CC%007" Name="CH%C%ColorRGB" Text="Farbe RGB" FunctionText="Farbe als RGB-Wert" Number="%K07%" ObjectSize="3 Bytes" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-232-600" />
-              
-              <!-- Status-RGB-Farb-KO - Typ 3 -->
               <ComObject Id="%AID%_O-%TT%5%CC%008" Name="CH%C%StatusColorRGB" Text="Status RGB" FunctionText="Status Farbe als RGB-Wert" Number="%K08%" ObjectSize="3 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-232-600" />
             </ComObjectTable>
-            
+
             <ComObjectRefs>
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00001" RefId="%AID%_O-%TT%5%CC%000" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00101" RefId="%AID%_O-%TT%5%CC%001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00201" RefId="%AID%_O-%TT%5%CC%002" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00301" RefId="%AID%_O-%TT%5%CC%003" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00401" RefId="%AID%_O-%TT%5%CC%004" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00501" RefId="%AID%_O-%TT%5%CC%005" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00601" RefId="%AID%_O-%TT%5%CC%006" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00701" RefId="%AID%_O-%TT%5%CC%007" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00801" RefId="%AID%_O-%TT%5%CC%008" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00001" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Lampe %C%}}: Schalten" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00101" RefId="%AID%_O-%TT%5%CC%001" Text="{{0:Lampe %C%}}: Helligkeit" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00201" RefId="%AID%_O-%TT%5%CC%002" Text="{{0:Lampe %C%}}: Dimmen" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00301" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Lampe %C%}}: Status Schalten" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00401" RefId="%AID%_O-%TT%5%CC%004" Text="{{0:Lampe %C%}}: Status Helligkeit" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00501" RefId="%AID%_O-%TT%5%CC%005" Text="{{0:Lampe %C%}}: Farbtemperatur" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00601" RefId="%AID%_O-%TT%5%CC%006" Text="{{0:Lampe %C%}}: Status Farbtemperatur" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00701" RefId="%AID%_O-%TT%5%CC%007" Text="{{0:Lampe %C%}}: Farbe RGB" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00801" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Lampe %C%}}: Status RGB" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
             </ComObjectRefs>
             
           </Static>
@@ -114,8 +89,8 @@
                 <when test=">=%C%">
                   <ParameterBlock Id="%AID%_PB-%TT%5%CC%CH%C%" Name="HUE_CH%C%" Text="Lampe %C%: {{0: ...}}" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" Icon="lightbulb-outline" ShowInComObjectTree="true">
                     <ParameterBlock Id="%AID%_PB-%TT%5%CC%01" Name="HUE%C%Wrapper" Inline="true">
-                      <!-- Kanalbezeichnung (inline für bessere Übersicht) -->
-                      <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Name" Text="Allgemeine Einstellungen" UIHint="Headline" />
+                      <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Title" Text="Lampe %C%" UIHint="Headline" />
+                      <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Line1" Text="" UIHint="HorizontalRuler" />
                       <ParameterRefRef RefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                       <!-- Lampen-UUID -->
                       <ParameterRefRef RefId="%AID%_P-%TT%5%CC%001_R-%TT%5%CC%00101" />
@@ -127,13 +102,14 @@
                       <!-- HCL-Master-Zuordnung (nur für Farbtemperatur/RGB) -->
                       <choose ParamRefId="%AID%_UP-%TT%5%CC%002_R-%TT%5%CC%00201">
                         <when test=">=2">
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLHeader" Text="Human Centric Lighting (HCL)" UIHint="Headline" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLLine" Text="" UIHint="HorizontalRuler" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLHeader" Text="HCL" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701" />
                         </when>
                       </choose>
                       
-                      <!-- Trennlinie vor Synchronisationseinstellungen -->
-                      <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_SyncHeader" Text="Synchronisationseinstellungen" UIHint="Headline" />
+                      <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_SyncLine" Text="" UIHint="HorizontalRuler" />
+                      <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_SyncHeader" Text="Synchronisation" UIHint="Headline" />
                       
                       <!-- Synchronisationsrichtung -->
                       <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%004_R-%TT%5%CC%00401" />
@@ -143,16 +119,24 @@
                       <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%006_R-%TT%5%CC%00601" />
                     </ParameterBlock>
                     
-                    <!-- Kommunikationsobjekte im Lampen-Block -->
+                    <!-- Kommunikationsobjekte im Lampen-Block (aufbauend nach Lampentyp) -->
                     <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00001" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00101" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00201" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                     <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00301" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00401" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00501" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00601" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00701" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00801" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                    <choose ParamRefId="%AID%_UP-%TT%5%CC%002_R-%TT%5%CC%00201">
+                      <when test=">=1">
+                        <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00101" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                        <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00201" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                        <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00401" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                      </when>
+                      <when test=">=2">
+                        <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00501" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                        <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00601" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                      </when>
+                      <when test="=3">
+                        <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00701" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                        <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00801" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                      </when>
+                    </choose>
                   </ParameterBlock>
                 </when>
               </choose>
