@@ -91,6 +91,7 @@ HueGatewayModule::HueGatewayModule()
     , _manualPairingRequired(false)
     , _pairingTriggerLastState(false)
     , _devicesInitialized(false)
+    , _deviceSetupNeedsRetry(false)
     , _webScanRequested(false)
     , _webScanInProgress(false)
     , _lastWebScanMs(0)
@@ -287,14 +288,19 @@ void HueGatewayModule::loop()
 
     if (_client && _client->isInitialized() && !_authPending)
     {
-        uint8_t enabledChannels = countEnabledChannels();
-        if (enabledChannels > 0 && _lightCount == 0)
+        uint8_t configuredChannels = ParamHUE_HUEChannelCount;
+        if (configuredChannels > MAX_LIGHTS)
+        {
+            configuredChannels = MAX_LIGHTS;
+        }
+
+        if (configuredChannels > 0 && _deviceSetupNeedsRetry)
         {
             if ((now - _lastDeviceSetupRetryMs) >= 5000UL)
             {
                 _lastDeviceSetupRetryMs = now;
-                Serial.printf("[HueGatewayModule] No mapped lights (%u configured), retrying setupDevices()\n",
-                              static_cast<unsigned>(enabledChannels));
+                Serial.printf("[HueGatewayModule] Device map requires retry (%u channels configured), retrying setupDevices()\n",
+                              static_cast<unsigned>(configuredChannels));
                 setupDevices();
             }
         }
@@ -965,16 +971,29 @@ void HueGatewayModule::setupDevices()
 {
     Serial.println("[HueGatewayModule] Setting up Devices...");
     _lastDeviceSetupRetryMs = millis();
+    _deviceSetupNeedsRetry = false;
+
+    uint8_t channelCount = ParamHUE_HUEChannelCount;
+    if (channelCount > MAX_LIGHTS)
+    {
+        channelCount = MAX_LIGHTS;
+    }
+
     resetDevices();
     
     if (!_client || !_client->isInitialized())
     {
+        if (channelCount > 0)
+        {
+            _deviceSetupNeedsRetry = true;
+            Serial.printf("[HueGatewayModule] Client not ready, scheduling setup retry for %u configured channels\n",
+                          static_cast<unsigned>(channelCount));
+        }
         Serial.println("[HueGatewayModule] ERROR: HueGatewayClient not ready");
         return;
     }
     
     // Anzahl Kanäle aus ETS lesen
-    uint8_t channelCount = ParamHUE_HUEChannelCount;
     Serial.printf("[HueGatewayModule] Configured channels: %d\n", channelCount);
     
     if (channelCount == 0)
@@ -984,8 +1003,20 @@ void HueGatewayModule::setupDevices()
     }
     
     // Retrieve all lights from the bridge for validation/mapping.
+    if (_client->isEventStreamConnected())
+    {
+        _client->stopEventStream();
+        _lastEventStreamRetryMs = millis();
+        delay(20);
+    }
+
     HueGatewayLightState allLights[MAX_LIGHTS];
     int bridgeLightCount = _client->getLights(allLights, MAX_LIGHTS);
+    if (bridgeLightCount <= 0)
+    {
+        delay(60);
+        bridgeLightCount = _client->getLights(allLights, MAX_LIGHTS);
+    }
     Serial.printf("[HueGatewayModule] Bridge has %d lights\n", bridgeLightCount);
     
     // Kanäle aus ETS-Parametern laden
@@ -995,6 +1026,7 @@ void HueGatewayModule::setupDevices()
     {
         maxChannels = MAX_LIGHTS;
     }
+    bool hasIndexMappedChannel = false;
     for (uint8_t ch = 0; ch < maxChannels; ch++)
     {
         uint8_t _channelIndex = ch;
@@ -1008,6 +1040,10 @@ void HueGatewayModule::setupDevices()
         std::string configuredUuidStd = ParamHUE_CHLightUUIDStr;
         String configuredUuid(configuredUuidStd.c_str());
         configuredUuid.trim();
+        if (configuredUuid.length() == 0)
+        {
+            hasIndexMappedChannel = true;
+        }
 
         const HueGatewayLightState* selectedLight = nullptr;
         HueGatewayLightState fallbackLight;
@@ -1115,6 +1151,20 @@ void HueGatewayModule::setupDevices()
                       koSwitch, koBrightness, koDimming, koStatusSwitch, koStatusBrightness);
         
         _lightCount++;
+    }
+
+    uint8_t enabledChannels = countEnabledChannels();
+    if (enabledChannels > 0 && (_lightCount == 0 || (bridgeLightCount <= 0 && hasIndexMappedChannel)))
+    {
+        _deviceSetupNeedsRetry = true;
+        Serial.printf("[HueGatewayModule] setupDevices incomplete (enabled=%u, mapped=%d, bridgeLights=%d), retry scheduled\n",
+                      static_cast<unsigned>(enabledChannels),
+                      _lightCount,
+                      bridgeLightCount);
+    }
+    else
+    {
+        _deviceSetupNeedsRetry = false;
     }
     
     Serial.printf("[HueGatewayModule] Initialized %d lights\n", _lightCount);
@@ -1610,17 +1660,17 @@ uint8_t HueGatewayModule::countEnabledChannels() const
         channelCount = MAX_LIGHTS;
     }
 
-    uint8_t enabledCount = 0;
+    uint8_t enabled = 0;
     for (uint8_t ch = 0; ch < channelCount; ch++)
     {
         uint8_t _channelIndex = ch;
         if (!ParamHUE_CHDisabled)
         {
-            enabledCount++;
+            enabled++;
         }
     }
 
-    return enabledCount;
+    return enabled;
 }
 
 String HueGatewayModule::getBridgeIP()
@@ -1671,6 +1721,7 @@ void HueGatewayModule::resetDevices()
 
     _lightCount = 0;
     _devicesInitialized = false;
+    _deviceSetupNeedsRetry = false;
 }
 
 void HueGatewayModule::performBridgeScan()

@@ -795,11 +795,26 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc)
     Serial.println(url);
     _http.setTimeout(2000);
     _http.setTimeout(2000);
+    const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected) && _eventClient.connected();
     
     _http.begin(_secureClient, url);
     _http.addHeader("hue-application-key", _appKey);
     
     int statusCode = _http.GET();
+
+    if (statusCode < 0 && eventWasActive)
+    {
+        Serial.printf("[HueGatewayClient] HTTP GET low-memory fallback (status=%d): pausing EventStream and retrying once\n",
+                      statusCode);
+        _http.end();
+        stopEventStream();
+        _secureClient.stop();
+        delay(25);
+
+        _http.begin(_secureClient, url);
+        _http.addHeader("hue-application-key", _appKey);
+        statusCode = _http.GET();
+    }
     
     if (statusCode == 200)
     {
@@ -823,6 +838,15 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc)
     }
     
     _http.end();
+
+    if (eventWasActive)
+    {
+        if (!startEventStream())
+        {
+            Serial.println("[HueGatewayClient] EventStream restart after HTTP GET failed");
+        }
+    }
+
     return statusCode;
 }
 
@@ -832,12 +856,28 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
     Serial.printf("[HueGatewayClient] HTTP PUT %s payload=%s\n", url.c_str(), payload.c_str());
     _http.setTimeout(2000);
     _http.setTimeout(2000);
+    const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected) && _eventClient.connected();
     
     _http.begin(_secureClient, url);
     _http.addHeader("Content-Type", "application/json");
     _http.addHeader("hue-application-key", _appKey);
     
     int statusCode = _http.PUT(payload);
+
+    if (statusCode < 0 && eventWasActive)
+    {
+        Serial.printf("[HueGatewayClient] HTTP PUT low-memory fallback (status=%d): pausing EventStream and retrying once\n",
+                      statusCode);
+        _http.end();
+        stopEventStream();
+        _secureClient.stop();
+        delay(25);
+
+        _http.begin(_secureClient, url);
+        _http.addHeader("Content-Type", "application/json");
+        _http.addHeader("hue-application-key", _appKey);
+        statusCode = _http.PUT(payload);
+    }
     
     if (statusCode != 200)
     {
@@ -846,6 +886,15 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
     }
     
     _http.end();
+
+    if (eventWasActive)
+    {
+        if (!startEventStream())
+        {
+            Serial.println("[HueGatewayClient] EventStream restart after HTTP PUT failed");
+        }
+    }
+
     return statusCode;
 }
 

@@ -90,6 +90,7 @@ private:
     bool _manualPairingRequired;
     bool _pairingTriggerLastState;
     bool _devicesInitialized;
+    bool _deviceSetupNeedsRetry;
     bool _webScanRequested;
     bool _webScanInProgress;
     unsigned long _lastWebScanMs;
