@@ -373,7 +373,9 @@ void HueGatewayLight::sendStatusToKnx()
     
     // Publish status to dedicated feedback KOs.
     // Hue 0-254 -> KNX 0-100%.
-    uint8_t brightnessPercent = (uint8_t)((_brightness / 254.0f) * 100.0f);
+    // Report 0% while switched off, even if Hue internally keeps the last dim level.
+    uint8_t statusBrightnessHue = _on ? _brightness : 0;
+    uint8_t brightnessPercent = (uint8_t)((statusBrightnessHue / 254.0f) * 100.0f);
     
     // KO Status Switch: DPT 1.001 (bool) - On/Off feedback.
     knx.getGroupObject(_koStatusSwitch).value(_on, Dpt(1, 1));
@@ -397,7 +399,7 @@ void HueGatewayLight::sendStatusToKnx()
     }
     
     Serial.printf("[HueGatewayLight] %s - Sent to KNX: On:%d Bri:%d%% (Hue:%d)\n",
-                  _name.c_str(), _on, brightnessPercent, _brightness);
+                  _name.c_str(), _on, brightnessPercent, statusBrightnessHue);
 }
 
 // ===== Private Methods =====
