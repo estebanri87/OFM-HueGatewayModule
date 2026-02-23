@@ -140,7 +140,7 @@ void HueGatewayModule::loop()
     
     // Update HCL Manager with current time
     struct tm timeinfo;
-    if (getLocalTime(&timeinfo)) {
+    if (getLocalTime(&timeinfo, 0)) {
         uint16_t currentMinutes = timeinfo.tm_hour * 60 + timeinfo.tm_min;
         HCL::masterManager.loop(currentMinutes);
     }
@@ -1966,14 +1966,14 @@ void HueGatewayModule::setupWebUI()
 
     WebPage statusPage;
     statusPage.uri = "/hue/status";
-    statusPage.name = "Hue Status";
+    statusPage.name = "Hue-Status";
     statusPage.handler = HueGatewayModule::pageWebStatus;
     statusPage.arg = this;
     openknxWebUI.addPage(statusPage);
 
     WebPage pairPage;
     pairPage.uri = "/hue/pair";
-    pairPage.name = "Hue Pairing";
+    pairPage.name = "Hue-Kopplung";
     pairPage.handler = HueGatewayModule::pageWebPair;
     pairPage.arg = this;
     openknxWebUI.addPage(pairPage);
@@ -2011,19 +2011,19 @@ esp_err_t HueGatewayModule::handleWebRoot(httpd_req_t* req)
     html += "<a href='" + hueBaseUri + "/status'>📊 Status</a>";
     html += "</div>";
     html += "<div class='card'><h3>Info</h3>";
-    html += "<p><strong>Device IP:</strong> " + getRequestLocalIpString(req) + "</p>";
-    html += "<p><strong>Module Version:</strong> " + String(self->version().c_str()) + "</p>";
+    html += "<p><strong>Geräte-IP:</strong> " + getRequestLocalIpString(req) + "</p>";
+    html += "<p><strong>Modulversion:</strong> " + String(self->version().c_str()) + "</p>";
     if (self->_bridgeStatus == BridgeStatus::WAIT_FOR_BUTTON)
     {
-        html += "<p><strong>Auth:</strong> Waiting for Hue Bridge button press</p>";
+        html += "<p><strong>Auth:</strong> Warte auf Tastendruck an der Hue Bridge</p>";
     }
     else if (self->_bridgeStatus == BridgeStatus::CONNECTED)
     {
-        html += "<p><strong>Auth:</strong> Connected</p>";
+        html += "<p><strong>Auth:</strong> Verbunden</p>";
     }
     else
     {
-        html += "<p><strong>Auth:</strong> Not connected</p>";
+        html += "<p><strong>Auth:</strong> Nicht verbunden</p>";
     }
     html += "<p><strong>App-Key:</strong> " + maskKey(self->_auth.getAppKey()) + "</p>";
     html += "<p><strong>Client-Key:</strong> " + maskKey(self->_auth.getClientKey()) + "</p>";
@@ -2047,7 +2047,7 @@ esp_err_t HueGatewayModule::handleWebScan(httpd_req_t* req)
         html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Hue-Geräte laden</title></head><body>";
         html += "<h1>ℹ️ Hue-Geräte laden</h1><p>Noch keine aktive Bridge-Verbindung. Bitte zuerst Pairing starten und den Hue-Bridge-Button drücken.</p>";
         html += "<a href='" + hueBaseUri + "/pair'>🔗 Pairing starten</a> ";
-        html += "<a href='" + hueBaseUri + "'>← Back</a></body></html>";
+        html += "<a href='" + hueBaseUri + "'>← Zurück</a></body></html>";
         return send_html(req, html, 200);
     }
 
@@ -2058,7 +2058,7 @@ esp_err_t HueGatewayModule::handleWebScan(httpd_req_t* req)
         html.reserve(384);
         html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><meta http-equiv='refresh' content='2'><title>Hue-Geräte laden</title></head><body>";
         html += "<h1>🔄 Hue-Geräte laden</h1><p>Scan läuft... Seite aktualisiert sich automatisch.</p>";
-        html += "<a href='" + hueBaseUri + "'>← Back</a></body></html>";
+        html += "<a href='" + hueBaseUri + "'>← Zurück</a></body></html>";
         return send_html(req, html, 200);
     }
 
@@ -2073,7 +2073,7 @@ esp_err_t HueGatewayModule::handleWebScan(httpd_req_t* req)
         html.reserve(480);
         html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><meta http-equiv='refresh' content='2'><title>Hue-Geräte laden</title></head><body>";
         html += "<h1>🔄 Hue-Geräte laden</h1><p>Scan wurde gestartet... Seite aktualisiert sich automatisch.</p>";
-        html += "<a href='" + hueBaseUri + "'>← Back</a></body></html>";
+        html += "<a href='" + hueBaseUri + "'>← Zurück</a></body></html>";
         return send_html(req, html, 200);
     }
 
@@ -2119,57 +2119,57 @@ esp_err_t HueGatewayModule::handleWebStatus(httpd_req_t* req)
     String html;
     html.reserve(8192);
     html = "<!DOCTYPE html><html><head><meta charset='UTF-8'>";
-    html += "<title>Hue Status</title>";
+    html += "<title>Hue-Status</title>";
     html += "<style>body{font-family:Arial,sans-serif;margin:40px;background:#f5f5f5;}";
     html += "table{width:100%;border-collapse:collapse;background:white;border-radius:5px;overflow:hidden;}";
     html += "th,td{padding:12px;text-align:left;border-bottom:1px solid #ddd;}";
     html += "th{background:#007bff;color:white;}</style></head><body>";
-    html += "<h1>📊 Module Status</h1>";
-    html += "<table><tr><th>Parameter</th><th>Value</th></tr>";
-    html += "<tr><td>Initialized</td><td>" + String(self->_initialized ? "✅ Yes" : "❌ No") + "</td></tr>";
-    html += "<tr><td>Device IP</td><td>" + getRequestLocalIpString(req) + "</td></tr>";
-    html += "<tr><td>Active Lights</td><td>" + String(self->_lightCount) + " / " + String(MAX_LIGHTS) + "</td></tr>";
+    html += "<h1>📊 Modulstatus</h1>";
+    html += "<table><tr><th>Parameter</th><th>Wert</th></tr>";
+    html += "<tr><td>Initialisiert</td><td>" + String(self->_initialized ? "✅ Ja" : "❌ Nein") + "</td></tr>";
+    html += "<tr><td>Geräte-IP</td><td>" + getRequestLocalIpString(req) + "</td></tr>";
+    html += "<tr><td>Aktive Leuchten</td><td>" + String(self->_lightCount) + " / " + String(MAX_LIGHTS) + "</td></tr>";
     html += "<tr><td>WiFi RSSI</td><td>" + String(WiFi.RSSI()) + " dBm</td></tr>";
-    String bridgeStatusText = "Unknown";
+    String bridgeStatusText = "Unbekannt";
     switch (self->_bridgeStatus)
     {
-        case BridgeStatus::DISCONNECTED: bridgeStatusText = "Disconnected"; break;
-        case BridgeStatus::CONNECTING: bridgeStatusText = "Connecting"; break;
-        case BridgeStatus::WAIT_FOR_BUTTON: bridgeStatusText = "Waiting for button"; break;
-        case BridgeStatus::AUTHENTICATING: bridgeStatusText = "Authenticating"; break;
-        case BridgeStatus::CONNECTED: bridgeStatusText = "Connected"; break;
-        case BridgeStatus::CONNECTION_LOST: bridgeStatusText = "Connection lost"; break;
-        case BridgeStatus::BRIDGE_UNREACHABLE: bridgeStatusText = "Bridge unreachable"; break;
-        case BridgeStatus::ERROR: bridgeStatusText = "Error"; break;
+        case BridgeStatus::DISCONNECTED: bridgeStatusText = "Getrennt"; break;
+        case BridgeStatus::CONNECTING: bridgeStatusText = "Verbinde"; break;
+        case BridgeStatus::WAIT_FOR_BUTTON: bridgeStatusText = "Warte auf Taster"; break;
+        case BridgeStatus::AUTHENTICATING: bridgeStatusText = "Authentifiziere"; break;
+        case BridgeStatus::CONNECTED: bridgeStatusText = "Verbunden"; break;
+        case BridgeStatus::CONNECTION_LOST: bridgeStatusText = "Verbindung verloren"; break;
+        case BridgeStatus::BRIDGE_UNREACHABLE: bridgeStatusText = "Bridge nicht erreichbar"; break;
+        case BridgeStatus::ERROR: bridgeStatusText = "Fehler"; break;
     }
-    html += "<tr><td>Bridge Status</td><td>" + bridgeStatusText + "</td></tr>";
+    html += "<tr><td>Bridge-Status</td><td>" + bridgeStatusText + "</td></tr>";
     html += "<tr><td>App-Key</td><td>" + maskKey(self->_auth.getAppKey()) + "</td></tr>";
     html += "<tr><td>Client-Key</td><td>" + maskKey(self->_auth.getClientKey()) + "</td></tr>";
 
     #ifdef ParamHUE_HUEHCLEnable
     const bool hclEnabled = (ParamHUE_HUEHCLEnable != 0);
-    html += "<tr><td>HCL Enabled</td><td>" + String(hclEnabled ? "Yes" : "No") + "</td></tr>";
+    html += "<tr><td>HCL aktiviert</td><td>" + String(hclEnabled ? "Ja" : "Nein") + "</td></tr>";
     #else
     const bool hclEnabled = false;
-    html += "<tr><td>HCL Enabled</td><td>No</td></tr>";
+    html += "<tr><td>HCL aktiviert</td><td>Nein</td></tr>";
     #endif
 
     if (hclEnabled)
     {
         #ifdef ParamHUE_HUEHCLMasterCount
         const uint8_t masterCount = ParamHUE_HUEHCLMasterCount;
-        html += "<tr><td>HCL Masters</td><td>" + String(masterCount) + "</td></tr>";
+        html += "<tr><td>HCL-Master</td><td>" + String(masterCount) + "</td></tr>";
         #else
         const uint8_t masterCount = 0;
-        html += "<tr><td>HCL Masters</td><td>0</td></tr>";
+        html += "<tr><td>HCL-Master</td><td>0</td></tr>";
         #endif
 
         #ifdef ParamHUE_HUEHCLUpdateInterval
-        html += "<tr><td>HCL Update Interval</td><td>" + String(ParamHUE_HUEHCLUpdateInterval) + " s</td></tr>";
+        html += "<tr><td>HCL-Aktualisierungsintervall</td><td>" + String(ParamHUE_HUEHCLUpdateInterval) + " s</td></tr>";
         #endif
 
         #ifdef ParamHUE_HUEHCLFadeDuration
-        html += "<tr><td>HCL Fade Duration</td><td>" + String(ParamHUE_HUEHCLFadeDuration) + " s</td></tr>";
+        html += "<tr><td>HCL-Überblenddauer</td><td>" + String(ParamHUE_HUEHCLFadeDuration) + " s</td></tr>";
         #endif
 
         for (uint8_t masterNumber = 1; masterNumber <= 4; masterNumber++)
@@ -2186,7 +2186,7 @@ esp_err_t HueGatewayModule::handleWebStatus(httpd_req_t* req)
             }
 
             HCL::InterpolatedValue current = HCL::masterManager.getCurrentValue(masterNumber);
-            html += "<tr><td>HCL M" + String(masterNumber) + " Current</td><td>" +
+                html += "<tr><td>HCL M" + String(masterNumber) + " Aktuell</td><td>" +
                     String(current.kelvin) + " K / " + String(current.brightness) + "%</td></tr>";
 
             uint8_t curveTypeValue = 0;
@@ -2247,27 +2247,27 @@ esp_err_t HueGatewayModule::handleWebStatus(httpd_req_t* req)
                     break;
             }
 
-            String curveText = "FixedTime";
+            String curveText = "Fixzeit";
             if (curveTypeValue == 1)
             {
-                curveText = "SunPosition";
+                curveText = "Sonnenstand";
             }
             else if (curveTypeValue == 2)
             {
-                curveText = "Manual";
+                curveText = "Manuell";
             }
 
-            html += "<tr><td>HCL M" + String(masterNumber) + " Curve</td><td>" + curveText + "</td></tr>";
-            html += "<tr><td>HCL M" + String(masterNumber) + " Slew</td><td>" + String(slewRate) + " K/min</td></tr>";
-            html += "<tr><td>HCL M" + String(masterNumber) + " Manual</td><td>" + String(manualKelvin) + " K</td></tr>";
-            html += "<tr><td>HCL M" + String(masterNumber) + " Sun</td><td>" + sunrise + " / " + sunset + "</td></tr>";
+            html += "<tr><td>HCL M" + String(masterNumber) + " Kurve</td><td>" + curveText + "</td></tr>";
+            html += "<tr><td>HCL M" + String(masterNumber) + " Steigrate</td><td>" + String(slewRate) + " K/min</td></tr>";
+            html += "<tr><td>HCL M" + String(masterNumber) + " Manuell</td><td>" + String(manualKelvin) + " K</td></tr>";
+            html += "<tr><td>HCL M" + String(masterNumber) + " Sonne</td><td>" + sunrise + " / " + sunset + "</td></tr>";
             html += "<tr><td>HCL M" + String(masterNumber) + " Offset</td><td>" + String(sunriseOffset) + " / " + String(sunsetOffset) + " min</td></tr>";
-            html += "<tr><td>HCL M" + String(masterNumber) + " Applied</td><td>" + String(master->getAppliedKelvin()) + " K</td></tr>";
+            html += "<tr><td>HCL M" + String(masterNumber) + " Angewendet</td><td>" + String(master->getAppliedKelvin()) + " K</td></tr>";
         }
     }
 
     html += "</table>";
-    html += "<br><a href='" + hueBaseUri + "'>← Back</a></body></html>";
+    html += "<br><a href='" + hueBaseUri + "'>← Zurück</a></body></html>";
 
     return send_html(req, html, 200);
 }
@@ -2285,11 +2285,11 @@ esp_err_t HueGatewayModule::handleWebPair(httpd_req_t* req)
     String html;
     html.reserve(1024);
     html = "<!DOCTYPE html><html><head><meta charset='UTF-8'>";
-    html += "<title>Hue Pairing</title>";
+    html += "<title>Hue-Kopplung</title>";
     html += "<meta http-equiv='refresh' content='3;url=" + hueBaseUri + "/status'>";
     html += "<style>body{font-family:Arial,sans-serif;margin:40px;background:#f5f5f5;}";
     html += ".card{background:white;padding:20px;border-radius:5px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}a{display:inline-block;padding:10px 16px;margin:5px;background:#007bff;color:#fff;text-decoration:none;border-radius:3px;}</style></head><body>";
-    html += "<div class='card'><h1>🔗 Pairing gestartet</h1>";
+    html += "<div class='card'><h1>🔗 Kopplung gestartet</h1>";
     html += "<p>Bitte jetzt den Link-Button an der Hue Bridge drücken.</p>";
     html += "<p>Weiterleitung auf Statusseite in 3 Sekunden...</p>";
     html += "<a href='" + hueBaseUri + "/status'>Status jetzt öffnen</a>";
@@ -2413,39 +2413,39 @@ void HueGatewayModule::updateWebScanCache()
             return;
         }
 
-        html += "<div class='error'>❌ No lights found! Check bridge connection.</div>";
-        html += "<br><a href='" + hueBaseUri + "'><button>← Back</button></a></body></html>";
-        text += "No lights found. Check bridge connection.\n";
+        html += "<div class='error'>❌ Keine Leuchten gefunden! Bitte Bridge-Verbindung prüfen.</div>";
+        html += "<br><a href='" + hueBaseUri + "'><button>← Zurück</button></a></body></html>";
+        text += "Keine Leuchten gefunden. Bitte Bridge-Verbindung prüfen.\n";
         _lastWebScanLightCount = 0;
         _lastWebScanHtml = html;
         _lastWebScanText = text;
         return;
     }
 
-    html += "<p>Found <strong>" + String(count) + "</strong> lights:</p>";
+    html += "<p>Es wurden <strong>" + String(count) + "</strong> Leuchten gefunden:</p>";
     for (int i = 0; i < count; i++)
     {
         html += "<div class='light'>";
-        html += "<strong>Light " + String(i + 1) + ":</strong> " + String(lights[i].name.c_str()) + "<br>";
+        html += "<strong>Leuchte " + String(i + 1) + ":</strong> " + String(lights[i].name.c_str()) + "<br>";
         html += "<span class='light-id'>ID: " + String(lights[i].id.c_str()) + "</span><br>";
-        html += "<span class='status'>Status: " + String(lights[i].on ? "ON" : "OFF");
+        html += "<span class='status'>Status: " + String(lights[i].on ? "EIN" : "AUS");
         String roomName = lights[i].room.length() ? lights[i].room : "-";
         String zoneName = lights[i].zone.length() ? lights[i].zone : "-";
-        html += " | Brightness: " + String(lights[i].brightness) + "/254";
-        html += " | Room: " + roomName + " | Zone: " + zoneName + "</span>";
+        html += " | Helligkeit: " + String(lights[i].brightness) + "/254";
+        html += " | Raum: " + roomName + " | Zone: " + zoneName + "</span>";
         html += "</div>";
 
         text += String(i + 1) + ") " + lights[i].name + "\n";
         text += "    ID: " + lights[i].id + "\n";
-        text += "    Status: " + String(lights[i].on ? "ON" : "OFF");
-        text += " | Brightness: " + String(lights[i].brightness) + "/254";
-        text += " | Room: " + roomName + " | Zone: " + zoneName + "\n";
+        text += "    Status: " + String(lights[i].on ? "EIN" : "AUS");
+        text += " | Helligkeit: " + String(lights[i].brightness) + "/254";
+        text += " | Raum: " + roomName + " | Zone: " + zoneName + "\n";
     }
 
-    html += "<br><p><strong>Tip:</strong> Copy the Light ID and paste it into ETS channel parameters.</p>";
-    html += "<button onclick='location.reload()'>Refresh</button>";
-    html += "<a href='" + hueBaseUri + "/scan.txt'><button>Download TXT</button></a>";
-    html += "<a href='" + hueBaseUri + "'><button>Back</button></a>";
+    html += "<br><p><strong>Tipp:</strong> Die Leuchten-ID kopieren und in die ETS-Kanalparameter einfügen.</p>";
+    html += "<button onclick='location.reload()'>Aktualisieren</button>";
+    html += "<a href='" + hueBaseUri + "/scan.txt'><button>TXT herunterladen</button></a>";
+    html += "<a href='" + hueBaseUri + "'><button>Zurück</button></a>";
     html += "</body></html>";
 
     _lastWebScanLightCount = count;

@@ -259,6 +259,89 @@ bool HueGatewayClient::setLightState(const String& lightId, bool on, uint8_t bri
     }
 }
 
+bool HueGatewayClient::setLightDimmingDelta(const String& lightId, bool brighter, uint8_t steps)
+{
+    if (!_initialized)
+        return false;
+
+    if (steps == 0)
+    {
+        return stopLightDimming(lightId);
+    }
+
+    if (steps > 7)
+    {
+        steps = 7;
+    }
+
+    // Keep legacy step feeling: historically one KNX step changed about 10/254.
+    // 10/254 * 100 ~= 3.94, rounded to 4.0% per step.
+    float brightnessDeltaPct = static_cast<float>(steps) * 4.0f;
+    if (brightnessDeltaPct < 0.1f)
+    {
+        brightnessDeltaPct = 0.1f;
+    }
+    if (brightnessDeltaPct > 100.0f)
+    {
+        brightnessDeltaPct = 100.0f;
+    }
+
+    String endpoint = "/clip/v2/resource/light/" + lightId;
+
+    DynamicJsonDocument doc(256);
+    doc["dimming_delta"]["action"] = brighter ? "up" : "down";
+    doc["dimming_delta"]["brightness_delta"] = brightnessDeltaPct;
+
+    // Ensure "dim up" from OFF can activate the light similar to KNX behavior.
+    if (brighter)
+    {
+        doc["on"]["on"] = true;
+    }
+
+    String payload;
+    serializeJson(doc, payload);
+
+    int statusCode = httpPut(endpoint, payload);
+
+    if (statusCode == 200)
+    {
+        Serial.printf("[HueGatewayClient] Light %s -> Dimming delta: %s %u step(s) (%.1f%%)\n",
+                      lightId.c_str(),
+                      brighter ? "up" : "down",
+                      static_cast<unsigned>(steps),
+                      brightnessDeltaPct);
+        return true;
+    }
+
+    Serial.printf("[HueGatewayClient] ERROR: PUT dimming_delta failed - HTTP %d\n", statusCode);
+    return false;
+}
+
+bool HueGatewayClient::stopLightDimming(const String& lightId)
+{
+    if (!_initialized)
+        return false;
+
+    String endpoint = "/clip/v2/resource/light/" + lightId;
+
+    DynamicJsonDocument doc(160);
+    doc["dimming_delta"]["action"] = "stop";
+
+    String payload;
+    serializeJson(doc, payload);
+
+    int statusCode = httpPut(endpoint, payload);
+
+    if (statusCode == 200)
+    {
+        Serial.printf("[HueGatewayClient] Light %s -> Dimming stop\n", lightId.c_str());
+        return true;
+    }
+
+    Serial.printf("[HueGatewayClient] ERROR: PUT dimming stop failed - HTTP %d\n", statusCode);
+    return false;
+}
+
 bool HueGatewayClient::setLightStateWithColorTemp(const String& lightId, bool on, uint8_t brightness, 
                                                    uint16_t mirek, uint8_t fadeDurationSec)
 {

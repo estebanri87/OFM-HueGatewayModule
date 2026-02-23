@@ -96,6 +96,22 @@ public:
     * @return true on success
      */
     bool setLightState(const String& lightId, bool on, uint8_t brightness);
+
+    /**
+    * @brief Applies relative dimming delta to a light.
+    * @param lightId Light Resource ID
+    * @param brighter true = up, false = down
+    * @param steps KNX 3.007 step count (1-7)
+    * @return true on success
+     */
+    bool setLightDimmingDelta(const String& lightId, bool brighter, uint8_t steps);
+
+    /**
+    * @brief Stops an active relative dimming action on the light.
+    * @param lightId Light Resource ID
+    * @return true on success
+     */
+    bool stopLightDimming(const String& lightId);
     
     /**
     * @brief Sets on/off, brightness, and color temperature with fade duration.

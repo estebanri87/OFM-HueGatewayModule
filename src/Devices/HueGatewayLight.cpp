@@ -153,42 +153,36 @@ void HueGatewayLight::processKnxDimming(uint8_t control)
         Serial.printf("[HueGatewayLight] %s - KNX Dimming STOP\n", _name.c_str());
         return;
     }
-    
-    // Compute brightness delta.
-    // Approx. 10 units per step (254/25 ~= 10).
-    int16_t brightnessChange = steps * 10;  // 10 units per step
-    
+
+    int16_t brightnessChange = static_cast<int16_t>(steps) * 10;
     if (!brighter)
         brightnessChange = -brightnessChange;
-    
-    // Compute new brightness with explicit clamping.
-    int16_t newBrightness = _brightness + brightnessChange;
-    if (newBrightness < 0) newBrightness = 0;
-    if (newBrightness > 254) newBrightness = 254;
-    
-    _brightness = (uint8_t)newBrightness;
+
+    int16_t newBrightness = static_cast<int16_t>(_brightness) + brightnessChange;
+    if (newBrightness < 0)
+        newBrightness = 0;
+    if (newBrightness > 254)
+        newBrightness = 254;
+
+    _brightness = static_cast<uint8_t>(newBrightness);
 
     if (_brightness > 0 && _brightness < _minBrightnessHue)
     {
         _brightness = _minBrightnessHue;
     }
-    
-    Serial.printf("[HueGatewayLight] %s - KNX Dimming: %s %d steps -> Brightness: %d\n",
-                  _name.c_str(), brighter ? "BRIGHTER" : "DARKER", steps, _brightness);
-    
-    // Auto-turn on when dimming results in brightness > 0.
+
+    Serial.printf("[HueGatewayLight] %s - KNX Dimming: %s %u steps -> Cached Brightness: %u\n",
+                  _name.c_str(), brighter ? "BRIGHTER" : "DARKER", static_cast<unsigned>(steps), static_cast<unsigned>(_brightness));
+
     if (_brightness > 0 && !_on)
     {
         _on = true;
-        Serial.printf("[HueGatewayLight] %s - Auto-on due to dimming to > 0\n", _name.c_str());
     }
-    // Auto-turn off when dimming reaches 0.
     else if (_brightness == 0 && _on)
     {
         _on = false;
-        Serial.printf("[HueGatewayLight] %s - Auto-off due to dimming to 0\n", _name.c_str());
     }
-    
+
     sendToHue();
 }
 
