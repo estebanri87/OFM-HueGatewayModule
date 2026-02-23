@@ -2,6 +2,24 @@
 #include <cstring>
 #include <math.h>
 
+namespace
+{
+float dimmingStepCodeToPercent(uint8_t stepCode)
+{
+    switch (stepCode)
+    {
+        case 1: return 100.0f;
+        case 2: return 50.0f;
+        case 3: return 25.0f;
+        case 4: return 12.5f;
+        case 5: return 6.25f;
+        case 6: return 3.125f;
+        case 7: return 1.5625f;
+        default: return 0.0f;
+    }
+}
+}
+
 HueGatewayClient::HueGatewayClient()
     : _initialized(false)
     , _eventStreamConnected(false)
@@ -274,9 +292,9 @@ bool HueGatewayClient::setLightDimmingDelta(const String& lightId, bool brighter
         steps = 7;
     }
 
-    // Keep legacy step feeling: historically one KNX step changed about 10/254.
-    // 10/254 * 100 ~= 3.94, rounded to 4.0% per step.
-    float brightnessDeltaPct = static_cast<float>(steps) * 4.0f;
+    // KNX DPT 3.007 step code mapping (Control Dimming):
+    // 1=100%, 2=50%, 3=25%, 4=12.5%, 5=6.25%, 6=3.125%, 7=1.5625%
+    float brightnessDeltaPct = dimmingStepCodeToPercent(steps);
     if (brightnessDeltaPct < 0.1f)
     {
         brightnessDeltaPct = 0.1f;

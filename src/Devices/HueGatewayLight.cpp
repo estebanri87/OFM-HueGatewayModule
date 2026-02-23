@@ -4,6 +4,24 @@
 #include <knx.h>
 #include <math.h>
 
+namespace
+{
+float dimmingStepCodeToPercent(uint8_t stepCode)
+{
+    switch (stepCode)
+    {
+        case 1: return 100.0f;
+        case 2: return 50.0f;
+        case 3: return 25.0f;
+        case 4: return 12.5f;
+        case 5: return 6.25f;
+        case 6: return 3.125f;
+        case 7: return 1.5625f;
+        default: return 0.0f;
+    }
+}
+}
+
 HueGatewayLight::HueGatewayLight(const String& lightId, const String& name, HueGatewayClient* client)
     : _lightId(lightId)
     , _name(name)
@@ -31,6 +49,9 @@ HueGatewayLight::HueGatewayLight(const String& lightId, const String& name, HueG
     , _lastHCLBrightness(0)
     , _initialized(false)
     , _lastUpdate(0)
+    , _lastRelativeDimCmdMs(0)
+    , _relativeDimCooldownUntilMs(0)
+    , _relativeDimErrorStreak(0)
 {
 }
 
@@ -146,15 +167,72 @@ void HueGatewayLight::processKnxDimming(uint8_t control)
     
     uint8_t steps = control & 0x07;  // Bits 0-2
     bool brighter = (control & 0x08) != 0;  // Bit 3
+    unsigned long nowMs = millis();
+
+    // Debounce very fast telegram bursts to reduce API pressure.
+    if ((nowMs - _lastRelativeDimCmdMs) < 100UL)
+    {
+        return;
+    }
+    _lastRelativeDimCmdMs = nowMs;
     
     // Ignore stop telegram (0 steps).
     if (steps == 0)
     {
         Serial.printf("[HueGatewayLight] %s - KNX Dimming STOP\n", _name.c_str());
+
+        if (!_client->stopLightDimming(_lightId))
+        {
+            _relativeDimErrorStreak = min<uint8_t>(static_cast<uint8_t>(_relativeDimErrorStreak + 1), static_cast<uint8_t>(10));
+            if (_relativeDimErrorStreak >= 3)
+            {
+                _relativeDimCooldownUntilMs = nowMs + 5000UL;
+                Serial.printf("[HueGatewayLight] %s - Relative dimming disabled for 5s after stop errors\n", _name.c_str());
+            }
+        }
+        else
+        {
+            _relativeDimErrorStreak = 0;
+            _relativeDimCooldownUntilMs = 0;
+        }
         return;
     }
 
-    int16_t brightnessChange = static_cast<int16_t>(steps) * 10;
+    // Use relative delta API when healthy, otherwise fallback to stable legacy path.
+    if (_relativeDimCooldownUntilMs == 0 || nowMs >= _relativeDimCooldownUntilMs)
+    {
+        if (_client->setLightDimmingDelta(_lightId, brighter, steps))
+        {
+            _relativeDimErrorStreak = 0;
+            _relativeDimCooldownUntilMs = 0;
+            applyRelativeDimmingCache(brighter, steps);
+            return;
+        }
+
+        _relativeDimErrorStreak = min<uint8_t>(static_cast<uint8_t>(_relativeDimErrorStreak + 1), static_cast<uint8_t>(10));
+        if (_relativeDimErrorStreak >= 3)
+        {
+            _relativeDimCooldownUntilMs = nowMs + 5000UL;
+            Serial.printf("[HueGatewayLight] %s - Relative dimming disabled for 5s, falling back to legacy\n", _name.c_str());
+        }
+    }
+
+    applyRelativeDimmingLegacy(brighter, steps);
+}
+
+void HueGatewayLight::applyRelativeDimmingLegacy(bool brighter, uint8_t steps)
+{
+    applyRelativeDimmingCache(brighter, steps);
+    sendToHue();
+}
+
+void HueGatewayLight::applyRelativeDimmingCache(bool brighter, uint8_t steps)
+{
+    float deltaPercent = dimmingStepCodeToPercent(steps);
+    int16_t brightnessChange = static_cast<int16_t>(roundf((deltaPercent / 100.0f) * 254.0f));
+    if (brightnessChange < 1)
+        brightnessChange = 1;
+
     if (!brighter)
         brightnessChange = -brightnessChange;
 
@@ -171,8 +249,12 @@ void HueGatewayLight::processKnxDimming(uint8_t control)
         _brightness = _minBrightnessHue;
     }
 
-    Serial.printf("[HueGatewayLight] %s - KNX Dimming: %s %u steps -> Cached Brightness: %u\n",
-                  _name.c_str(), brighter ? "BRIGHTER" : "DARKER", static_cast<unsigned>(steps), static_cast<unsigned>(_brightness));
+    Serial.printf("[HueGatewayLight] %s - KNX Dimming: %s stepCode=%u (%.3f%%) -> Cached Brightness: %u\n",
+                  _name.c_str(),
+                  brighter ? "BRIGHTER" : "DARKER",
+                  static_cast<unsigned>(steps),
+                  deltaPercent,
+                  static_cast<unsigned>(_brightness));
 
     if (_brightness > 0 && !_on)
     {
@@ -182,8 +264,6 @@ void HueGatewayLight::processKnxDimming(uint8_t control)
     {
         _on = false;
     }
-
-    sendToHue();
 }
 
 void HueGatewayLight::processKnxColorTemp(uint16_t kelvin)

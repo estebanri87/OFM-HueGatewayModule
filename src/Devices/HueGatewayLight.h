@@ -170,6 +170,9 @@ private:
     // Lifecycle flags.
     bool _initialized;
     unsigned long _lastUpdate;
+    unsigned long _lastRelativeDimCmdMs;
+    unsigned long _relativeDimCooldownUntilMs;
+    uint8_t _relativeDimErrorStreak;
     
     /**
     * @brief Sends current on/brightness state to Hue Bridge.
@@ -182,6 +185,8 @@ private:
     * @param fadeDuration Transition duration in seconds (0 = immediate)
      */
     void sendToHueWithColorTemp(uint16_t kelvin, uint8_t fadeDuration = 0);
+    void applyRelativeDimmingLegacy(bool brighter, uint8_t steps);
+    void applyRelativeDimmingCache(bool brighter, uint8_t steps);
     
     /**
     * @brief Converts Kelvin to mirek (micro reciprocal kelvin).

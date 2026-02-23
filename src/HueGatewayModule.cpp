@@ -412,7 +412,9 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
         }
         case 2:  // Dimming KO (relativ)
         {
-            uint8_t value = ko.value(Dpt(3, 7));
+            uint8_t controlBit = ko.value(Dpt(3, 7, 0));
+            uint8_t stepCode = ko.value(Dpt(3, 7, 1));
+            uint8_t value = static_cast<uint8_t>(((controlBit & 0x01) << 3) | (stepCode & 0x07));
             _lights[channel]->processKnxDimming(value);
             break;
         }
