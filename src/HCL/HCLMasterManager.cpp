@@ -7,6 +7,7 @@ MasterManager masterManager;
 
 MasterManager::MasterManager()
     : _enabled(false)
+    , _applyBlocked(false)
     , _updateIntervalMs(60000)  // Default: 60 seconds
     , _fadeDurationSec(5)       // Default: 5 seconds
     , _lastUpdateMs(0)
@@ -15,6 +16,7 @@ MasterManager::MasterManager()
     // Initialize current values to defaults
     for (uint8_t i = 0; i < MAX_MASTERS; i++) {
         _currentValues[i] = InterpolatedValue(4000, 100);
+        _masterApplyBlocked[i] = false;
     }
 }
 
@@ -52,6 +54,26 @@ InterpolatedValue MasterManager::getCurrentValue(uint8_t masterNum) const {
     }
     
     return _currentValues[masterNum - 1];
+}
+
+void MasterManager::setMasterApplyBlocked(uint8_t masterNum, bool blocked)
+{
+    if (masterNum < 1 || masterNum > MAX_MASTERS)
+    {
+        return;
+    }
+
+    _masterApplyBlocked[masterNum - 1] = blocked;
+}
+
+bool MasterManager::isMasterApplyBlocked(uint8_t masterNum) const
+{
+    if (masterNum < 1 || masterNum > MAX_MASTERS)
+    {
+        return false;
+    }
+
+    return _masterApplyBlocked[masterNum - 1];
 }
 
 void MasterManager::forceUpdate() {

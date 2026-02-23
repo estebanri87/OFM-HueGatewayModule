@@ -96,6 +96,11 @@ HueGatewayModule::HueGatewayModule()
     , _webScanInProgress(false)
     , _lastWebScanMs(0)
     , _lastWebScanLightCount(-1)
+    , _hclLockActive(false)
+    , _hclLockFallbackMode(static_cast<uint8_t>(HueGatewayModule::HclLockFallbackMode::None))
+    , _hclLockActivatedMs(0)
+    , _hclLockAutoReleaseMs(0)
+    , _hclLockActivationDayOfYear(-1)
 {
     // Light-Array initialisieren
     for (int i = 0; i < MAX_LIGHTS; i++)
@@ -105,6 +110,18 @@ HueGatewayModule::HueGatewayModule()
         _channelFastTrackNextMs[i] = 0;
         _channelFastTrackCooldownUntilMs[i] = 0;
         _channelFastTrackRemaining[i] = 0;
+    }
+
+    for (uint8_t i = 0; i < HCL::MasterManager::MAX_MASTERS; i++)
+    {
+        _hclManagerLockActive[i] = false;
+        _hclManagerLockFallbackMode[i] = static_cast<uint8_t>(HclLockFallbackMode::None);
+        _hclManagerLockActivatedMs[i] = 0;
+        _hclManagerLockAutoReleaseMs[i] = 0;
+        _hclManagerLockActivationDayOfYear[i] = -1;
+        _hclLastPublishedKelvin[i] = 0;
+        _hclLastPublishedBrightness[i] = 0;
+        _hclMasterValuesPublished[i] = false;
     }
 
     _lastWebScanHtml = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Hue-Geräte laden</title></head><body><h1>🔍 Hue-Geräte laden</h1><p>Noch kein Scan durchgeführt.</p></body></html>";
@@ -153,10 +170,15 @@ void HueGatewayModule::loop()
     
     // Update HCL Manager with current time
     struct tm timeinfo;
-    if (getLocalTime(&timeinfo, 0)) {
+    const bool hasTime = getLocalTime(&timeinfo, 0);
+    if (hasTime) {
         uint16_t currentMinutes = timeinfo.tm_hour * 60 + timeinfo.tm_min;
         HCL::masterManager.loop(currentMinutes);
     }
+
+    evaluateHclLockFallback(hasTime ? &timeinfo : nullptr, hasTime);
+    evaluateHclManagerLockFallback(hasTime ? &timeinfo : nullptr, hasTime);
+    publishHclMasterValues();
     
     // Update all lights with HCL loop
     for (int i = 0; i < MAX_LIGHTS; i++)
@@ -359,6 +381,44 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
         _pairingTriggerLastState = trigger;
         return;
     }
+
+    #ifdef HUE_KoHUEHCLLock
+    if (koNumber == HUE_KoHUEHCLLock)
+    {
+        bool lockRequest = ko.value(Dpt(1, 1));
+        setHclLock(lockRequest, "KO");
+        return;
+    }
+    #endif
+
+    #ifdef HUE_KoHUEHCLM1Lock
+    if (koNumber == HUE_KoHUEHCLM1Lock)
+    {
+        setHclManagerLock(1, ko.value(Dpt(1, 1)), "KO");
+        return;
+    }
+    #endif
+    #ifdef HUE_KoHUEHCLM2Lock
+    if (koNumber == HUE_KoHUEHCLM2Lock)
+    {
+        setHclManagerLock(2, ko.value(Dpt(1, 1)), "KO");
+        return;
+    }
+    #endif
+    #ifdef HUE_KoHUEHCLM3Lock
+    if (koNumber == HUE_KoHUEHCLM3Lock)
+    {
+        setHclManagerLock(3, ko.value(Dpt(1, 1)), "KO");
+        return;
+    }
+    #endif
+    #ifdef HUE_KoHUEHCLM4Lock
+    if (koNumber == HUE_KoHUEHCLM4Lock)
+    {
+        setHclManagerLock(4, ko.value(Dpt(1, 1)), "KO");
+        return;
+    }
+    #endif
 
     if (koNumber < HUE_KoBlockOffset)
     {
@@ -1174,6 +1234,11 @@ void HueGatewayModule::setupDevices()
 void HueGatewayModule::setupHCL()
 {
     Serial.println("[HueGatewayModule] Setting up HCL...");
+    setHclLock(false, "setup");
+    for (uint8_t manager = 1; manager <= HCL::MasterManager::MAX_MASTERS; manager++)
+    {
+        setHclManagerLock(manager, false, "setup");
+    }
     
     // Check if HCL is enabled
     #ifdef ParamHUE_HUEHCLEnable
@@ -1184,12 +1249,57 @@ void HueGatewayModule::setupHCL()
     
     if (!hclEnabled) {
         Serial.println("[HueGatewayModule] HCL disabled");
+        HCL::masterManager.setEnabled(false);
         return;
     }
     
     Serial.println("[HueGatewayModule] HCL enabled");
     HCL::masterManager.setEnabled(true);
-    
+
+    #ifdef ParamHUE_HUEHCLLockFallback
+    _hclLockFallbackMode = ParamHUE_HUEHCLLockFallback;
+    #else
+    _hclLockFallbackMode = static_cast<uint8_t>(HclLockFallbackMode::None);
+    #endif
+
+    #ifdef ParamHUE_HUEHCLLockFallbackEnable
+    if (ParamHUE_HUEHCLLockFallbackEnable == 0)
+    {
+        _hclLockFallbackMode = static_cast<uint8_t>(HclLockFallbackMode::None);
+    }
+    #endif
+
+    _hclManagerLockFallbackMode[0] = static_cast<uint8_t>(HclLockFallbackMode::None);
+    _hclManagerLockFallbackMode[1] = static_cast<uint8_t>(HclLockFallbackMode::None);
+    _hclManagerLockFallbackMode[2] = static_cast<uint8_t>(HclLockFallbackMode::None);
+    _hclManagerLockFallbackMode[3] = static_cast<uint8_t>(HclLockFallbackMode::None);
+
+    #ifdef ParamHUE_HUEHCLM1LockFallback
+    _hclManagerLockFallbackMode[0] = ParamHUE_HUEHCLM1LockFallback;
+    #endif
+    #ifdef ParamHUE_HUEHCLM2LockFallback
+    _hclManagerLockFallbackMode[1] = ParamHUE_HUEHCLM2LockFallback;
+    #endif
+    #ifdef ParamHUE_HUEHCLM3LockFallback
+    _hclManagerLockFallbackMode[2] = ParamHUE_HUEHCLM3LockFallback;
+    #endif
+    #ifdef ParamHUE_HUEHCLM4LockFallback
+    _hclManagerLockFallbackMode[3] = ParamHUE_HUEHCLM4LockFallback;
+    #endif
+
+    #ifdef ParamHUE_HUEHCLM1LockFallbackEnable
+    if (ParamHUE_HUEHCLM1LockFallbackEnable == 0) _hclManagerLockFallbackMode[0] = static_cast<uint8_t>(HclLockFallbackMode::None);
+    #endif
+    #ifdef ParamHUE_HUEHCLM2LockFallbackEnable
+    if (ParamHUE_HUEHCLM2LockFallbackEnable == 0) _hclManagerLockFallbackMode[1] = static_cast<uint8_t>(HclLockFallbackMode::None);
+    #endif
+    #ifdef ParamHUE_HUEHCLM3LockFallbackEnable
+    if (ParamHUE_HUEHCLM3LockFallbackEnable == 0) _hclManagerLockFallbackMode[2] = static_cast<uint8_t>(HclLockFallbackMode::None);
+    #endif
+    #ifdef ParamHUE_HUEHCLM4LockFallbackEnable
+    if (ParamHUE_HUEHCLM4LockFallbackEnable == 0) _hclManagerLockFallbackMode[3] = static_cast<uint8_t>(HclLockFallbackMode::None);
+    #endif
+
     // Read HCL configuration from ETS
     #ifdef ParamHUE_HUEHCLUpdateInterval
     uint16_t updateInterval = ParamHUE_HUEHCLUpdateInterval;
@@ -1442,6 +1552,7 @@ void HueGatewayModule::setupHCL()
     #endif
     
     HCL::masterManager.setup();
+    publishHclMasterValues();
     Serial.println("[HueGatewayModule] HCL setup complete");
 }
 
@@ -1671,6 +1782,342 @@ uint8_t HueGatewayModule::countEnabledChannels() const
     }
 
     return enabled;
+}
+
+const char* HueGatewayModule::hclFallbackModeToText(HclLockFallbackMode mode)
+{
+    switch (mode)
+    {
+        case HclLockFallbackMode::None: return "kein Rueckfall";
+        case HclLockFallbackMode::Min1: return "1 min";
+        case HclLockFallbackMode::Min2: return "2 min";
+        case HclLockFallbackMode::Min5: return "5 min";
+        case HclLockFallbackMode::Min10: return "10 min";
+        case HclLockFallbackMode::Min20: return "20 min";
+        case HclLockFallbackMode::Min30: return "30 min";
+        case HclLockFallbackMode::Hour1: return "1 h";
+        case HclLockFallbackMode::Hour2: return "2 h";
+        case HclLockFallbackMode::Hour5: return "5 h";
+        case HclLockFallbackMode::Hour8: return "8 h";
+        case HclLockFallbackMode::Hour12: return "12 h";
+        case HclLockFallbackMode::NextDay: return "Tageswechsel";
+        default: return "unbekannt";
+    }
+}
+
+uint32_t HueGatewayModule::getHclFallbackDurationMs(HclLockFallbackMode mode) const
+{
+    switch (mode)
+    {
+        case HclLockFallbackMode::Min1: return 1UL * 60UL * 1000UL;
+        case HclLockFallbackMode::Min2: return 2UL * 60UL * 1000UL;
+        case HclLockFallbackMode::Min5: return 5UL * 60UL * 1000UL;
+        case HclLockFallbackMode::Min10: return 10UL * 60UL * 1000UL;
+        case HclLockFallbackMode::Min20: return 20UL * 60UL * 1000UL;
+        case HclLockFallbackMode::Min30: return 30UL * 60UL * 1000UL;
+        case HclLockFallbackMode::Hour1: return 1UL * 60UL * 60UL * 1000UL;
+        case HclLockFallbackMode::Hour2: return 2UL * 60UL * 60UL * 1000UL;
+        case HclLockFallbackMode::Hour5: return 5UL * 60UL * 60UL * 1000UL;
+        case HclLockFallbackMode::Hour8: return 8UL * 60UL * 60UL * 1000UL;
+        case HclLockFallbackMode::Hour12: return 12UL * 60UL * 60UL * 1000UL;
+        default: return 0;
+    }
+}
+
+void HueGatewayModule::publishHclLockStatus()
+{
+    #ifdef HUE_KoHUEHCLLockStatus
+    knx.getGroupObject(HUE_KoHUEHCLLockStatus).value(_hclLockActive, Dpt(1, 1));
+    #endif
+}
+
+void HueGatewayModule::publishHclManagerLockStatus(uint8_t managerNumber)
+{
+    if (managerNumber < 1 || managerNumber > HCL::MasterManager::MAX_MASTERS)
+    {
+        return;
+    }
+
+    const bool active = _hclManagerLockActive[managerNumber - 1];
+    switch (managerNumber)
+    {
+        case 1:
+            #ifdef HUE_KoHUEHCLM1LockStatus
+            knx.getGroupObject(HUE_KoHUEHCLM1LockStatus).value(active, Dpt(1, 1));
+            #endif
+            break;
+        case 2:
+            #ifdef HUE_KoHUEHCLM2LockStatus
+            knx.getGroupObject(HUE_KoHUEHCLM2LockStatus).value(active, Dpt(1, 1));
+            #endif
+            break;
+        case 3:
+            #ifdef HUE_KoHUEHCLM3LockStatus
+            knx.getGroupObject(HUE_KoHUEHCLM3LockStatus).value(active, Dpt(1, 1));
+            #endif
+            break;
+        case 4:
+            #ifdef HUE_KoHUEHCLM4LockStatus
+            knx.getGroupObject(HUE_KoHUEHCLM4LockStatus).value(active, Dpt(1, 1));
+            #endif
+            break;
+        default:
+            break;
+    }
+}
+
+void HueGatewayModule::setHclLock(bool active, const char* reason)
+{
+    const bool changed = (_hclLockActive != active);
+
+    _hclLockActive = active;
+    HCL::masterManager.setApplyBlocked(active);
+
+    if (_hclLockActive)
+    {
+        _hclLockActivatedMs = millis();
+        _hclLockAutoReleaseMs = 0;
+        _hclLockActivationDayOfYear = -1;
+
+        const HclLockFallbackMode fallbackMode = static_cast<HclLockFallbackMode>(_hclLockFallbackMode);
+        const uint32_t durationMs = getHclFallbackDurationMs(fallbackMode);
+        if (durationMs > 0)
+        {
+            _hclLockAutoReleaseMs = _hclLockActivatedMs + durationMs;
+        }
+
+        struct tm timeinfo;
+        if (getLocalTime(&timeinfo, 0))
+        {
+            _hclLockActivationDayOfYear = static_cast<int16_t>(timeinfo.tm_yday);
+        }
+
+        if (changed)
+        {
+            Serial.printf("[HueGatewayModule] HCL lock enabled (%s), fallback=%s\n",
+                          reason ? reason : "n/a",
+                          hclFallbackModeToText(fallbackMode));
+        }
+    }
+    else
+    {
+        _hclLockActivatedMs = 0;
+        _hclLockAutoReleaseMs = 0;
+        _hclLockActivationDayOfYear = -1;
+        if (changed)
+        {
+            Serial.printf("[HueGatewayModule] HCL lock disabled (%s)\n", reason ? reason : "n/a");
+        }
+    }
+
+    publishHclLockStatus();
+}
+
+void HueGatewayModule::setHclManagerLock(uint8_t managerNumber, bool active, const char* reason)
+{
+    if (managerNumber < 1 || managerNumber > HCL::MasterManager::MAX_MASTERS)
+    {
+        return;
+    }
+
+    const uint8_t idx = static_cast<uint8_t>(managerNumber - 1);
+    const bool changed = (_hclManagerLockActive[idx] != active);
+
+    _hclManagerLockActive[idx] = active;
+    HCL::masterManager.setMasterApplyBlocked(managerNumber, active);
+
+    if (active)
+    {
+        _hclManagerLockActivatedMs[idx] = millis();
+        _hclManagerLockAutoReleaseMs[idx] = 0;
+        _hclManagerLockActivationDayOfYear[idx] = -1;
+
+        const HclLockFallbackMode fallbackMode = static_cast<HclLockFallbackMode>(_hclManagerLockFallbackMode[idx]);
+        const uint32_t durationMs = getHclFallbackDurationMs(fallbackMode);
+        if (durationMs > 0)
+        {
+            _hclManagerLockAutoReleaseMs[idx] = _hclManagerLockActivatedMs[idx] + durationMs;
+        }
+
+        struct tm timeinfo;
+        if (getLocalTime(&timeinfo, 0))
+        {
+            _hclManagerLockActivationDayOfYear[idx] = static_cast<int16_t>(timeinfo.tm_yday);
+        }
+
+        if (changed)
+        {
+            Serial.printf("[HueGatewayModule] HCL manager %u lock enabled (%s), fallback=%s\n",
+                          static_cast<unsigned>(managerNumber),
+                          reason ? reason : "n/a",
+                          hclFallbackModeToText(fallbackMode));
+        }
+    }
+    else
+    {
+        _hclManagerLockActivatedMs[idx] = 0;
+        _hclManagerLockAutoReleaseMs[idx] = 0;
+        _hclManagerLockActivationDayOfYear[idx] = -1;
+        if (changed)
+        {
+            Serial.printf("[HueGatewayModule] HCL manager %u lock disabled (%s)\n",
+                          static_cast<unsigned>(managerNumber),
+                          reason ? reason : "n/a");
+        }
+    }
+
+    publishHclManagerLockStatus(managerNumber);
+}
+
+void HueGatewayModule::evaluateHclLockFallback(const tm* timeinfo, bool hasTime)
+{
+    if (!_hclLockActive)
+    {
+        return;
+    }
+
+    const HclLockFallbackMode fallbackMode = static_cast<HclLockFallbackMode>(_hclLockFallbackMode);
+    if (fallbackMode == HclLockFallbackMode::None)
+    {
+        return;
+    }
+
+    if (_hclLockAutoReleaseMs != 0)
+    {
+        const unsigned long nowMs = millis();
+        if (static_cast<long>(nowMs - _hclLockAutoReleaseMs) >= 0)
+        {
+            setHclLock(false, "fallback duration elapsed");
+        }
+        return;
+    }
+
+    if (fallbackMode == HclLockFallbackMode::NextDay && hasTime && timeinfo != nullptr)
+    {
+        if (_hclLockActivationDayOfYear >= 0 && timeinfo->tm_yday != _hclLockActivationDayOfYear)
+        {
+            setHclLock(false, "fallback day change");
+        }
+    }
+}
+
+void HueGatewayModule::evaluateHclManagerLockFallback(const tm* timeinfo, bool hasTime)
+{
+    for (uint8_t managerNumber = 1; managerNumber <= HCL::MasterManager::MAX_MASTERS; managerNumber++)
+    {
+        const uint8_t idx = static_cast<uint8_t>(managerNumber - 1);
+        if (!_hclManagerLockActive[idx])
+        {
+            continue;
+        }
+
+        const HclLockFallbackMode fallbackMode = static_cast<HclLockFallbackMode>(_hclManagerLockFallbackMode[idx]);
+        if (fallbackMode == HclLockFallbackMode::None)
+        {
+            continue;
+        }
+
+        if (_hclManagerLockAutoReleaseMs[idx] != 0)
+        {
+            const unsigned long nowMs = millis();
+            if (static_cast<long>(nowMs - _hclManagerLockAutoReleaseMs[idx]) >= 0)
+            {
+                setHclManagerLock(managerNumber, false, "fallback duration elapsed");
+            }
+            continue;
+        }
+
+        if (fallbackMode == HclLockFallbackMode::NextDay && hasTime && timeinfo != nullptr)
+        {
+            if (_hclManagerLockActivationDayOfYear[idx] >= 0
+                && timeinfo->tm_yday != _hclManagerLockActivationDayOfYear[idx])
+            {
+                setHclManagerLock(managerNumber, false, "fallback day change");
+            }
+        }
+    }
+}
+
+void HueGatewayModule::publishHclMasterValues()
+{
+    #ifdef ParamHUE_HUEHCLEnable
+    if (ParamHUE_HUEHCLEnable == 0)
+    {
+        return;
+    }
+    #endif
+
+    uint8_t masterCount = 4;
+    #ifdef ParamHUE_HUEHCLMasterCount
+    masterCount = ParamHUE_HUEHCLMasterCount;
+    if (masterCount > 4)
+    {
+        masterCount = 4;
+    }
+    #endif
+
+    for (uint8_t masterNumber = 1; masterNumber <= masterCount; masterNumber++)
+    {
+        HCL::Master* master = HCL::masterManager.getMaster(masterNumber);
+        if (!master || !master->isValid())
+        {
+            continue;
+        }
+
+        HCL::InterpolatedValue current = HCL::masterManager.getCurrentValue(masterNumber);
+        const uint8_t brightness = current.brightness;
+        const uint16_t kelvin = current.kelvin;
+        const uint8_t index = static_cast<uint8_t>(masterNumber - 1);
+
+        if (_hclMasterValuesPublished[index] &&
+            _hclLastPublishedBrightness[index] == brightness &&
+            _hclLastPublishedKelvin[index] == kelvin)
+        {
+            continue;
+        }
+
+        switch (masterNumber)
+        {
+            case 1:
+                #ifdef HUE_KoHUEHCLM1StatusBrightness
+                knx.getGroupObject(HUE_KoHUEHCLM1StatusBrightness).value(brightness, Dpt(5, 1));
+                #endif
+                #ifdef HUE_KoHUEHCLM1StatusColorTemp
+                knx.getGroupObject(HUE_KoHUEHCLM1StatusColorTemp).value(kelvin, Dpt(7, 600));
+                #endif
+                break;
+            case 2:
+                #ifdef HUE_KoHUEHCLM2StatusBrightness
+                knx.getGroupObject(HUE_KoHUEHCLM2StatusBrightness).value(brightness, Dpt(5, 1));
+                #endif
+                #ifdef HUE_KoHUEHCLM2StatusColorTemp
+                knx.getGroupObject(HUE_KoHUEHCLM2StatusColorTemp).value(kelvin, Dpt(7, 600));
+                #endif
+                break;
+            case 3:
+                #ifdef HUE_KoHUEHCLM3StatusBrightness
+                knx.getGroupObject(HUE_KoHUEHCLM3StatusBrightness).value(brightness, Dpt(5, 1));
+                #endif
+                #ifdef HUE_KoHUEHCLM3StatusColorTemp
+                knx.getGroupObject(HUE_KoHUEHCLM3StatusColorTemp).value(kelvin, Dpt(7, 600));
+                #endif
+                break;
+            case 4:
+                #ifdef HUE_KoHUEHCLM4StatusBrightness
+                knx.getGroupObject(HUE_KoHUEHCLM4StatusBrightness).value(brightness, Dpt(5, 1));
+                #endif
+                #ifdef HUE_KoHUEHCLM4StatusColorTemp
+                knx.getGroupObject(HUE_KoHUEHCLM4StatusColorTemp).value(kelvin, Dpt(7, 600));
+                #endif
+                break;
+            default:
+                break;
+        }
+
+        _hclLastPublishedBrightness[index] = brightness;
+        _hclLastPublishedKelvin[index] = kelvin;
+        _hclMasterValuesPublished[index] = true;
+    }
 }
 
 String HueGatewayModule::getBridgeIP()

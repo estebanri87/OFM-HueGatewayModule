@@ -39,6 +39,22 @@ public:
     void loop() override;
     void processInputKo(GroupObject& ko) override;
     bool processCommand(const std::string cmd, bool diagnoseKo) override;
+
+    enum class HclLockFallbackMode : uint8_t {
+        None = 0,
+        Min1 = 1,
+        Min2 = 2,
+        Min5 = 3,
+        Min10 = 4,
+        Min20 = 5,
+        Min30 = 6,
+        Hour1 = 7,
+        Hour2 = 8,
+        Hour5 = 9,
+        Hour8 = 10,
+        Hour12 = 11,
+        NextDay = 12
+    };
     
 private:
     bool _initialized;
@@ -97,6 +113,19 @@ private:
     int _lastWebScanLightCount;
     String _lastWebScanHtml;
     String _lastWebScanText;
+    bool _hclLockActive;
+    uint8_t _hclLockFallbackMode;
+    unsigned long _hclLockActivatedMs;
+    unsigned long _hclLockAutoReleaseMs;
+    int16_t _hclLockActivationDayOfYear;
+    bool _hclManagerLockActive[HCL::MasterManager::MAX_MASTERS];
+    uint8_t _hclManagerLockFallbackMode[HCL::MasterManager::MAX_MASTERS];
+    unsigned long _hclManagerLockActivatedMs[HCL::MasterManager::MAX_MASTERS];
+    unsigned long _hclManagerLockAutoReleaseMs[HCL::MasterManager::MAX_MASTERS];
+    int16_t _hclManagerLockActivationDayOfYear[HCL::MasterManager::MAX_MASTERS];
+    uint16_t _hclLastPublishedKelvin[HCL::MasterManager::MAX_MASTERS];
+    uint8_t _hclLastPublishedBrightness[HCL::MasterManager::MAX_MASTERS];
+    bool _hclMasterValuesPublished[HCL::MasterManager::MAX_MASTERS];
     
     void setupBridge();
     void setupDevices();
@@ -134,6 +163,15 @@ private:
     bool hasNetworkConnectivity() const;
     String getBridgeIP();
     uint8_t countEnabledChannels() const;
+    void setHclLock(bool active, const char* reason);
+    void publishHclLockStatus();
+    void setHclManagerLock(uint8_t managerNumber, bool active, const char* reason);
+    void publishHclManagerLockStatus(uint8_t managerNumber);
+    void publishHclMasterValues();
+    void evaluateHclLockFallback(const tm* timeinfo, bool hasTime);
+    void evaluateHclManagerLockFallback(const tm* timeinfo, bool hasTime);
+    uint32_t getHclFallbackDurationMs(HclLockFallbackMode mode) const;
+    static const char* hclFallbackModeToText(HclLockFallbackMode mode);
     
     // Status Methods
     void updateStatus(BridgeStatus status);

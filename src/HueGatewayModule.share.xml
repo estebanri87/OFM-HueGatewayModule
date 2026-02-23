@@ -41,10 +41,10 @@
               <!-- Lampentyp -->
               <ParameterType Id="%AID%_PT-HUELightType" Name="HUELightType">
                 <TypeRestriction Base="Value" SizeInBit="8" UIHint="DropDown">
-                  <Enumeration Text="Nur schalten (ein/aus)" Value="0" Id="%ENID%" />
-                  <Enumeration Text="Dimmbar" Value="1" Id="%ENID%" />
-                  <Enumeration Text="Farbtemperatur" Value="2" Id="%ENID%" />
-                  <Enumeration Text="Farbe (RGB)" Value="3" Id="%ENID%" />
+                  <Enumeration Text="Ein/Aus (On/Off)" Value="0" Id="%ENID%" />
+                  <Enumeration Text="Dimmbar (Dimmable)" Value="1" Id="%ENID%" />
+                  <Enumeration Text="Farbtemperatur (White Ambiance)" Value="2" Id="%ENID%" />
+                  <Enumeration Text="Farbe RGB (Color Ambiance)" Value="3" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
               
@@ -106,6 +106,33 @@
                 <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="1" maxInclusive="60" />
               </ParameterType>
 
+              <!-- HCL-Sperre: Rueckfall aktivieren -->
+              <ParameterType Id="%AID%_PT-HUEHCLLockFallbackEnable" Name="HUEHCLLockFallbackEnable">
+                <TypeRestriction Base="Value" SizeInBit="1" UIHint="DropDown">
+                  <Enumeration Text="Nein" Value="0" Id="%ENID%" />
+                  <Enumeration Text="Ja" Value="1" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+
+              <!-- HCL-Sperre: Rueckfallzeit -->
+              <ParameterType Id="%AID%_PT-HUEHCLLockFallback" Name="HUEHCLLockFallback">
+                <TypeRestriction Base="Value" SizeInBit="4" UIHint="DropDown">
+                  <Enumeration Text="kein Rückfall" Value="0" Id="%ENID%" />
+                  <Enumeration Text="1 min" Value="1" Id="%ENID%" />
+                  <Enumeration Text="2 min" Value="2" Id="%ENID%" />
+                  <Enumeration Text="5 min" Value="3" Id="%ENID%" />
+                  <Enumeration Text="10 min" Value="4" Id="%ENID%" />
+                  <Enumeration Text="20 min" Value="5" Id="%ENID%" />
+                  <Enumeration Text="30 min" Value="6" Id="%ENID%" />
+                  <Enumeration Text="1 h" Value="7" Id="%ENID%" />
+                  <Enumeration Text="2 h" Value="8" Id="%ENID%" />
+                  <Enumeration Text="5 h" Value="9" Id="%ENID%" />
+                  <Enumeration Text="8 h" Value="10" Id="%ENID%" />
+                  <Enumeration Text="12 h" Value="11" Id="%ENID%" />
+                  <Enumeration Text="Tageswechsel (um 00:00)" Value="12" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+
               <!-- HCL-Kurventyp -->
               <ParameterType Id="%AID%_PT-HUEHCLCurveType" Name="HUEHCLCurveType">
                 <TypeRestriction Base="Value" SizeInBit="8" UIHint="DropDown">
@@ -134,10 +161,10 @@
               <ParameterType Id="%AID%_PT-HUEHCLMasterSelect" Name="HUEHCLMasterSelect">
                 <TypeRestriction Base="Value" SizeInBit="8" UIHint="DropDown">
                   <Enumeration Text="Kein HCL" Value="0" Id="%ENID%" />
-                  <Enumeration Text="HCL Master 1" Value="1" Id="%ENID%" />
-                  <Enumeration Text="HCL Master 2" Value="2" Id="%ENID%" />
-                  <Enumeration Text="HCL Master 3" Value="3" Id="%ENID%" />
-                  <Enumeration Text="HCL Master 4" Value="4" Id="%ENID%" />
+                  <Enumeration Text="HCL Manager 1" Value="1" Id="%ENID%" />
+                  <Enumeration Text="HCL Manager 2" Value="2" Id="%ENID%" />
+                  <Enumeration Text="HCL Manager 3" Value="3" Id="%ENID%" />
+                  <Enumeration Text="HCL Manager 4" Value="4" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
               
@@ -164,7 +191,7 @@
                 <Memory CodeSegment="%MID%" Offset="30" BitOffset="0" />
               </Parameter>
               
-              <Parameter Id="%AID%_P-1400005" Name="HUEChannelCount" ParameterType="%AID%_PT-HUEChannelCount" Text="Anzahl aktiver Kanäle" Value="0">
+              <Parameter Id="%AID%_P-1400005" Name="HUEChannelCount" ParameterType="%AID%_PT-HUEChannelCount" Text="Anzahl aktiver Kanäle" Value="4">
                 <Memory CodeSegment="%MID%" Offset="29" BitOffset="0" />
               </Parameter>
               
@@ -173,7 +200,7 @@
                 <Memory CodeSegment="%MID%" Offset="31" BitOffset="0" />
               </Parameter>
               
-              <Parameter Id="%AID%_P-1400011" Name="HUEHCLMasterCount" ParameterType="%AID%_PT-HUEHCLMasterCount" Text="Anzahl HCL Master" Value="0">
+              <Parameter Id="%AID%_P-1400011" Name="HUEHCLMasterCount" ParameterType="%AID%_PT-HUEHCLMasterCount" Text="Anzahl HCL Manager" Value="0">
                 <Memory CodeSegment="%MID%" Offset="32" BitOffset="0" />
               </Parameter>
               
@@ -183,6 +210,52 @@
               
               <Parameter Id="%AID%_P-1400013" Name="HUEHCLFadeDuration" ParameterType="%AID%_PT-HUEHCLFadeDuration" Text="Überblendzeit (Sekunden)" Value="5">
                 <Memory CodeSegment="%MID%" Offset="35" BitOffset="0" />
+              </Parameter>
+
+              <Parameter Id="%AID%_P-1400014" Name="HUEHCLLockFallback" ParameterType="%AID%_PT-HUEHCLLockFallback" Text="Rückfallzeit nach HCL-Sperre" Value="0">
+                <Memory CodeSegment="%MID%" Offset="251" BitOffset="0" />
+              </Parameter>
+
+              <Parameter Id="%AID%_P-1400015" Name="HUEHCLLockFallbackEnable" ParameterType="%AID%_PT-HUEHCLLockFallbackEnable" Text="Rückfall aktivieren" Value="1">
+                <Memory CodeSegment="%MID%" Offset="251" BitOffset="0" />
+              </Parameter>
+
+              <Parameter Id="%AID%_P-1400016" Name="HUEHCLM1StatusKoEnable" ParameterType="%AID%_PT-HUEResetAuth" Text="Manager 1 Status-KOs verwenden" Value="1">
+                <Memory CodeSegment="%MID%" Offset="252" BitOffset="0" />
+              </Parameter>
+              <Parameter Id="%AID%_P-1400017" Name="HUEHCLM2StatusKoEnable" ParameterType="%AID%_PT-HUEResetAuth" Text="Manager 2 Status-KOs verwenden" Value="1">
+                <Memory CodeSegment="%MID%" Offset="252" BitOffset="1" />
+              </Parameter>
+              <Parameter Id="%AID%_P-1400018" Name="HUEHCLM3StatusKoEnable" ParameterType="%AID%_PT-HUEResetAuth" Text="Manager 3 Status-KOs verwenden" Value="1">
+                <Memory CodeSegment="%MID%" Offset="252" BitOffset="2" />
+              </Parameter>
+              <Parameter Id="%AID%_P-1400019" Name="HUEHCLM4StatusKoEnable" ParameterType="%AID%_PT-HUEResetAuth" Text="Manager 4 Status-KOs verwenden" Value="1">
+                <Memory CodeSegment="%MID%" Offset="252" BitOffset="3" />
+              </Parameter>
+
+              <Parameter Id="%AID%_P-1400020" Name="HUEHCLM1LockFallbackEnable" ParameterType="%AID%_PT-HUEHCLLockFallbackEnable" Text="Rückfall aktivieren" Value="1">
+                <Memory CodeSegment="%MID%" Offset="253" BitOffset="0" />
+              </Parameter>
+              <Parameter Id="%AID%_P-1400021" Name="HUEHCLM1LockFallback" ParameterType="%AID%_PT-HUEHCLLockFallback" Text="Rückfallzeit nach HCL-Sperre" Value="0">
+                <Memory CodeSegment="%MID%" Offset="254" BitOffset="0" />
+              </Parameter>
+              <Parameter Id="%AID%_P-1400022" Name="HUEHCLM2LockFallbackEnable" ParameterType="%AID%_PT-HUEHCLLockFallbackEnable" Text="Rückfall aktivieren" Value="1">
+                <Memory CodeSegment="%MID%" Offset="253" BitOffset="1" />
+              </Parameter>
+              <Parameter Id="%AID%_P-1400023" Name="HUEHCLM2LockFallback" ParameterType="%AID%_PT-HUEHCLLockFallback" Text="Rückfallzeit nach HCL-Sperre" Value="0">
+                <Memory CodeSegment="%MID%" Offset="255" BitOffset="0" />
+              </Parameter>
+              <Parameter Id="%AID%_P-1400024" Name="HUEHCLM3LockFallbackEnable" ParameterType="%AID%_PT-HUEHCLLockFallbackEnable" Text="Rückfall aktivieren" Value="1">
+                <Memory CodeSegment="%MID%" Offset="253" BitOffset="2" />
+              </Parameter>
+              <Parameter Id="%AID%_P-1400025" Name="HUEHCLM3LockFallback" ParameterType="%AID%_PT-HUEHCLLockFallback" Text="Rückfallzeit nach HCL-Sperre" Value="0">
+                <Memory CodeSegment="%MID%" Offset="256" BitOffset="0" />
+              </Parameter>
+              <Parameter Id="%AID%_P-1400026" Name="HUEHCLM4LockFallbackEnable" ParameterType="%AID%_PT-HUEHCLLockFallbackEnable" Text="Rückfall aktivieren" Value="1">
+                <Memory CodeSegment="%MID%" Offset="253" BitOffset="3" />
+              </Parameter>
+              <Parameter Id="%AID%_P-1400027" Name="HUEHCLM4LockFallback" ParameterType="%AID%_PT-HUEHCLLockFallback" Text="Rückfallzeit nach HCL-Sperre" Value="0">
+                <Memory CodeSegment="%MID%" Offset="257" BitOffset="0" />
               </Parameter>
               
               <!-- HCL-Master 1 - 10 Stützpunkte -->
@@ -350,10 +423,10 @@
               <Parameter Id="%AID%_P-1440030" Name="HCLM4SP9Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M4 SP10 Helligkeit" Value="100"><Memory CodeSegment="%MID%" Offset="355" BitOffset="0" /></Parameter>
 
               <!-- Namen der HCL-Master -->
-              <Parameter Id="%AID%_P-1410100" Name="HCLM1Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Master 1" Value=""><Memory CodeSegment="%MID%" Offset="356" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1420100" Name="HCLM2Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Master 2" Value=""><Memory CodeSegment="%MID%" Offset="381" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1430100" Name="HCLM3Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Master 3" Value=""><Memory CodeSegment="%MID%" Offset="406" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1440100" Name="HCLM4Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Master 4" Value=""><Memory CodeSegment="%MID%" Offset="431" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410100" Name="HCLM1Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Manager 1" Value=""><Memory CodeSegment="%MID%" Offset="356" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420100" Name="HCLM2Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Manager 2" Value=""><Memory CodeSegment="%MID%" Offset="381" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430100" Name="HCLM3Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Manager 3" Value=""><Memory CodeSegment="%MID%" Offset="406" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440100" Name="HCLM4Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Manager 4" Value=""><Memory CodeSegment="%MID%" Offset="431" BitOffset="0" /></Parameter>
 
               <!-- Erweiterte Parameter HCL-Master 1 -->
               <Parameter Id="%AID%_P-1410201" Name="HCLM1CurveType" ParameterType="%AID%_PT-HUEHCLCurveType" Text="Kurventyp" Value="0"><Memory CodeSegment="%MID%" Offset="456" BitOffset="0" /></Parameter>
@@ -403,6 +476,20 @@
               <ParameterRef Id="%AID%_P-1400011_R-140001101" RefId="%AID%_P-1400011" />
               <ParameterRef Id="%AID%_P-1400012_R-140001201" RefId="%AID%_P-1400012" />
               <ParameterRef Id="%AID%_P-1400013_R-140001301" RefId="%AID%_P-1400013" />
+              <ParameterRef Id="%AID%_P-1400014_R-140001401" RefId="%AID%_P-1400014" />
+              <ParameterRef Id="%AID%_P-1400015_R-140001501" RefId="%AID%_P-1400015" />
+              <ParameterRef Id="%AID%_P-1400016_R-140001601" RefId="%AID%_P-1400016" />
+              <ParameterRef Id="%AID%_P-1400017_R-140001701" RefId="%AID%_P-1400017" />
+              <ParameterRef Id="%AID%_P-1400018_R-140001801" RefId="%AID%_P-1400018" />
+              <ParameterRef Id="%AID%_P-1400019_R-140001901" RefId="%AID%_P-1400019" />
+              <ParameterRef Id="%AID%_P-1400020_R-140002001" RefId="%AID%_P-1400020" />
+              <ParameterRef Id="%AID%_P-1400021_R-140002101" RefId="%AID%_P-1400021" />
+              <ParameterRef Id="%AID%_P-1400022_R-140002201" RefId="%AID%_P-1400022" />
+              <ParameterRef Id="%AID%_P-1400023_R-140002301" RefId="%AID%_P-1400023" />
+              <ParameterRef Id="%AID%_P-1400024_R-140002401" RefId="%AID%_P-1400024" />
+              <ParameterRef Id="%AID%_P-1400025_R-140002501" RefId="%AID%_P-1400025" />
+              <ParameterRef Id="%AID%_P-1400026_R-140002601" RefId="%AID%_P-1400026" />
+              <ParameterRef Id="%AID%_P-1400027_R-140002701" RefId="%AID%_P-1400027" />
 
               <ParameterRef Id="%AID%_P-1410100_R-141010001" RefId="%AID%_P-1410100" />
               <ParameterRef Id="%AID%_P-1420100_R-142010001" RefId="%AID%_P-1420100" />
@@ -576,75 +663,208 @@
 
               <!-- Pairing-Trigger-KO -->
               <ComObject Id="%AID%_O-1400002" Name="HUEPairingTrigger" Text="Pairing Trigger" Number="1" FunctionText="Trigger zum Start des Hue Pairings (1=Start)" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-17" />
+
+              <!-- HCL-Sperre -->
+              <ComObject Id="%AID%_O-1400003" Name="HUEHCLLock" Text="HCL Sperre (global)" Number="2" FunctionText="HCL-Ausgabe sperren (1=Sperre aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-1400004" Name="HUEHCLLockStatus" Text="Status HCL Sperre" Number="3" FunctionText="Aktueller Sperrstatus der HCL-Ausgabe" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+
+              <!-- HCL Manager Sollwerte (berechnet) -->
+              <ComObject Id="%AID%_O-1400005" Name="HUEHCLM1StatusBrightness" Text="HCL M1 Soll Helligkeit" Number="4" FunctionText="Berechnete Soll-Helligkeit Master 1" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <ComObject Id="%AID%_O-1400006" Name="HUEHCLM1StatusColorTemp" Text="HCL M1 Soll Farbtemp." Number="5" FunctionText="Berechnete Soll-Farbtemperatur Master 1" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
+              <ComObject Id="%AID%_O-1400007" Name="HUEHCLM2StatusBrightness" Text="HCL M2 Soll Helligkeit" Number="6" FunctionText="Berechnete Soll-Helligkeit Master 2" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <ComObject Id="%AID%_O-1400008" Name="HUEHCLM2StatusColorTemp" Text="HCL M2 Soll Farbtemp." Number="7" FunctionText="Berechnete Soll-Farbtemperatur Master 2" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
+              <ComObject Id="%AID%_O-1400009" Name="HUEHCLM3StatusBrightness" Text="HCL M3 Soll Helligkeit" Number="8" FunctionText="Berechnete Soll-Helligkeit Master 3" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <ComObject Id="%AID%_O-1400010" Name="HUEHCLM3StatusColorTemp" Text="HCL M3 Soll Farbtemp." Number="9" FunctionText="Berechnete Soll-Farbtemperatur Master 3" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
+              <ComObject Id="%AID%_O-1400011" Name="HUEHCLM4StatusBrightness" Text="HCL M4 Soll Helligkeit" Number="10" FunctionText="Berechnete Soll-Helligkeit Master 4" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <ComObject Id="%AID%_O-1400012" Name="HUEHCLM4StatusColorTemp" Text="HCL M4 Soll Farbtemp." Number="11" FunctionText="Berechnete Soll-Farbtemperatur Master 4" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
+
+              <ComObject Id="%AID%_O-1400013" Name="HUEHCLM1Lock" Text="HCL Sperre M1" Number="12" FunctionText="HCL-Ausgabe für Manager 1 sperren (1=Sperre aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-1400014" Name="HUEHCLM1LockStatus" Text="Status HCL Sperre M1" Number="13" FunctionText="Aktueller Sperrstatus für Manager 1" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-1400015" Name="HUEHCLM2Lock" Text="HCL Sperre M2" Number="14" FunctionText="HCL-Ausgabe für Manager 2 sperren (1=Sperre aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-1400016" Name="HUEHCLM2LockStatus" Text="Status HCL Sperre M2" Number="15" FunctionText="Aktueller Sperrstatus für Manager 2" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-1400017" Name="HUEHCLM3Lock" Text="HCL Sperre M3" Number="16" FunctionText="HCL-Ausgabe für Manager 3 sperren (1=Sperre aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-1400018" Name="HUEHCLM3LockStatus" Text="Status HCL Sperre M3" Number="17" FunctionText="Aktueller Sperrstatus für Manager 3" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-1400019" Name="HUEHCLM4Lock" Text="HCL Sperre M4" Number="18" FunctionText="HCL-Ausgabe für Manager 4 sperren (1=Sperre aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-1400020" Name="HUEHCLM4LockStatus" Text="Status HCL Sperre M4" Number="19" FunctionText="Aktueller Sperrstatus für Manager 4" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
             </ComObjectTable>
             
             <ComObjectRefs>
               <ComObjectRef Id="%AID%_O-1400001_R-140000101" RefId="%AID%_O-1400001" />
               <ComObjectRef Id="%AID%_O-1400002_R-140000201" RefId="%AID%_O-1400002" />
+              <ComObjectRef Id="%AID%_O-1400003_R-140000301" RefId="%AID%_O-1400003" />
+              <ComObjectRef Id="%AID%_O-1400004_R-140000401" RefId="%AID%_O-1400004" />
+              <ComObjectRef Id="%AID%_O-1400005_R-140000501" RefId="%AID%_O-1400005" />
+              <ComObjectRef Id="%AID%_O-1400006_R-140000601" RefId="%AID%_O-1400006" />
+              <ComObjectRef Id="%AID%_O-1400007_R-140000701" RefId="%AID%_O-1400007" />
+              <ComObjectRef Id="%AID%_O-1400008_R-140000801" RefId="%AID%_O-1400008" />
+              <ComObjectRef Id="%AID%_O-1400009_R-140000901" RefId="%AID%_O-1400009" />
+              <ComObjectRef Id="%AID%_O-1400010_R-140001001" RefId="%AID%_O-1400010" />
+              <ComObjectRef Id="%AID%_O-1400011_R-140001101" RefId="%AID%_O-1400011" />
+              <ComObjectRef Id="%AID%_O-1400012_R-140001201" RefId="%AID%_O-1400012" />
+              <ComObjectRef Id="%AID%_O-1400013_R-140001301" RefId="%AID%_O-1400013" />
+              <ComObjectRef Id="%AID%_O-1400014_R-140001401" RefId="%AID%_O-1400014" />
+              <ComObjectRef Id="%AID%_O-1400015_R-140001501" RefId="%AID%_O-1400015" />
+              <ComObjectRef Id="%AID%_O-1400016_R-140001601" RefId="%AID%_O-1400016" />
+              <ComObjectRef Id="%AID%_O-1400017_R-140001701" RefId="%AID%_O-1400017" />
+              <ComObjectRef Id="%AID%_O-1400018_R-140001801" RefId="%AID%_O-1400018" />
+              <ComObjectRef Id="%AID%_O-1400019_R-140001901" RefId="%AID%_O-1400019" />
+              <ComObjectRef Id="%AID%_O-1400020_R-140002001" RefId="%AID%_O-1400020" />
             </ComObjectRefs>
           
           </Static>
           
           <Dynamic>
-            <Channel Id="%AID%_CH-HUE" Number="HUE" Name="Hue Bridge" Text="Philips Hue" Icon="led-on">
+            <Channel Id="%AID%_CH-HUE" Number="HUE" Name="Hue Bridge" Text="Philips Hue" Icon="led-on" HelpContext="HUE-Allgemein">
               
-              <ParameterBlock Id="%AID%_PB-HUEMain" Name="HueGateway" Text="Hue Bridge" Icon="cog-outline">
+              <ParameterBlock Id="%AID%_PB-HUEMain" Name="HueGateway" Text="Hue Bridge" Icon="cog-outline" HelpContext="HUE-Bridge-Konfiguration">
                 
-                <ParameterSeparator Id="%AID%_PS-HUETitle" Text="Philips Hue Bridge" UIHint="Headline" />
+                <ParameterSeparator Id="%AID%_PS-HUETitle" Text="Philips Hue Bridge" UIHint="Headline" HelpContext="HUE-Allgemein" />
                 <ParameterSeparator Id="%AID%_PS-HUEVersion" Text="Version: %ModuleVersion%" />
                 <ParameterSeparator Id="%AID%_PS-HUELine1" Text="" UIHint="HorizontalRuler" />
+
+                <ParameterSeparator Id="%AID%_PS-HUEDevices" Text="Kanalauswahl" UIHint="Headline" HelpContext="HUE-Kanal" />
+                <ParameterRefRef RefId="%AID%_P-1400005_R-140000501" HelpContext="HUE-Anzahl-aktiver-Kanaele" />
+                <ParameterSeparator Id="%AID%_PS-HUEDeviceTip1" Text="Tipp: Benötigen mehrere Kanäle gleiche Konfigurationen, können mit gedrückter STRG Taste die jeweils gleichen Seiten mit der Maus ausgewählt werden." />
+                <ParameterSeparator Id="%AID%_PS-HUEDeviceTip2" Text="Die vorgenommenen Konfigurationen werden dann auf allen Seiten übernommen." />
+                <ParameterSeparator Id="%AID%_PS-HUELineDevices" Text="" UIHint="HorizontalRuler" />
                 
-                <ParameterSeparator Id="%AID%_PS-HUEBridge" Text="Bridge-Konfiguration" UIHint="Headline" />
-                <ParameterRefRef RefId="%AID%_P-1400001_R-140000101" />
+                <ParameterSeparator Id="%AID%_PS-HUEBridge" Text="Bridge-Konfiguration" UIHint="Headline" HelpContext="HUE-Bridge-Konfiguration" />
+                <ParameterRefRef RefId="%AID%_P-1400001_R-140000101" HelpContext="HUE-Bridge-Erkennung" />
                 
                 <!-- Hinweistext je nach ausgewählter Erkennungsmethode -->
                 <choose ParamRefId="%AID%_P-1400001_R-140000101">
                   <when test="0"> <!-- Automatisch (mDNS) -->
-                    <ParameterSeparator Id="%AID%_PS-HUEAutoInfo" Text="ERSTINBETRIEBNAHME (Automatische Bridge-Erkennung):&#xA;&#xA;VORAUSSETZUNG: Unter OpenKNX > Info LEDs muss Info 1 auf 'Deaktiviert' stehen, damit die Hue-Statusanzeige sichtbar ist.&#xA;&#xA;1. Konfiguration per ETS-Download auf das Gerät laden&#xA;2. Gerät startet neu und sucht die Hue Bridge im Netzwerk&#xA;3. Pairing starten: ETS-KO 'Pairing Trigger' auf 1 senden&#xA;4. Link-Button an der Hue Bridge innerhalb des Pairing-Fensters drücken&#xA;5. Status-KO zeigt 'Verbunden'&#xA;&#xA;LED-SIGNALE (INFO LED 1):&#xA;• Blau, schnell blinkend: Verbindung wird aufgebaut&#xA;• Cyan, schnell blinkend: Authentifizierung läuft&#xA;• Blau, langsam blinkend: Wartet auf Link-Button&#xA;• Grün, dauerhaft: Verbunden und betriebsbereit&#xA;• Rot, blinkend: Keine Verbindung / Fehler" UIHint="Information" />
+                    <ParameterSeparator Id="%AID%_PS-HUEAutoInfo" Text="Erstinbetriebnahme automatisch: Details und LED-Signale siehe Kontexthilfe." UIHint="Information" HelpContext="HUE-Erstinbetriebnahme-und-Authentifizierung" />
                   </when>
                   <when test="1"> <!-- Manuelle IP-Adresse -->
-                    <ParameterRefRef RefId="%AID%_P-1400002_R-140000201" />
-                    <ParameterSeparator Id="%AID%_PS-HUEManualInfo" Text="ERSTINBETRIEBNAHME (Manuelle IP-Adresse):&#xA;&#xA;VORAUSSETZUNG: Unter OpenKNX > Info LEDs muss Info 1 auf 'Deaktiviert' stehen, damit die Hue-Statusanzeige sichtbar ist.&#xA;&#xA;1. IP-Adresse der Hue Bridge eintragen (z.B. 192.168.1.100)&#xA;2. Konfiguration per ETS-Download auf das Gerät laden&#xA;3. Gerät startet neu und verbindet sich mit der eingegebenen IP-Adresse&#xA;4. Pairing starten: ETS-KO 'Pairing Trigger' auf 1 senden&#xA;5. Link-Button an der Hue Bridge innerhalb des Pairing-Fensters drücken&#xA;6. Status-KO zeigt 'Verbunden'&#xA;&#xA;LED-SIGNALE (INFO LED 1):&#xA;• Blau, schnell blinkend: Verbindung wird aufgebaut&#xA;• Cyan, schnell blinkend: Authentifizierung läuft&#xA;• Blau, langsam blinkend: Wartet auf Link-Button&#xA;• Grün, dauerhaft: Verbunden und betriebsbereit&#xA;• Rot, blinkend: Keine Verbindung / Fehler" UIHint="Information" />
+                    <ParameterRefRef RefId="%AID%_P-1400002_R-140000201" HelpContext="HUE-Bridge-IP-Adresse" />
+                    <ParameterSeparator Id="%AID%_PS-HUEManualInfo" Text="Erstinbetriebnahme manuell: Details und LED-Signale siehe Kontexthilfe." UIHint="Information" HelpContext="HUE-Erstinbetriebnahme-und-Authentifizierung" />
                   </when>
                 </choose>
                 
-                <ParameterRefRef RefId="%AID%_P-1400003_R-140000301" />
-                <ParameterRefRef RefId="%AID%_P-1400006_R-140000601" />
-                <ParameterRefRef RefId="%AID%_P-1400007_R-140000701" />
+                <ParameterRefRef RefId="%AID%_P-1400003_R-140000301" HelpContext="HUE-Authentication-zuruecksetzen" />
+                <ParameterRefRef RefId="%AID%_P-1400006_R-140000601" HelpContext="HUE-Bridge-Verbindungsstatus" />
+                <ParameterRefRef RefId="%AID%_P-1400007_R-140000701" HelpContext="HUE-Pairing-Trigger" />
                 
                 <!-- Status-KO nur anzeigen wenn aktiviert -->
                 <choose ParamRefId="%AID%_P-1400006_R-140000601">
                   <when test="1">
-                    <ComObjectRefRef RefId="%AID%_O-1400001_R-140000101" />
+                    <ComObjectRefRef RefId="%AID%_O-1400001_R-140000101" HelpContext="HUE-Status-Verbindung" />
                   </when>
                 </choose>
 
-                <ParameterSeparator Id="%AID%_PS-HUEPairingInfo" Text="PAIRING VIA ETS-TRIGGER:&#xA;1) Senden Sie 1 auf das KO 'Pairing Trigger'&#xA;2) Drücken Sie den Link-Button an der Hue Bridge&#xA;3) Status-KO zeigt 'Verbunden'&#xA;4) Falls kein Pairing erfolgt: Trigger erneut senden" UIHint="Information" />
-                <ComObjectRefRef RefId="%AID%_O-1400002_R-140000201" />
-                
-                <ParameterSeparator Id="%AID%_PS-HUEDevices" Text="Lampen-Kanäle" UIHint="Headline" />
-                <ParameterSeparator Id="%AID%_PS-HUEScanInfo" Text="Um die Hue-Lampen-IDs (UUIDs) abzurufen, öffnen Sie im Browser: http://openknx-bridge.local/hue/scan" UIHint="Information" />
-                <ParameterRefRef RefId="%AID%_P-1400005_R-140000501" />
+                <ParameterSeparator Id="%AID%_PS-HUEPairingInfo" Text="Pairing per ETS-Trigger: 1 auf KO senden, Link-Button an der Bridge drücken, Status prüfen." UIHint="Information" HelpContext="HUE-Pairing-Trigger" />
+                <ComObjectRefRef RefId="%AID%_O-1400002_R-140000201" HelpContext="HUE-Pairing-Trigger" />
               </ParameterBlock>
               
-              <ParameterBlock Id="%AID%_PB-HUEHCL" Name="HueHCL" Text="HCL Manager" Icon="table-clock">
-                <ParameterSeparator Id="%AID%_PS-HUEHCL" Text="Human Centric Lighting (HCL)" UIHint="Headline" />
-                <ParameterRefRef RefId="%AID%_P-1400010_R-140001001" />
+              <ParameterBlock Id="%AID%_PB-HUEHCL" Name="HueHCL" Text="HCL Manager" Icon="table-clock" HelpContext="HUE-HCL-Manager">
+                <ParameterSeparator Id="%AID%_PS-HUEHCL" Text="Human Centric Lighting (HCL)" UIHint="Headline" HelpContext="HUE-Human-Centric-Lighting-HCL" />
+                <ParameterRefRef RefId="%AID%_P-1400010_R-140001001" HelpContext="HUE-Human-Centric-Lighting-HCL" />
                 
                 <choose ParamRefId="%AID%_P-1400010_R-140001001">
                   <when test="1">
-                    <ParameterSeparator Id="%AID%_PS-HUEHCLInfo" Text="HCL ermöglicht die automatische Anpassung von Farbtemperatur und Helligkeit basierend auf der Tageszeit. Definieren Sie bis zu 4 HCL Master mit je 10 Stützpunkten (Uhrzeit, Kelvin, Helligkeit). Lampen können einem HCL Master zugeordnet werden und folgen automatisch dem Profil.&#xA;&#xA;WICHTIG:&#xA;• HCL-Werte werden sofort beim Einschalten angewendet&#xA;• Kontinuierliche Interpolation sorgt für sanfte Übergänge&#xA;• Ausschalten unterbricht Fadevorgänge sofort" UIHint="Information" />
+                    <ParameterSeparator Id="%AID%_PS-HUEHCLInfo" Text="HCL passt Farbtemperatur und Helligkeit automatisch an die Tageszeit an. Details zur Funktion und zum Verhalten finden Sie in der Kontexthilfe." UIHint="Information" />
                     
-                    <ParameterRefRef RefId="%AID%_P-1400011_R-140001101" />
-                    <ParameterRefRef RefId="%AID%_P-1400012_R-140001201" />
-                    <ParameterRefRef RefId="%AID%_P-1400013_R-140001301" />
+                    <ParameterSeparator Id="%AID%_PS-HUEHCLMasterSelection" Text="HCL Manager Auswahl" UIHint="Headline" />
+                    <ParameterRefRef RefId="%AID%_P-1400011_R-140001101" HelpContext="HUE-HCL-Manager-Auswahl" />
+
+                    <ParameterSeparator Id="%AID%_PS-HUEHCLLine2" Text="" UIHint="HorizontalRuler" />
+                    <ParameterSeparator Id="%AID%_PS-HUEHCLSettings" Text="Einstellungen" UIHint="Headline" />
+                    <ParameterRefRef RefId="%AID%_P-1400012_R-140001201" HelpContext="HUE-Einstellungen" />
+                    <ParameterRefRef RefId="%AID%_P-1400013_R-140001301" HelpContext="HUE-Einstellungen" />
+
+                    <ParameterSeparator Id="%AID%_PS-HUEHCLLock" Text="HCL Sperre (global)" UIHint="Headline" />
+                    <ParameterRefRef RefId="%AID%_P-1400015_R-140001501" HelpContext="HUE-HCL-Sperre-global" />
+                    <choose ParamRefId="%AID%_P-1400015_R-140001501">
+                      <when test="1">
+                        <ParameterRefRef RefId="%AID%_P-1400014_R-140001401" HelpContext="HUE-HCL-Sperre-global" />
+                      </when>
+                    </choose>
+
+                    <ParameterSeparator Id="%AID%_PS-HUEHCLStatusKO" Text="Status-KOs je HCL Manager" UIHint="Headline" />
+                    <choose ParamRefId="%AID%_P-1400011_R-140001101">
+                      <when test=">=1">
+                        <ParameterRefRef RefId="%AID%_P-1400016_R-140001601" HelpContext="HUE-Status-KOs-je-HCL-Manager" />
+                      </when>
+                      <when test=">=2">
+                        <ParameterRefRef RefId="%AID%_P-1400017_R-140001701" HelpContext="HUE-Status-KOs-je-HCL-Manager" />
+                      </when>
+                      <when test=">=3">
+                        <ParameterRefRef RefId="%AID%_P-1400018_R-140001801" HelpContext="HUE-Status-KOs-je-HCL-Manager" />
+                      </when>
+                      <when test=">=4">
+                        <ParameterRefRef RefId="%AID%_P-1400019_R-140001901" HelpContext="HUE-Status-KOs-je-HCL-Manager" />
+                      </when>
+                    </choose>
+                    <ComObjectRefRef RefId="%AID%_O-1400003_R-140000301" HelpContext="HUE-HCL-Sperre-global-Status-HCL-Sperre" />
+                    <ComObjectRefRef RefId="%AID%_O-1400004_R-140000401" HelpContext="HUE-HCL-Sperre-global-Status-HCL-Sperre" />
+                    <choose ParamRefId="%AID%_P-1400011_R-140001101">
+                      <when test="&gt;=1">
+                        <ComObjectRefRef RefId="%AID%_O-1400013_R-140001301" />
+                        <ComObjectRefRef RefId="%AID%_O-1400014_R-140001401" />
+                      </when>
+                      <when test="&gt;=2">
+                        <ComObjectRefRef RefId="%AID%_O-1400015_R-140001501" />
+                        <ComObjectRefRef RefId="%AID%_O-1400016_R-140001601" />
+                      </when>
+                      <when test="&gt;=3">
+                        <ComObjectRefRef RefId="%AID%_O-1400017_R-140001701" />
+                        <ComObjectRefRef RefId="%AID%_O-1400018_R-140001801" />
+                      </when>
+                      <when test="&gt;=4">
+                        <ComObjectRefRef RefId="%AID%_O-1400019_R-140001901" />
+                        <ComObjectRefRef RefId="%AID%_O-1400020_R-140002001" />
+                      </when>
+                    </choose>
+                    <choose ParamRefId="%AID%_P-1400011_R-140001101">
+                      <when test="&gt;=1">
+                        <choose ParamRefId="%AID%_P-1400016_R-140001601">
+                          <when test="1">
+                            <ComObjectRefRef RefId="%AID%_O-1400005_R-140000501" />
+                            <ComObjectRefRef RefId="%AID%_O-1400006_R-140000601" />
+                          </when>
+                        </choose>
+                      </when>
+                      <when test="&gt;=2">
+                        <choose ParamRefId="%AID%_P-1400017_R-140001701">
+                          <when test="1">
+                            <ComObjectRefRef RefId="%AID%_O-1400007_R-140000701" />
+                            <ComObjectRefRef RefId="%AID%_O-1400008_R-140000801" />
+                          </when>
+                        </choose>
+                      </when>
+                      <when test="&gt;=3">
+                        <choose ParamRefId="%AID%_P-1400018_R-140001801">
+                          <when test="1">
+                            <ComObjectRefRef RefId="%AID%_O-1400009_R-140000901" />
+                            <ComObjectRefRef RefId="%AID%_O-1400010_R-140001001" />
+                          </when>
+                        </choose>
+                      </when>
+                      <when test="&gt;=4">
+                        <choose ParamRefId="%AID%_P-1400019_R-140001901">
+                          <when test="1">
+                            <ComObjectRefRef RefId="%AID%_O-1400011_R-140001101" />
+                            <ComObjectRefRef RefId="%AID%_O-1400012_R-140001201" />
+                          </when>
+                        </choose>
+                      </when>
+                    </choose>
                     
                     <!-- Reiter HCL-Master 1 -->
                     <choose ParamRefId="%AID%_P-1400011_R-140001101">
                       <when test="&gt;=1">
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM1" Name="HCLM1" Text="HCL Master 1: {{0: ...}}" TextParameterRefId="%AID%_P-1410100_R-141010001">
+                        <ParameterBlock Id="%AID%_PB-HUEHCLM1" Name="HCLM1" Text="HCL Manager 1: {{0: ...}}" TextParameterRefId="%AID%_P-1410100_R-141010001" HelpContext="HUE-HCL-Manager-14">
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM1Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1410100_R-141010001" />
+                          <ParameterRefRef RefId="%AID%_P-1400016_R-140001601" />
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM1Lock" Text="HCL Sperre (spezifisch)" UIHint="Headline" />
+                          <ParameterRefRef RefId="%AID%_P-1400020_R-140002001" />
+                          <choose ParamRefId="%AID%_P-1400020_R-140002001">
+                            <when test="1">
+                              <ParameterRefRef RefId="%AID%_P-1400021_R-140002101" />
+                            </when>
+                          </choose>
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM1Advanced" Text="Erweiterte Kurve" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1410201_R-141020101" />
                           <ParameterRefRef RefId="%AID%_P-1410202_R-141020201" />
@@ -746,9 +966,17 @@
                     <!-- Reiter HCL-Master 2 -->
                     <choose ParamRefId="%AID%_P-1400011_R-140001101">
                       <when test="&gt;=2">
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM2" Name="HCLM2" Text="HCL Master 2: {{0: ...}}" TextParameterRefId="%AID%_P-1420100_R-142010001">
+                        <ParameterBlock Id="%AID%_PB-HUEHCLM2" Name="HCLM2" Text="HCL Manager 2: {{0: ...}}" TextParameterRefId="%AID%_P-1420100_R-142010001" HelpContext="HUE-HCL-Manager-14">
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM2Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1420100_R-142010001" />
+                          <ParameterRefRef RefId="%AID%_P-1400017_R-140001701" />
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM2Lock" Text="HCL Sperre (spezifisch)" UIHint="Headline" />
+                          <ParameterRefRef RefId="%AID%_P-1400022_R-140002201" />
+                          <choose ParamRefId="%AID%_P-1400022_R-140002201">
+                            <when test="1">
+                              <ParameterRefRef RefId="%AID%_P-1400023_R-140002301" />
+                            </when>
+                          </choose>
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM2Advanced" Text="Erweiterte Kurve" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1420201_R-142020101" />
                           <ParameterRefRef RefId="%AID%_P-1420202_R-142020201" />
@@ -850,9 +1078,17 @@
                     <!-- Reiter HCL-Master 3 -->
                     <choose ParamRefId="%AID%_P-1400011_R-140001101">
                       <when test="&gt;=3">
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM3" Name="HCLM3" Text="HCL Master 3: {{0: ...}}" TextParameterRefId="%AID%_P-1430100_R-143010001">
+                        <ParameterBlock Id="%AID%_PB-HUEHCLM3" Name="HCLM3" Text="HCL Manager 3: {{0: ...}}" TextParameterRefId="%AID%_P-1430100_R-143010001" HelpContext="HUE-HCL-Manager-14">
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM3Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1430100_R-143010001" />
+                          <ParameterRefRef RefId="%AID%_P-1400018_R-140001801" />
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM3Lock" Text="HCL Sperre (spezifisch)" UIHint="Headline" />
+                          <ParameterRefRef RefId="%AID%_P-1400024_R-140002401" />
+                          <choose ParamRefId="%AID%_P-1400024_R-140002401">
+                            <when test="1">
+                              <ParameterRefRef RefId="%AID%_P-1400025_R-140002501" />
+                            </when>
+                          </choose>
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM3Advanced" Text="Erweiterte Kurve" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1430201_R-143020101" />
                           <ParameterRefRef RefId="%AID%_P-1430202_R-143020201" />
@@ -954,9 +1190,17 @@
                     <!-- Reiter HCL-Master 4 -->
                     <choose ParamRefId="%AID%_P-1400011_R-140001101">
                       <when test="&gt;=4">
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM4" Name="HCLM4" Text="HCL Master 4: {{0: ...}}" TextParameterRefId="%AID%_P-1440100_R-144010001">
+                        <ParameterBlock Id="%AID%_PB-HUEHCLM4" Name="HCLM4" Text="HCL Manager 4: {{0: ...}}" TextParameterRefId="%AID%_P-1440100_R-144010001" HelpContext="HUE-HCL-Manager-14">
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM4Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1440100_R-144010001" />
+                          <ParameterRefRef RefId="%AID%_P-1400019_R-140001901" />
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM4Lock" Text="HCL Sperre (spezifisch)" UIHint="Headline" />
+                          <ParameterRefRef RefId="%AID%_P-1400026_R-140002601" />
+                          <choose ParamRefId="%AID%_P-1400026_R-140002601">
+                            <when test="1">
+                              <ParameterRefRef RefId="%AID%_P-1400027_R-140002701" />
+                            </when>
+                          </choose>
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM4Advanced" Text="Erweiterte Kurve" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1440201_R-144020101" />
                           <ParameterRefRef RefId="%AID%_P-1440202_R-144020201" />
@@ -1066,6 +1310,11 @@
           
         </ApplicationProgram>
       </ApplicationPrograms>
+      <Baggages>
+        <Baggage TargetPath="" Name="Help_de.zip" Id="%FILE-HELP-de%">
+          <FileInfo TimeInfo="%DATETIME%" />
+        </Baggage>
+      </Baggages>
     </Manufacturer>
   </ManufacturerData>
 </KNX>

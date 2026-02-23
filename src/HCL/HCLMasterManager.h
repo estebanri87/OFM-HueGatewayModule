@@ -57,6 +57,32 @@ public:
      * @brief Enable or disable HCL
      */
     void setEnabled(bool enabled) { _enabled = enabled; }
+
+    /**
+     * @brief Block or allow applying HCL values to lights.
+     *
+     * When blocked, the manager still keeps calculating current values
+     * but channel light loops can skip applying them.
+     */
+    void setApplyBlocked(bool blocked) { _applyBlocked = blocked; }
+
+    /**
+     * @brief Returns whether applying HCL values is currently blocked.
+     */
+    bool isApplyBlocked() const { return _applyBlocked; }
+
+    /**
+     * @brief Block or allow applying HCL values for a specific master.
+     * @param masterNum Master number (1-4)
+     * @param blocked True to block HCL apply for this master
+     */
+    void setMasterApplyBlocked(uint8_t masterNum, bool blocked);
+
+    /**
+     * @brief Returns whether applying HCL values is blocked for a specific master.
+     * @param masterNum Master number (1-4)
+     */
+    bool isMasterApplyBlocked(uint8_t masterNum) const;
     
     /**
      * @brief Set update interval in seconds
@@ -92,6 +118,8 @@ private:
     Master _masters[MAX_MASTERS];
     InterpolatedValue _currentValues[MAX_MASTERS];
     bool _enabled;
+    bool _applyBlocked;
+    bool _masterApplyBlocked[MAX_MASTERS];
     uint16_t _updateIntervalMs;  // Update interval in milliseconds
     uint8_t _fadeDurationSec;    // Fade duration in seconds
     uint32_t _lastUpdateMs;      // Last update timestamp

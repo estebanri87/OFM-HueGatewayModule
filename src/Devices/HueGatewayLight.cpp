@@ -98,7 +98,11 @@ void HueGatewayLight::processKnxSwitch(bool value)
     }
     
     // On switch-on with HCL assignment, apply the current interpolated HCL target.
-    if (value && _hclMasterNum > 0 && _hclMasterNum <= 4) {
+    if (value
+        && _hclMasterNum > 0
+        && _hclMasterNum <= 4
+        && !HCL::masterManager.isApplyBlocked()
+        && !HCL::masterManager.isMasterApplyBlocked(_hclMasterNum)) {
         HCL::InterpolatedValue hclValue = HCL::masterManager.getCurrentValue(_hclMasterNum);
         
         // Convert brightness percent (0-100) to Hue scale (0-254).
@@ -539,7 +543,12 @@ void HueGatewayLight::sendToHueWithColorTemp(uint16_t kelvin, uint8_t fadeDurati
 void HueGatewayLight::loop()
 {
     // Only run HCL loop when initialized, switched on, and assigned to a valid master.
-    if (!_initialized || !_on || _hclMasterNum == 0 || _hclMasterNum > 4)
+    if (!_initialized
+        || !_on
+        || _hclMasterNum == 0
+        || _hclMasterNum > 4
+        || HCL::masterManager.isApplyBlocked()
+        || HCL::masterManager.isMasterApplyBlocked(_hclMasterNum))
         return;
     
     // Read update interval from HCL manager (seconds).
