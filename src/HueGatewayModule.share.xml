@@ -261,166 +261,166 @@
               <!-- HCL-Master 1 - 10 Stützpunkte -->
               <Parameter Id="%AID%_P-1410001" Name="HCLM1SP0Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M1 SP1 Zeit" Value="00:00"><Memory CodeSegment="%MID%" Offset="36" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1410002" Name="HCLM1SP0Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M1 SP1 Kelvin" Value="2400"><Memory CodeSegment="%MID%" Offset="41" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1410003" Name="HCLM1SP0Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M1 SP1 Helligkeit" Value="30"><Memory CodeSegment="%MID%" Offset="43" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410003" Name="HCLM1SP0Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M1 SP1 Helligkeit" Value="15"><Memory CodeSegment="%MID%" Offset="43" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1410004" Name="HCLM1SP1Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M1 SP2 Zeit" Value="06:00"><Memory CodeSegment="%MID%" Offset="44" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1410005" Name="HCLM1SP1Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M1 SP2 Kelvin" Value="3000"><Memory CodeSegment="%MID%" Offset="49" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1410006" Name="HCLM1SP1Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M1 SP2 Helligkeit" Value="50"><Memory CodeSegment="%MID%" Offset="51" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410005" Name="HCLM1SP1Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M1 SP2 Kelvin" Value="2700"><Memory CodeSegment="%MID%" Offset="49" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410006" Name="HCLM1SP1Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M1 SP2 Helligkeit" Value="25"><Memory CodeSegment="%MID%" Offset="51" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1410007" Name="HCLM1SP2Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M1 SP3 Zeit" Value="08:00"><Memory CodeSegment="%MID%" Offset="52" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1410008" Name="HCLM1SP2Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M1 SP3 Kelvin" Value="4000"><Memory CodeSegment="%MID%" Offset="57" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1410009" Name="HCLM1SP2Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M1 SP3 Helligkeit" Value="80"><Memory CodeSegment="%MID%" Offset="59" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410008" Name="HCLM1SP2Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M1 SP3 Kelvin" Value="3400"><Memory CodeSegment="%MID%" Offset="57" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410009" Name="HCLM1SP2Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M1 SP3 Helligkeit" Value="45"><Memory CodeSegment="%MID%" Offset="59" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1410010" Name="HCLM1SP3Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M1 SP4 Zeit" Value="10:00"><Memory CodeSegment="%MID%" Offset="60" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1410011" Name="HCLM1SP3Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M1 SP4 Kelvin" Value="5000"><Memory CodeSegment="%MID%" Offset="65" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1410012" Name="HCLM1SP3Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M1 SP4 Helligkeit" Value="100"><Memory CodeSegment="%MID%" Offset="67" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410011" Name="HCLM1SP3Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M1 SP4 Kelvin" Value="4300"><Memory CodeSegment="%MID%" Offset="65" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410012" Name="HCLM1SP3Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M1 SP4 Helligkeit" Value="70"><Memory CodeSegment="%MID%" Offset="67" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1410013" Name="HCLM1SP4Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M1 SP5 Zeit" Value="12:00"><Memory CodeSegment="%MID%" Offset="68" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1410014" Name="HCLM1SP4Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M1 SP5 Kelvin" Value="5000"><Memory CodeSegment="%MID%" Offset="73" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1410015" Name="HCLM1SP4Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M1 SP5 Helligkeit" Value="90"><Memory CodeSegment="%MID%" Offset="75" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410015" Name="HCLM1SP4Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M1 SP5 Helligkeit" Value="80"><Memory CodeSegment="%MID%" Offset="75" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1410016" Name="HCLM1SP5Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M1 SP6 Zeit" Value="14:00"><Memory CodeSegment="%MID%" Offset="76" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1410017" Name="HCLM1SP5Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M1 SP6 Kelvin" Value="5000"><Memory CodeSegment="%MID%" Offset="81" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1410018" Name="HCLM1SP5Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M1 SP6 Helligkeit" Value="70"><Memory CodeSegment="%MID%" Offset="83" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410017" Name="HCLM1SP5Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M1 SP6 Kelvin" Value="4700"><Memory CodeSegment="%MID%" Offset="81" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410018" Name="HCLM1SP5Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M1 SP6 Helligkeit" Value="65"><Memory CodeSegment="%MID%" Offset="83" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1410019" Name="HCLM1SP6Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M1 SP7 Zeit" Value="16:00"><Memory CodeSegment="%MID%" Offset="84" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1410020" Name="HCLM1SP6Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M1 SP7 Kelvin" Value="4000"><Memory CodeSegment="%MID%" Offset="89" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410020" Name="HCLM1SP6Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M1 SP7 Kelvin" Value="3900"><Memory CodeSegment="%MID%" Offset="89" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1410021" Name="HCLM1SP6Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M1 SP7 Helligkeit" Value="50"><Memory CodeSegment="%MID%" Offset="91" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1410022" Name="HCLM1SP7Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M1 SP8 Zeit" Value="18:00"><Memory CodeSegment="%MID%" Offset="92" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1410023" Name="HCLM1SP7Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M1 SP8 Kelvin" Value="3000"><Memory CodeSegment="%MID%" Offset="97" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1410024" Name="HCLM1SP7Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M1 SP8 Helligkeit" Value="30"><Memory CodeSegment="%MID%" Offset="99" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410023" Name="HCLM1SP7Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M1 SP8 Kelvin" Value="3100"><Memory CodeSegment="%MID%" Offset="97" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410024" Name="HCLM1SP7Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M1 SP8 Helligkeit" Value="35"><Memory CodeSegment="%MID%" Offset="99" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1410025" Name="HCLM1SP8Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M1 SP9 Zeit" Value="20:00"><Memory CodeSegment="%MID%" Offset="100" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1410026" Name="HCLM1SP8Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M1 SP9 Kelvin" Value="2400"><Memory CodeSegment="%MID%" Offset="105" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1410027" Name="HCLM1SP8Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M1 SP9 Helligkeit" Value="100"><Memory CodeSegment="%MID%" Offset="107" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410026" Name="HCLM1SP8Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M1 SP9 Kelvin" Value="2600"><Memory CodeSegment="%MID%" Offset="105" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410027" Name="HCLM1SP8Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M1 SP9 Helligkeit" Value="20"><Memory CodeSegment="%MID%" Offset="107" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1410028" Name="HCLM1SP9Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M1 SP10 Zeit" Value="22:00"><Memory CodeSegment="%MID%" Offset="108" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1410029" Name="HCLM1SP9Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M1 SP10 Kelvin" Value="2400"><Memory CodeSegment="%MID%" Offset="113" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1410030" Name="HCLM1SP9Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M1 SP10 Helligkeit" Value="100"><Memory CodeSegment="%MID%" Offset="115" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410030" Name="HCLM1SP9Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M1 SP10 Helligkeit" Value="10"><Memory CodeSegment="%MID%" Offset="115" BitOffset="0" /></Parameter>
               
               <!-- HCL-Master 2 Stützpunkte (Offset 116-195) -->
               <Parameter Id="%AID%_P-1420001" Name="HCLM2SP0Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M2 SP1 Zeit" Value="00:00"><Memory CodeSegment="%MID%" Offset="116" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1420002" Name="HCLM2SP0Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M2 SP1 Kelvin" Value="2400"><Memory CodeSegment="%MID%" Offset="121" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1420003" Name="HCLM2SP0Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M2 SP1 Helligkeit" Value="30"><Memory CodeSegment="%MID%" Offset="123" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420003" Name="HCLM2SP0Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M2 SP1 Helligkeit" Value="15"><Memory CodeSegment="%MID%" Offset="123" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1420004" Name="HCLM2SP1Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M2 SP2 Zeit" Value="06:00"><Memory CodeSegment="%MID%" Offset="124" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1420005" Name="HCLM2SP1Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M2 SP2 Kelvin" Value="3000"><Memory CodeSegment="%MID%" Offset="129" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1420006" Name="HCLM2SP1Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M2 SP2 Helligkeit" Value="50"><Memory CodeSegment="%MID%" Offset="131" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420005" Name="HCLM2SP1Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M2 SP2 Kelvin" Value="2700"><Memory CodeSegment="%MID%" Offset="129" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420006" Name="HCLM2SP1Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M2 SP2 Helligkeit" Value="25"><Memory CodeSegment="%MID%" Offset="131" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1420007" Name="HCLM2SP2Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M2 SP3 Zeit" Value="08:00"><Memory CodeSegment="%MID%" Offset="132" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1420008" Name="HCLM2SP2Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M2 SP3 Kelvin" Value="4000"><Memory CodeSegment="%MID%" Offset="137" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1420009" Name="HCLM2SP2Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M2 SP3 Helligkeit" Value="80"><Memory CodeSegment="%MID%" Offset="139" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420008" Name="HCLM2SP2Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M2 SP3 Kelvin" Value="3400"><Memory CodeSegment="%MID%" Offset="137" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420009" Name="HCLM2SP2Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M2 SP3 Helligkeit" Value="45"><Memory CodeSegment="%MID%" Offset="139" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1420010" Name="HCLM2SP3Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M2 SP4 Zeit" Value="10:00"><Memory CodeSegment="%MID%" Offset="140" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1420011" Name="HCLM2SP3Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M2 SP4 Kelvin" Value="5000"><Memory CodeSegment="%MID%" Offset="145" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1420012" Name="HCLM2SP3Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M2 SP4 Helligkeit" Value="100"><Memory CodeSegment="%MID%" Offset="147" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420011" Name="HCLM2SP3Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M2 SP4 Kelvin" Value="4300"><Memory CodeSegment="%MID%" Offset="145" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420012" Name="HCLM2SP3Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M2 SP4 Helligkeit" Value="70"><Memory CodeSegment="%MID%" Offset="147" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1420013" Name="HCLM2SP4Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M2 SP5 Zeit" Value="12:00"><Memory CodeSegment="%MID%" Offset="148" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1420014" Name="HCLM2SP4Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M2 SP5 Kelvin" Value="5000"><Memory CodeSegment="%MID%" Offset="153" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1420015" Name="HCLM2SP4Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M2 SP5 Helligkeit" Value="90"><Memory CodeSegment="%MID%" Offset="155" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420015" Name="HCLM2SP4Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M2 SP5 Helligkeit" Value="80"><Memory CodeSegment="%MID%" Offset="155" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1420016" Name="HCLM2SP5Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M2 SP6 Zeit" Value="14:00"><Memory CodeSegment="%MID%" Offset="156" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1420017" Name="HCLM2SP5Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M2 SP6 Kelvin" Value="5000"><Memory CodeSegment="%MID%" Offset="161" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1420018" Name="HCLM2SP5Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M2 SP6 Helligkeit" Value="70"><Memory CodeSegment="%MID%" Offset="163" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420017" Name="HCLM2SP5Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M2 SP6 Kelvin" Value="4700"><Memory CodeSegment="%MID%" Offset="161" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420018" Name="HCLM2SP5Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M2 SP6 Helligkeit" Value="65"><Memory CodeSegment="%MID%" Offset="163" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1420019" Name="HCLM2SP6Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M2 SP7 Zeit" Value="16:00"><Memory CodeSegment="%MID%" Offset="164" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1420020" Name="HCLM2SP6Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M2 SP7 Kelvin" Value="4000"><Memory CodeSegment="%MID%" Offset="169" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420020" Name="HCLM2SP6Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M2 SP7 Kelvin" Value="3900"><Memory CodeSegment="%MID%" Offset="169" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1420021" Name="HCLM2SP6Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M2 SP7 Helligkeit" Value="50"><Memory CodeSegment="%MID%" Offset="171" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1420022" Name="HCLM2SP7Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M2 SP8 Zeit" Value="18:00"><Memory CodeSegment="%MID%" Offset="172" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1420023" Name="HCLM2SP7Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M2 SP8 Kelvin" Value="3000"><Memory CodeSegment="%MID%" Offset="177" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1420024" Name="HCLM2SP7Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M2 SP8 Helligkeit" Value="30"><Memory CodeSegment="%MID%" Offset="179" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420023" Name="HCLM2SP7Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M2 SP8 Kelvin" Value="3100"><Memory CodeSegment="%MID%" Offset="177" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420024" Name="HCLM2SP7Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M2 SP8 Helligkeit" Value="35"><Memory CodeSegment="%MID%" Offset="179" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1420025" Name="HCLM2SP8Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M2 SP9 Zeit" Value="20:00"><Memory CodeSegment="%MID%" Offset="180" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1420026" Name="HCLM2SP8Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M2 SP9 Kelvin" Value="2400"><Memory CodeSegment="%MID%" Offset="185" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1420027" Name="HCLM2SP8Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M2 SP9 Helligkeit" Value="100"><Memory CodeSegment="%MID%" Offset="187" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420026" Name="HCLM2SP8Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M2 SP9 Kelvin" Value="2600"><Memory CodeSegment="%MID%" Offset="185" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420027" Name="HCLM2SP8Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M2 SP9 Helligkeit" Value="20"><Memory CodeSegment="%MID%" Offset="187" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1420028" Name="HCLM2SP9Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M2 SP10 Zeit" Value="22:00"><Memory CodeSegment="%MID%" Offset="188" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1420029" Name="HCLM2SP9Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M2 SP10 Kelvin" Value="2400"><Memory CodeSegment="%MID%" Offset="193" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1420030" Name="HCLM2SP9Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M2 SP10 Helligkeit" Value="100"><Memory CodeSegment="%MID%" Offset="195" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420030" Name="HCLM2SP9Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M2 SP10 Helligkeit" Value="10"><Memory CodeSegment="%MID%" Offset="195" BitOffset="0" /></Parameter>
               
               <!-- HCL-Master 3 Stützpunkte (Offset 196-275) -->
               <Parameter Id="%AID%_P-1430001" Name="HCLM3SP0Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M3 SP1 Zeit" Value="00:00"><Memory CodeSegment="%MID%" Offset="196" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1430002" Name="HCLM3SP0Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M3 SP1 Kelvin" Value="2400"><Memory CodeSegment="%MID%" Offset="201" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1430003" Name="HCLM3SP0Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M3 SP1 Helligkeit" Value="30"><Memory CodeSegment="%MID%" Offset="203" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430003" Name="HCLM3SP0Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M3 SP1 Helligkeit" Value="15"><Memory CodeSegment="%MID%" Offset="203" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1430004" Name="HCLM3SP1Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M3 SP2 Zeit" Value="06:00"><Memory CodeSegment="%MID%" Offset="204" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1430005" Name="HCLM3SP1Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M3 SP2 Kelvin" Value="3000"><Memory CodeSegment="%MID%" Offset="209" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1430006" Name="HCLM3SP1Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M3 SP2 Helligkeit" Value="50"><Memory CodeSegment="%MID%" Offset="211" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430005" Name="HCLM3SP1Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M3 SP2 Kelvin" Value="2700"><Memory CodeSegment="%MID%" Offset="209" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430006" Name="HCLM3SP1Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M3 SP2 Helligkeit" Value="25"><Memory CodeSegment="%MID%" Offset="211" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1430007" Name="HCLM3SP2Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M3 SP3 Zeit" Value="08:00"><Memory CodeSegment="%MID%" Offset="212" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1430008" Name="HCLM3SP2Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M3 SP3 Kelvin" Value="4000"><Memory CodeSegment="%MID%" Offset="217" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1430009" Name="HCLM3SP2Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M3 SP3 Helligkeit" Value="80"><Memory CodeSegment="%MID%" Offset="219" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430008" Name="HCLM3SP2Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M3 SP3 Kelvin" Value="3400"><Memory CodeSegment="%MID%" Offset="217" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430009" Name="HCLM3SP2Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M3 SP3 Helligkeit" Value="45"><Memory CodeSegment="%MID%" Offset="219" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1430010" Name="HCLM3SP3Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M3 SP4 Zeit" Value="10:00"><Memory CodeSegment="%MID%" Offset="220" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1430011" Name="HCLM3SP3Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M3 SP4 Kelvin" Value="5000"><Memory CodeSegment="%MID%" Offset="225" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1430012" Name="HCLM3SP3Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M3 SP4 Helligkeit" Value="100"><Memory CodeSegment="%MID%" Offset="227" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430011" Name="HCLM3SP3Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M3 SP4 Kelvin" Value="4300"><Memory CodeSegment="%MID%" Offset="225" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430012" Name="HCLM3SP3Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M3 SP4 Helligkeit" Value="70"><Memory CodeSegment="%MID%" Offset="227" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1430013" Name="HCLM3SP4Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M3 SP5 Zeit" Value="12:00"><Memory CodeSegment="%MID%" Offset="228" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1430014" Name="HCLM3SP4Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M3 SP5 Kelvin" Value="5000"><Memory CodeSegment="%MID%" Offset="233" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1430015" Name="HCLM3SP4Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M3 SP5 Helligkeit" Value="90"><Memory CodeSegment="%MID%" Offset="235" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430015" Name="HCLM3SP4Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M3 SP5 Helligkeit" Value="80"><Memory CodeSegment="%MID%" Offset="235" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1430016" Name="HCLM3SP5Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M3 SP6 Zeit" Value="14:00"><Memory CodeSegment="%MID%" Offset="236" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1430017" Name="HCLM3SP5Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M3 SP6 Kelvin" Value="5000"><Memory CodeSegment="%MID%" Offset="241" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1430018" Name="HCLM3SP5Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M3 SP6 Helligkeit" Value="70"><Memory CodeSegment="%MID%" Offset="243" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430017" Name="HCLM3SP5Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M3 SP6 Kelvin" Value="4700"><Memory CodeSegment="%MID%" Offset="241" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430018" Name="HCLM3SP5Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M3 SP6 Helligkeit" Value="65"><Memory CodeSegment="%MID%" Offset="243" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1430019" Name="HCLM3SP6Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M3 SP7 Zeit" Value="16:00"><Memory CodeSegment="%MID%" Offset="244" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1430020" Name="HCLM3SP6Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M3 SP7 Kelvin" Value="4000"><Memory CodeSegment="%MID%" Offset="249" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430020" Name="HCLM3SP6Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M3 SP7 Kelvin" Value="3900"><Memory CodeSegment="%MID%" Offset="249" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1430021" Name="HCLM3SP6Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M3 SP7 Helligkeit" Value="50"><Memory CodeSegment="%MID%" Offset="251" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1430022" Name="HCLM3SP7Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M3 SP8 Zeit" Value="18:00"><Memory CodeSegment="%MID%" Offset="252" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1430023" Name="HCLM3SP7Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M3 SP8 Kelvin" Value="3000"><Memory CodeSegment="%MID%" Offset="257" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1430024" Name="HCLM3SP7Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M3 SP8 Helligkeit" Value="30"><Memory CodeSegment="%MID%" Offset="259" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430023" Name="HCLM3SP7Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M3 SP8 Kelvin" Value="3100"><Memory CodeSegment="%MID%" Offset="257" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430024" Name="HCLM3SP7Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M3 SP8 Helligkeit" Value="35"><Memory CodeSegment="%MID%" Offset="259" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1430025" Name="HCLM3SP8Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M3 SP9 Zeit" Value="20:00"><Memory CodeSegment="%MID%" Offset="260" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1430026" Name="HCLM3SP8Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M3 SP9 Kelvin" Value="2400"><Memory CodeSegment="%MID%" Offset="265" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1430027" Name="HCLM3SP8Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M3 SP9 Helligkeit" Value="100"><Memory CodeSegment="%MID%" Offset="267" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430026" Name="HCLM3SP8Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M3 SP9 Kelvin" Value="2600"><Memory CodeSegment="%MID%" Offset="265" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430027" Name="HCLM3SP8Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M3 SP9 Helligkeit" Value="20"><Memory CodeSegment="%MID%" Offset="267" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1430028" Name="HCLM3SP9Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M3 SP10 Zeit" Value="22:00"><Memory CodeSegment="%MID%" Offset="268" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1430029" Name="HCLM3SP9Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M3 SP10 Kelvin" Value="2400"><Memory CodeSegment="%MID%" Offset="273" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1430030" Name="HCLM3SP9Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M3 SP10 Helligkeit" Value="100"><Memory CodeSegment="%MID%" Offset="275" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430030" Name="HCLM3SP9Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M3 SP10 Helligkeit" Value="10"><Memory CodeSegment="%MID%" Offset="275" BitOffset="0" /></Parameter>
               
               <!-- HCL-Master 4 Stützpunkte (Offset 276-355) -->
               <Parameter Id="%AID%_P-1440001" Name="HCLM4SP0Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M4 SP1 Zeit" Value="00:00"><Memory CodeSegment="%MID%" Offset="276" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1440002" Name="HCLM4SP0Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M4 SP1 Kelvin" Value="2400"><Memory CodeSegment="%MID%" Offset="281" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1440003" Name="HCLM4SP0Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M4 SP1 Helligkeit" Value="30"><Memory CodeSegment="%MID%" Offset="283" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440003" Name="HCLM4SP0Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M4 SP1 Helligkeit" Value="15"><Memory CodeSegment="%MID%" Offset="283" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1440004" Name="HCLM4SP1Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M4 SP2 Zeit" Value="06:00"><Memory CodeSegment="%MID%" Offset="284" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1440005" Name="HCLM4SP1Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M4 SP2 Kelvin" Value="3000"><Memory CodeSegment="%MID%" Offset="289" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1440006" Name="HCLM4SP1Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M4 SP2 Helligkeit" Value="50"><Memory CodeSegment="%MID%" Offset="291" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440005" Name="HCLM4SP1Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M4 SP2 Kelvin" Value="2700"><Memory CodeSegment="%MID%" Offset="289" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440006" Name="HCLM4SP1Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M4 SP2 Helligkeit" Value="25"><Memory CodeSegment="%MID%" Offset="291" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1440007" Name="HCLM4SP2Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M4 SP3 Zeit" Value="08:00"><Memory CodeSegment="%MID%" Offset="292" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1440008" Name="HCLM4SP2Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M4 SP3 Kelvin" Value="4000"><Memory CodeSegment="%MID%" Offset="297" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1440009" Name="HCLM4SP2Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M4 SP3 Helligkeit" Value="80"><Memory CodeSegment="%MID%" Offset="299" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440008" Name="HCLM4SP2Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M4 SP3 Kelvin" Value="3400"><Memory CodeSegment="%MID%" Offset="297" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440009" Name="HCLM4SP2Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M4 SP3 Helligkeit" Value="45"><Memory CodeSegment="%MID%" Offset="299" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1440010" Name="HCLM4SP3Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M4 SP4 Zeit" Value="10:00"><Memory CodeSegment="%MID%" Offset="300" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1440011" Name="HCLM4SP3Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M4 SP4 Kelvin" Value="5000"><Memory CodeSegment="%MID%" Offset="305" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1440012" Name="HCLM4SP3Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M4 SP4 Helligkeit" Value="100"><Memory CodeSegment="%MID%" Offset="307" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440011" Name="HCLM4SP3Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M4 SP4 Kelvin" Value="4300"><Memory CodeSegment="%MID%" Offset="305" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440012" Name="HCLM4SP3Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M4 SP4 Helligkeit" Value="70"><Memory CodeSegment="%MID%" Offset="307" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1440013" Name="HCLM4SP4Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M4 SP5 Zeit" Value="12:00"><Memory CodeSegment="%MID%" Offset="308" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1440014" Name="HCLM4SP4Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M4 SP5 Kelvin" Value="5000"><Memory CodeSegment="%MID%" Offset="313" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1440015" Name="HCLM4SP4Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M4 SP5 Helligkeit" Value="90"><Memory CodeSegment="%MID%" Offset="315" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440015" Name="HCLM4SP4Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M4 SP5 Helligkeit" Value="80"><Memory CodeSegment="%MID%" Offset="315" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1440016" Name="HCLM4SP5Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M4 SP6 Zeit" Value="14:00"><Memory CodeSegment="%MID%" Offset="316" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1440017" Name="HCLM4SP5Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M4 SP6 Kelvin" Value="5000"><Memory CodeSegment="%MID%" Offset="321" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1440018" Name="HCLM4SP5Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M4 SP6 Helligkeit" Value="70"><Memory CodeSegment="%MID%" Offset="323" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440017" Name="HCLM4SP5Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M4 SP6 Kelvin" Value="4700"><Memory CodeSegment="%MID%" Offset="321" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440018" Name="HCLM4SP5Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M4 SP6 Helligkeit" Value="65"><Memory CodeSegment="%MID%" Offset="323" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1440019" Name="HCLM4SP6Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M4 SP7 Zeit" Value="16:00"><Memory CodeSegment="%MID%" Offset="324" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1440020" Name="HCLM4SP6Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M4 SP7 Kelvin" Value="4000"><Memory CodeSegment="%MID%" Offset="329" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440020" Name="HCLM4SP6Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M4 SP7 Kelvin" Value="3900"><Memory CodeSegment="%MID%" Offset="329" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1440021" Name="HCLM4SP6Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M4 SP7 Helligkeit" Value="50"><Memory CodeSegment="%MID%" Offset="331" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1440022" Name="HCLM4SP7Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M4 SP8 Zeit" Value="18:00"><Memory CodeSegment="%MID%" Offset="332" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1440023" Name="HCLM4SP7Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M4 SP8 Kelvin" Value="3000"><Memory CodeSegment="%MID%" Offset="337" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1440024" Name="HCLM4SP7Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M4 SP8 Helligkeit" Value="30"><Memory CodeSegment="%MID%" Offset="339" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440023" Name="HCLM4SP7Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M4 SP8 Kelvin" Value="3100"><Memory CodeSegment="%MID%" Offset="337" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440024" Name="HCLM4SP7Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M4 SP8 Helligkeit" Value="35"><Memory CodeSegment="%MID%" Offset="339" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1440025" Name="HCLM4SP8Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M4 SP9 Zeit" Value="20:00"><Memory CodeSegment="%MID%" Offset="340" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1440026" Name="HCLM4SP8Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M4 SP9 Kelvin" Value="2400"><Memory CodeSegment="%MID%" Offset="345" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1440027" Name="HCLM4SP8Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M4 SP9 Helligkeit" Value="100"><Memory CodeSegment="%MID%" Offset="347" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440026" Name="HCLM4SP8Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M4 SP9 Kelvin" Value="2600"><Memory CodeSegment="%MID%" Offset="345" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440027" Name="HCLM4SP8Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M4 SP9 Helligkeit" Value="20"><Memory CodeSegment="%MID%" Offset="347" BitOffset="0" /></Parameter>
               
               <Parameter Id="%AID%_P-1440028" Name="HCLM4SP9Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M4 SP10 Zeit" Value="22:00"><Memory CodeSegment="%MID%" Offset="348" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1440029" Name="HCLM4SP9Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M4 SP10 Kelvin" Value="2400"><Memory CodeSegment="%MID%" Offset="353" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1440030" Name="HCLM4SP9Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M4 SP10 Helligkeit" Value="100"><Memory CodeSegment="%MID%" Offset="355" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440030" Name="HCLM4SP9Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M4 SP10 Helligkeit" Value="10"><Memory CodeSegment="%MID%" Offset="355" BitOffset="0" /></Parameter>
 
               <!-- Namen der HCL-Master -->
               <Parameter Id="%AID%_P-1410100" Name="HCLM1Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Manager 1" Value=""><Memory CodeSegment="%MID%" Offset="356" BitOffset="0" /></Parameter>
