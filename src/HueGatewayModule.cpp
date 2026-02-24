@@ -78,6 +78,9 @@ HueGatewayModule::HueGatewayModule()
     , _eventStreamFailureCount(0)
     , _client(nullptr)
     , _lightCount(0)
+    , _pollBackoffUntilMs(0)
+    , _pollBackoffMs(1000)
+    , _pollFailureCount(0)
     , _pollCursor(0)
     , _bridgeStatus(BridgeStatus::DISCONNECTED)
     , _ledBlinkTime(0)
@@ -1582,9 +1585,16 @@ void HueGatewayModule::checkConnection()
         return;
     }
 
-    if (!_authPending && _bridgeStatus != BridgeStatus::CONNECTED)
+    if (_client->pingBridgeApiV2())
     {
-        updateStatus(BridgeStatus::CONNECTED);
+        if (!_authPending && _bridgeStatus != BridgeStatus::CONNECTED)
+        {
+            updateStatus(BridgeStatus::CONNECTED);
+        }
+    }
+    else if (!_authPending)
+    {
+        updateStatus(BridgeStatus::CONNECTION_LOST);
     }
 }
 
@@ -1596,6 +1606,11 @@ void HueGatewayModule::refreshLightStatus()
     }
 
     unsigned long now = millis();
+    if (_pollBackoffUntilMs != 0 && now < _pollBackoffUntilMs)
+    {
+        return;
+    }
+
     bool dueFlags[MAX_LIGHTS] = {false};
     int dueChannels = 0;
     for (int i = 0; i < MAX_LIGHTS; i++)
@@ -1648,12 +1663,20 @@ void HueGatewayModule::refreshLightStatus()
     Serial.printf("[HueGatewayModule] Polling returned %d light(s)\n", count);
     if (count <= 0)
     {
+        _pollFailureCount = min<uint8_t>(static_cast<uint8_t>(_pollFailureCount + 1), static_cast<uint8_t>(10));
+        _pollBackoffMs = min<unsigned long>(_pollBackoffMs * 2UL, 60000UL);
+        _pollBackoffUntilMs = now + _pollBackoffMs;
+
         if (_bridgeStatus == BridgeStatus::CONNECTED)
         {
             updateStatus(BridgeStatus::CONNECTION_LOST);
         }
         return;
     }
+
+    _pollFailureCount = 0;
+    _pollBackoffMs = 1000;
+    _pollBackoffUntilMs = 0;
 
     if (_bridgeStatus == BridgeStatus::CONNECTION_LOST || _bridgeStatus == BridgeStatus::BRIDGE_UNREACHABLE)
     {

@@ -1,9 +1,6 @@
 #include "HueGatewayDiscovery.h"
-#include "HueGatewayNvsKeys.h"
+#include "HueGatewayStorage.h"
 #include <ArduinoJson.h>
-#include <Preferences.h>
-
-Preferences prefs;
 
 HueGatewayDiscovery::HueGatewayDiscovery()
 {
@@ -61,7 +58,14 @@ bool HueGatewayDiscovery::setManualIP(const char* ip)
         return false;
     }
     
-    saveIP(String(ip));
+    const String ipString(ip);
+    if (!isBridgeReachable(ipString))
+    {
+        Serial.printf("[HueGatewayDiscovery] Manual IP not reachable or not a Hue Bridge: %s\n", ip);
+        return false;
+    }
+
+    saveIP(ipString);
     return true;
 }
 
@@ -175,9 +179,7 @@ bool HueGatewayDiscovery::isBridgeReachable(const String& ip)
     }
     http.setTimeout(2000);
 
-    prefs.begin(HueGatewayNvs::Namespace, true);
-    String appKey = prefs.getString(HueGatewayNvs::AppKey, "");
-    prefs.end();
+    String appKey = HueGatewayStorage::loadAppKey();
 
     if (appKey.length() > 0)
     {
@@ -185,9 +187,45 @@ bool HueGatewayDiscovery::isBridgeReachable(const String& ip)
     }
 
     int httpCode = http.GET();
-    if (httpCode <= 0)
+    if (httpCode < 200 || httpCode >= 300)
     {
         Serial.printf("[HueGatewayDiscovery] Reachability HTTP status: %d\n", httpCode);
+        http.end();
+        return false;
+    }
+
+    String response = http.getString();
+    StaticJsonDocument<1024> doc;
+    DeserializationError error = deserializeJson(doc, response);
+    if (error || !doc.is<JsonObject>())
+    {
+        Serial.printf("[HueGatewayDiscovery] Reachability JSON parse error: %s\n", error.c_str());
+        http.end();
+        return false;
+    }
+
+    JsonArrayConst data = doc["data"].as<JsonArrayConst>();
+    if (data.isNull() || data.size() == 0)
+    {
+        Serial.println("[HueGatewayDiscovery] Reachability response has no bridge data");
+        http.end();
+        return false;
+    }
+
+    bool bridgeTypeFound = false;
+    for (JsonObjectConst item : data)
+    {
+        const char* type = item["type"] | "";
+        if (strcmp(type, "bridge") == 0)
+        {
+            bridgeTypeFound = true;
+            break;
+        }
+    }
+
+    if (!bridgeTypeFound)
+    {
+        Serial.println("[HueGatewayDiscovery] Reachability response is not a Hue bridge resource");
         http.end();
         return false;
     }
@@ -200,17 +238,12 @@ bool HueGatewayDiscovery::isBridgeReachable(const String& ip)
 
 void HueGatewayDiscovery::saveIP(const String& ip)
 {
-    prefs.begin(HueGatewayNvs::Namespace, false);
-    prefs.putString(HueGatewayNvs::BridgeIp, ip);
-    prefs.end();
+    HueGatewayStorage::saveBridgeIp(ip);
     Serial.printf("[HueGatewayDiscovery] IP saved: %s\n", ip.c_str());
 }
 
 String HueGatewayDiscovery::loadIP()
 {
-    prefs.begin(HueGatewayNvs::Namespace, true); // read-only
-    String ip = prefs.getString(HueGatewayNvs::BridgeIp, "");
-    prefs.end();
-    return ip;
+    return HueGatewayStorage::loadBridgeIp();
 }
 

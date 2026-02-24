@@ -4,6 +4,9 @@
 
 namespace
 {
+static constexpr size_t kMaxEventLineChars = 4096U;
+static constexpr size_t kMaxEventPayloadChars = 8192U;
+
 float dimmingStepCodeToPercent(uint8_t stepCode)
 {
     switch (stepCode)
@@ -17,6 +20,23 @@ float dimmingStepCodeToPercent(uint8_t stepCode)
         case 7: return 1.5625f;
         default: return 0.0f;
     }
+}
+
+bool isHttpSuccessStatus(int statusCode)
+{
+    return statusCode >= 200 && statusCode < 300;
+}
+
+int parseHttpStatusCode(const String& statusLine)
+{
+    int firstSpace = statusLine.indexOf(' ');
+    if (firstSpace < 0 || firstSpace + 3 >= static_cast<int>(statusLine.length()))
+    {
+        return -1;
+    }
+
+    String codeStr = statusLine.substring(firstSpace + 1, firstSpace + 4);
+    return codeStr.toInt();
 }
 }
 
@@ -68,7 +88,7 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights)
     DynamicJsonDocument doc(16384);
     int statusCode = httpGet("/clip/v2/resource/light", doc);
 
-    if (statusCode != 200)
+    if (!isHttpSuccessStatus(statusCode))
     {
         Serial.print("[HueGatewayClient] ERROR: GET lights failed - HTTP ");
         Serial.println(statusCode);
@@ -206,7 +226,7 @@ bool HueGatewayClient::setLightOnOff(const String& lightId, bool on)
 
     int statusCode = httpPut(endpoint, payload);
 
-    if (statusCode == 200)
+    if (isHttpSuccessStatus(statusCode))
     {
         Serial.printf("[HueGatewayClient] Light %s -> %s\n", lightId.c_str(), on ? "ON" : "OFF");
         return true;
@@ -234,7 +254,7 @@ bool HueGatewayClient::setLightBrightness(const String& lightId, uint8_t brightn
     
     int statusCode = httpPut(endpoint, payload);
     
-    if (statusCode == 200)
+    if (isHttpSuccessStatus(statusCode))
     {
         Serial.printf("[HueGatewayClient] Light %s -> Brightness: %d\n", lightId.c_str(), brightness);
         return true;
@@ -264,7 +284,7 @@ bool HueGatewayClient::setLightState(const String& lightId, bool on, uint8_t bri
     
     int statusCode = httpPut(endpoint, payload);
     
-    if (statusCode == 200)
+    if (isHttpSuccessStatus(statusCode))
     {
         Serial.printf("[HueGatewayClient] Light %s -> On:%d Bri:%d\n", 
                       lightId.c_str(), on, brightness);
@@ -321,7 +341,7 @@ bool HueGatewayClient::setLightDimmingDelta(const String& lightId, bool brighter
 
     int statusCode = httpPut(endpoint, payload);
 
-    if (statusCode == 200)
+    if (isHttpSuccessStatus(statusCode))
     {
         Serial.printf("[HueGatewayClient] Light %s -> Dimming delta: %s %u step(s) (%.1f%%)\n",
                       lightId.c_str(),
@@ -350,7 +370,7 @@ bool HueGatewayClient::stopLightDimming(const String& lightId)
 
     int statusCode = httpPut(endpoint, payload);
 
-    if (statusCode == 200)
+    if (isHttpSuccessStatus(statusCode))
     {
         Serial.printf("[HueGatewayClient] Light %s -> Dimming stop\n", lightId.c_str());
         return true;
@@ -395,7 +415,7 @@ bool HueGatewayClient::setLightStateWithColorTemp(const String& lightId, bool on
     
     int statusCode = httpPut(endpoint, payload);
     
-    if (statusCode == 200)
+    if (isHttpSuccessStatus(statusCode))
     {
         Serial.printf("[HueGatewayClient] Light %s -> On:%d Bri:%d CT:%d fade:%ds\n", 
                       lightId.c_str(), on, brightness, clampedMirek, fadeDurationSec);
@@ -430,7 +450,7 @@ bool HueGatewayClient::setLightColorTemperature(const String& lightId, uint16_t 
     
     int statusCode = httpPut(endpoint, payload);
     
-    if (statusCode == 200)
+    if (isHttpSuccessStatus(statusCode))
     {
         Serial.printf("[HueGatewayClient] Light %s -> ColorTemp: %d mirek (%d K)\n", 
                       lightId.c_str(), clampedMirek, mirekToKelvin(clampedMirek));
@@ -469,7 +489,7 @@ bool HueGatewayClient::setLightColor(const String& lightId, float x, float y)
     
     int statusCode = httpPut(endpoint, payload);
     
-    if (statusCode == 200)
+    if (isHttpSuccessStatus(statusCode))
     {
         Serial.printf("[HueGatewayClient] Light %s -> Color XY: (%.3f, %.3f)\n", 
                       lightId.c_str(), clampedX, clampedY);
@@ -491,7 +511,7 @@ bool HueGatewayClient::pingBridgeApiV2()
 
     DynamicJsonDocument doc(1024);
     int statusCode = httpGet("/clip/v2/resource/bridge", doc);
-    if (statusCode == 200)
+    if (isHttpSuccessStatus(statusCode))
     {
         return true;
     }
@@ -582,7 +602,8 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
         String statusLine = _eventClient.readStringUntil('\n');
         statusLine.trim();
         Serial.printf("[HueGatewayClient] EventStream status: %s\n", statusLine.c_str());
-        if (statusLine.indexOf("200") < 0)
+        int statusCode = parseHttpStatusCode(statusLine);
+        if (!isHttpSuccessStatus(statusCode))
         {
             Serial.printf("[HueGatewayClient] EventStream HTTP error: %s\n", statusLine.c_str());
             stopEventStream();
@@ -629,8 +650,9 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
         if (ch != '\n')
         {
             _eventLineBuffer += ch;
-            if (_eventLineBuffer.length() > 4096)
+            if (_eventLineBuffer.length() > kMaxEventLineChars)
             {
+                Serial.println("[HueGatewayClient] EventStream line exceeded limit, dropping line");
                 _eventLineBuffer = "";
             }
             continue;
@@ -649,6 +671,11 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
             String dataPart = _eventLineBuffer.substring(5);
             dataPart.trim();
             _eventDataBuffer += dataPart;
+            if (_eventDataBuffer.length() > kMaxEventPayloadChars)
+            {
+                Serial.println("[HueGatewayClient] Event payload exceeded limit, dropping payload");
+                _eventDataBuffer = "";
+            }
         }
 
         _eventLineBuffer = "";
@@ -675,7 +702,13 @@ int HueGatewayClient::parseEventPayload(const String& payload, HueGatewayEventLi
         return 0;
     }
 
-    DynamicJsonDocument doc(8192);
+    if (payload.length() > kMaxEventPayloadChars)
+    {
+        Serial.printf("[HueGatewayClient] Event payload too large: %u bytes\n", static_cast<unsigned>(payload.length()));
+        return 0;
+    }
+
+    DynamicJsonDocument doc(6144);
     DeserializationError error = deserializeJson(doc, payload);
     if (error)
     {
@@ -794,7 +827,6 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc)
     Serial.print("[HueGatewayClient] HTTP GET ");
     Serial.println(url);
     _http.setTimeout(2000);
-    _http.setTimeout(2000);
     const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected) && _eventClient.connected();
     
     _http.begin(_secureClient, url);
@@ -816,7 +848,7 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc)
         statusCode = _http.GET();
     }
     
-    if (statusCode == 200)
+    if (isHttpSuccessStatus(statusCode))
     {
         String response = _http.getString();
         DeserializationError error = deserializeJson(doc, response);
@@ -855,7 +887,6 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
     String url = buildUrl(endpoint);
     Serial.printf("[HueGatewayClient] HTTP PUT %s payload=%s\n", url.c_str(), payload.c_str());
     _http.setTimeout(2000);
-    _http.setTimeout(2000);
     const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected) && _eventClient.connected();
     
     _http.begin(_secureClient, url);
@@ -879,7 +910,7 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
         statusCode = _http.PUT(payload);
     }
     
-    if (statusCode != 200)
+    if (!isHttpSuccessStatus(statusCode))
     {
         String response = _http.getString();
         Serial.printf("[HueGatewayClient] HTTP PUT failed (%d): %s\n", statusCode, response.c_str());

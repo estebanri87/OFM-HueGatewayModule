@@ -1,9 +1,6 @@
 #include "HueGatewayAuth.h"
-#include "HueGatewayNvsKeys.h"
+#include "HueGatewayStorage.h"
 #include <ArduinoJson.h>
-#include <Preferences.h>
-
-extern Preferences prefs;
 
 HueGatewayAuth::HueGatewayAuth()
     : _appKey("")
@@ -42,24 +39,29 @@ bool HueGatewayAuth::authenticateBlocking(const char* bridgeIP, uint32_t timeout
     Serial.println("[HueGatewayAuth] *** PRESS BUTTON ON HUE BRIDGE NOW! ***");
 
     const uint32_t start = millis();
+    uint32_t nextTryMs = start;
     uint32_t attempt = 0;
     while ((millis() - start) < timeoutMs)
     {
-        if (requestAppKeyOnce(bridgeIP))
+        uint32_t now = millis();
+        if (now >= nextTryMs)
         {
-            Serial.println("[HueGatewayAuth] Authentication successful!");
-            return true;
+            if (requestAppKeyOnce(bridgeIP))
+            {
+                Serial.println("[HueGatewayAuth] Authentication successful!");
+                return true;
+            }
+
+            attempt++;
+            nextTryMs = now + 1000UL;
+            Serial.printf("[HueGatewayAuth] Waiting for button press... (%lu)\n", static_cast<unsigned long>(attempt));
+#ifdef INFO_LED_PIN
+            digitalWrite(INFO_LED_PIN, !digitalRead(INFO_LED_PIN));
+#endif
         }
 
-        attempt++;
-        Serial.printf("[HueGatewayAuth] Waiting for button press... (%lu)\n", static_cast<unsigned long>(attempt));
-#ifdef INFO_LED_PIN
-        delay(100);
-        digitalWrite(INFO_LED_PIN, !digitalRead(INFO_LED_PIN));
-        delay(900);
-#else
-        delay(1000);
-#endif
+        delay(25);
+        yield();
     }
 
     Serial.println("[HueGatewayAuth] Authentication timeout - button not pressed");
@@ -186,10 +188,7 @@ bool HueGatewayAuth::requestAppKeyOnce(const char* ip)
 
 void HueGatewayAuth::clearAppKey()
 {
-    prefs.begin(HueGatewayNvs::Namespace, false);
-    prefs.remove(HueGatewayNvs::AppKey);
-    prefs.remove(HueGatewayNvs::ClientKey);
-    prefs.end();
+    HueGatewayStorage::clearAuthKeys();
     _appKey = "";
     _clientKey = "";
     Serial.println("[HueGatewayAuth] App-Key cleared");
@@ -197,26 +196,20 @@ void HueGatewayAuth::clearAppKey()
 
 void HueGatewayAuth::saveAppKey(const String& key)
 {
-    prefs.begin(HueGatewayNvs::Namespace, false);
-    prefs.putString(HueGatewayNvs::AppKey, key);
-    prefs.end();
+    HueGatewayStorage::saveAppKey(key);
     _appKey = key;
     Serial.println("[HueGatewayAuth] App-Key saved to flash");
 }
 
 void HueGatewayAuth::saveClientKey(const String& key)
 {
-    prefs.begin(HueGatewayNvs::Namespace, false);
-    prefs.putString(HueGatewayNvs::ClientKey, key);
-    prefs.end();
+    HueGatewayStorage::saveClientKey(key);
     _clientKey = key;
 }
 
 String HueGatewayAuth::loadAppKey()
 {
-    prefs.begin(HueGatewayNvs::Namespace, true); // read-only
-    String key = prefs.getString(HueGatewayNvs::AppKey, "");
-    prefs.end();
+    String key = HueGatewayStorage::loadAppKey();
     
     if (key.length() > 0)
     {
@@ -228,10 +221,7 @@ String HueGatewayAuth::loadAppKey()
 
 String HueGatewayAuth::loadClientKey()
 {
-    prefs.begin(HueGatewayNvs::Namespace, true); // read-only
-    String key = prefs.getString(HueGatewayNvs::ClientKey, "");
-    prefs.end();
-    return key;
+    return HueGatewayStorage::loadClientKey();
 }
 
 

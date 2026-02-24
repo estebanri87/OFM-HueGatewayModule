@@ -75,6 +75,9 @@ private:
     unsigned long _channelFastTrackNextMs[MAX_LIGHTS];
     unsigned long _channelFastTrackCooldownUntilMs[MAX_LIGHTS];
     uint8_t _channelFastTrackRemaining[MAX_LIGHTS];
+    unsigned long _pollBackoffUntilMs;
+    unsigned long _pollBackoffMs;
+    uint8_t _pollFailureCount;
     // Round-robin cursor for chunked polling fallback.
     uint8_t _pollCursor;
     int _lightCount;
