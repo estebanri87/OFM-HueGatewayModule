@@ -1,4 +1,11 @@
-﻿### Kanal 1-n (Lampen)
+﻿### Kanal 1-n (Hue Ziele)
 
-Jeder Kanal steuert genau eine Hue-Leuchte.
+Jeder Kanal steuert genau ein Hue-Ziel.
+
+Mögliche Zieltypen:
+- **Licht**
+- **Raum**
+- **Zone**
+
+Die Zielzuordnung erfolgt primär über **Hue Ziel (Light-/Room-/Zone-ID oder Name)**.
 

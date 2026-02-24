@@ -22,8 +22,8 @@ struct HueGatewayEventLightUpdate;
  * It communicates with the Hue Bridge via Hue API v2 and exposes device
  * functions through KNX communication objects.
  * 
- * @version 0.1.0
- * @date 2026-02-03
+ * @version 0.2.0
+ * @date 2026-02-24
  */
 
 class HueGatewayModule : public OpenKNX::Module
@@ -146,7 +146,7 @@ private:
     void refreshNetworkServices();
     void pollAuthentication();
     bool initClientWithAppKey();
-    void startPairing();
+    bool startPairing();
     
     // Web UI handlers (absolute URIs)
     static esp_err_t handleWebRoot(httpd_req_t* req);

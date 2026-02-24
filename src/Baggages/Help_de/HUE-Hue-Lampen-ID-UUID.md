@@ -1,6 +1,10 @@
 ﻿### Hue Lampen-ID (UUID)
 
-Eindeutige Hue-Ressourcen-ID der Leuchte.
+Legacy-/Fallback-Feld für bestehende Projektierungen.
+
+Für neue Projektierungen bitte **Hue Ziel (Light-/Room-/Zone-ID oder Name)** verwenden.
+
+Gilt nur für Zieltyp **Licht**.
 
 Ermittlung über:
 - Webinterface: `http://<IP-des-OpenKNX-Geräts>/openknx/hue/scan`

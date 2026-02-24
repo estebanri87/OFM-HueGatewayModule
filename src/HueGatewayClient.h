@@ -32,7 +32,11 @@ struct HueGatewayLightState
     String id;
     String name;
     String room;
+    String roomRid;
+    String roomIdV1;
     String zone;
+    String zoneRid;
+    String zoneIdV1;
 };
 
 struct HueGatewayEventLightUpdate
@@ -48,6 +52,13 @@ struct HueGatewayEventLightUpdate
     uint8_t red;
     uint8_t green;
     uint8_t blue;
+};
+
+struct HueGatewayTargetInfo
+{
+    String id;
+    String name;
+    String groupedLightId;
 };
 
 class HueGatewayClient
@@ -79,6 +90,7 @@ public:
     * @return true on success
      */
     bool setLightOnOff(const String& lightId, bool on);
+    bool setGroupedLightOnOff(const String& groupedLightId, bool on);
     
     /**
     * @brief Sets the brightness of a light.
@@ -87,6 +99,7 @@ public:
     * @return true on success
      */
     bool setLightBrightness(const String& lightId, uint8_t brightness);
+    bool setGroupedLightBrightness(const String& groupedLightId, uint8_t brightness);
     
     /**
     * @brief Sets on/off and brightness in one request.
@@ -96,6 +109,7 @@ public:
     * @return true on success
      */
     bool setLightState(const String& lightId, bool on, uint8_t brightness);
+    bool setGroupedLightState(const String& groupedLightId, bool on, uint8_t brightness);
 
     /**
     * @brief Applies relative dimming delta to a light.
@@ -105,6 +119,7 @@ public:
     * @return true on success
      */
     bool setLightDimmingDelta(const String& lightId, bool brighter, uint8_t steps);
+    bool setGroupedLightDimmingDelta(const String& groupedLightId, bool brighter, uint8_t steps);
 
     /**
     * @brief Stops an active relative dimming action on the light.
@@ -112,6 +127,7 @@ public:
     * @return true on success
      */
     bool stopLightDimming(const String& lightId);
+    bool stopGroupedLightDimming(const String& groupedLightId);
     
     /**
     * @brief Sets on/off, brightness, and color temperature with fade duration.
@@ -174,6 +190,11 @@ public:
      */
     String getBridgeIP() const { return _bridgeIP; }
 
+    bool resolveGroupedLightForRoom(const String& roomRid, String& groupedLightRid, String& roomName);
+    bool resolveGroupedLightForZone(const String& zoneRid, String& groupedLightRid, String& zoneName);
+    int getRoomTargets(HueGatewayTargetInfo* targets, int maxTargets);
+    int getZoneTargets(HueGatewayTargetInfo* targets, int maxTargets);
+
 private:
     bool _initialized;
     String _bridgeIP;
@@ -194,7 +215,17 @@ private:
     {
         String id;
         String room;
+        String roomRid;
+        String roomIdV1;
         String zone;
+        String zoneRid;
+        String zoneIdV1;
+    };
+
+    struct DeviceLightLink
+    {
+        String deviceId;
+        String lightId;
     };
     
     /**
@@ -220,7 +251,21 @@ private:
     static void xyToRgb(float x, float y, uint8_t& red, uint8_t& green, uint8_t& blue);
     int parseEventPayload(const String& payload, HueGatewayEventLightUpdate* updates, int maxUpdates);
 
-    void appendLocationsFromDoc(std::vector<LightLocation>& locations, const JsonDocument& doc, bool isRoom);
-    void upsertLocation(std::vector<LightLocation>& locations, const String& id, const String& room, const String& zone);
+    void appendDeviceLightLinksFromDoc(std::vector<DeviceLightLink>& links, const JsonDocument& doc);
+    void appendLocationsFromDoc(std::vector<LightLocation>& locations,
+                                const JsonDocument& doc,
+                                bool isRoom,
+                                const std::vector<DeviceLightLink>& deviceLightLinks);
+    void upsertLocation(std::vector<LightLocation>& locations,
+                        const String& id,
+                        const String& room,
+                        const String& roomRid,
+                        const String& roomIdV1,
+                        const String& zone,
+                        const String& zoneRid,
+                        const String& zoneIdV1);
+    bool resolveGroupedLightForTarget(const String& endpoint, const String& targetRid, String& groupedLightRid, String& targetName);
+    static bool extractGroupedLightRid(JsonObjectConst item, String& groupedLightRid);
+    int getTargetsForEndpoint(const String& endpoint, HueGatewayTargetInfo* targets, int maxTargets);
 };
 

@@ -1,6 +1,8 @@
 #include "HueGatewayClient.h"
 #include <cstring>
+#include <functional>
 #include <math.h>
+#include <esp_heap_caps.h>
 
 namespace
 {
@@ -25,6 +27,72 @@ float dimmingStepCodeToPercent(uint8_t stepCode)
 bool isHttpSuccessStatus(int statusCode)
 {
     return statusCode >= 200 && statusCode < 300;
+}
+
+void logHeapStats(const char* phase)
+{
+    const uint32_t freeHeap = ESP.getFreeHeap();
+    const uint32_t minFreeHeap = ESP.getMinFreeHeap();
+    const size_t free8Bit = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    const size_t largest8Bit = heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
+    const uint32_t fragPercent = (free8Bit > 0 && largest8Bit <= free8Bit)
+        ? static_cast<uint32_t>(((free8Bit - largest8Bit) * 100U) / free8Bit)
+        : 0U;
+
+    Serial.printf("[HueGatewayClient] HEAP %s free=%lu min=%lu free8=%u largest8=%u frag=%lu%%\n",
+                  phase,
+                  static_cast<unsigned long>(freeHeap),
+                  static_cast<unsigned long>(minFreeHeap),
+                  static_cast<unsigned>(free8Bit),
+                  static_cast<unsigned>(largest8Bit),
+                  static_cast<unsigned long>(fragPercent));
+}
+
+bool extractResourceRef(JsonVariantConst refVar, String& outRid, String& outType)
+{
+    outRid = "";
+    outType = "";
+
+    if (refVar.is<const char*>())
+    {
+        const char* rid = refVar.as<const char*>();
+        if (rid != nullptr && rid[0] != '\0')
+        {
+            outRid = String(rid);
+            return true;
+        }
+        return false;
+    }
+
+    JsonObjectConst ref = refVar.as<JsonObjectConst>();
+    if (ref.isNull())
+    {
+        return false;
+    }
+
+    const char* rid = ref["rid"] | "";
+    if (rid[0] == '\0') rid = ref["id"] | "";
+    if (rid[0] == '\0') rid = ref["resource_identifier"]["rid"] | "";
+    if (rid[0] == '\0') rid = ref["service"]["rid"] | "";
+    if (rid[0] == '\0') rid = ref["target"]["rid"] | "";
+
+    const char* rtype = ref["rtype"] | "";
+    if (rtype[0] == '\0') rtype = ref["type"] | "";
+    if (rtype[0] == '\0') rtype = ref["resource_identifier"]["rtype"] | "";
+    if (rtype[0] == '\0') rtype = ref["service"]["rtype"] | "";
+    if (rtype[0] == '\0') rtype = ref["target"]["rtype"] | "";
+
+    if (rid[0] == '\0')
+    {
+        return false;
+    }
+
+    outRid = String(rid);
+    if (rtype[0] != '\0')
+    {
+        outType = String(rtype);
+    }
+    return true;
 }
 
 int parseHttpStatusCode(const String& statusLine)
@@ -104,6 +172,60 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights)
     }
 
     JsonArrayConst data = doc["data"].as<JsonArrayConst>();
+    std::vector<LightLocation> locations;
+    std::vector<DeviceLightLink> deviceLightLinks;
+
+    // Build a direct device->light map from light payload first.
+    // This is robust even if /device does not expose light refs on some bridge firmwares.
+    for (JsonObjectConst light : data)
+    {
+        const char* lightRid = light["id"] | "";
+        const char* ownerRid = light["owner"]["rid"] | "";
+        if (lightRid[0] == '\0' || ownerRid[0] == '\0')
+        {
+            continue;
+        }
+
+        DeviceLightLink link;
+        link.deviceId = String(ownerRid);
+        link.lightId = String(lightRid);
+        deviceLightLinks.push_back(link);
+    }
+
+    static DynamicJsonDocument deviceDoc(24576);
+    deviceDoc.clear();
+    int deviceStatus = httpGet("/clip/v2/resource/device", deviceDoc);
+    if (isHttpSuccessStatus(deviceStatus))
+    {
+        appendDeviceLightLinksFromDoc(deviceLightLinks, deviceDoc);
+    }
+
+    static DynamicJsonDocument roomDoc(12288);
+    roomDoc.clear();
+    int roomStatus = httpGet("/clip/v2/resource/room", roomDoc);
+    if (isHttpSuccessStatus(roomStatus))
+    {
+        appendLocationsFromDoc(locations, roomDoc, true, deviceLightLinks);
+    }
+
+    static DynamicJsonDocument zoneDoc(12288);
+    zoneDoc.clear();
+    int zoneStatus = httpGet("/clip/v2/resource/zone", zoneDoc);
+    if (isHttpSuccessStatus(zoneStatus))
+    {
+        appendLocationsFromDoc(locations, zoneDoc, false, deviceLightLinks);
+    }
+
+    const size_t roomItems = roomDoc["data"].is<JsonArrayConst>() ? roomDoc["data"].as<JsonArrayConst>().size() : 0;
+    const size_t zoneItems = zoneDoc["data"].is<JsonArrayConst>() ? zoneDoc["data"].as<JsonArrayConst>().size() : 0;
+    if (locations.empty() && (roomItems > 0 || zoneItems > 0))
+    {
+        Serial.printf("[HueGatewayClient] WARNING: No room/zone mapping created (roomItems=%u zoneItems=%u links=%u)\n",
+                      static_cast<unsigned>(roomItems),
+                      static_cast<unsigned>(zoneItems),
+                      static_cast<unsigned>(deviceLightLinks.size()));
+    }
+
     int count = 0;
 
     for (JsonObjectConst light : data)
@@ -114,6 +236,7 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights)
         lights[count].id = light["id"].as<String>();
         lights[count].name = light["metadata"]["name"].as<String>();
         lights[count].on = light["on"]["on"].as<bool>();
+        String ownerRid = light["owner"]["rid"].as<String>();
 
         float brightnessPct = light["dimming"]["brightness"].as<float>();
         lights[count].brightness = static_cast<uint8_t>(brightnessPct * 2.54f);
@@ -142,7 +265,45 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights)
         }
 
         lights[count].room = "-";
+        lights[count].roomRid = "-";
+        lights[count].roomIdV1 = "-";
         lights[count].zone = "-";
+        lights[count].zoneRid = "-";
+        lights[count].zoneIdV1 = "-";
+
+        for (const auto& location : locations)
+        {
+            if (location.id.equalsIgnoreCase(lights[count].id)
+                || (ownerRid.length() > 0 && location.id.equalsIgnoreCase(ownerRid)))
+            {
+                if (location.room.length() > 0)
+                {
+                    lights[count].room = location.room;
+                }
+                if (location.roomRid.length() > 0)
+                {
+                    lights[count].roomRid = location.roomRid;
+                }
+                if (location.roomIdV1.length() > 0)
+                {
+                    lights[count].roomIdV1 = location.roomIdV1;
+                }
+                if (location.zone.length() > 0)
+                {
+                    lights[count].zone = location.zone;
+                }
+                if (location.zoneRid.length() > 0)
+                {
+                    lights[count].zoneRid = location.zoneRid;
+                }
+                if (location.zoneIdV1.length() > 0)
+                {
+                    lights[count].zoneIdV1 = location.zoneIdV1;
+                }
+                break;
+            }
+        }
+
         count++;
     }
 
@@ -151,50 +312,193 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights)
     return count;
 }
 
-void HueGatewayClient::appendLocationsFromDoc(std::vector<LightLocation>& locations, const JsonDocument& doc, bool isRoom)
+void HueGatewayClient::appendDeviceLightLinksFromDoc(std::vector<DeviceLightLink>& links, const JsonDocument& doc)
 {
-    if (!doc.is<JsonObject>())
+    JsonArrayConst data = doc["data"].as<JsonArrayConst>();
+    if (data.isNull())
+    {
+        data = doc.as<JsonArrayConst>();
+    }
+    if (data.isNull())
     {
         return;
     }
 
-    JsonArrayConst data = doc["data"].as<JsonArrayConst>();
     for (JsonObjectConst item : data)
     {
-        const char* name = item["metadata"]["name"] | "";
-        if (name[0] == '\0')
+        const char* deviceRid = item["id"] | "";
+        if (deviceRid[0] == '\0')
         {
             continue;
         }
 
-        JsonArrayConst children = item["children"].as<JsonArrayConst>();
-        for (JsonObjectConst child : children)
-        {
-            const char* rtype = child["rtype"] | "";
-            if (strcmp(rtype, "light") != 0)
+        auto collectFromRefs = [&](JsonArrayConst refs) {
+            for (JsonVariantConst refVar : refs)
             {
-                continue;
-            }
+                String rid;
+                String rtype;
+                if (!extractResourceRef(refVar, rid, rtype))
+                {
+                    continue;
+                }
 
-            const char* rid = child["rid"] | "";
-            if (rid[0] == '\0')
-            {
-                continue;
-            }
+                if (!(rtype.equalsIgnoreCase("light") || rtype.indexOf("light") >= 0))
+                {
+                    continue;
+                }
 
-            if (isRoom)
-            {
-                upsertLocation(locations, String(rid), String(name), "");
+                DeviceLightLink link;
+                link.deviceId = String(deviceRid);
+                link.lightId = rid;
+                links.push_back(link);
             }
-            else
-            {
-                upsertLocation(locations, String(rid), "", String(name));
-            }
-        }
+        };
+
+        collectFromRefs(item["services"].as<JsonArrayConst>());
+        collectFromRefs(item["children"].as<JsonArrayConst>());
+        collectFromRefs(item["grouped_services"].as<JsonArrayConst>());
     }
 }
 
-void HueGatewayClient::upsertLocation(std::vector<LightLocation>& locations, const String& id, const String& room, const String& zone)
+void HueGatewayClient::appendLocationsFromDoc(std::vector<LightLocation>& locations,
+                                              const JsonDocument& doc,
+                                              bool isRoom,
+                                              const std::vector<DeviceLightLink>& deviceLightLinks)
+{
+    auto mapDeviceToLights = [&](const String& deviceRid,
+                                 const String& locationName,
+                                 const String& locationRid,
+                                 const String& locationIdV1,
+                                 bool roomLocation) {
+        bool resolved = false;
+        for (const auto& link : deviceLightLinks)
+        {
+            if (!link.deviceId.equalsIgnoreCase(deviceRid))
+            {
+                continue;
+            }
+
+            resolved = true;
+            if (roomLocation)
+            {
+                upsertLocation(locations, link.lightId, locationName, locationRid, locationIdV1, "", "", "");
+            }
+            else
+            {
+                upsertLocation(locations, link.lightId, "", "", "", locationName, locationRid, locationIdV1);
+            }
+        }
+
+        if (!resolved)
+        {
+            if (roomLocation)
+            {
+                upsertLocation(locations, deviceRid, locationName, locationRid, locationIdV1, "", "", "");
+            }
+            else
+            {
+                upsertLocation(locations, deviceRid, "", "", "", locationName, locationRid, locationIdV1);
+            }
+        }
+    };
+
+    JsonArrayConst data = doc["data"].as<JsonArrayConst>();
+    if (data.isNull())
+    {
+        data = doc.as<JsonArrayConst>();
+    }
+    if (data.isNull())
+    {
+        return;
+    }
+
+    for (JsonObjectConst item : data)
+    {
+        String locationName = item["metadata"]["name"].as<String>();
+        if (locationName.length() == 0)
+        {
+            locationName = item["name"].as<String>();
+        }
+        if (locationName.length() == 0)
+        {
+            continue;
+        }
+
+        String locationRid = item["id"].as<String>();
+        String locationIdV1 = item["id_v1"].as<String>();
+
+        auto handleRefs = [&](JsonArrayConst refs) {
+            for (JsonVariantConst refVar : refs)
+            {
+                String rid;
+                String rawType;
+                if (!extractResourceRef(refVar, rid, rawType))
+                {
+                    continue;
+                }
+
+                String rtype = rawType;
+                rtype.toLowerCase();
+
+                if (rtype == "light")
+                {
+                    if (isRoom)
+                    {
+                        upsertLocation(locations, rid, locationName, locationRid, locationIdV1, "", "", "");
+                    }
+                    else
+                    {
+                        upsertLocation(locations, rid, "", "", "", locationName, locationRid, locationIdV1);
+                    }
+                    continue;
+                }
+
+                if (rtype == "device")
+                {
+                    mapDeviceToLights(rid, locationName, locationRid, locationIdV1, isRoom);
+                    continue;
+                }
+
+                bool matchedAsLight = false;
+                for (const auto& link : deviceLightLinks)
+                {
+                    if (link.lightId.equalsIgnoreCase(rid))
+                    {
+                        if (isRoom)
+                        {
+                            upsertLocation(locations, link.lightId, locationName, locationRid, locationIdV1, "", "", "");
+                        }
+                        else
+                        {
+                            upsertLocation(locations, link.lightId, "", "", "", locationName, locationRid, locationIdV1);
+                        }
+                        matchedAsLight = true;
+                        break;
+                    }
+                }
+
+                if (!matchedAsLight)
+                {
+                    mapDeviceToLights(rid, locationName, locationRid, locationIdV1, isRoom);
+                }
+            }
+        };
+
+        handleRefs(item["children"].as<JsonArrayConst>());
+        handleRefs(item["services"].as<JsonArrayConst>());
+        handleRefs(item["grouped_services"].as<JsonArrayConst>());
+    }
+
+}
+
+void HueGatewayClient::upsertLocation(std::vector<LightLocation>& locations,
+                                      const String& id,
+                                      const String& room,
+                                      const String& roomRid,
+                                      const String& roomIdV1,
+                                      const String& zone,
+                                      const String& zoneRid,
+                                      const String& zoneIdV1)
 {
     for (auto& loc : locations)
     {
@@ -204,9 +508,25 @@ void HueGatewayClient::upsertLocation(std::vector<LightLocation>& locations, con
             {
                 loc.room = room;
             }
+            if (roomRid.length() > 0)
+            {
+                loc.roomRid = roomRid;
+            }
+            if (roomIdV1.length() > 0)
+            {
+                loc.roomIdV1 = roomIdV1;
+            }
             if (zone.length() > 0)
             {
                 loc.zone = zone;
+            }
+            if (zoneRid.length() > 0)
+            {
+                loc.zoneRid = zoneRid;
+            }
+            if (zoneIdV1.length() > 0)
+            {
+                loc.zoneIdV1 = zoneIdV1;
             }
             return;
         }
@@ -215,7 +535,11 @@ void HueGatewayClient::upsertLocation(std::vector<LightLocation>& locations, con
     LightLocation loc;
     loc.id = id;
     loc.room = room;
+    loc.roomRid = roomRid;
+    loc.roomIdV1 = roomIdV1;
     loc.zone = zone;
+    loc.zoneRid = zoneRid;
+    loc.zoneIdV1 = zoneIdV1;
     locations.push_back(loc);
 }
 
@@ -241,6 +565,31 @@ bool HueGatewayClient::setLightOnOff(const String& lightId, bool on)
     }
 
     Serial.printf("[HueGatewayClient] ERROR: PUT failed - HTTP %d\n", statusCode);
+    return false;
+}
+
+bool HueGatewayClient::setGroupedLightOnOff(const String& groupedLightId, bool on)
+{
+    if (!_initialized)
+        return false;
+
+    String endpoint = "/clip/v2/resource/grouped_light/" + groupedLightId;
+
+    DynamicJsonDocument doc(256);
+    doc["on"]["on"] = on;
+
+    String payload;
+    serializeJson(doc, payload);
+
+    int statusCode = httpPut(endpoint, payload);
+
+    if (isHttpSuccessStatus(statusCode))
+    {
+        Serial.printf("[HueGatewayClient] GroupedLight %s -> %s\n", groupedLightId.c_str(), on ? "ON" : "OFF");
+        return true;
+    }
+
+    Serial.printf("[HueGatewayClient] ERROR: PUT grouped_light on/off failed - HTTP %d\n", statusCode);
     return false;
 }
 
@@ -274,6 +623,33 @@ bool HueGatewayClient::setLightBrightness(const String& lightId, uint8_t brightn
     }
 }
 
+bool HueGatewayClient::setGroupedLightBrightness(const String& groupedLightId, uint8_t brightness)
+{
+    if (!_initialized)
+        return false;
+
+    float brightnessPct = (brightness / 254.0f) * 100.0f;
+
+    String endpoint = "/clip/v2/resource/grouped_light/" + groupedLightId;
+
+    DynamicJsonDocument doc(256);
+    doc["dimming"]["brightness"] = brightnessPct;
+
+    String payload;
+    serializeJson(doc, payload);
+
+    int statusCode = httpPut(endpoint, payload);
+
+    if (isHttpSuccessStatus(statusCode))
+    {
+        Serial.printf("[HueGatewayClient] GroupedLight %s -> Brightness: %d\n", groupedLightId.c_str(), brightness);
+        return true;
+    }
+
+    Serial.printf("[HueGatewayClient] ERROR: PUT grouped_light brightness failed - HTTP %d\n", statusCode);
+    return false;
+}
+
 bool HueGatewayClient::setLightState(const String& lightId, bool on, uint8_t brightness)
 {
     if (!_initialized)
@@ -303,6 +679,35 @@ bool HueGatewayClient::setLightState(const String& lightId, bool on, uint8_t bri
         Serial.printf("[HueGatewayClient] ERROR: PUT state failed - HTTP %d\n", statusCode);
         return false;
     }
+}
+
+bool HueGatewayClient::setGroupedLightState(const String& groupedLightId, bool on, uint8_t brightness)
+{
+    if (!_initialized)
+        return false;
+
+    float brightnessPct = (brightness / 254.0f) * 100.0f;
+
+    String endpoint = "/clip/v2/resource/grouped_light/" + groupedLightId;
+
+    DynamicJsonDocument doc(512);
+    doc["on"]["on"] = on;
+    doc["dimming"]["brightness"] = brightnessPct;
+
+    String payload;
+    serializeJson(doc, payload);
+
+    int statusCode = httpPut(endpoint, payload);
+
+    if (isHttpSuccessStatus(statusCode))
+    {
+        Serial.printf("[HueGatewayClient] GroupedLight %s -> On:%d Bri:%d\n",
+                      groupedLightId.c_str(), on, brightness);
+        return true;
+    }
+
+    Serial.printf("[HueGatewayClient] ERROR: PUT grouped_light state failed - HTTP %d\n", statusCode);
+    return false;
 }
 
 bool HueGatewayClient::setLightDimmingDelta(const String& lightId, bool brighter, uint8_t steps)
@@ -363,6 +768,58 @@ bool HueGatewayClient::setLightDimmingDelta(const String& lightId, bool brighter
     return false;
 }
 
+bool HueGatewayClient::setGroupedLightDimmingDelta(const String& groupedLightId, bool brighter, uint8_t steps)
+{
+    if (!_initialized)
+        return false;
+
+    if (steps == 0)
+    {
+        return stopGroupedLightDimming(groupedLightId);
+    }
+
+    if (steps > 7)
+    {
+        steps = 7;
+    }
+
+    float brightnessDeltaPct = dimmingStepCodeToPercent(steps);
+    if (brightnessDeltaPct < 0.1f)
+    {
+        brightnessDeltaPct = 0.1f;
+    }
+    if (brightnessDeltaPct > 100.0f)
+    {
+        brightnessDeltaPct = 100.0f;
+    }
+
+    String endpoint = "/clip/v2/resource/grouped_light/" + groupedLightId;
+
+    DynamicJsonDocument doc(256);
+    doc["dimming_delta"]["action"] = brighter ? "up" : "down";
+    doc["dimming_delta"]["brightness_delta"] = brightnessDeltaPct;
+
+    if (brighter)
+    {
+        doc["on"]["on"] = true;
+    }
+
+    String payload;
+    serializeJson(doc, payload);
+
+    int statusCode = httpPut(endpoint, payload);
+
+    if (isHttpSuccessStatus(statusCode))
+    {
+        Serial.printf("[HueGatewayClient] GroupedLight %s -> Dimming delta: %s %u step(s) (%.1f%%)\n",
+                      groupedLightId.c_str(), brighter ? "up" : "down", static_cast<unsigned>(steps), brightnessDeltaPct);
+        return true;
+    }
+
+    Serial.printf("[HueGatewayClient] ERROR: PUT grouped_light dimming delta failed - HTTP %d\n", statusCode);
+    return false;
+}
+
 bool HueGatewayClient::stopLightDimming(const String& lightId)
 {
     if (!_initialized)
@@ -386,6 +843,164 @@ bool HueGatewayClient::stopLightDimming(const String& lightId)
 
     Serial.printf("[HueGatewayClient] ERROR: PUT dimming stop failed - HTTP %d\n", statusCode);
     return false;
+}
+
+bool HueGatewayClient::stopGroupedLightDimming(const String& groupedLightId)
+{
+    if (!_initialized)
+        return false;
+
+    String endpoint = "/clip/v2/resource/grouped_light/" + groupedLightId;
+
+    DynamicJsonDocument doc(128);
+    doc["dimming_delta"]["action"] = "stop";
+
+    String payload;
+    serializeJson(doc, payload);
+
+    int statusCode = httpPut(endpoint, payload);
+
+    if (isHttpSuccessStatus(statusCode))
+    {
+        Serial.printf("[HueGatewayClient] GroupedLight %s -> Dimming STOP\n", groupedLightId.c_str());
+        return true;
+    }
+
+    Serial.printf("[HueGatewayClient] ERROR: PUT grouped_light dimming stop failed - HTTP %d\n", statusCode);
+    return false;
+}
+
+bool HueGatewayClient::extractGroupedLightRid(JsonObjectConst item, String& groupedLightRid)
+{
+    JsonArrayConst services = item["services"].as<JsonArrayConst>();
+    for (JsonObjectConst service : services)
+    {
+        const char* rtype = service["rtype"] | "";
+        if (strcmp(rtype, "grouped_light") != 0)
+        {
+            continue;
+        }
+
+        const char* rid = service["rid"] | "";
+        if (rid[0] == '\0')
+        {
+            continue;
+        }
+
+        groupedLightRid = String(rid);
+        return true;
+    }
+
+    return false;
+}
+
+bool HueGatewayClient::resolveGroupedLightForTarget(const String& endpoint, const String& targetRid, String& groupedLightRid, String& targetName)
+{
+    groupedLightRid = "";
+    targetName = "";
+
+    if (!_initialized || targetRid.length() == 0)
+    {
+        return false;
+    }
+
+    static DynamicJsonDocument doc(16384);
+    doc.clear();
+
+    int statusCode = httpGet(endpoint, doc);
+    if (!isHttpSuccessStatus(statusCode))
+    {
+        Serial.printf("[HueGatewayClient] ERROR: GET %s failed - HTTP %d\n", endpoint.c_str(), statusCode);
+        return false;
+    }
+
+    String lookup = targetRid;
+    lookup.trim();
+    String lookupLower = lookup;
+    lookupLower.toLowerCase();
+
+    JsonArrayConst data = doc["data"].as<JsonArrayConst>();
+    for (JsonObjectConst item : data)
+    {
+        String itemRid = item["id"].as<String>();
+        String itemName = item["metadata"]["name"].as<String>();
+        String itemNameLower = itemName;
+        itemNameLower.toLowerCase();
+
+        bool matchesId = itemRid.equalsIgnoreCase(lookup);
+        bool matchesName = itemNameLower == lookupLower;
+        if (!matchesId && !matchesName)
+        {
+            continue;
+        }
+
+        targetName = itemName;
+        return extractGroupedLightRid(item, groupedLightRid);
+    }
+
+    return false;
+}
+
+bool HueGatewayClient::resolveGroupedLightForRoom(const String& roomRid, String& groupedLightRid, String& roomName)
+{
+    return resolveGroupedLightForTarget("/clip/v2/resource/room", roomRid, groupedLightRid, roomName);
+}
+
+bool HueGatewayClient::resolveGroupedLightForZone(const String& zoneRid, String& groupedLightRid, String& zoneName)
+{
+    return resolveGroupedLightForTarget("/clip/v2/resource/zone", zoneRid, groupedLightRid, zoneName);
+}
+
+int HueGatewayClient::getTargetsForEndpoint(const String& endpoint, HueGatewayTargetInfo* targets, int maxTargets)
+{
+    if (!_initialized || targets == nullptr || maxTargets <= 0)
+    {
+        return 0;
+    }
+
+    static DynamicJsonDocument doc(16384);
+    doc.clear();
+
+    int statusCode = httpGet(endpoint, doc);
+    if (!isHttpSuccessStatus(statusCode))
+    {
+        Serial.printf("[HueGatewayClient] ERROR: GET %s failed - HTTP %d\n", endpoint.c_str(), statusCode);
+        return 0;
+    }
+
+    JsonArrayConst data = doc["data"].as<JsonArrayConst>();
+    int count = 0;
+
+    for (JsonObjectConst item : data)
+    {
+        if (count >= maxTargets)
+        {
+            break;
+        }
+
+        String groupedRid;
+        if (!extractGroupedLightRid(item, groupedRid) || groupedRid.length() == 0)
+        {
+            continue;
+        }
+
+        targets[count].id = item["id"].as<String>();
+        targets[count].name = item["metadata"]["name"].as<String>();
+        targets[count].groupedLightId = groupedRid;
+        count++;
+    }
+
+    return count;
+}
+
+int HueGatewayClient::getRoomTargets(HueGatewayTargetInfo* targets, int maxTargets)
+{
+    return getTargetsForEndpoint("/clip/v2/resource/room", targets, maxTargets);
+}
+
+int HueGatewayClient::getZoneTargets(HueGatewayTargetInfo* targets, int maxTargets)
+{
+    return getTargetsForEndpoint("/clip/v2/resource/zone", targets, maxTargets);
 }
 
 bool HueGatewayClient::setLightStateWithColorTemp(const String& lightId, bool on, uint8_t brightness, 
@@ -549,9 +1164,11 @@ bool HueGatewayClient::startEventStream()
 
     _eventClient.setTimeout(100);
     Serial.printf("[HueGatewayClient] EventStream connecting to %s:443\n", _bridgeIP.c_str());
+    logHeapStats("before-event-connect");
     if (!_eventClient.connect(_bridgeIP.c_str(), 443))
     {
         Serial.println("[HueGatewayClient] EventStream connect failed");
+        logHeapStats("event-connect-failed");
         return false;
     }
 
@@ -884,10 +1501,16 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc)
     
     int statusCode = _http.GET();
 
+    if (statusCode < 0)
+    {
+        logHeapStats("http-get-failed");
+    }
+
     if (statusCode < 0 && eventWasActive)
     {
         Serial.printf("[HueGatewayClient] HTTP GET low-memory fallback (status=%d): pausing EventStream and retrying once\n",
                       statusCode);
+        logHeapStats("http-get-before-fallback");
         _http.end();
         stopEventStream();
         _secureClient.stop();
@@ -896,6 +1519,10 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc)
         _http.begin(_secureClient, url);
         _http.addHeader("hue-application-key", _appKey);
         statusCode = _http.GET();
+        if (statusCode < 0)
+        {
+            logHeapStats("http-get-fallback-failed");
+        }
     }
     
     if (isHttpSuccessStatus(statusCode))
@@ -945,10 +1572,16 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
     
     int statusCode = _http.PUT(payload);
 
+    if (statusCode < 0)
+    {
+        logHeapStats("http-put-failed");
+    }
+
     if (statusCode < 0 && eventWasActive)
     {
         Serial.printf("[HueGatewayClient] HTTP PUT low-memory fallback (status=%d): pausing EventStream and retrying once\n",
                       statusCode);
+        logHeapStats("http-put-before-fallback");
         _http.end();
         stopEventStream();
         _secureClient.stop();
@@ -958,6 +1591,10 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
         _http.addHeader("Content-Type", "application/json");
         _http.addHeader("hue-application-key", _appKey);
         statusCode = _http.PUT(payload);
+        if (statusCode < 0)
+        {
+            logHeapStats("http-put-fallback-failed");
+        }
     }
     
     if (!isHttpSuccessStatus(statusCode))

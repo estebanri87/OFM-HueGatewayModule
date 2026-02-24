@@ -132,6 +132,9 @@ public:
      */
     void setMinBrightness(uint8_t minBrightness);
 
+    void setGroupedTarget(bool groupedTarget) { _isGroupedTarget = groupedTarget; }
+    bool isGroupedTarget() const { return _isGroupedTarget; }
+
 private:
     String _lightId;
     String _name;
@@ -159,6 +162,7 @@ private:
     uint8_t _lightType;
     uint8_t _minBrightnessPercent;
     uint8_t _minBrightnessHue;
+    bool _isGroupedTarget;
     
     // HCL configuration and current interpolation state.
     uint8_t _hclMasterNum;  // 0 = no HCL, 1-4 = HCL master number

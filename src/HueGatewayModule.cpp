@@ -8,12 +8,24 @@
 #include <lwip/sockets.h>
 #include <lwip/inet.h>
 
+#if __has_include("NetworkModule.h")
+#include "NetworkModule.h"
+#define HUEGATEWAY_HAS_OPENKNX_NETWORK 1
+#endif
+
 namespace
 {
 static constexpr unsigned long kFastTrackFirstDelayMs = 200UL;
 static constexpr unsigned long kFastTrackSecondDelayMs = 300UL;
 static constexpr unsigned long kFastTrackCooldownMs = 800UL;
 static constexpr uint8_t kFastTrackChecksPerCommand = 2;
+
+static constexpr unsigned long kBridgePingBackoffMinMs = 15000UL;
+static constexpr unsigned long kBridgePingBackoffMaxMs = 120000UL;
+static constexpr unsigned long kBridgeHealthForEventstreamMs = 15000UL;
+
+static unsigned long sBridgeNextPingAllowedMs = 0UL;
+static unsigned long sBridgePingBackoffMs = kBridgePingBackoffMinMs;
 }
 
 static bool isUsableIp(const IPAddress& ip)
@@ -212,6 +224,9 @@ void HueGatewayModule::loop()
     {
         if (!_client->isEventStreamConnected())
         {
+            const bool bridgeHealthyForEventstream = (_lastBridgeHealthOkMs != 0)
+                && ((now - _lastBridgeHealthOkMs) <= kBridgeHealthForEventstreamMs);
+
             if (_eventStreamPauseUntilMs != 0 && now >= _eventStreamPauseUntilMs)
             {
                 _eventStreamPauseUntilMs = 0;
@@ -220,7 +235,9 @@ void HueGatewayModule::loop()
                 Serial.println("[HueGatewayModule] EventStream cooldown elapsed, retrying");
             }
 
-            if (_eventStreamPauseUntilMs == 0 && (now - _lastEventStreamRetryMs >= _eventStreamRetryBackoffMs))
+            if (_eventStreamPauseUntilMs == 0
+                && bridgeHealthyForEventstream
+                && (now - _lastEventStreamRetryMs >= _eventStreamRetryBackoffMs))
             {
                 _lastEventStreamRetryMs = now;
                 Serial.printf("[HueGatewayModule] EventStream retry at %lu ms\n", static_cast<unsigned long>(now));
@@ -306,10 +323,37 @@ void HueGatewayModule::loop()
 
             if (initClientWithAppKey())
             {
-                setupDevices();
-                updateStatus(BridgeStatus::CONNECTED);
-                _reconnectBackoffMs = 10000;
-                Serial.println("[HueGatewayModule] Reconnect successful");
+                bool bridgeReachable = _client && _client->pingBridgeApiV2();
+                if (bridgeReachable)
+                {
+                    setupDevices();
+
+                    uint8_t configuredChannels = ParamHUE_HUEChannelCount;
+                    if (configuredChannels > MAX_LIGHTS)
+                    {
+                        configuredChannels = MAX_LIGHTS;
+                    }
+
+                    const bool setupHealthy = (configuredChannels == 0) || (_lightCount > 0);
+                    if (setupHealthy)
+                    {
+                        updateStatus(BridgeStatus::CONNECTED);
+                        _reconnectBackoffMs = 10000;
+                        Serial.println("[HueGatewayModule] Reconnect successful");
+                    }
+                    else
+                    {
+                        _reconnectBackoffMs = min<unsigned long>(_reconnectBackoffMs * 2UL, 120000UL);
+                        updateStatus(BridgeStatus::CONNECTION_LOST);
+                        Serial.println("[HueGatewayModule] Reconnect not accepted: setupDevices mapped 0 lights");
+                    }
+                }
+                else
+                {
+                    _reconnectBackoffMs = min<unsigned long>(_reconnectBackoffMs * 2UL, 120000UL);
+                    updateStatus(BridgeStatus::CONNECTION_LOST);
+                    Serial.println("[HueGatewayModule] Reconnect failed: bridge ping unsuccessful");
+                }
             }
             else
             {
@@ -372,7 +416,7 @@ const std::string HueGatewayModule::name()
 
 const std::string HueGatewayModule::version()
 {
-    return "0.1.0";
+    return "0.2.0";
 }
 
 void HueGatewayModule::processInputKo(GroupObject& ko)
@@ -583,8 +627,14 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
 
     if (cmd == "hue pair")
     {
-        startPairing();
-        Serial.println("[HueGatewayModule] Pairing command accepted. Press Hue Bridge button now.");
+        if (startPairing())
+        {
+            Serial.println("[HueGatewayModule] Pairing command accepted. Press Hue Bridge button now.");
+        }
+        else
+        {
+            Serial.println("[HueGatewayModule] Pairing command rejected. Check network and bridge configuration.");
+        }
         return true;
     }
     
@@ -630,8 +680,12 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
             return true;
         }
         
-        HueGatewayLightState lights[MAX_LIGHTS];
+        static HueGatewayLightState lights[MAX_LIGHTS];
         int count = client.getLights(lights, MAX_LIGHTS);
+        HueGatewayTargetInfo rooms[MAX_LIGHTS];
+        HueGatewayTargetInfo zones[MAX_LIGHTS];
+        int roomCount = client.getRoomTargets(rooms, MAX_LIGHTS);
+        int zoneCount = client.getZoneTargets(zones, MAX_LIGHTS);
         
         Serial.println("Found Lights:");
         Serial.println("---------------------------------");
@@ -646,10 +700,42 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
         
         Serial.println("---------------------------------");
         Serial.printf("Total: %d lights\n\n", count);
-        Serial.println("To use in ETS:");
-        Serial.println("1. Copy the Light ID (UUID)");
-        Serial.println("2. Paste into ETS parameter 'Light ID'");
-        Serial.println("3. Set channel to 'Active'");
+
+        if (roomCount > 0)
+        {
+            Serial.println("Rooms (for TargetType=Room):");
+            Serial.println("---------------------------------");
+            for (int i = 0; i < roomCount; i++)
+            {
+                Serial.printf("%2d: %-25s roomRID=%s grouped=%s\n",
+                              i,
+                              rooms[i].name.c_str(),
+                              rooms[i].id.c_str(),
+                              rooms[i].groupedLightId.c_str());
+            }
+            Serial.println("---------------------------------");
+        }
+
+        if (zoneCount > 0)
+        {
+            Serial.println("Zones (for TargetType=Zone):");
+            Serial.println("---------------------------------");
+            for (int i = 0; i < zoneCount; i++)
+            {
+                Serial.printf("%2d: %-25s zoneRID=%s grouped=%s\n",
+                              i,
+                              zones[i].name.c_str(),
+                              zones[i].id.c_str(),
+                              zones[i].groupedLightId.c_str());
+            }
+            Serial.println("---------------------------------");
+        }
+
+        Serial.println("To use in ETS (new parameters):");
+        Serial.println("1. Set 'Zieltyp' = Licht/Raum/Zone");
+        Serial.println("2. Fill 'Hue Ziel (Light-/Room-/Zone-ID oder Name)' with matching target ID or name");
+        Serial.println("3. Set channel to active");
+        Serial.println("Legacy fallback still works: 'Hue Lampen-ID (UUID)' or prefixes room:/zone:");
         Serial.println("=================================");
         
         return true;
@@ -1137,7 +1223,7 @@ void HueGatewayModule::setupDevices()
         delay(20);
     }
 
-    HueGatewayLightState allLights[MAX_LIGHTS];
+    static HueGatewayLightState allLights[MAX_LIGHTS];
     int bridgeLightCount = _client->getLights(allLights, MAX_LIGHTS);
     if (bridgeLightCount <= 0)
     {
@@ -1145,6 +1231,13 @@ void HueGatewayModule::setupDevices()
         bridgeLightCount = _client->getLights(allLights, MAX_LIGHTS);
     }
     Serial.printf("[HueGatewayModule] Bridge has %d lights\n", bridgeLightCount);
+
+    if (bridgeLightCount <= 0)
+    {
+        _deviceSetupNeedsRetry = true;
+        Serial.println("[HueGatewayModule] Bridge returned 0 lights, deferring device mapping retry");
+        return;
+    }
     
     // Kanäle aus ETS-Parametern laden
     // Bevorzugt UUID-Mapping aus ETS, Fallback auf Index bei leerer UUID
@@ -1154,6 +1247,7 @@ void HueGatewayModule::setupDevices()
         maxChannels = MAX_LIGHTS;
     }
     bool hasIndexMappedChannel = false;
+    bool hasUnresolvedGroupTarget = false;
     for (uint8_t ch = 0; ch < maxChannels; ch++)
     {
         uint8_t _channelIndex = ch;
@@ -1167,35 +1261,190 @@ void HueGatewayModule::setupDevices()
         std::string configuredUuidStd = ParamHUE_CHLightUUIDStr;
         String configuredUuid(configuredUuidStd.c_str());
         configuredUuid.trim();
-        if (configuredUuid.length() == 0)
+
+        String configuredTargetRid;
+        #ifdef ParamHUE_CHTargetRIDStr
+        {
+            std::string configuredTargetStd = ParamHUE_CHTargetRIDStr;
+            configuredTargetRid = String(configuredTargetStd.c_str());
+            configuredTargetRid.trim();
+        }
+        #endif
+
+        uint8_t configuredTargetType = 0;
+        #ifdef ParamHUE_CHTargetType
+        configuredTargetType = ParamHUE_CHTargetType;
+        #endif
+
+        bool hasLegacyUuid = configuredUuid.length() > 0
+            && !configuredUuid.equalsIgnoreCase("01234567-89ab-cdef-0123-456789abcdef");
+
+        if (configuredTargetRid.length() == 0 && !hasLegacyUuid)
         {
             hasIndexMappedChannel = true;
         }
 
         const HueGatewayLightState* selectedLight = nullptr;
         HueGatewayLightState fallbackLight;
-        if (configuredUuid.length() > 0)
+        bool targetIsGrouped = false;
+        bool targetIsRoom = false;
+        bool targetIsZone = false;
+
+        enum class TargetProbeType : uint8_t
+        {
+            Light = 0,
+            Room = 1,
+            Zone = 2
+        };
+
+        TargetProbeType preferredProbe = TargetProbeType::Light;
+        if (configuredTargetType == 1)
+        {
+            preferredProbe = TargetProbeType::Room;
+        }
+        else if (configuredTargetType == 2)
+        {
+            preferredProbe = TargetProbeType::Zone;
+        }
+
+        String targetProbe;
+
+        auto tryResolveLight = [&]() -> bool
         {
             for (int i = 0; i < bridgeLightCount; i++)
             {
-                if (allLights[i].id.equalsIgnoreCase(configuredUuid))
+                if (allLights[i].id.equalsIgnoreCase(targetProbe)
+                    || allLights[i].name.equalsIgnoreCase(targetProbe))
                 {
                     selectedLight = &allLights[i];
-                    break;
+                    targetIsGrouped = false;
+                    targetIsRoom = false;
+                    targetIsZone = false;
+                    return true;
                 }
             }
+            return false;
+        };
 
-            if (selectedLight == nullptr)
+        auto tryResolveRoom = [&]() -> bool
+        {
+            String groupedRid;
+            String groupedName;
+            if (_client->resolveGroupedLightForRoom(targetProbe, groupedRid, groupedName) && groupedRid.length() > 0)
             {
-                fallbackLight.id = configuredUuid;
-                fallbackLight.name = String("Channel ") + String(ch + 1);
-                fallbackLight.supportsColorTemp = true;
-                fallbackLight.supportsColor = true;
+                fallbackLight.id = groupedRid;
+                fallbackLight.name = String("Room: ") + groupedName;
+                fallbackLight.supportsColorTemp = false;
+                fallbackLight.supportsColor = false;
                 selectedLight = &fallbackLight;
+                targetIsGrouped = true;
+                targetIsRoom = true;
+                targetIsZone = false;
+                return true;
+            }
+            return false;
+        };
 
-                Serial.printf("[HueGatewayModule] Channel %d: UUID %s currently not in scan result, using ETS UUID fallback\n",
+        auto tryResolveZone = [&]() -> bool
+        {
+            String groupedRid;
+            String groupedName;
+            if (_client->resolveGroupedLightForZone(targetProbe, groupedRid, groupedName) && groupedRid.length() > 0)
+            {
+                fallbackLight.id = groupedRid;
+                fallbackLight.name = String("Zone: ") + groupedName;
+                fallbackLight.supportsColorTemp = false;
+                fallbackLight.supportsColor = false;
+                selectedLight = &fallbackLight;
+                targetIsGrouped = true;
+                targetIsRoom = false;
+                targetIsZone = true;
+                return true;
+            }
+            return false;
+        };
+
+        auto resolveSingleTarget = [&](const String& rawTarget, TargetProbeType baseProbe, bool preferLightFirst) -> bool
+        {
+            String localTarget = rawTarget;
+            localTarget.trim();
+            if (localTarget.length() == 0)
+            {
+                return false;
+            }
+
+            TargetProbeType probeOrder = baseProbe;
+            String localTargetLower = localTarget;
+            localTargetLower.toLowerCase();
+
+            if (localTargetLower.startsWith("room:"))
+            {
+                probeOrder = TargetProbeType::Room;
+                localTarget = localTarget.substring(5);
+            }
+            else if (localTargetLower.startsWith("zone:"))
+            {
+                probeOrder = TargetProbeType::Zone;
+                localTarget = localTarget.substring(5);
+            }
+
+            localTarget.trim();
+            if (localTarget.length() == 0)
+            {
+                return false;
+            }
+
+            targetProbe = localTarget;
+
+            if (preferLightFirst)
+            {
+                return tryResolveLight() || tryResolveRoom() || tryResolveZone();
+            }
+
+            if (probeOrder == TargetProbeType::Light)
+            {
+                return tryResolveLight() || tryResolveRoom() || tryResolveZone();
+            }
+            if (probeOrder == TargetProbeType::Room)
+            {
+                return tryResolveRoom() || tryResolveLight() || tryResolveZone();
+            }
+
+            return tryResolveZone() || tryResolveLight() || tryResolveRoom();
+        };
+
+        bool resolvedByNewTarget = false;
+        bool resolvedByLegacyTarget = false;
+
+        if (configuredTargetRid.length() > 0)
+        {
+            resolvedByNewTarget = resolveSingleTarget(configuredTargetRid, preferredProbe, false);
+        }
+
+        if (!resolvedByNewTarget && hasLegacyUuid)
+        {
+            resolvedByLegacyTarget = resolveSingleTarget(configuredUuid, TargetProbeType::Light, true);
+            if (resolvedByLegacyTarget)
+            {
+                Serial.printf("[HueGatewayModule] Channel %d: fallback to legacy Hue Light-ID '%s'\n",
                               ch + 1,
                               configuredUuid.c_str());
+            }
+        }
+
+        if (configuredTargetRid.length() > 0 || hasLegacyUuid)
+        {
+            if (selectedLight == nullptr)
+            {
+                hasUnresolvedGroupTarget = true;
+                String unresolvedTarget = configuredTargetRid.length() > 0 ? configuredTargetRid : configuredUuid;
+                Serial.printf("[HueGatewayModule] Channel %d: target '%s' unresolved (type=%u, newTarget=%u, legacy=%u), retry pending\n",
+                              ch + 1,
+                              unresolvedTarget.c_str(),
+                              static_cast<unsigned>(configuredTargetType),
+                              configuredTargetRid.length() > 0 ? 1U : 0U,
+                              hasLegacyUuid ? 1U : 0U);
+                continue;
             }
         }
         else if (ch < bridgeLightCount)
@@ -1223,8 +1472,16 @@ void HueGatewayModule::setupDevices()
         // Create a HueGatewayLight instance for this channel.
         _lights[ch] = new HueGatewayLight(selectedLight->id, selectedLight->name, _client);
         _lights[ch]->begin(koSwitch, koBrightness, koDimming, koStatusSwitch, koStatusBrightness, koStatusColorTemp, koStatusColorRGB);
+        _lights[ch]->setGroupedTarget(targetIsGrouped);
 
         uint8_t lightType = ParamHUE_CHLightType;
+        if (targetIsGrouped && lightType > 1)
+        {
+            Serial.printf("[HueGatewayModule] Channel %d: grouped target forces light type %u -> 1 (dimmable)\n",
+                          ch + 1,
+                          static_cast<unsigned>(lightType));
+            lightType = 1;
+        }
         uint8_t effectiveLightType = lightType;
 
         if (effectiveLightType >= 3 && !selectedLight->supportsColor)
@@ -1266,10 +1523,11 @@ void HueGatewayModule::setupDevices()
         _lights[ch]->setMinBrightness(minBrightness);
         _channelLastPollMs[ch] = 0;
 
-        Serial.printf("[HueGatewayModule] Channel %d: %s (%s), Type:%u Sync:%u Poll:%us MinBri:%u%% HCL:%u -> KO %d/%d/%d/%d/%d\n",
+        Serial.printf("[HueGatewayModule] Channel %d: %s (%s)%s, Type:%u Sync:%u Poll:%us MinBri:%u%% HCL:%u -> KO %d/%d/%d/%d/%d\n",
                       ch + 1,
                       selectedLight->name.c_str(),
                       selectedLight->id.c_str(),
+                  targetIsGrouped ? (targetIsRoom ? " [room]" : " [zone]") : "",
                       static_cast<unsigned>(effectiveLightType),
                       static_cast<unsigned>(ParamHUE_CHSyncDir),
                       static_cast<unsigned>(ParamHUE_CHPollInterval),
@@ -1281,13 +1539,14 @@ void HueGatewayModule::setupDevices()
     }
 
     uint8_t enabledChannels = countEnabledChannels();
-    if (enabledChannels > 0 && (_lightCount == 0 || (bridgeLightCount <= 0 && hasIndexMappedChannel)))
+    if (enabledChannels > 0 && (_lightCount == 0 || (bridgeLightCount <= 0 && hasIndexMappedChannel) || hasUnresolvedGroupTarget))
     {
         _deviceSetupNeedsRetry = true;
-        Serial.printf("[HueGatewayModule] setupDevices incomplete (enabled=%u, mapped=%d, bridgeLights=%d), retry scheduled\n",
+        Serial.printf("[HueGatewayModule] setupDevices incomplete (enabled=%u, mapped=%d, bridgeLights=%d, unresolvedGroup=%u), retry scheduled\n",
                       static_cast<unsigned>(enabledChannels),
                       _lightCount,
-                      bridgeLightCount);
+                      bridgeLightCount,
+                      hasUnresolvedGroupTarget ? 1 : 0);
     }
     else
     {
@@ -1653,9 +1912,21 @@ void HueGatewayModule::checkConnection()
         return;
     }
 
+    if (now < sBridgeNextPingAllowedMs)
+    {
+        if (_bridgeStatus == BridgeStatus::CONNECTED && _lastBridgeHealthOkMs != 0 && (now - _lastBridgeHealthOkMs) > 60000UL)
+        {
+            Serial.println("[HueGatewayModule] Bridge health stale for >60s, marking connection lost");
+            updateStatus(BridgeStatus::CONNECTION_LOST);
+        }
+        return;
+    }
+
     if (_client->pingBridgeApiV2())
     {
         _lastBridgeHealthOkMs = now;
+        sBridgePingBackoffMs = kBridgePingBackoffMinMs;
+        sBridgeNextPingAllowedMs = 0;
         if (!_authPending && _bridgeStatus != BridgeStatus::CONNECTED)
         {
             updateStatus(BridgeStatus::CONNECTED);
@@ -1664,6 +1935,8 @@ void HueGatewayModule::checkConnection()
     else if (!_authPending)
     {
         updateStatus(BridgeStatus::CONNECTION_LOST);
+        sBridgeNextPingAllowedMs = now + sBridgePingBackoffMs;
+        sBridgePingBackoffMs = min<unsigned long>(sBridgePingBackoffMs * 2UL, kBridgePingBackoffMaxMs);
     }
 
     if (_bridgeStatus == BridgeStatus::CONNECTED && _lastBridgeHealthOkMs != 0 && (now - _lastBridgeHealthOkMs) > 60000UL)
@@ -1748,8 +2021,8 @@ void HueGatewayModule::refreshLightStatus()
     static int cachedCount = 0;
     static unsigned long cacheValidUntilMs = 0;
 
-    HueGatewayLightState lights[MAX_LIGHTS];
-    HueGatewayLightState* lightSnapshot = lights;
+    static HueGatewayLightState pollLights[MAX_LIGHTS];
+    HueGatewayLightState* lightSnapshot = pollLights;
     int count = 0;
 
     if (cacheValidUntilMs != 0 && now <= cacheValidUntilMs)
@@ -1760,7 +2033,7 @@ void HueGatewayModule::refreshLightStatus()
     }
     else
     {
-        count = _client->getLights(lights, MAX_LIGHTS);
+        count = _client->getLights(pollLights, MAX_LIGHTS);
         Serial.printf("[HueGatewayModule] Polling returned %d light(s)\n", count);
     }
 
@@ -1784,12 +2057,12 @@ void HueGatewayModule::refreshLightStatus()
     _pollBackoffUntilMs = 0;
     _lastBridgeHealthOkMs = now;
 
-    if (lightSnapshot == lights)
+    if (lightSnapshot == pollLights)
     {
         cachedCount = count;
         for (int i = 0; i < count; i++)
         {
-            cachedLights[i] = lights[i];
+            cachedLights[i] = pollLights[i];
         }
         cacheValidUntilMs = now + 2000UL;
         lightSnapshot = cachedLights;
@@ -1905,8 +2178,26 @@ void HueGatewayModule::refreshLightStatus()
 
 bool HueGatewayModule::hasNetworkConnectivity() const
 {
-    const IPAddress localIp = WiFi.localIP();
-    if (localIp[0] != 0 || localIp[1] != 0 || localIp[2] != 0 || localIp[3] != 0)
+#if defined(HUEGATEWAY_HAS_OPENKNX_NETWORK) && defined(NET_ModuleVersion)
+    if (openknxNetwork.established() || openknxNetwork.connected())
+    {
+        return true;
+    }
+#endif
+
+    const IPAddress wifiIp = WiFi.localIP();
+    if (isUsableIp(wifiIp))
+    {
+        return true;
+    }
+
+    const IPAddress ethIp = ETH.localIP();
+    if (isUsableIp(ethIp))
+    {
+        return true;
+    }
+
+    if (ETH.linkUp())
     {
         return true;
     }
@@ -2342,7 +2633,7 @@ void HueGatewayModule::performBridgeScan()
         return;
     }
     
-    HueGatewayLightState lights[MAX_LIGHTS];
+    static HueGatewayLightState lights[MAX_LIGHTS];
     int count = _client->getLights(lights, MAX_LIGHTS);
     
     if (count <= 0)
@@ -2583,15 +2874,28 @@ void HueGatewayModule::applyEventStreamUpdates(const HueGatewayEventLightUpdate*
     }
 }
 
-void HueGatewayModule::startPairing()
+bool HueGatewayModule::startPairing()
 {
     Serial.println("[HueGatewayModule] ===== Manual commissioning trigger: Pairing start =====");
 
     if (!hasNetworkConnectivity())
     {
+    const IPAddress wifiIp = WiFi.localIP();
+    const IPAddress ethIp = ETH.localIP();
+    Serial.printf("[HueGatewayModule] Network details: wifi=%s (status=%d), eth=%s (link=%u)\n",
+              wifiIp.toString().c_str(),
+              static_cast<int>(WiFi.status()),
+              ethIp.toString().c_str(),
+              ETH.linkUp() ? 1 : 0);
+#if defined(HUEGATEWAY_HAS_OPENKNX_NETWORK) && defined(NET_ModuleVersion)
+    Serial.printf("[HueGatewayModule] Network module: connected=%u, established=%u, ip=%s\n",
+              openknxNetwork.connected() ? 1 : 0,
+              openknxNetwork.established() ? 1 : 0,
+              openknxNetwork.localIP().toString().c_str());
+#endif
         Serial.println("[HueGatewayModule] Pairing aborted: network disconnected");
         updateStatus(BridgeStatus::BRIDGE_UNREACHABLE);
-        return;
+    return false;
     }
 
     if (_bridgeIP.isEmpty())
@@ -2603,7 +2907,7 @@ void HueGatewayModule::startPairing()
     {
         Serial.println("[HueGatewayModule] ERROR: Bridge IP not configured!");
         updateStatus(BridgeStatus::BRIDGE_UNREACHABLE);
-        return;
+        return false;
     }
 
     resetDevices();
@@ -2616,6 +2920,7 @@ void HueGatewayModule::startPairing()
     _reconnectBackoffMs = 10000;
     updateStatus(BridgeStatus::WAIT_FOR_BUTTON);
     Serial.println("[HueGatewayModule] Pairing started - press Hue Bridge button");
+    return true;
 }
 
 void HueGatewayModule::updateInfoLED()
@@ -3046,7 +3351,7 @@ esp_err_t HueGatewayModule::handleWebPair(httpd_req_t* req)
     if (self == nullptr)
         return httpd_resp_send_500(req);
 
-    self->startPairing();
+    const bool pairingStarted = self->startPairing();
 
     const String hueBaseUri = String(openknxWebUI.getBaseUri()) + "/hue";
 
@@ -3054,12 +3359,24 @@ esp_err_t HueGatewayModule::handleWebPair(httpd_req_t* req)
     html.reserve(1024);
     html = "<!DOCTYPE html><html><head><meta charset='UTF-8'>";
     html += "<title>Hue-Kopplung</title>";
-    html += "<meta http-equiv='refresh' content='3;url=" + hueBaseUri + "/status'>";
+    if (pairingStarted)
+    {
+        html += "<meta http-equiv='refresh' content='3;url=" + hueBaseUri + "/status'>";
+    }
     html += "<style>body{font-family:Arial,sans-serif;margin:40px;background:#f5f5f5;}";
     html += ".card{background:white;padding:20px;border-radius:5px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}a{display:inline-block;padding:10px 16px;margin:5px;background:#007bff;color:#fff;text-decoration:none;border-radius:3px;}</style></head><body>";
-    html += "<div class='card'><h1>🔗 Kopplung gestartet</h1>";
-    html += "<p>Bitte jetzt den Link-Button an der Hue Bridge drücken.</p>";
-    html += "<p>Weiterleitung auf Statusseite in 3 Sekunden...</p>";
+    if (pairingStarted)
+    {
+        html += "<div class='card'><h1>🔗 Kopplung gestartet</h1>";
+        html += "<p>Bitte jetzt den Link-Button an der Hue Bridge drücken.</p>";
+        html += "<p>Weiterleitung auf Statusseite in 3 Sekunden...</p>";
+    }
+    else
+    {
+        html += "<div class='card'><h1>⚠️ Kopplung nicht gestartet</h1>";
+        html += "<p>Netzwerk nicht bereit oder Bridge-IP fehlt.</p>";
+        html += "<p>Bitte zuerst Netzwerk-/Bridge-Status prüfen und dann erneut starten.</p>";
+    }
     html += "<a href='" + hueBaseUri + "/status'>Status jetzt öffnen</a>";
     html += "<a href='" + hueBaseUri + "'>Zurück</a></div></body></html>";
 
@@ -3198,16 +3515,100 @@ void HueGatewayModule::updateWebScanCache()
         html += "<span class='light-id'>ID: " + String(lights[i].id.c_str()) + "</span><br>";
         html += "<span class='status'>Status: " + String(lights[i].on ? "EIN" : "AUS");
         String roomName = lights[i].room.length() ? lights[i].room : "-";
+        String roomRid = lights[i].roomRid.length() ? lights[i].roomRid : "-";
+        String roomNo = lights[i].roomIdV1.length() ? lights[i].roomIdV1 : "-";
         String zoneName = lights[i].zone.length() ? lights[i].zone : "-";
+        String zoneRid = lights[i].zoneRid.length() ? lights[i].zoneRid : "-";
+        String zoneNo = lights[i].zoneIdV1.length() ? lights[i].zoneIdV1 : "-";
         html += " | Helligkeit: " + String(lights[i].brightness) + "/254";
-        html += " | Raum: " + roomName + " | Zone: " + zoneName + "</span>";
+        html += " | Raum: " + roomName;
+        if (roomRid != "-" || roomNo != "-")
+        {
+            html += " (";
+            bool needComma = false;
+            if (roomRid != "-")
+            {
+                html += "ID: " + roomRid;
+                needComma = true;
+            }
+            if (roomNo != "-")
+            {
+                if (needComma)
+                {
+                    html += ", ";
+                }
+                html += "Nr: " + roomNo;
+            }
+            html += ")";
+        }
+        html += " | Zone: " + zoneName;
+        if (zoneRid != "-" || zoneNo != "-")
+        {
+            html += " (";
+            bool needComma = false;
+            if (zoneRid != "-")
+            {
+                html += "ID: " + zoneRid;
+                needComma = true;
+            }
+            if (zoneNo != "-")
+            {
+                if (needComma)
+                {
+                    html += ", ";
+                }
+                html += "Nr: " + zoneNo;
+            }
+            html += ")";
+        }
+        html += "</span>";
         html += "</div>";
 
         text += String(i + 1) + ") " + lights[i].name + "\n";
         text += "    ID: " + lights[i].id + "\n";
         text += "    Status: " + String(lights[i].on ? "EIN" : "AUS");
         text += " | Helligkeit: " + String(lights[i].brightness) + "/254";
-        text += " | Raum: " + roomName + " | Zone: " + zoneName + "\n";
+        text += " | Raum: " + roomName;
+        if (roomRid != "-" || roomNo != "-")
+        {
+            text += " (";
+            bool needComma = false;
+            if (roomRid != "-")
+            {
+                text += "ID: " + roomRid;
+                needComma = true;
+            }
+            if (roomNo != "-")
+            {
+                if (needComma)
+                {
+                    text += ", ";
+                }
+                text += "Nr: " + roomNo;
+            }
+            text += ")";
+        }
+        text += " | Zone: " + zoneName;
+        if (zoneRid != "-" || zoneNo != "-")
+        {
+            text += " (";
+            bool needComma = false;
+            if (zoneRid != "-")
+            {
+                text += "ID: " + zoneRid;
+                needComma = true;
+            }
+            if (zoneNo != "-")
+            {
+                if (needComma)
+                {
+                    text += ", ";
+                }
+                text += "Nr: " + zoneNo;
+            }
+            text += ")";
+        }
+        text += "\n";
     }
 
     html += "<br><p><strong>Tipp:</strong> Die Leuchten-ID kopieren und in die ETS-Kanalparameter einfügen.</p>";

@@ -22,19 +22,6 @@ Kurventyp:
 - **SunPosition**
 - **Manual Kelvin**
 
-#### Slew-Rate (K/min)
-Die Slew-Rate begrenzt die Änderungsrate der Farbtemperatur pro Minute.
-
-- `0` bedeutet: keine Begrenzung, Ziel-Kelvin wird direkt übernommen.
-- Werte `>0` bedeuten: weiche Annäherung an den Zielwert mit maximaler Änderungsrate in K/min.
-
-Beispiel:
-- `10 K/min` entspricht ungefähr `0,167 K/s`.
-- Bei 60 s Aktualisierung sind das maximal etwa `10 K` pro Aktualisierungsschritt.
-
-Hinweis zum Zusammenspiel:
-- Die vollständige Abstimmung von **Aktualisierungsintervall**, **Überblendzeit** und **Slew-Rate** inkl. Profilempfehlungen ist in der Kontexthilfe **HUE-Einstellungen** beschrieben.
-
 #### Stützpunkte
 Bis zu 10 Stützpunkte je Manager.
 

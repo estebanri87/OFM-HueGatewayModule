@@ -42,6 +42,7 @@ HueGatewayLight::HueGatewayLight(const String& lightId, const String& name, HueG
     , _lightType(0)
     , _minBrightnessPercent(0)
     , _minBrightnessHue(0)
+    , _isGroupedTarget(false)
     , _hclMasterNum(0)
     , _fadingActive(false)
     , _currentKelvin(4000)
@@ -115,7 +116,8 @@ void HueGatewayLight::processKnxSwitch(bool value)
         Serial.printf("[HueGatewayLight] %s - Applying HCL Master %d values: %dK, %d%% (%d Hue)\n",
                      _name.c_str(), _hclMasterNum, hclValue.kelvin, hclValue.brightness, _brightness);
         
-        uint8_t fadeDuration = HCL::masterManager.getFadeDuration();
+        // UX preference: fast switch-on, slow switch-off.
+        uint8_t fadeDuration = value ? 0 : HCL::masterManager.getFadeDuration();
         if (_lightType >= 2)
         {
             sendToHueWithColorTemp(hclValue.kelvin, fadeDuration);
@@ -185,7 +187,11 @@ void HueGatewayLight::processKnxDimming(uint8_t control)
     {
         Serial.printf("[HueGatewayLight] %s - KNX Dimming STOP\n", _name.c_str());
 
-        if (!_client->stopLightDimming(_lightId))
+        bool stopOk = _isGroupedTarget
+            ? _client->stopGroupedLightDimming(_lightId)
+            : _client->stopLightDimming(_lightId);
+
+        if (!stopOk)
         {
             _relativeDimErrorStreak = min<uint8_t>(static_cast<uint8_t>(_relativeDimErrorStreak + 1), static_cast<uint8_t>(10));
             if (_relativeDimErrorStreak >= 3)
@@ -205,7 +211,11 @@ void HueGatewayLight::processKnxDimming(uint8_t control)
     // Use relative delta API when healthy, otherwise fallback to stable legacy path.
     if (_relativeDimCooldownUntilMs == 0 || nowMs >= _relativeDimCooldownUntilMs)
     {
-        if (_client->setLightDimmingDelta(_lightId, brighter, steps))
+        bool deltaOk = _isGroupedTarget
+            ? _client->setGroupedLightDimmingDelta(_lightId, brighter, steps)
+            : _client->setLightDimmingDelta(_lightId, brighter, steps);
+
+        if (deltaOk)
         {
             _relativeDimErrorStreak = 0;
             _relativeDimCooldownUntilMs = 0;
@@ -416,7 +426,9 @@ void HueGatewayLight::sendToHue()
         return;
     }
     
-    bool success = _client->setLightState(_lightId, _on, _brightness);
+    bool success = _isGroupedTarget
+        ? _client->setGroupedLightState(_lightId, _on, _brightness)
+        : _client->setLightState(_lightId, _on, _brightness);
     
     if (success)
     {
@@ -514,6 +526,12 @@ void HueGatewayLight::sendToHueWithColorTemp(uint16_t kelvin, uint8_t fadeDurati
 {
     if (!_initialized || !_client)
         return;
+
+    if (_isGroupedTarget)
+    {
+        sendToHue();
+        return;
+    }
     
     uint16_t mirek = kelvinToMirek(kelvin);
     _currentKelvin = kelvin;

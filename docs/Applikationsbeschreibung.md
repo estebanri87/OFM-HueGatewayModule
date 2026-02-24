@@ -71,8 +71,8 @@ Hinweise zu Zuständen und Fortschritt finden Sie unter [LED-Signale](#led-signa
 Nach erfolgreicher Kopplung (LED grün dauerhaft) erfolgt die eigentliche Gerätezuordnung:
 
 1. **Hue-Geräte laden** öffnen: `http://<IP-des-OpenKNX-Geräts>/openknx/hue/scan`
-2. In der Liste die gewünschten Leuchten inkl. UUID erfassen.
-3. In ETS je konfiguriertem Kanal die passende UUID in **Hue Lampen-ID (UUID)** eintragen.
+2. In der Liste die gewünschten Ziele (Licht/Raum/Zone) inkl. ID erfassen.
+3. In ETS je Kanal **Zieltyp** setzen und **Hue Ziel (Light-/Room-/Zone-ID oder Name)** eintragen.
 4. Pro Kanal Lampentyp, Synchronisationsrichtung und Polling prüfen.
 5. Download ausführen und Funktion testen (Schalten, ggf. Helligkeit/Farbtemperatur/RGB).
 
@@ -124,13 +124,20 @@ Blendet das KO **Bridge Verbindungsstatus** ein.
 <!-- DOC -->
 ### Anzahl aktiver Kanäle
 
-Legt fest, wie viele Lampenkanäle (0-20) in ETS sichtbar/aktiv sind.
+Legt fest, wie viele Hue-Kanäle (0-20) in ETS sichtbar/aktiv sind.
 Empfehlung: nur tatsächlich benötigte Kanäle aktivieren.
 
 <!-- DOC HelpContext="Kanal" -->
-## Kanal 1-n (Lampen)
+## Kanal 1-n (Hue Ziele)
 
-Jeder Kanal steuert genau eine Hue-Leuchte.
+Jeder Kanal steuert genau ein Hue-Ziel.
+
+Mögliche Zieltypen:
+- **Licht**
+- **Raum**
+- **Zone**
+
+Die Zielzuordnung erfolgt primär über **Hue Ziel (Light-/Room-/Zone-ID oder Name)**.
 
 <!-- DOC -->
 ### Kanalbezeichnung
@@ -138,14 +145,41 @@ Jeder Kanal steuert genau eine Hue-Leuchte.
 Dient zur besseren Lesbarkeit in ETS und wird in KO-Bezeichnungen übernommen.
 
 Beispiele:
-- Wohnzimmer Stehlampe
+- Wohnzimmer
 - Küche Decke
 - Flur Spots
 
 <!-- DOC -->
+### Zieltyp
+
+Legt fest, ob der Kanal ein **Licht**, einen **Raum** oder eine **Zone** steuert.
+
+Hinweis:
+- Bei **Raum/Zone** wird intern auf `grouped_light` aufgelöst.
+- Der Kanal bleibt damit auch bei Änderungen innerhalb des Raums/der Zone nutzbar.
+
+<!-- DOC -->
+### Hue Ziel (Light-/Room-/Zone-ID oder Name)
+
+Primäres Zielfeld für alle Zieltypen.
+
+Verwenden Sie je nach Zieltyp:
+- Light-ID oder Light-Name
+- Room-ID oder Room-Name
+- Zone-ID oder Zone-Name
+
+Ermittlung über:
+- Webinterface: `http://<IP-des-OpenKNX-Geräts>/openknx/hue/scan`
+- Konsole: `hue scan`
+
+<!-- DOC -->
 ### Hue Lampen-ID (UUID)
 
-Eindeutige Hue-Ressourcen-ID der Leuchte.
+Legacy-/Fallback-Feld für bestehende Projektierungen.
+
+Für neue Projektierungen bitte **Hue Ziel (Light-/Room-/Zone-ID oder Name)** verwenden.
+
+Gilt nur für Zieltyp **Licht**.
 
 Ermittlung über:
 - Webinterface: `http://<IP-des-OpenKNX-Geräts>/openknx/hue/scan`
@@ -370,8 +404,9 @@ Relatives Dimmen (DPT 3.007).
 ### Authentifizierung schlägt fehl
 - Pairing-Fenster abgelaufen → neu triggern und Link-Button erneut drücken.
 
-### Lampe reagiert nicht
-- UUID prüfen.
+### Hue-Ziel reagiert nicht
+- Zieltyp und **Hue Ziel (Light-/Room-/Zone-ID oder Name)** prüfen.
+- Bei Legacy-Projektierung zusätzlich **Hue Lampen-ID (UUID)** prüfen.
 - Kanal deaktiviert?
 - Sync-Richtung passend?
 
@@ -390,7 +425,7 @@ Relatives Dimmen (DPT 3.007).
 ## Inbetriebnahme-Checkliste
 
 - Bridge gefunden und authentifiziert
-- UUID pro Kanal geprüft
+- Zieltyp und Hue Ziel pro Kanal geprüft
 - Lampentyp passend zur realen Leuchte
 - Sync/Polling passend zur Anwendung
 - Benötigte Status-KOs mit GAs verbunden

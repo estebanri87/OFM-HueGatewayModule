@@ -6,8 +6,9 @@
 ### Authentifizierung schlägt fehl
 - Pairing-Fenster abgelaufen → neu triggern und Link-Button erneut drücken.
 
-### Lampe reagiert nicht
-- UUID prüfen.
+### Hue-Ziel reagiert nicht
+- Zieltyp und **Hue Ziel (Light-/Room-/Zone-ID oder Name)** prüfen.
+- Bei Legacy-Projektierung zusätzlich **Hue Lampen-ID (UUID)** prüfen.
 - Kanal deaktiviert?
 - Sync-Richtung passend?
 

@@ -47,6 +47,15 @@
                   <Enumeration Text="Farbe RGB (Color Ambiance)" Value="3" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
+
+              <!-- Kanal-Zieltyp -->
+              <ParameterType Id="%AID%_PT-HUETargetType" Name="HUETargetType">
+                <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
+                  <Enumeration Text="Licht" Value="0" Id="%ENID%" />
+                  <Enumeration Text="Raum" Value="1" Id="%ENID%" />
+                  <Enumeration Text="Zone" Value="2" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
               
               <!-- Synchronisationsrichtung -->
               <ParameterType Id="%AID%_PT-HUESyncDir" Name="HUESyncDir">
