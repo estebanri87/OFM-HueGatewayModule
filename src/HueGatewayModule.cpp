@@ -81,6 +81,8 @@ HueGatewayModule::HueGatewayModule()
     , _pollBackoffUntilMs(0)
     , _pollBackoffMs(1000)
     , _pollFailureCount(0)
+    , _lastBridgeHealthOkMs(0)
+    , _lastChannelSyncOkMs(0)
     , _pollCursor(0)
     , _bridgeStatus(BridgeStatus::DISCONNECTED)
     , _ledBlinkTime(0)
@@ -93,10 +95,13 @@ HueGatewayModule::HueGatewayModule()
     , _reconnectBackoffMs(10000)
     , _manualPairingRequired(false)
     , _pairingTriggerLastState(false)
+    , _lastPairingTriggerMs(0)
     , _devicesInitialized(false)
     , _deviceSetupNeedsRetry(false)
     , _webScanRequested(false)
     , _webScanInProgress(false)
+    , _networkConnectedLast(false)
+    , _mdnsStarted(false)
     , _lastWebScanMs(0)
     , _lastWebScanLightCount(-1)
     , _hclLockActive(false)
@@ -153,6 +158,7 @@ void HueGatewayModule::setup()
     setupHCL();
     setupWebUI();
     setupMDNS();
+    _networkConnectedLast = hasNetworkConnectivity();
     
     _initialized = true;
     Serial.println("[HueGatewayModule] Setup complete");
@@ -198,6 +204,7 @@ void HueGatewayModule::loop()
     if (now - _lastConnectionCheckMs > 5000)
     {
         _lastConnectionCheckMs = now;
+        refreshNetworkServices();
         checkConnection();
     }
 
@@ -244,6 +251,7 @@ void HueGatewayModule::loop()
             int updateCount = _client->pollEventStream(updates, MAX_LIGHTS);
             if (updateCount > 0)
             {
+                _lastChannelSyncOkMs = now;
                 Serial.printf("[HueGatewayModule] EventStream updates received: %d\n", updateCount);
                 applyEventStreamUpdates(updates, updateCount);
             }
@@ -264,6 +272,7 @@ void HueGatewayModule::loop()
             int updateCount = _client->pollEventStream(updates, MAX_LIGHTS);
             if (updateCount > 0)
             {
+                _lastChannelSyncOkMs = now;
                 Serial.printf("[HueGatewayModule] EventStream updates received: %d\n", updateCount);
                 applyEventStreamUpdates(updates, updateCount);
             }
@@ -375,10 +384,21 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
     
     if (koNumber == HUE_KoHUEPairingTrigger)
     {
-        bool trigger = ko.value(Dpt(1, 17));  // DPT 1.017 Trigger
-        if (trigger && !_pairingTriggerLastState)
+        const bool trigger = ko.value(Dpt(1, 1));
+        const unsigned long nowMs = millis();
+        const bool debounceElapsed = (_lastPairingTriggerMs == 0)
+                                     || (nowMs < _lastPairingTriggerMs)
+                                     || ((nowMs - _lastPairingTriggerMs) >= 1500UL);
+
+        Serial.printf("[HueGatewayModule] Pairing KO received (value=%u, last=%u, debounce=%u)\n",
+                      trigger ? 1 : 0,
+                      _pairingTriggerLastState ? 1 : 0,
+                      debounceElapsed ? 1 : 0);
+
+        if (trigger && (!_pairingTriggerLastState || debounceElapsed))
         {
             Serial.println("[HueGatewayModule] Pairing triggered via ETS KO");
+            _lastPairingTriggerMs = nowMs;
             startPairing();
         }
         _pairingTriggerLastState = trigger;
@@ -590,13 +610,16 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
         
         Serial.printf("\nBridge found: %s\n\n", bridgeIP.c_str());
         
-        // Check whether authentication is available.
+        // Check whether authentication is available (non-blocking).
         HueGatewayAuth auth;
-        if (!auth.authenticateBlocking(bridgeIP.c_str(), 30000))
+        if (!auth.loadStoredAppKey())
         {
-            Serial.println("ERROR: Authentication failed!");
-            Serial.println("Press button on Hue Bridge and retry");
-            return true;
+            Serial.println("No stored App-Key. Trying single non-blocking pairing request...");
+            if (!auth.requestAppKeyOnce(bridgeIP.c_str()))
+            {
+                Serial.println("Authentication pending: Press button on Hue Bridge and run 'hue scan' again.");
+                return true;
+            }
         }
         
         // Fetch available lights from the bridge.
@@ -938,17 +961,49 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
 
 void HueGatewayModule::setupMDNS()
 {
+    if (_mdnsStarted)
+    {
+        return;
+    }
+
     // Register mDNS service for convenient local access via openknx-bridge.local.
     if (!MDNS.begin("openknx-bridge"))
     {
+        _mdnsStarted = false;
         logErrorP("mDNS start failed!");
         return;
     }
     
     // HTTP Service anmelden
     MDNS.addService("http", "tcp", 80);
+    _mdnsStarted = true;
     
     logInfoP("mDNS started: openknx-bridge.local");
+}
+
+void HueGatewayModule::refreshNetworkServices()
+{
+    const bool networkConnected = hasNetworkConnectivity();
+    if (networkConnected == _networkConnectedLast)
+    {
+        return;
+    }
+
+    _networkConnectedLast = networkConnected;
+
+    if (!networkConnected)
+    {
+        if (_mdnsStarted)
+        {
+            MDNS.end();
+            _mdnsStarted = false;
+            logInfoP("mDNS stopped (network disconnected)");
+        }
+        return;
+    }
+
+    logInfoP("Network reconnected, reinitializing mDNS");
+    setupMDNS();
 }
 
 // ===== Private Methods =====
@@ -970,6 +1025,15 @@ void HueGatewayModule::setupBridge()
     
     // Bridge IP aus ETS-Parameter lesen
     _bridgeIP = getBridgeIP();
+
+    if (ParamHUE_HUEBridgeMode != 0 && !_bridgeIP.isEmpty())
+    {
+        HueGatewayDiscovery discovery;
+        if (!discovery.setManualIP(_bridgeIP.c_str(), false))
+        {
+            Serial.println("[HueGatewayModule] WARNING: Could not persist manual bridge IP");
+        }
+    }
     
     if (_bridgeIP.isEmpty())
     {
@@ -1231,6 +1295,7 @@ void HueGatewayModule::setupDevices()
     }
     
     Serial.printf("[HueGatewayModule] Initialized %d lights\n", _lightCount);
+    _lastChannelSyncOkMs = millis();
     _devicesInitialized = true;
 }
 
@@ -1561,8 +1626,11 @@ void HueGatewayModule::setupHCL()
 
 void HueGatewayModule::checkConnection()
 {
+    const unsigned long now = millis();
+
     if (_client && _client->isInitialized() && _client->isEventStreamConnected())
     {
+        _lastBridgeHealthOkMs = now;
         if (!_authPending && _bridgeStatus != BridgeStatus::CONNECTED)
         {
             updateStatus(BridgeStatus::CONNECTED);
@@ -1587,6 +1655,7 @@ void HueGatewayModule::checkConnection()
 
     if (_client->pingBridgeApiV2())
     {
+        _lastBridgeHealthOkMs = now;
         if (!_authPending && _bridgeStatus != BridgeStatus::CONNECTED)
         {
             updateStatus(BridgeStatus::CONNECTED);
@@ -1594,6 +1663,23 @@ void HueGatewayModule::checkConnection()
     }
     else if (!_authPending)
     {
+        updateStatus(BridgeStatus::CONNECTION_LOST);
+    }
+
+    if (_bridgeStatus == BridgeStatus::CONNECTED && _lastBridgeHealthOkMs != 0 && (now - _lastBridgeHealthOkMs) > 60000UL)
+    {
+        Serial.println("[HueGatewayModule] Bridge health stale for >60s, marking connection lost");
+        updateStatus(BridgeStatus::CONNECTION_LOST);
+        return;
+    }
+
+    if (_bridgeStatus == BridgeStatus::CONNECTED
+        && _lightCount > 0
+        && !_client->isEventStreamConnected()
+        && _lastChannelSyncOkMs != 0
+        && (now - _lastChannelSyncOkMs) > 300000UL)
+    {
+        Serial.println("[HueGatewayModule] Channel sync stale for >5min while polling fallback active");
         updateStatus(BridgeStatus::CONNECTION_LOST);
     }
 }
@@ -1658,14 +1744,33 @@ void HueGatewayModule::refreshLightStatus()
 
     Serial.printf("[HueGatewayModule] Polling Hue bridge for %d due channel(s)\n", dueChannels);
 
+    static HueGatewayLightState cachedLights[MAX_LIGHTS];
+    static int cachedCount = 0;
+    static unsigned long cacheValidUntilMs = 0;
+
     HueGatewayLightState lights[MAX_LIGHTS];
-    int count = _client->getLights(lights, MAX_LIGHTS);
-    Serial.printf("[HueGatewayModule] Polling returned %d light(s)\n", count);
+    HueGatewayLightState* lightSnapshot = lights;
+    int count = 0;
+
+    if (cacheValidUntilMs != 0 && now <= cacheValidUntilMs)
+    {
+        lightSnapshot = cachedLights;
+        count = cachedCount;
+        Serial.printf("[HueGatewayModule] Reusing poll cache with %d light(s)\n", count);
+    }
+    else
+    {
+        count = _client->getLights(lights, MAX_LIGHTS);
+        Serial.printf("[HueGatewayModule] Polling returned %d light(s)\n", count);
+    }
+
     if (count <= 0)
     {
         _pollFailureCount = min<uint8_t>(static_cast<uint8_t>(_pollFailureCount + 1), static_cast<uint8_t>(10));
         _pollBackoffMs = min<unsigned long>(_pollBackoffMs * 2UL, 60000UL);
         _pollBackoffUntilMs = now + _pollBackoffMs;
+        cacheValidUntilMs = 0;
+        cachedCount = 0;
 
         if (_bridgeStatus == BridgeStatus::CONNECTED)
         {
@@ -1677,6 +1782,18 @@ void HueGatewayModule::refreshLightStatus()
     _pollFailureCount = 0;
     _pollBackoffMs = 1000;
     _pollBackoffUntilMs = 0;
+    _lastBridgeHealthOkMs = now;
+
+    if (lightSnapshot == lights)
+    {
+        cachedCount = count;
+        for (int i = 0; i < count; i++)
+        {
+            cachedLights[i] = lights[i];
+        }
+        cacheValidUntilMs = now + 2000UL;
+        lightSnapshot = cachedLights;
+    }
 
     if (_bridgeStatus == BridgeStatus::CONNECTION_LOST || _bridgeStatus == BridgeStatus::BRIDGE_UNREACHABLE)
     {
@@ -1719,6 +1836,11 @@ void HueGatewayModule::refreshLightStatus()
         }
 
         unsigned long pollIntervalMs = static_cast<unsigned long>(pollIntervalSec) * 1000UL;
+        if (_pollFailureCount > 0)
+        {
+            uint8_t failureExp = min<uint8_t>(_pollFailureCount, static_cast<uint8_t>(3));
+            pollIntervalMs = min<unsigned long>(pollIntervalMs * (1UL << failureExp), 120000UL);
+        }
         if (!fastTrackDue && (now - _channelLastPollMs[i]) < pollIntervalMs)
         {
             continue;
@@ -1732,15 +1854,17 @@ void HueGatewayModule::refreshLightStatus()
 
         for (int j = 0; j < count; j++)
         {
-            if (lights[j].id == _lights[i]->getLightId())
+            if (lightSnapshot[j].id == _lights[i]->getLightId())
             {
                 _lights[i]->updateFromHue(
-                    lights[j].on,
-                    lights[j].brightness,
-                    lights[j].colorTempKelvin,
-                    lights[j].red,
-                    lights[j].green,
-                    lights[j].blue);
+                    lightSnapshot[j].on,
+                    lightSnapshot[j].brightness,
+                    lightSnapshot[j].colorTempKelvin,
+                    lightSnapshot[j].red,
+                    lightSnapshot[j].green,
+                    lightSnapshot[j].blue);
+
+                _lastChannelSyncOkMs = now;
 
                 if (fastTrackDue)
                 {
@@ -1770,6 +1894,10 @@ void HueGatewayModule::refreshLightStatus()
         Serial.printf("[HueGatewayModule] Poll chunk processed %u/%d due channel(s), remaining queued for next tick\n",
                       static_cast<unsigned>(processedThisTick),
                       dueChannels);
+    }
+    else
+    {
+        cacheValidUntilMs = 0;
     }
 }
 
@@ -2149,6 +2277,12 @@ String HueGatewayModule::getBridgeIP()
     
     if (mode == 0)
     {
+        if (!hasNetworkConnectivity())
+        {
+            Serial.println("[HueGatewayModule] mDNS discovery skipped: network disconnected");
+            return "";
+        }
+
         // Automatisch (mDNS)
         Serial.println("[HueGatewayModule] Using mDNS discovery...");
         HueGatewayDiscovery discovery;
@@ -2452,6 +2586,14 @@ void HueGatewayModule::applyEventStreamUpdates(const HueGatewayEventLightUpdate*
 void HueGatewayModule::startPairing()
 {
     Serial.println("[HueGatewayModule] ===== Manual commissioning trigger: Pairing start =====");
+
+    if (!hasNetworkConnectivity())
+    {
+        Serial.println("[HueGatewayModule] Pairing aborted: network disconnected");
+        updateStatus(BridgeStatus::BRIDGE_UNREACHABLE);
+        return;
+    }
+
     if (_bridgeIP.isEmpty())
     {
         _bridgeIP = getBridgeIP();

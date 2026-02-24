@@ -1,4 +1,5 @@
 .pio
+.github/
 .vscode
 .DS_Store
 *.pyc

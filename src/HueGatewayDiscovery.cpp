@@ -46,7 +46,7 @@ bool HueGatewayDiscovery::findBridge(String& ipAddress)
     return false;
 }
 
-bool HueGatewayDiscovery::setManualIP(const char* ip)
+bool HueGatewayDiscovery::setManualIP(const char* ip, bool requireReachable)
 {
     Serial.printf("[HueGatewayDiscovery] Manual IP set: %s\n", ip);
     
@@ -59,10 +59,15 @@ bool HueGatewayDiscovery::setManualIP(const char* ip)
     }
     
     const String ipString(ip);
-    if (!isBridgeReachable(ipString))
+    if (requireReachable && !isBridgeReachable(ipString))
     {
         Serial.printf("[HueGatewayDiscovery] Manual IP not reachable or not a Hue Bridge: %s\n", ip);
         return false;
+    }
+
+    if (!requireReachable)
+    {
+        Serial.printf("[HueGatewayDiscovery] Manual IP stored without reachability check: %s\n", ip);
     }
 
     saveIP(ipString);

@@ -28,7 +28,7 @@ public:
     * @param ip Bridge IP address
     * @return true if the IP is valid
      */
-    bool setManualIP(const char* ip);
+    bool setManualIP(const char* ip, bool requireReachable = true);
     
 private:
     bool discoverMDNS(String& ip);

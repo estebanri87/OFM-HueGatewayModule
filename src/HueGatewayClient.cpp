@@ -45,6 +45,9 @@ HueGatewayClient::HueGatewayClient()
     , _eventStreamConnected(false)
     , _eventHandshakePending(false)
     , _eventHandshakeStartMs(0)
+    , _eventLastDataMs(0)
+    , _eventParseErrorStreak(0)
+    , _eventDropCount(0)
 {
 }
 
@@ -69,9 +72,13 @@ bool HueGatewayClient::begin(const String& bridgeIP, const String& appKey)
     _eventClient.setInsecure();
     _secureClient.setTimeout(2000);
     _eventClient.setTimeout(100);
+    _eventLineBuffer.reserve(512);
+    _eventDataBuffer.reserve(2048);
     _eventLineBuffer = "";
     _eventDataBuffer = "";
     _eventStreamConnected = false;
+    _eventParseErrorStreak = 0;
+    _eventLastDataMs = millis();
     
     Serial.printf("[HueGatewayClient] Initialized - Bridge: %s\n", _bridgeIP.c_str());
     return true;
@@ -85,7 +92,8 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights)
         return 0;
     }
 
-    DynamicJsonDocument doc(16384);
+    static DynamicJsonDocument doc(16384);
+    doc.clear();
     int statusCode = httpGet("/clip/v2/resource/light", doc);
 
     if (!isHttpSuccessStatus(statusCode))
@@ -555,6 +563,8 @@ bool HueGatewayClient::startEventStream()
 
     _eventHandshakePending = true;
     _eventHandshakeStartMs = millis();
+    _eventLastDataMs = _eventHandshakeStartMs;
+    _eventParseErrorStreak = 0;
     _eventStreamConnected = false;
     _eventLineBuffer = "";
     _eventDataBuffer = "";
@@ -567,6 +577,7 @@ void HueGatewayClient::stopEventStream()
     _eventStreamConnected = false;
     _eventHandshakePending = false;
     _eventHandshakeStartMs = 0;
+    _eventParseErrorStreak = 0;
     _eventLineBuffer = "";
     _eventDataBuffer = "";
     if (_eventClient.connected())
@@ -641,6 +652,7 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
     int updateCount = 0;
     while (_eventClient.available() && updateCount < maxUpdates)
     {
+        _eventLastDataMs = millis();
         char ch = static_cast<char>(_eventClient.read());
         if (ch == '\r')
         {
@@ -653,7 +665,15 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
             if (_eventLineBuffer.length() > kMaxEventLineChars)
             {
                 Serial.println("[HueGatewayClient] EventStream line exceeded limit, dropping line");
+                _eventDropCount++;
+                _eventParseErrorStreak = min<uint8_t>(static_cast<uint8_t>(_eventParseErrorStreak + 1), static_cast<uint8_t>(10));
                 _eventLineBuffer = "";
+                if (_eventParseErrorStreak >= 3)
+                {
+                    Serial.println("[HueGatewayClient] EventStream parser unstable, forcing reconnect");
+                    stopEventStream();
+                    return updateCount;
+                }
             }
             continue;
         }
@@ -662,7 +682,23 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
         {
             if (_eventDataBuffer.length() > 0)
             {
-                updateCount += parseEventPayload(_eventDataBuffer, updates + updateCount, maxUpdates - updateCount);
+                int parsedCount = parseEventPayload(_eventDataBuffer, updates + updateCount, maxUpdates - updateCount);
+                if (parsedCount < 0)
+                {
+                    _eventDropCount++;
+                    _eventParseErrorStreak = min<uint8_t>(static_cast<uint8_t>(_eventParseErrorStreak + 1), static_cast<uint8_t>(10));
+                    if (_eventParseErrorStreak >= 3)
+                    {
+                        Serial.println("[HueGatewayClient] EventStream parse failures repeated, forcing reconnect");
+                        stopEventStream();
+                        return updateCount;
+                    }
+                }
+                else
+                {
+                    updateCount += parsedCount;
+                    _eventParseErrorStreak = 0;
+                }
                 _eventDataBuffer = "";
             }
         }
@@ -674,7 +710,15 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
             if (_eventDataBuffer.length() > kMaxEventPayloadChars)
             {
                 Serial.println("[HueGatewayClient] Event payload exceeded limit, dropping payload");
+                _eventDropCount++;
+                _eventParseErrorStreak = min<uint8_t>(static_cast<uint8_t>(_eventParseErrorStreak + 1), static_cast<uint8_t>(10));
                 _eventDataBuffer = "";
+                if (_eventParseErrorStreak >= 3)
+                {
+                    Serial.println("[HueGatewayClient] EventStream payload drops repeated, forcing reconnect");
+                    stopEventStream();
+                    return updateCount;
+                }
             }
         }
 
@@ -684,6 +728,11 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
     if (!_eventClient.connected())
     {
         Serial.println("[HueGatewayClient] EventStream disconnected");
+        stopEventStream();
+    }
+    else if (_eventStreamConnected && _eventLastDataMs != 0 && (millis() - _eventLastDataMs) > 180000UL)
+    {
+        Serial.println("[HueGatewayClient] EventStream stale for >180s, reconnecting");
         stopEventStream();
     }
 
@@ -705,15 +754,16 @@ int HueGatewayClient::parseEventPayload(const String& payload, HueGatewayEventLi
     if (payload.length() > kMaxEventPayloadChars)
     {
         Serial.printf("[HueGatewayClient] Event payload too large: %u bytes\n", static_cast<unsigned>(payload.length()));
-        return 0;
+        return -1;
     }
 
-    DynamicJsonDocument doc(6144);
+    static DynamicJsonDocument doc(6144);
+    doc.clear();
     DeserializationError error = deserializeJson(doc, payload);
     if (error)
     {
         Serial.printf("[HueGatewayClient] Event payload JSON parse error: %s\n", error.c_str());
-        return 0;
+        return -1;
     }
 
     JsonArrayConst events = doc.as<JsonArrayConst>();

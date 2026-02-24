@@ -184,6 +184,9 @@ private:
     bool _eventStreamConnected;
     bool _eventHandshakePending;
     unsigned long _eventHandshakeStartMs;
+    unsigned long _eventLastDataMs;
+    uint8_t _eventParseErrorStreak;
+    uint32_t _eventDropCount;
     String _eventLineBuffer;
     String _eventDataBuffer;
 

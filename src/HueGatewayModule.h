@@ -78,6 +78,8 @@ private:
     unsigned long _pollBackoffUntilMs;
     unsigned long _pollBackoffMs;
     uint8_t _pollFailureCount;
+    unsigned long _lastBridgeHealthOkMs;
+    unsigned long _lastChannelSyncOkMs;
     // Round-robin cursor for chunked polling fallback.
     uint8_t _pollCursor;
     int _lightCount;
@@ -108,10 +110,13 @@ private:
     unsigned long _reconnectBackoffMs;
     bool _manualPairingRequired;
     bool _pairingTriggerLastState;
+    unsigned long _lastPairingTriggerMs;
     bool _devicesInitialized;
     bool _deviceSetupNeedsRetry;
     bool _webScanRequested;
     bool _webScanInProgress;
+    bool _networkConnectedLast;
+    bool _mdnsStarted;
     unsigned long _lastWebScanMs;
     int _lastWebScanLightCount;
     String _lastWebScanHtml;
@@ -138,6 +143,7 @@ private:
     void applyEventStreamUpdates(const HueGatewayEventLightUpdate* updates, int updateCount);
     void setupWebUI();
     void setupMDNS();
+    void refreshNetworkServices();
     void pollAuthentication();
     bool initClientWithAppKey();
     void startPairing();
