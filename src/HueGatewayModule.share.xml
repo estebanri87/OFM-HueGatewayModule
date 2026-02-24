@@ -208,7 +208,7 @@
                 <Memory CodeSegment="%MID%" Offset="33" BitOffset="0" />
               </Parameter>
               
-              <Parameter Id="%AID%_P-1400013" Name="HUEHCLFadeDuration" ParameterType="%AID%_PT-HUEHCLFadeDuration" Text="Überblendzeit (Sekunden)" Value="5">
+              <Parameter Id="%AID%_P-1400013" Name="HUEHCLFadeDuration" ParameterType="%AID%_PT-HUEHCLFadeDuration" Text="Überblendzeit (Sekunden)" Value="6">
                 <Memory CodeSegment="%MID%" Offset="35" BitOffset="0" />
               </Parameter>
 
@@ -430,7 +430,7 @@
 
               <!-- Erweiterte Parameter HCL-Master 1 -->
               <Parameter Id="%AID%_P-1410201" Name="HCLM1CurveType" ParameterType="%AID%_PT-HUEHCLCurveType" Text="Kurventyp" Value="0"><Memory CodeSegment="%MID%" Offset="456" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1410202" Name="HCLM1SlewRate" ParameterType="%AID%_PT-HUEHCLSlewRate" Text="Slew-Rate (K/min)" Value="0"><Memory CodeSegment="%MID%" Offset="457" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1410202" Name="HCLM1SlewRate" ParameterType="%AID%_PT-HUEHCLSlewRate" Text="Slew-Rate (K/min)" Value="10"><Memory CodeSegment="%MID%" Offset="457" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1410203" Name="HCLM1ManualKelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="Manual Kelvin" Value="4000"><Memory CodeSegment="%MID%" Offset="459" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1410204" Name="HCLM1Sunrise" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunrise (HH:MM)" Value="06:30"><Memory CodeSegment="%MID%" Offset="461" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1410205" Name="HCLM1Sunset" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunset (HH:MM)" Value="19:30"><Memory CodeSegment="%MID%" Offset="466" BitOffset="0" /></Parameter>
@@ -439,7 +439,7 @@
 
               <!-- Erweiterte Parameter HCL-Master 2 -->
               <Parameter Id="%AID%_P-1420201" Name="HCLM2CurveType" ParameterType="%AID%_PT-HUEHCLCurveType" Text="Kurventyp" Value="0"><Memory CodeSegment="%MID%" Offset="475" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1420202" Name="HCLM2SlewRate" ParameterType="%AID%_PT-HUEHCLSlewRate" Text="Slew-Rate (K/min)" Value="0"><Memory CodeSegment="%MID%" Offset="476" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1420202" Name="HCLM2SlewRate" ParameterType="%AID%_PT-HUEHCLSlewRate" Text="Slew-Rate (K/min)" Value="10"><Memory CodeSegment="%MID%" Offset="476" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1420203" Name="HCLM2ManualKelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="Manual Kelvin" Value="4000"><Memory CodeSegment="%MID%" Offset="478" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1420204" Name="HCLM2Sunrise" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunrise (HH:MM)" Value="06:30"><Memory CodeSegment="%MID%" Offset="480" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1420205" Name="HCLM2Sunset" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunset (HH:MM)" Value="19:30"><Memory CodeSegment="%MID%" Offset="485" BitOffset="0" /></Parameter>
@@ -448,7 +448,7 @@
 
               <!-- Erweiterte Parameter HCL-Master 3 -->
               <Parameter Id="%AID%_P-1430201" Name="HCLM3CurveType" ParameterType="%AID%_PT-HUEHCLCurveType" Text="Kurventyp" Value="0"><Memory CodeSegment="%MID%" Offset="494" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1430202" Name="HCLM3SlewRate" ParameterType="%AID%_PT-HUEHCLSlewRate" Text="Slew-Rate (K/min)" Value="0"><Memory CodeSegment="%MID%" Offset="495" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1430202" Name="HCLM3SlewRate" ParameterType="%AID%_PT-HUEHCLSlewRate" Text="Slew-Rate (K/min)" Value="10"><Memory CodeSegment="%MID%" Offset="495" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1430203" Name="HCLM3ManualKelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="Manual Kelvin" Value="4000"><Memory CodeSegment="%MID%" Offset="497" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1430204" Name="HCLM3Sunrise" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunrise (HH:MM)" Value="06:30"><Memory CodeSegment="%MID%" Offset="499" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1430205" Name="HCLM3Sunset" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunset (HH:MM)" Value="19:30"><Memory CodeSegment="%MID%" Offset="504" BitOffset="0" /></Parameter>
@@ -457,7 +457,7 @@
 
               <!-- Erweiterte Parameter HCL-Master 4 -->
               <Parameter Id="%AID%_P-1440201" Name="HCLM4CurveType" ParameterType="%AID%_PT-HUEHCLCurveType" Text="Kurventyp" Value="0"><Memory CodeSegment="%MID%" Offset="513" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-1440202" Name="HCLM4SlewRate" ParameterType="%AID%_PT-HUEHCLSlewRate" Text="Slew-Rate (K/min)" Value="0"><Memory CodeSegment="%MID%" Offset="514" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1440202" Name="HCLM4SlewRate" ParameterType="%AID%_PT-HUEHCLSlewRate" Text="Slew-Rate (K/min)" Value="10"><Memory CodeSegment="%MID%" Offset="514" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1440203" Name="HCLM4ManualKelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="Manual Kelvin" Value="4000"><Memory CodeSegment="%MID%" Offset="516" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1440204" Name="HCLM4Sunrise" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunrise (HH:MM)" Value="06:30"><Memory CodeSegment="%MID%" Offset="518" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1440205" Name="HCLM4Sunset" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunset (HH:MM)" Value="19:30"><Memory CodeSegment="%MID%" Offset="523" BitOffset="0" /></Parameter>
