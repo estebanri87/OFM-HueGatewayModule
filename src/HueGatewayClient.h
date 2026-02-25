@@ -82,6 +82,7 @@ public:
     * @return number of discovered lights
      */
     int getLights(HueGatewayLightState* lights, int maxLights);
+    int getGroupedLights(HueGatewayLightState* groupedLights, int maxLights);
     
     /**
     * @brief Switches a light on or off.

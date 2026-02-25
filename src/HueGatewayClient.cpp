@@ -312,6 +312,81 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights)
     return count;
 }
 
+int HueGatewayClient::getGroupedLights(HueGatewayLightState* groupedLights, int maxLights)
+{
+    if (!_initialized || groupedLights == nullptr || maxLights <= 0)
+    {
+        return 0;
+    }
+
+    static DynamicJsonDocument doc(12288);
+    doc.clear();
+    int statusCode = httpGet("/clip/v2/resource/grouped_light", doc);
+    if (!isHttpSuccessStatus(statusCode))
+    {
+        Serial.printf("[HueGatewayClient] ERROR: GET grouped_light failed - HTTP %d\n", statusCode);
+        return 0;
+    }
+
+    JsonArrayConst data = doc["data"].as<JsonArrayConst>();
+    int count = 0;
+    for (JsonObjectConst item : data)
+    {
+        if (count >= maxLights)
+        {
+            break;
+        }
+
+        const char* id = item["id"] | "";
+        if (id[0] == '\0')
+        {
+            continue;
+        }
+
+        groupedLights[count].id = String(id);
+        groupedLights[count].name = item["metadata"]["name"].as<String>();
+        groupedLights[count].on = item["on"]["on"].as<bool>();
+        groupedLights[count].reachable = true;
+
+        float brightnessPct = item["dimming"]["brightness"].as<float>();
+        if (brightnessPct < 0.0f) brightnessPct = 0.0f;
+        if (brightnessPct > 100.0f) brightnessPct = 100.0f;
+        groupedLights[count].brightness = static_cast<uint8_t>(brightnessPct * 2.54f);
+
+        groupedLights[count].supportsColorTemp = !item["color_temperature"].isNull();
+        groupedLights[count].supportsColor = !item["color"].isNull();
+
+        groupedLights[count].colorTempKelvin = 0;
+        JsonVariantConst mirekVar = item["color_temperature"]["mirek"];
+        if (!mirekVar.isNull())
+        {
+            groupedLights[count].colorTempKelvin = mirekToKelvin(mirekVar.as<uint16_t>());
+        }
+
+        groupedLights[count].red = 255;
+        groupedLights[count].green = 255;
+        groupedLights[count].blue = 255;
+        JsonVariantConst xVar = item["color"]["xy"]["x"];
+        JsonVariantConst yVar = item["color"]["xy"]["y"];
+        if (!xVar.isNull() && !yVar.isNull())
+        {
+            xyToRgb(xVar.as<float>(), yVar.as<float>(), groupedLights[count].red, groupedLights[count].green, groupedLights[count].blue);
+        }
+
+        groupedLights[count].room = "-";
+        groupedLights[count].roomRid = "-";
+        groupedLights[count].roomIdV1 = "-";
+        groupedLights[count].zone = "-";
+        groupedLights[count].zoneRid = "-";
+        groupedLights[count].zoneIdV1 = "-";
+
+        count++;
+    }
+
+    Serial.printf("[HueGatewayClient] Found grouped_light targets: %d\n", count);
+    return count;
+}
+
 void HueGatewayClient::appendDeviceLightLinksFromDoc(std::vector<DeviceLightLink>& links, const JsonDocument& doc)
 {
     JsonArrayConst data = doc["data"].as<JsonArrayConst>();
@@ -1499,7 +1574,7 @@ int HueGatewayClient::parseEventPayload(const String& payload, HueGatewayEventLi
         for (JsonObjectConst item : data)
         {
             const char* type = item["type"] | "";
-            if (strcmp(type, "light") != 0)
+            if (strcmp(type, "light") != 0 && strcmp(type, "grouped_light") != 0)
             {
                 continue;
             }

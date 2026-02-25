@@ -591,10 +591,12 @@ void HueGatewayLight::loop()
     // Fetch current interpolated HCL target values.
     HCL::InterpolatedValue hclValue = HCL::masterManager.getCurrentValue(_hclMasterNum);
     
-    // Update only if values changed beyond tolerance.
-    // Kelvin tolerance: +/-10K, brightness tolerance: +/-2%.
-    bool kelvinChanged = abs((int)hclValue.kelvin - (int)_currentKelvin) > 10;
-    bool brightnessChanged = abs((int)hclValue.brightness - (int)_lastHCLBrightness) > 2;
+    // Update when at least a small effective step changed.
+    // Keep thresholds low so slow night/day curves continue to fade as configured.
+    const int previousKelvin = static_cast<int>(_currentKelvin);
+    const int previousBrightness = static_cast<int>(_lastHCLBrightness);
+    bool kelvinChanged = abs(static_cast<int>(hclValue.kelvin) - previousKelvin) >= 1;
+    bool brightnessChanged = abs(static_cast<int>(hclValue.brightness) - previousBrightness) >= 1;
     
     if (!kelvinChanged && !brightnessChanged)
         return;
@@ -607,8 +609,8 @@ void HueGatewayLight::loop()
     _brightness = (uint8_t)((hclValue.brightness * 254) / 100);
     
     Serial.printf("[HueGatewayLight] %s - HCL Update: %dK → %dK, %d%% → %d%%\n",
-                 _name.c_str(), _currentKelvin, hclValue.kelvin, 
-                 _lastHCLBrightness, hclValue.brightness);
+                 _name.c_str(), previousKelvin, hclValue.kelvin,
+                 previousBrightness, hclValue.brightness);
     
     // Read transition duration from HCL manager.
     uint8_t fadeDuration = HCL::masterManager.getFadeDuration();

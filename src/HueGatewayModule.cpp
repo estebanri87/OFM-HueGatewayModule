@@ -2008,6 +2008,25 @@ void HueGatewayModule::refreshLightStatus()
         return;
     }
 
+    int dueGroupedChannels = 0;
+    int dueLightChannels = 0;
+    for (int i = 0; i < MAX_LIGHTS; i++)
+    {
+        if (!dueFlags[i] || _lights[i] == nullptr)
+        {
+            continue;
+        }
+
+        if (_lights[i]->isGroupedTarget())
+        {
+            dueGroupedChannels++;
+        }
+        else
+        {
+            dueLightChannels++;
+        }
+    }
+
     Serial.printf("[HueGatewayModule] Polling Hue bridge for %d due channel(s)\n", dueChannels);
 
     static HueGatewayLightState cachedLights[MAX_LIGHTS];
@@ -2018,25 +2037,47 @@ void HueGatewayModule::refreshLightStatus()
     HueGatewayLightState* lightSnapshot = pollLights;
     int count = 0;
 
-    if (cacheValidUntilMs != 0 && now <= cacheValidUntilMs)
+    static HueGatewayLightState cachedGroupedLights[MAX_LIGHTS];
+    static int cachedGroupedCount = 0;
+    static unsigned long groupedCacheValidUntilMs = 0;
+
+    static HueGatewayLightState pollGroupedLights[MAX_LIGHTS];
+    HueGatewayLightState* groupedSnapshot = pollGroupedLights;
+    int groupedCount = 0;
+
+    if (dueLightChannels > 0 && cacheValidUntilMs != 0 && now <= cacheValidUntilMs)
     {
         lightSnapshot = cachedLights;
         count = cachedCount;
         Serial.printf("[HueGatewayModule] Reusing poll cache with %d light(s)\n", count);
     }
-    else
+    else if (dueLightChannels > 0)
     {
         count = _client->getLights(pollLights, MAX_LIGHTS);
         Serial.printf("[HueGatewayModule] Polling returned %d light(s)\n", count);
     }
 
-    if (count <= 0)
+    if (dueGroupedChannels > 0 && groupedCacheValidUntilMs != 0 && now <= groupedCacheValidUntilMs)
+    {
+        groupedSnapshot = cachedGroupedLights;
+        groupedCount = cachedGroupedCount;
+        Serial.printf("[HueGatewayModule] Reusing grouped poll cache with %d target(s)\n", groupedCount);
+    }
+    else if (dueGroupedChannels > 0)
+    {
+        groupedCount = _client->getGroupedLights(pollGroupedLights, MAX_LIGHTS);
+        Serial.printf("[HueGatewayModule] Grouped polling returned %d target(s)\n", groupedCount);
+    }
+
+    if ((dueLightChannels > 0 && count <= 0) && (dueGroupedChannels > 0 && groupedCount <= 0))
     {
         _pollFailureCount = min<uint8_t>(static_cast<uint8_t>(_pollFailureCount + 1), static_cast<uint8_t>(10));
         _pollBackoffMs = min<unsigned long>(_pollBackoffMs * 2UL, 60000UL);
         _pollBackoffUntilMs = now + _pollBackoffMs;
         cacheValidUntilMs = 0;
         cachedCount = 0;
+        groupedCacheValidUntilMs = 0;
+        cachedGroupedCount = 0;
 
         if (_bridgeStatus == BridgeStatus::CONNECTED)
         {
@@ -2050,7 +2091,7 @@ void HueGatewayModule::refreshLightStatus()
     _pollBackoffUntilMs = 0;
     _lastBridgeHealthOkMs = now;
 
-    if (lightSnapshot == pollLights)
+    if (dueLightChannels > 0 && lightSnapshot == pollLights)
     {
         cachedCount = count;
         for (int i = 0; i < count; i++)
@@ -2059,6 +2100,17 @@ void HueGatewayModule::refreshLightStatus()
         }
         cacheValidUntilMs = now + 2000UL;
         lightSnapshot = cachedLights;
+    }
+
+    if (dueGroupedChannels > 0 && groupedSnapshot == pollGroupedLights)
+    {
+        cachedGroupedCount = groupedCount;
+        for (int i = 0; i < groupedCount; i++)
+        {
+            cachedGroupedLights[i] = pollGroupedLights[i];
+        }
+        groupedCacheValidUntilMs = now + 2000UL;
+        groupedSnapshot = cachedGroupedLights;
     }
 
     if (_bridgeStatus == BridgeStatus::CONNECTION_LOST || _bridgeStatus == BridgeStatus::BRIDGE_UNREACHABLE)
@@ -2118,17 +2170,20 @@ void HueGatewayModule::refreshLightStatus()
         processedThisTick++;
         lastProcessedIndex = static_cast<uint8_t>(i);
 
-        for (int j = 0; j < count; j++)
+        HueGatewayLightState* channelSnapshot = _lights[i]->isGroupedTarget() ? groupedSnapshot : lightSnapshot;
+        int channelSnapshotCount = _lights[i]->isGroupedTarget() ? groupedCount : count;
+
+        for (int j = 0; j < channelSnapshotCount; j++)
         {
-            if (lightSnapshot[j].id == _lights[i]->getLightId())
+            if (channelSnapshot[j].id == _lights[i]->getLightId())
             {
                 _lights[i]->updateFromHue(
-                    lightSnapshot[j].on,
-                    lightSnapshot[j].brightness,
-                    lightSnapshot[j].colorTempKelvin,
-                    lightSnapshot[j].red,
-                    lightSnapshot[j].green,
-                    lightSnapshot[j].blue);
+                    channelSnapshot[j].on,
+                    channelSnapshot[j].brightness,
+                    channelSnapshot[j].colorTempKelvin,
+                    channelSnapshot[j].red,
+                    channelSnapshot[j].green,
+                    channelSnapshot[j].blue);
 
                 _lastChannelSyncOkMs = now;
 
@@ -2164,6 +2219,7 @@ void HueGatewayModule::refreshLightStatus()
     else
     {
         cacheValidUntilMs = 0;
+        groupedCacheValidUntilMs = 0;
     }
 }
 

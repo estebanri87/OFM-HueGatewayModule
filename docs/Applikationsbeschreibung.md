@@ -76,6 +76,11 @@ Nach erfolgreicher Kopplung (LED grün dauerhaft) erfolgt die eigentliche Gerät
 4. Pro Kanal Lampentyp, Synchronisationsrichtung und Polling prüfen.
 5. Download ausführen und Funktion testen (Schalten, ggf. Helligkeit/Farbtemperatur/RGB).
 
+Empfehlungen für robuste Inbetriebnahme:
+- Primär die jeweilige **ID (RID)** verwenden, nicht den Namen.
+- Namen nur verwenden, wenn sie im Hue-System eindeutig sind.
+- Optional können Präfixe genutzt werden: `room:<id|name>` bzw. `zone:<id|name>`.
+
 Empfehlung: Erst mit 1-2 Kanälen testen, danach auf alle Kanäle ausrollen.
 
 <!-- DOC -->
@@ -172,6 +177,10 @@ Ermittlung über:
 - Webinterface: `http://<IP-des-OpenKNX-Geräts>/openknx/hue/scan`
 - Konsole: `hue scan`
 
+Empfehlung:
+- Für produktive Projekte bevorzugt die ID (RID) eintragen.
+- Namen nur bei eindeutiger Benennung verwenden.
+
 <!-- DOC -->
 ### Hue Lampen-ID (UUID)
 
@@ -180,6 +189,9 @@ Legacy-/Fallback-Feld für bestehende Projektierungen.
 Für neue Projektierungen bitte **Hue Ziel (Light-/Room-/Zone-ID oder Name)** verwenden.
 
 Gilt nur für Zieltyp **Licht**.
+
+Hinweis:
+- Dieses Feld dient primär der Migration älterer ETS-Projekte.
 
 Ermittlung über:
 - Webinterface: `http://<IP-des-OpenKNX-Geräts>/openknx/hue/scan`
@@ -197,6 +209,10 @@ Der Lampentyp bestimmt, welche KOs sichtbar/aktiv sind:
 - **Farbtemperatur**: zusätzlich Farbtemperatur + Status Farbtemperatur
 - **Farbe (RGB)**: zusätzlich RGB + Status RGB
 
+Hinweise:
+- Für Zieltyp **Raum/Zone** sind Schalten, Dimmen, Farbtemperatur und RGB grundsätzlich nutzbar.
+- Die tatsächliche Wirkung hängt von den Fähigkeiten der im Raum/der Zone enthaltenen Leuchten und der Bridge-Antwort ab.
+
 <!-- DOC -->
 ### Kanal deaktivieren
 
@@ -204,17 +220,35 @@ Deaktiviert den Kanal ohne Verlust der Parametrierung.
 
 <!-- DOC -->
 ### Synchronisationsrichtung
-
-- **Keine Synchronisation**
-- **Nur KNX zu Hue**
-- **Nur Hue zu KNX**
-- **Bidirektional** (Standardempfehlung)
+- **Keine Synchronisation**: Keine KNX->Hue-Kommandos und keine Hue->KNX-Statusübernahme.
+- **Nur KNX zu Hue**: Telegramme steuern Hue, Statusrückmeldungen aus Hue werden ignoriert.
+- **Nur Hue zu KNX**: KNX-Kommandos werden blockiert, Status wird aus Hue übernommen.
+- **Bidirektional**: KNX-Kommandos und Hue-Statusübernahme aktiv. (Standardempfehlung)
 
 <!-- DOC -->
 ### Polling-Intervall
 
 Status-Abfrageintervall in Sekunden.
 Empfehlung: `5..30 s` je nach Kanalzahl und Netzlast.
+
+Wichtig:
+- `0` = zyklisches Polling für diesen Kanal deaktiviert.
+- Bei `>0` wird der Kanal gemäß Intervall aus Hue gelesen (abhängig von Sync-Richtung).
+- Nach KNX-Kommandos erfolgt zusätzlich ein kurzer Fast-Track-Statusabgleich.
+
+<!-- DOC -->
+### Statusverhalten bei Zieltyp Raum/Zone
+
+Für Raum/Zone wird intern über `grouped_light` gesteuert.
+
+Praxisverhalten:
+- KNX->Hue-Kommandos (Schalten/Dimmen/CT/RGB) werden auf das Gruppen-Ziel gesendet.
+- Status-KOs werden nach erfolgreichen Kommandos aktualisiert.
+- Externe Änderungen (z. B. Hue App) werden je nach Event-/Polling-Zuordnung übernommen.
+
+Hinweis:
+- In bestimmten Konstellationen kann kein exakter physischer Gruppen-Istzustand aller Mitglieder abgebildet werden.
+- Für streng deterministische Rückmeldung den gewünschten Sync-/Polling-Modus gezielt testen.
 
 <!-- DOC -->
 ### Minimale Helligkeit
@@ -296,6 +330,11 @@ Kurventyp:
 - **SunPosition**
 - **Manual Kelvin**
 
+Erweiterte Parameter je Manager:
+- **Slew-Rate (K/min)**: begrenzt die Kelvin-Änderung pro Minute (`0` = keine Begrenzung).
+- **Manual Kelvin**: fixer Kelvin-Sollwert bei Kurventyp `Manual Kelvin`.
+- **Sonnenaufgang/Sonnenuntergang** und **Offsets (min)**: relevant für Kurventyp `SunPosition`.
+
 #### Stützpunkte
 Bis zu 10 Stützpunkte je Manager.
 
@@ -307,6 +346,9 @@ Beispiel:
 - SP1 `06:00 / 3000K / 30%`
 - SP2 `12:00 / 5000K / 90%`
 - SP3 `20:00 / 2700K / 35%`
+
+Praxisregel:
+- `Aktualisierungsintervall`, `Überblendzeit` und `Slew-Rate` gemeinsam abstimmen, damit Übergänge ruhig bleiben.
 
 <!-- DOC -->
 ## Kommunikationsobjekte
@@ -395,6 +437,21 @@ Relatives Dimmen (DPT 3.007).
 - HCL Intervall: 60 s
 - HCL Sperre M1 via KO auf GA für Präsenz/Abwesenheit
 
+### Beispiel 4: Raumsteuerung (Zone/Room) mit Rückmeldung
+- Zieltyp: Raum
+- Hue Ziel: Room-ID (RID)
+- Lampentyp: Dimmbar oder höher
+- Sync: Bidirektional
+- Polling: 10 s
+
+### Beispiel 5: Zone mit Farbtemperatur/RGB
+- Zieltyp: Zone
+- Hue Ziel: Zone-ID (RID)
+- Lampentyp: Farbe (RGB)
+- Sync: Bidirektional
+- Polling: 5..15 s
+- Hinweis: Wirkung abhängig von Fähigkeiten der enthaltenen Leuchten
+
 <!-- DOC -->
 ## Häufige Fehler und Lösungen
 
@@ -411,9 +468,11 @@ Relatives Dimmen (DPT 3.007).
 - Sync-Richtung passend?
 
 ### Status fehlt
-- Polling > 0?
-- Sync auf Hue→KNX oder Bidirektional?
+- Sync auf **Hue->KNX** oder **Bidirektional** gesetzt?
+- Polling-Intervall sinnvoll gesetzt (`0` deaktiviert zyklisches Polling)?
 - Status-KO mit GA verbunden?
+- Zieltyp/Hue Ziel korrekt und auflösbar?
+- Bei Raum/Zone: Rückmeldeverhalten mit Hue-App-Änderungen gesondert verifizieren.
 
 ### HCL wirkt nicht
 - HCL global aktiviert?
