@@ -11,3 +11,7 @@ Ermittlung über:
 - Webinterface: `http://<IP-des-OpenKNX-Geräts>/openknx/hue/scan`
 - Konsole: `hue scan`
 
+Empfehlung:
+- Für produktive Projekte bevorzugt die ID (RID) eintragen.
+- Namen nur bei eindeutiger Benennung verwenden.
+

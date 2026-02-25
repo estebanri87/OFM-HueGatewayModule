@@ -6,6 +6,9 @@ Für neue Projektierungen bitte **Hue Ziel (Light-/Room-/Zone-ID oder Name)** ve
 
 Gilt nur für Zieltyp **Licht**.
 
+Hinweis:
+- Dieses Feld dient primär der Migration älterer ETS-Projekte.
+
 Ermittlung über:
 - Webinterface: `http://<IP-des-OpenKNX-Geräts>/openknx/hue/scan`
 - Konsole: `hue scan`

@@ -790,21 +790,6 @@
                       </when>
                     </choose>
 
-                    <ParameterSeparator Id="%AID%_PS-HUEHCLStatusKO" Text="Status-KOs je HCL Manager" UIHint="Headline" />
-                    <choose ParamRefId="%AID%_P-1400011_R-140001101">
-                      <when test=">=1">
-                        <ParameterRefRef RefId="%AID%_P-1400016_R-140001601" HelpContext="HUE-Status-KOs-je-HCL-Manager" />
-                      </when>
-                      <when test=">=2">
-                        <ParameterRefRef RefId="%AID%_P-1400017_R-140001701" HelpContext="HUE-Status-KOs-je-HCL-Manager" />
-                      </when>
-                      <when test=">=3">
-                        <ParameterRefRef RefId="%AID%_P-1400018_R-140001801" HelpContext="HUE-Status-KOs-je-HCL-Manager" />
-                      </when>
-                      <when test=">=4">
-                        <ParameterRefRef RefId="%AID%_P-1400019_R-140001901" HelpContext="HUE-Status-KOs-je-HCL-Manager" />
-                      </when>
-                    </choose>
                     <ComObjectRefRef RefId="%AID%_O-1400003_R-140000301" HelpContext="HUE-HCL-Sperre-global-Status-HCL-Sperre" />
                     <ComObjectRefRef RefId="%AID%_O-1400004_R-140000401" HelpContext="HUE-HCL-Sperre-global-Status-HCL-Sperre" />
                     <choose ParamRefId="%AID%_P-1400011_R-140001101">
@@ -825,40 +810,6 @@
                         <ComObjectRefRef RefId="%AID%_O-1400020_R-140002001" />
                       </when>
                     </choose>
-                    <choose ParamRefId="%AID%_P-1400011_R-140001101">
-                      <when test="&gt;=1">
-                        <choose ParamRefId="%AID%_P-1400016_R-140001601">
-                          <when test="1">
-                            <ComObjectRefRef RefId="%AID%_O-1400005_R-140000501" />
-                            <ComObjectRefRef RefId="%AID%_O-1400006_R-140000601" />
-                          </when>
-                        </choose>
-                      </when>
-                      <when test="&gt;=2">
-                        <choose ParamRefId="%AID%_P-1400017_R-140001701">
-                          <when test="1">
-                            <ComObjectRefRef RefId="%AID%_O-1400007_R-140000701" />
-                            <ComObjectRefRef RefId="%AID%_O-1400008_R-140000801" />
-                          </when>
-                        </choose>
-                      </when>
-                      <when test="&gt;=3">
-                        <choose ParamRefId="%AID%_P-1400018_R-140001801">
-                          <when test="1">
-                            <ComObjectRefRef RefId="%AID%_O-1400009_R-140000901" />
-                            <ComObjectRefRef RefId="%AID%_O-1400010_R-140001001" />
-                          </when>
-                        </choose>
-                      </when>
-                      <when test="&gt;=4">
-                        <choose ParamRefId="%AID%_P-1400019_R-140001901">
-                          <when test="1">
-                            <ComObjectRefRef RefId="%AID%_O-1400011_R-140001101" />
-                            <ComObjectRefRef RefId="%AID%_O-1400012_R-140001201" />
-                          </when>
-                        </choose>
-                      </when>
-                    </choose>
                     
                     <!-- Reiter HCL-Master 1 -->
                     <choose ParamRefId="%AID%_P-1400011_R-140001101">
@@ -867,6 +818,12 @@
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM1Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1410100_R-141010001" />
                           <ParameterRefRef RefId="%AID%_P-1400016_R-140001601" />
+                          <choose ParamRefId="%AID%_P-1400016_R-140001601">
+                            <when test="1">
+                              <ComObjectRefRef RefId="%AID%_O-1400005_R-140000501" />
+                              <ComObjectRefRef RefId="%AID%_O-1400006_R-140000601" />
+                            </when>
+                          </choose>
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM1Lock" Text="HCL Sperre (spezifisch)" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1400020_R-140002001" />
                           <choose ParamRefId="%AID%_P-1400020_R-140002001">
@@ -979,6 +936,12 @@
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM2Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1420100_R-142010001" />
                           <ParameterRefRef RefId="%AID%_P-1400017_R-140001701" />
+                          <choose ParamRefId="%AID%_P-1400017_R-140001701">
+                            <when test="1">
+                              <ComObjectRefRef RefId="%AID%_O-1400007_R-140000701" />
+                              <ComObjectRefRef RefId="%AID%_O-1400008_R-140000801" />
+                            </when>
+                          </choose>
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM2Lock" Text="HCL Sperre (spezifisch)" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1400022_R-140002201" />
                           <choose ParamRefId="%AID%_P-1400022_R-140002201">
@@ -1091,6 +1054,12 @@
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM3Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1430100_R-143010001" />
                           <ParameterRefRef RefId="%AID%_P-1400018_R-140001801" />
+                          <choose ParamRefId="%AID%_P-1400018_R-140001801">
+                            <when test="1">
+                              <ComObjectRefRef RefId="%AID%_O-1400009_R-140000901" />
+                              <ComObjectRefRef RefId="%AID%_O-1400010_R-140001001" />
+                            </when>
+                          </choose>
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM3Lock" Text="HCL Sperre (spezifisch)" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1400024_R-140002401" />
                           <choose ParamRefId="%AID%_P-1400024_R-140002401">
@@ -1203,6 +1172,12 @@
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM4Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1440100_R-144010001" />
                           <ParameterRefRef RefId="%AID%_P-1400019_R-140001901" />
+                          <choose ParamRefId="%AID%_P-1400019_R-140001901">
+                            <when test="1">
+                              <ComObjectRefRef RefId="%AID%_O-1400011_R-140001101" />
+                              <ComObjectRefRef RefId="%AID%_O-1400012_R-140001201" />
+                            </when>
+                          </choose>
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM4Lock" Text="HCL Sperre (spezifisch)" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1400026_R-140002601" />
                           <choose ParamRefId="%AID%_P-1400026_R-140002601">

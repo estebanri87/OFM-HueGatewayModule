@@ -22,6 +22,11 @@ Kurventyp:
 - **SunPosition**
 - **Manual Kelvin**
 
+Erweiterte Parameter je Manager:
+- **Slew-Rate (K/min)**: begrenzt die Kelvin-Änderung pro Minute (`0` = keine Begrenzung).
+- **Manual Kelvin**: fixer Kelvin-Sollwert bei Kurventyp `Manual Kelvin`.
+- **Sonnenaufgang/Sonnenuntergang** und **Offsets (min)**: relevant für Kurventyp `SunPosition`.
+
 #### Stützpunkte
 Bis zu 10 Stützpunkte je Manager.
 
@@ -33,4 +38,7 @@ Beispiel:
 - SP1 `06:00 / 3000K / 30%`
 - SP2 `12:00 / 5000K / 90%`
 - SP3 `20:00 / 2700K / 35%`
+
+Praxisregel:
+- `Aktualisierungsintervall`, `Überblendzeit` und `Slew-Rate` gemeinsam abstimmen, damit Übergänge ruhig bleiben.
 

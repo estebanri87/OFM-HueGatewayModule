@@ -264,6 +264,29 @@ Ordnet den Kanal einem HCL-Manager (1..4) zu.
 Bei `Kein HCL` arbeitet der Kanal ohne HCL-Übernahme.
 
 <!-- DOC -->
+### HCL Sperre (kanal-spezifisch)
+
+Sperrt die HCL-Ausgabe nur für den jeweiligen Hue-Kanal.
+Andere Kanäle mit gleicher HCL-Manager-Zuordnung bleiben unverändert aktiv.
+
+Sichtbarkeit:
+- Nur bei Lampentyp `Farbtemperatur` oder `Farbe (RGB)`.
+- Nur wenn beim Kanal ein HCL-Manager `1..4` zugeordnet ist.
+
+Optionen je Kanal:
+- **Rückfall aktivieren**
+- **Rückfallzeit nach HCL-Sperre** (inkl. Tageswechsel)
+
+KOs je Kanal:
+- `HCL Sperre` (Eingang)
+- `Status HCL Sperre` (Ausgang)
+
+Praxisbeispiel:
+- Wohn-/Essbereich mit gemeinsamem HCL-Manager.
+- Am Abend läuft im Essbereich HCL weiter, im Wohnzimmer wird per Taster `HCL Sperre` aktiviert, damit dort eine feste, warme Szene bleibt.
+- Am nächsten Morgen hebt die konfigurierte Rückfallzeit die Sperre automatisch auf und der Kanal folgt wieder der HCL-Kurve.
+
+<!-- DOC -->
 ## HCL Manager
 
 <!-- DOC -->
@@ -417,6 +440,16 @@ Relatives Dimmen (DPT 3.007).
 #### Farbe RGB / Status RGB
 
 3-Byte RGB-Eingang/-Ausgang.
+
+<!-- DOC -->
+#### HCL Sperre (kanal-spezifisch) / Status HCL Sperre
+
+1-Bit Sperrobjekt mit 1-Bit Statusrückmeldung je Kanal.
+
+Hinweise:
+- Wirkt nur auf die HCL-Ausgabe des einzelnen Kanals.
+- Manuelle KNX-Kommandos für Schalten/Dimmen/CT/RGB bleiben möglich.
+- Sichtbar nur bei aktivem HCL-Manager am Kanal und geeignetem Lampentyp.
 
 <!-- DOC -->
 ## Projektierungsbeispiele

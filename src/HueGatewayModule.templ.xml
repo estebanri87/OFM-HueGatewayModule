@@ -24,6 +24,15 @@
               <Parameter Id="%AID%_P-%TT%5%CC%007" Name="CH%C%HCLMaster" ParameterType="%AID%_PT-HUEHCLMasterSelect" Text="HCL Master" Value="0">
                 <Memory CodeSegment="%MID%" Offset="4" BitOffset="0" />
               </Parameter>
+
+              <!-- Kanal-spezifische HCL-Sperre -->
+              <Parameter Id="%AID%_P-%TT%5%CC%010" Name="CH%C%HCLLockFallbackEnable" ParameterType="%AID%_PT-HUEHCLLockFallbackEnable" Text="Rückfall aktivieren" Value="1">
+                <Memory CodeSegment="%MID%" Offset="85" BitOffset="0" />
+              </Parameter>
+
+              <Parameter Id="%AID%_P-%TT%5%CC%011" Name="CH%C%HCLLockFallback" ParameterType="%AID%_PT-HUEHCLLockFallback" Text="Rückfallzeit nach HCL-Sperre" Value="0">
+                <Memory CodeSegment="%MID%" Offset="86" BitOffset="0" />
+              </Parameter>
               
               <Union Id="%AID%_U-%TT%5%CC%002" SizeInBit="16">
                 <Memory CodeSegment="%MID%" Offset="0" BitOffset="0" />
@@ -60,6 +69,8 @@
               <ParameterRef Id="%AID%_P-%TT%5%CC%001_R-%TT%5%CC%00101" RefId="%AID%_P-%TT%5%CC%001" />
               <ParameterRef Id="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" RefId="%AID%_P-%TT%5%CC%008" />
               <ParameterRef Id="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701" RefId="%AID%_P-%TT%5%CC%007" />
+              <ParameterRef Id="%AID%_P-%TT%5%CC%010_R-%TT%5%CC%01001" RefId="%AID%_P-%TT%5%CC%010" />
+              <ParameterRef Id="%AID%_P-%TT%5%CC%011_R-%TT%5%CC%01101" RefId="%AID%_P-%TT%5%CC%011" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%002_R-%TT%5%CC%00201" RefId="%AID%_UP-%TT%5%CC%002" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%003_R-%TT%5%CC%00301" RefId="%AID%_UP-%TT%5%CC%003" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%004_R-%TT%5%CC%00401" RefId="%AID%_UP-%TT%5%CC%004" />
@@ -78,6 +89,8 @@
               <ComObject Id="%AID%_O-%TT%5%CC%006" Name="CH%C%StatusColorTemp" Text="Status Farbtemp." FunctionText="Status Farbtemperatur in Kelvin" Number="%K06%" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
               <ComObject Id="%AID%_O-%TT%5%CC%007" Name="CH%C%ColorRGB" Text="Farbe RGB" FunctionText="Farbe als RGB-Wert" Number="%K07%" ObjectSize="3 Bytes" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-232-600" />
               <ComObject Id="%AID%_O-%TT%5%CC%008" Name="CH%C%StatusColorRGB" Text="Status RGB" FunctionText="Status Farbe als RGB-Wert" Number="%K08%" ObjectSize="3 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-232-600" />
+              <ComObject Id="%AID%_O-%TT%5%CC%009" Name="CH%C%HCLLock" Text="HCL Sperre (spezifisch)" FunctionText="HCL-Ausgabe für diesen Hue-Kanal sperren (1=Sperre aktiv)" Number="%K09%" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%5%CC%010" Name="CH%C%HCLLockStatus" Text="Status HCL Sperre" FunctionText="Aktueller Sperrstatus der HCL-Ausgabe für diesen Hue-Kanal" Number="%K10%" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
             </ComObjectTable>
 
             <ComObjectRefs>
@@ -90,6 +103,8 @@
               <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00601" RefId="%AID%_O-%TT%5%CC%006" Text="{{0:Hue %C%}}: Status Farbtemperatur" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00701" RefId="%AID%_O-%TT%5%CC%007" Text="{{0:Hue %C%}}: Farbe RGB" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00801" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Status RGB" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%009_R-%TT%5%CC%00901" RefId="%AID%_O-%TT%5%CC%009" Text="{{0:Hue %C%}}: HCL Sperre" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%010_R-%TT%5%CC%01001" RefId="%AID%_O-%TT%5%CC%010" Text="{{0:Hue %C%}}: Status HCL Sperre" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
             </ComObjectRefs>
             
           </Static>
@@ -117,6 +132,17 @@
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLLine" Text="" UIHint="HorizontalRuler" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLHeader" Text="HCL" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701" />
+                          <choose ParamRefId="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701">
+                            <when test=">=1">
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLLockHeader" Text="HCL Sperre (spezifisch)" UIHint="Headline" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%5%CC%010_R-%TT%5%CC%01001" />
+                              <choose ParamRefId="%AID%_P-%TT%5%CC%010_R-%TT%5%CC%01001">
+                                <when test="1">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%5%CC%011_R-%TT%5%CC%01101" />
+                                </when>
+                              </choose>
+                            </when>
+                          </choose>
                         </when>
                       </choose>
                       
@@ -147,6 +173,16 @@
                       <when test="=3">
                         <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00701" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                         <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00801" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                      </when>
+                    </choose>
+                    <choose ParamRefId="%AID%_UP-%TT%5%CC%002_R-%TT%5%CC%00201">
+                      <when test=">=2">
+                        <choose ParamRefId="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701">
+                          <when test=">=1">
+                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%009_R-%TT%5%CC%00901" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%010_R-%TT%5%CC%01001" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                          </when>
+                        </choose>
                       </when>
                     </choose>
                   </ParameterBlock>

@@ -13,9 +13,11 @@
 - Sync-Richtung passend?
 
 ### Status fehlt
-- Polling > 0?
-- Sync auf Hue→KNX oder Bidirektional?
+- Sync auf **Hue->KNX** oder **Bidirektional** gesetzt?
+- Polling-Intervall sinnvoll gesetzt (`0` deaktiviert zyklisches Polling)?
 - Status-KO mit GA verbunden?
+- Zieltyp/Hue Ziel korrekt und auflösbar?
+- Bei Raum/Zone: Rückmeldeverhalten mit Hue-App-Änderungen gesondert verifizieren.
 
 ### HCL wirkt nicht
 - HCL global aktiviert?

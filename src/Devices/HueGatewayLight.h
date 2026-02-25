@@ -122,6 +122,9 @@ public:
      */
     uint8_t getHCLMaster() const { return _hclMasterNum; }
 
+    void setHCLChannelLock(bool lockActive) { _hclChannelLockActive = lockActive; }
+    bool isHCLChannelLocked() const { return _hclChannelLockActive; }
+
     /**
     * @brief Sets ETS light type (0=switch,1=dimm,2=ct,3=rgb).
      */
@@ -166,6 +169,7 @@ private:
     
     // HCL configuration and current interpolation state.
     uint8_t _hclMasterNum;  // 0 = no HCL, 1-4 = HCL master number
+    bool _hclChannelLockActive;
     bool _fadingActive;     // true while a fade transition is active
     uint16_t _currentKelvin; // Current color temperature in Kelvin
     unsigned long _lastHCLUpdate; // Timestamp of last HCL update (millis)

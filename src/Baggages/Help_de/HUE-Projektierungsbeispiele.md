@@ -16,3 +16,18 @@
 - HCL Intervall: 60 s
 - HCL Sperre M1 via KO auf GA für Präsenz/Abwesenheit
 
+### Beispiel 4: Raumsteuerung (Zone/Room) mit Rückmeldung
+- Zieltyp: Raum
+- Hue Ziel: Room-ID (RID)
+- Lampentyp: Dimmbar oder höher
+- Sync: Bidirektional
+- Polling: 10 s
+
+### Beispiel 5: Zone mit Farbtemperatur/RGB
+- Zieltyp: Zone
+- Hue Ziel: Zone-ID (RID)
+- Lampentyp: Farbe (RGB)
+- Sync: Bidirektional
+- Polling: 5..15 s
+- Hinweis: Wirkung abhängig von Fähigkeiten der enthaltenen Leuchten
+

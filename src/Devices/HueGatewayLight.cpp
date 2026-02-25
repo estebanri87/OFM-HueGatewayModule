@@ -44,6 +44,7 @@ HueGatewayLight::HueGatewayLight(const String& lightId, const String& name, HueG
     , _minBrightnessHue(0)
     , _isGroupedTarget(false)
     , _hclMasterNum(0)
+    , _hclChannelLockActive(false)
     , _fadingActive(false)
     , _currentKelvin(4000)
     , _lastHCLUpdate(0)
@@ -102,6 +103,7 @@ void HueGatewayLight::processKnxSwitch(bool value)
     if (value
         && _hclMasterNum > 0
         && _hclMasterNum <= 4
+        && !_hclChannelLockActive
         && !HCL::masterManager.isApplyBlocked()
         && !HCL::masterManager.isMasterApplyBlocked(_hclMasterNum)) {
         HCL::InterpolatedValue hclValue = HCL::masterManager.getCurrentValue(_hclMasterNum);
@@ -575,6 +577,7 @@ void HueGatewayLight::loop()
         || !_on
         || _hclMasterNum == 0
         || _hclMasterNum > 4
+        || _hclChannelLockActive
         || HCL::masterManager.isApplyBlocked()
         || HCL::masterManager.isMasterApplyBlocked(_hclMasterNum))
         return;

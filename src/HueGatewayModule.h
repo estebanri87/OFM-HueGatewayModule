@@ -22,7 +22,7 @@ struct HueGatewayEventLightUpdate;
  * It communicates with the Hue Bridge via Hue API v2 and exposes device
  * functions through KNX communication objects.
  * 
- * @version 0.2.0
+ * @version 0.2.1
  * @date 2026-02-24
  */
 
@@ -131,6 +131,11 @@ private:
     unsigned long _hclManagerLockActivatedMs[HCL::MasterManager::MAX_MASTERS];
     unsigned long _hclManagerLockAutoReleaseMs[HCL::MasterManager::MAX_MASTERS];
     int16_t _hclManagerLockActivationDayOfYear[HCL::MasterManager::MAX_MASTERS];
+    bool _hclChannelLockActive[MAX_LIGHTS];
+    uint8_t _hclChannelLockFallbackMode[MAX_LIGHTS];
+    unsigned long _hclChannelLockActivatedMs[MAX_LIGHTS];
+    unsigned long _hclChannelLockAutoReleaseMs[MAX_LIGHTS];
+    int16_t _hclChannelLockActivationDayOfYear[MAX_LIGHTS];
     uint16_t _hclLastPublishedKelvin[HCL::MasterManager::MAX_MASTERS];
     uint8_t _hclLastPublishedBrightness[HCL::MasterManager::MAX_MASTERS];
     bool _hclMasterValuesPublished[HCL::MasterManager::MAX_MASTERS];
@@ -176,9 +181,12 @@ private:
     void publishHclLockStatus();
     void setHclManagerLock(uint8_t managerNumber, bool active, const char* reason);
     void publishHclManagerLockStatus(uint8_t managerNumber);
+    void setHclChannelLock(uint8_t channelIndex, bool active, const char* reason);
+    void publishHclChannelLockStatus(uint8_t channelIndex);
     void publishHclMasterValues();
     void evaluateHclLockFallback(const tm* timeinfo, bool hasTime);
     void evaluateHclManagerLockFallback(const tm* timeinfo, bool hasTime);
+    void evaluateHclChannelLockFallback(const tm* timeinfo, bool hasTime);
     uint32_t getHclFallbackDurationMs(HclLockFallbackMode mode) const;
     static const char* hclFallbackModeToText(HclLockFallbackMode mode);
     

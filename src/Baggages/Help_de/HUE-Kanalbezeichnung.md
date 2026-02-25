@@ -3,7 +3,7 @@
 Dient zur besseren Lesbarkeit in ETS und wird in KO-Bezeichnungen übernommen.
 
 Beispiele:
-- Wohnzimmer Ziel 1
+- Wohnzimmer
 - Küche Decke
 - Flur Spots
 
