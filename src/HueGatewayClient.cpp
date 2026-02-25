@@ -1051,6 +1051,49 @@ bool HueGatewayClient::setLightStateWithColorTemp(const String& lightId, bool on
     }
 }
 
+bool HueGatewayClient::setGroupedLightStateWithColorTemp(const String& groupedLightId,
+                                                          bool on,
+                                                          uint8_t brightness,
+                                                          uint16_t mirek,
+                                                          uint8_t fadeDurationSec)
+{
+    if (!_initialized)
+        return false;
+
+    uint16_t clampedMirek = mirek;
+    if (clampedMirek < 153) clampedMirek = 153;
+    if (clampedMirek > 500) clampedMirek = 500;
+
+    float brightnessPct = (brightness / 254.0f) * 100.0f;
+    uint32_t fadeDurationMs = fadeDurationSec * 1000UL;
+
+    String endpoint = "/clip/v2/resource/grouped_light/" + groupedLightId;
+
+    DynamicJsonDocument doc(512);
+    doc["on"]["on"] = on;
+    doc["dimming"]["brightness"] = brightnessPct;
+    doc["color_temperature"]["mirek"] = clampedMirek;
+    if (fadeDurationSec > 0)
+    {
+        doc["dynamics"]["duration"] = fadeDurationMs;
+    }
+
+    String payload;
+    serializeJson(doc, payload);
+
+    int statusCode = httpPut(endpoint, payload);
+
+    if (isHttpSuccessStatus(statusCode))
+    {
+        Serial.printf("[HueGatewayClient] GroupedLight %s -> On:%d Bri:%d CT:%d fade:%ds\n",
+                      groupedLightId.c_str(), on, brightness, clampedMirek, fadeDurationSec);
+        return true;
+    }
+
+    Serial.printf("[HueGatewayClient] ERROR: PUT grouped_light state+CT failed - HTTP %d\n", statusCode);
+    return false;
+}
+
 bool HueGatewayClient::setLightColorTemperature(const String& lightId, uint16_t mirek)
 {
     if (!_initialized)
@@ -1084,6 +1127,36 @@ bool HueGatewayClient::setLightColorTemperature(const String& lightId, uint16_t 
         Serial.printf("[HueGatewayClient] ERROR: PUT color_temperature failed - HTTP %d\n", statusCode);
         return false;
     }
+}
+
+bool HueGatewayClient::setGroupedLightColorTemperature(const String& groupedLightId, uint16_t mirek)
+{
+    if (!_initialized)
+        return false;
+
+    uint16_t clampedMirek = mirek;
+    if (clampedMirek < 153) clampedMirek = 153;
+    if (clampedMirek > 500) clampedMirek = 500;
+
+    String endpoint = "/clip/v2/resource/grouped_light/" + groupedLightId;
+
+    DynamicJsonDocument doc(256);
+    doc["color_temperature"]["mirek"] = clampedMirek;
+
+    String payload;
+    serializeJson(doc, payload);
+
+    int statusCode = httpPut(endpoint, payload);
+
+    if (isHttpSuccessStatus(statusCode))
+    {
+        Serial.printf("[HueGatewayClient] GroupedLight %s -> ColorTemp: %d mirek (%d K)\n",
+                      groupedLightId.c_str(), clampedMirek, mirekToKelvin(clampedMirek));
+        return true;
+    }
+
+    Serial.printf("[HueGatewayClient] ERROR: PUT grouped_light color_temperature failed - HTTP %d\n", statusCode);
+    return false;
 }
 
 bool HueGatewayClient::setLightColor(const String& lightId, float x, float y)
@@ -1123,6 +1196,40 @@ bool HueGatewayClient::setLightColor(const String& lightId, float x, float y)
         Serial.printf("[HueGatewayClient] ERROR: PUT color failed - HTTP %d\n", statusCode);
         return false;
     }
+}
+
+bool HueGatewayClient::setGroupedLightColor(const String& groupedLightId, float x, float y)
+{
+    if (!_initialized)
+        return false;
+
+    float clampedX = x;
+    float clampedY = y;
+    if (clampedX < 0.0f) clampedX = 0.0f;
+    if (clampedX > 1.0f) clampedX = 1.0f;
+    if (clampedY < 0.0f) clampedY = 0.0f;
+    if (clampedY > 1.0f) clampedY = 1.0f;
+
+    String endpoint = "/clip/v2/resource/grouped_light/" + groupedLightId;
+
+    DynamicJsonDocument doc(256);
+    doc["color"]["xy"]["x"] = clampedX;
+    doc["color"]["xy"]["y"] = clampedY;
+
+    String payload;
+    serializeJson(doc, payload);
+
+    int statusCode = httpPut(endpoint, payload);
+
+    if (isHttpSuccessStatus(statusCode))
+    {
+        Serial.printf("[HueGatewayClient] GroupedLight %s -> Color XY: (%.3f, %.3f)\n",
+                      groupedLightId.c_str(), clampedX, clampedY);
+        return true;
+    }
+
+    Serial.printf("[HueGatewayClient] ERROR: PUT grouped_light color failed - HTTP %d\n", statusCode);
+    return false;
 }
 
 bool HueGatewayClient::pingBridgeApiV2()

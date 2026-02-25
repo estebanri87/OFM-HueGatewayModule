@@ -253,14 +253,18 @@ void Master::applySlew(uint16_t targetKelvin, uint32_t currentTimeMs) {
         return;
     }
 
-    if (_slewRateKelvinPerMinute == 0) {
+    // First slew update after boot/re-init:
+    // start exactly at the current curve target, not at constructor default.
+    if (_lastSlewUpdateMs == 0) {
         _appliedKelvin = constrain(targetKelvin, 2000, 6500);
         _lastSlewUpdateMs = currentTimeMs;
         return;
     }
 
-    if (_lastSlewUpdateMs == 0) {
+    if (_slewRateKelvinPerMinute == 0) {
+        _appliedKelvin = constrain(targetKelvin, 2000, 6500);
         _lastSlewUpdateMs = currentTimeMs;
+        return;
     }
 
     uint32_t deltaMs = currentTimeMs - _lastSlewUpdateMs;

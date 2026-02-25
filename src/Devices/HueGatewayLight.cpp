@@ -296,7 +296,11 @@ void HueGatewayLight::processKnxColorTemp(uint16_t kelvin)
     if (kelvin > 6500) kelvin = 6500;
 
     uint16_t mirek = kelvinToMirek(kelvin);
-    if (_client->setLightColorTemperature(_lightId, mirek))
+    bool ok = _isGroupedTarget
+        ? _client->setGroupedLightColorTemperature(_lightId, mirek)
+        : _client->setLightColorTemperature(_lightId, mirek);
+
+    if (ok)
     {
         _currentKelvin = kelvin;
         _lastUpdate = millis();
@@ -324,7 +328,11 @@ void HueGatewayLight::processKnxColorRGB(uint8_t red, uint8_t green, uint8_t blu
     float y = 0.0f;
     rgbToXy(red, green, blue, x, y);
 
-    if (_client->setLightColor(_lightId, x, y))
+    bool ok = _isGroupedTarget
+        ? _client->setGroupedLightColor(_lightId, x, y)
+        : _client->setLightColor(_lightId, x, y);
+
+    if (ok)
     {
         _currentRed = red;
         _currentGreen = green;
@@ -527,12 +535,6 @@ void HueGatewayLight::sendToHueWithColorTemp(uint16_t kelvin, uint8_t fadeDurati
     if (!_initialized || !_client)
         return;
 
-    if (_isGroupedTarget)
-    {
-        sendToHue();
-        return;
-    }
-    
     uint16_t mirek = kelvinToMirek(kelvin);
     _currentKelvin = kelvin;
     
@@ -545,7 +547,15 @@ void HueGatewayLight::sendToHueWithColorTemp(uint16_t kelvin, uint8_t fadeDurati
                   mirek,
                   fadeDuration);
     
-    bool success = _client->setLightStateWithColorTemp(_lightId, _on, _brightness, mirek, fadeDuration);
+    bool success = _isGroupedTarget
+        ? _client->setGroupedLightStateWithColorTemp(_lightId, _on, _brightness, mirek, fadeDuration)
+        : _client->setLightStateWithColorTemp(_lightId, _on, _brightness, mirek, fadeDuration);
+
+    if (!success && _isGroupedTarget)
+    {
+        Serial.printf("[HueGatewayLight] %s - grouped CT update failed, fallback to state-only\n", _name.c_str());
+        success = _client->setGroupedLightState(_lightId, _on, _brightness);
+    }
 
     if (success)
     {

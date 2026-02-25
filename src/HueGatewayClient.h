@@ -140,6 +140,8 @@ public:
      */
     bool setLightStateWithColorTemp(const String& lightId, bool on, uint8_t brightness, 
                                     uint16_t mirek, uint8_t fadeDurationSec);
+    bool setGroupedLightStateWithColorTemp(const String& groupedLightId, bool on, uint8_t brightness,
+                                           uint16_t mirek, uint8_t fadeDurationSec);
     
     /**
     * @brief Sets the color temperature of a light.
@@ -149,6 +151,7 @@ public:
     * @return true on success
      */
     bool setLightColorTemperature(const String& lightId, uint16_t mirek);
+    bool setGroupedLightColorTemperature(const String& groupedLightId, uint16_t mirek);
     
     /**
     * @brief Sets the XY color of a light (CIE 1931 color space).
@@ -158,6 +161,7 @@ public:
     * @return true on success
      */
     bool setLightColor(const String& lightId, float x, float y);
+    bool setGroupedLightColor(const String& groupedLightId, float x, float y);
 
     bool pingBridgeApiV2();
 

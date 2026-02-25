@@ -1475,16 +1475,9 @@ void HueGatewayModule::setupDevices()
         _lights[ch]->setGroupedTarget(targetIsGrouped);
 
         uint8_t lightType = ParamHUE_CHLightType;
-        if (targetIsGrouped && lightType > 1)
-        {
-            Serial.printf("[HueGatewayModule] Channel %d: grouped target forces light type %u -> 1 (dimmable)\n",
-                          ch + 1,
-                          static_cast<unsigned>(lightType));
-            lightType = 1;
-        }
         uint8_t effectiveLightType = lightType;
 
-        if (effectiveLightType >= 3 && !selectedLight->supportsColor)
+        if (!targetIsGrouped && effectiveLightType >= 3 && !selectedLight->supportsColor)
         {
             if (selectedLight->supportsColorTemp)
             {
@@ -1501,7 +1494,7 @@ void HueGatewayModule::setupDevices()
                           static_cast<unsigned>(effectiveLightType));
         }
 
-        if (effectiveLightType == 2 && !selectedLight->supportsColorTemp)
+        if (!targetIsGrouped && effectiveLightType == 2 && !selectedLight->supportsColorTemp)
         {
             effectiveLightType = 1;
             Serial.printf("[HueGatewayModule] Channel %d: ETS type %u downgraded to %u (light has no CT support)\n",
