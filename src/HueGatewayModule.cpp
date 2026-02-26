@@ -643,7 +643,7 @@ const std::string HueGatewayModule::name()
 
 const std::string HueGatewayModule::version()
 {
-    return "0.2.2";
+    return "0.3.0";
 }
 
 void HueGatewayModule::processInputKo(GroupObject& ko)
