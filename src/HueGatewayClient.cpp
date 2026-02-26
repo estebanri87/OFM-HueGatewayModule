@@ -8,6 +8,8 @@ namespace
 {
 static constexpr size_t kMaxEventLineChars = 4096U;
 static constexpr size_t kMaxEventPayloadChars = 8192U;
+static constexpr uint32_t kTlsMinInternalFreeBytes = 70000U;
+static constexpr uint32_t kTlsMinInternalLargestBlockBytes = 50000U;
 
 float dimmingStepCodeToPercent(uint8_t stepCode)
 {
@@ -29,22 +31,33 @@ bool isHttpSuccessStatus(int statusCode)
     return statusCode >= 200 && statusCode < 300;
 }
 
+bool hasTlsInternalHeadroom()
+{
+    const size_t freeInternal = heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+    const size_t largestInternal = heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+    return freeInternal >= kTlsMinInternalFreeBytes && largestInternal >= kTlsMinInternalLargestBlockBytes;
+}
+
 void logHeapStats(const char* phase)
 {
     const uint32_t freeHeap = ESP.getFreeHeap();
     const uint32_t minFreeHeap = ESP.getMinFreeHeap();
     const size_t free8Bit = heap_caps_get_free_size(MALLOC_CAP_8BIT);
     const size_t largest8Bit = heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
+    const size_t freeInternal = heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+    const size_t largestInternal = heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
     const uint32_t fragPercent = (free8Bit > 0 && largest8Bit <= free8Bit)
         ? static_cast<uint32_t>(((free8Bit - largest8Bit) * 100U) / free8Bit)
         : 0U;
 
-    Serial.printf("[HueGatewayClient] HEAP %s free=%lu min=%lu free8=%u largest8=%u frag=%lu%%\n",
+    Serial.printf("[HueGatewayClient] HEAP %s free=%lu min=%lu free8=%u largest8=%u intFree=%u intLargest=%u frag=%lu%%\n",
                   phase,
                   static_cast<unsigned long>(freeHeap),
                   static_cast<unsigned long>(minFreeHeap),
                   static_cast<unsigned>(free8Bit),
                   static_cast<unsigned>(largest8Bit),
+                  static_cast<unsigned>(freeInternal),
+                  static_cast<unsigned>(largestInternal),
                   static_cast<unsigned long>(fragPercent));
 }
 
@@ -725,7 +738,7 @@ bool HueGatewayClient::setGroupedLightBrightness(const String& groupedLightId, u
     return false;
 }
 
-bool HueGatewayClient::setLightState(const String& lightId, bool on, uint8_t brightness)
+bool HueGatewayClient::setLightState(const String& lightId, bool on, uint8_t brightness, uint8_t fadeDurationSec)
 {
     if (!_initialized)
         return false;
@@ -737,6 +750,10 @@ bool HueGatewayClient::setLightState(const String& lightId, bool on, uint8_t bri
     DynamicJsonDocument doc(512);
     doc["on"]["on"] = on;
     doc["dimming"]["brightness"] = brightnessPct;
+    if (fadeDurationSec > 0)
+    {
+        doc["dynamics"]["duration"] = static_cast<uint32_t>(fadeDurationSec) * 1000UL;
+    }
     
     String payload;
     serializeJson(doc, payload);
@@ -745,8 +762,8 @@ bool HueGatewayClient::setLightState(const String& lightId, bool on, uint8_t bri
     
     if (isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] Light %s -> On:%d Bri:%d\n", 
-                      lightId.c_str(), on, brightness);
+        Serial.printf("[HueGatewayClient] Light %s -> On:%d Bri:%d fade:%us\n", 
+                      lightId.c_str(), on, brightness, static_cast<unsigned>(fadeDurationSec));
         return true;
     }
     else
@@ -756,7 +773,7 @@ bool HueGatewayClient::setLightState(const String& lightId, bool on, uint8_t bri
     }
 }
 
-bool HueGatewayClient::setGroupedLightState(const String& groupedLightId, bool on, uint8_t brightness)
+bool HueGatewayClient::setGroupedLightState(const String& groupedLightId, bool on, uint8_t brightness, uint8_t fadeDurationSec)
 {
     if (!_initialized)
         return false;
@@ -768,6 +785,10 @@ bool HueGatewayClient::setGroupedLightState(const String& groupedLightId, bool o
     DynamicJsonDocument doc(512);
     doc["on"]["on"] = on;
     doc["dimming"]["brightness"] = brightnessPct;
+    if (fadeDurationSec > 0)
+    {
+        doc["dynamics"]["duration"] = static_cast<uint32_t>(fadeDurationSec) * 1000UL;
+    }
 
     String payload;
     serializeJson(doc, payload);
@@ -776,8 +797,8 @@ bool HueGatewayClient::setGroupedLightState(const String& groupedLightId, bool o
 
     if (isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] GroupedLight %s -> On:%d Bri:%d\n",
-                      groupedLightId.c_str(), on, brightness);
+        Serial.printf("[HueGatewayClient] GroupedLight %s -> On:%d Bri:%d fade:%us\n",
+                      groupedLightId.c_str(), on, brightness, static_cast<unsigned>(fadeDurationSec));
         return true;
     }
 
@@ -1093,7 +1114,7 @@ bool HueGatewayClient::setLightStateWithColorTemp(const String& lightId, bool on
     // Brightness 0-254 -> 0-100%
     float brightnessPct = (brightness / 254.0f) * 100.0f;
     
-    // Fade-Dauer in Millisekunden (Hue API v2 dynamics.duration)
+    // Fade duration in milliseconds (Hue API v2 dynamics.duration).
     uint32_t fadeDurationMs = fadeDurationSec * 1000;
     
     String endpoint = "/clip/v2/resource/light/" + lightId;
@@ -1340,6 +1361,15 @@ bool HueGatewayClient::startEventStream()
     if (_eventHandshakePending && _eventClient.connected())
     {
         return true;
+    }
+
+    if (!hasTlsInternalHeadroom())
+    {
+        Serial.printf("[HueGatewayClient] EventStream deferred: insufficient internal TLS headroom (need free>=%lu, largest>=%lu)\n",
+                      static_cast<unsigned long>(kTlsMinInternalFreeBytes),
+                      static_cast<unsigned long>(kTlsMinInternalLargestBlockBytes));
+        logHeapStats("event-connect-deferred");
+        return false;
     }
 
     stopEventStream();
@@ -1677,6 +1707,15 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc)
     Serial.println(url);
     _http.setTimeout(2000);
     const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected) && _eventClient.connected();
+
+    if (eventWasActive)
+    {
+        Serial.println("[HueGatewayClient] Pausing EventStream for HTTPS GET");
+        _http.end();
+        stopEventStream();
+        _secureClient.stop();
+        delay(25);
+    }
     
     _http.begin(_secureClient, url);
     _http.addHeader("hue-application-key", _appKey);
@@ -1688,25 +1727,6 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc)
         logHeapStats("http-get-failed");
     }
 
-    if (statusCode < 0 && eventWasActive)
-    {
-        Serial.printf("[HueGatewayClient] HTTP GET low-memory fallback (status=%d): pausing EventStream and retrying once\n",
-                      statusCode);
-        logHeapStats("http-get-before-fallback");
-        _http.end();
-        stopEventStream();
-        _secureClient.stop();
-        delay(25);
-
-        _http.begin(_secureClient, url);
-        _http.addHeader("hue-application-key", _appKey);
-        statusCode = _http.GET();
-        if (statusCode < 0)
-        {
-            logHeapStats("http-get-fallback-failed");
-        }
-    }
-    
     if (isHttpSuccessStatus(statusCode))
     {
         String response = _http.getString();
@@ -1732,7 +1752,11 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc)
 
     if (eventWasActive)
     {
-        if (!startEventStream())
+        if (!hasTlsInternalHeadroom())
+        {
+            Serial.println("[HueGatewayClient] EventStream restart deferred after HTTP GET (internal TLS headroom)");
+        }
+        else if (!startEventStream())
         {
             Serial.println("[HueGatewayClient] EventStream restart after HTTP GET failed");
         }
@@ -1747,6 +1771,15 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
     Serial.printf("[HueGatewayClient] HTTP PUT %s payload=%s\n", url.c_str(), payload.c_str());
     _http.setTimeout(2000);
     const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected) && _eventClient.connected();
+
+    if (eventWasActive)
+    {
+        Serial.println("[HueGatewayClient] Pausing EventStream for HTTPS PUT");
+        _http.end();
+        stopEventStream();
+        _secureClient.stop();
+        delay(25);
+    }
     
     _http.begin(_secureClient, url);
     _http.addHeader("Content-Type", "application/json");
@@ -1759,26 +1792,6 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
         logHeapStats("http-put-failed");
     }
 
-    if (statusCode < 0 && eventWasActive)
-    {
-        Serial.printf("[HueGatewayClient] HTTP PUT low-memory fallback (status=%d): pausing EventStream and retrying once\n",
-                      statusCode);
-        logHeapStats("http-put-before-fallback");
-        _http.end();
-        stopEventStream();
-        _secureClient.stop();
-        delay(25);
-
-        _http.begin(_secureClient, url);
-        _http.addHeader("Content-Type", "application/json");
-        _http.addHeader("hue-application-key", _appKey);
-        statusCode = _http.PUT(payload);
-        if (statusCode < 0)
-        {
-            logHeapStats("http-put-fallback-failed");
-        }
-    }
-    
     if (!isHttpSuccessStatus(statusCode))
     {
         String response = _http.getString();
@@ -1789,7 +1802,11 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
 
     if (eventWasActive)
     {
-        if (!startEventStream())
+        if (!hasTlsInternalHeadroom())
+        {
+            Serial.println("[HueGatewayClient] EventStream restart deferred after HTTP PUT (internal TLS headroom)");
+        }
+        else if (!startEventStream())
         {
             Serial.println("[HueGatewayClient] EventStream restart after HTTP PUT failed");
         }

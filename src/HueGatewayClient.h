@@ -107,10 +107,11 @@ public:
      * @param lightId Light Resource ID
     * @param on true = on
     * @param brightness Brightness 0-254
+    * @param fadeDurationSec Transition duration in seconds (0 = immediate)
     * @return true on success
      */
-    bool setLightState(const String& lightId, bool on, uint8_t brightness);
-    bool setGroupedLightState(const String& groupedLightId, bool on, uint8_t brightness);
+    bool setLightState(const String& lightId, bool on, uint8_t brightness, uint8_t fadeDurationSec = 0);
+    bool setGroupedLightState(const String& groupedLightId, bool on, uint8_t brightness, uint8_t fadeDurationSec = 0);
 
     /**
     * @brief Applies relative dimming delta to a light.

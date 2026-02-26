@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - n/a
 
+## [0.2.2] - 2026-02-26
+
+### Changed
+- Fixed runtime handling of HCL managers 5-8 (ETS assignments now applied correctly).
+- Added global ETS parameters for switch transition behavior (separate ON/OFF transition time).
+- Applied switch transition timing consistently in runtime for both HCL and non-HCL switch paths.
+
 ## [0.2.1] - 2026-02-25
 
 ### Changed

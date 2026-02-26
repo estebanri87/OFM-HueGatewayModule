@@ -129,8 +129,21 @@ Blendet das KO **Bridge Verbindungsstatus** ein.
 <!-- DOC -->
 ### Anzahl aktiver Kanäle
 
-Legt fest, wie viele Hue-Kanäle (0-20) in ETS sichtbar/aktiv sind.
+Legt fest, wie viele Hue-Kanäle (0-24) in ETS sichtbar/aktiv sind.
 Empfehlung: nur tatsächlich benötigte Kanäle aktivieren.
+
+<!-- DOC -->
+### Einschaltverhalten
+
+Globale Einstellung für das Schaltverhalten aller Hue-Kanäle.
+
+- **Einschaltgeschwindigkeit (Sekunden)**
+- **Ausschaltgeschwindigkeit (Sekunden)**
+
+Hinweise:
+- Die Werte gelten für alle Kanäle (keine kanal-spezifische Einstellung).
+- Die Einstellungen wirken sowohl mit als auch ohne aktive HCL-Zuordnung.
+- Für typische Praxisanforderungen: Einschalten eher kurz, Ausschalten eher länger.
 
 <!-- DOC HelpContext="Kanal" -->
 ## Kanal 1-n (Hue Ziele)
@@ -260,7 +273,7 @@ Beispiel: `5 %` für kritische Leuchten.
 <!-- DOC -->
 ### HCL Manager Zuordnung
 
-Ordnet den Kanal einem HCL-Manager (1..4) zu.
+Ordnet den Kanal einem HCL-Manager (1..8) zu.
 Bei `Kein HCL` arbeitet der Kanal ohne HCL-Übernahme.
 
 <!-- DOC -->
@@ -271,11 +284,10 @@ Andere Kanäle mit gleicher HCL-Manager-Zuordnung bleiben unverändert aktiv.
 
 Sichtbarkeit:
 - Nur bei Lampentyp `Farbtemperatur` oder `Farbe (RGB)`.
-- Nur wenn beim Kanal ein HCL-Manager `1..4` zugeordnet ist.
+- Nur wenn beim Kanal ein HCL-Manager `1..8` zugeordnet ist.
 
-Optionen je Kanal:
-- **Rückfall aktivieren**
-- **Rückfallzeit nach HCL-Sperre** (inkl. Tageswechsel)
+Option je Kanal:
+- **Rückfallzeit nach HCL-Sperre** (inkl. Tageswechsel, `kein Rückfall` möglich)
 
 KOs je Kanal:
 - `HCL Sperre` (Eingang)
@@ -293,12 +305,12 @@ Praxisbeispiel:
 ### Human Centric Lighting (HCL)
 
 Aktiviert zeitabhängige Sollwerte für Helligkeit und Farbtemperatur.
-Bis zu 4 HCL Manager können parallel definiert werden.
+Bis zu 8 HCL Manager können parallel definiert werden.
 
 <!-- DOC -->
 ### HCL Manager Auswahl
 
-Legt die Anzahl sichtbarer HCL-Managerseiten (1..4) fest.
+Legt die Anzahl sichtbarer HCL-Managerseiten (1..8) fest.
 
 <!-- DOC -->
 ### Einstellungen
@@ -313,9 +325,8 @@ Sollwerte werden aus der HCL-Kurve berechnet und bei Wertänderung als Status-KO
 
 Sperrt HCL-Ausgabe für alle Manager.
 
-Optionen:
-- **Rückfall aktivieren**
-- **Rückfallzeit nach HCL-Sperre** (inkl. Tageswechsel)
+Option:
+- **Rückfallzeit nach HCL-Sperre** (inkl. Tageswechsel, `kein Rückfall` möglich)
 
 KOs:
 - `HCL Sperre (global)` (Eingang)
@@ -329,7 +340,7 @@ Aktiviert pro Manager die Ausgabe:
 - `Status Farbtemperatur Soll`
 
 <!-- DOC -->
-### HCL Manager 1..4
+### HCL Manager 1..8
 
 Jeder Manager besitzt identischen Aufbau:
 
@@ -340,7 +351,6 @@ Freie ETS-Bezeichnung des Managers.
 Sperrt nur den jeweiligen Manager.
 
 Optionen je Manager:
-- **Rückfall aktivieren**
 - **Rückfallzeit nach HCL-Sperre**
 
 KOs je Manager:
@@ -394,7 +404,7 @@ Optionales 1-Bit Statusobjekt (0=offline, 1=online).
 Globale HCL-Sperre inkl. Statusrückmeldung.
 
 <!-- DOC -->
-#### HCL Sperre Manager 1..4 / Status
+#### HCL Sperre Manager 1..8 / Status
 
 Manager-spezifische Sperrobjekte inkl. Statusrückmeldung.
 Sichtbarkeit abhängig von konfigurierte Manageranzahl.

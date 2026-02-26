@@ -1,4 +1,4 @@
-﻿### HCL Manager 1..4
+﻿### HCL Manager 1..8
 
 Jeder Manager besitzt identischen Aufbau:
 
@@ -9,7 +9,6 @@ Freie ETS-Bezeichnung des Managers.
 Sperrt nur den jeweiligen Manager.
 
 Optionen je Manager:
-- **Rückfall aktivieren**
 - **Rückfallzeit nach HCL-Sperre**
 
 KOs je Manager:

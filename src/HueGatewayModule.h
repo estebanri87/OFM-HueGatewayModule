@@ -22,7 +22,7 @@ struct HueGatewayEventLightUpdate;
  * It communicates with the Hue Bridge via Hue API v2 and exposes device
  * functions through KNX communication objects.
  * 
- * @version 0.2.1
+ * @version 0.2.2
  * @date 2026-02-24
  */
 
@@ -69,7 +69,7 @@ private:
     
     
     // Device Management
-    static const int MAX_LIGHTS = 20;
+    static const int MAX_LIGHTS = 24;
     HueGatewayLight* _lights[MAX_LIGHTS];
     unsigned long _channelLastPollMs[MAX_LIGHTS];
     unsigned long _channelFastTrackNextMs[MAX_LIGHTS];

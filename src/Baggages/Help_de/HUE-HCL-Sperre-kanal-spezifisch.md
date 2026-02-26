@@ -5,11 +5,10 @@ Andere Kanäle mit gleicher HCL-Manager-Zuordnung bleiben unverändert aktiv.
 
 Sichtbarkeit:
 - Nur bei Lampentyp `Farbtemperatur` oder `Farbe (RGB)`.
-- Nur wenn beim Kanal ein HCL-Manager `1..4` zugeordnet ist.
+- Nur wenn beim Kanal ein HCL-Manager `1..8` zugeordnet ist.
 
-Optionen je Kanal:
-- **Rückfall aktivieren**
-- **Rückfallzeit nach HCL-Sperre** (inkl. Tageswechsel)
+Option je Kanal:
+- **Rückfallzeit nach HCL-Sperre** (inkl. Tageswechsel, `kein Rückfall` möglich)
 
 KOs je Kanal:
 - `HCL Sperre` (Eingang)

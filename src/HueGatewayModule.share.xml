@@ -35,7 +35,7 @@
               
               <!-- Kanalanzahl -->
               <ParameterType Id="%AID%_PT-HUEChannelCount" Name="HUEChannelCount">
-                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="20" />
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="24" />
               </ParameterType>
               
               <!-- Lampentyp -->
@@ -71,6 +71,11 @@
               <ParameterType Id="%AID%_PT-HUEPollInterval" Name="HUEPollInterval">
                 <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="255" />
               </ParameterType>
+
+              <!-- Schalt-Überblendzeit (Sekunden) -->
+              <ParameterType Id="%AID%_PT-HUESwitchTransitionSec" Name="HUESwitchTransitionSec">
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="30" />
+              </ParameterType>
               
               <!-- Helligkeit -->
               <ParameterType Id="%AID%_PT-HUEBrightness" Name="HUEBrightness">
@@ -87,7 +92,7 @@
               
               <!-- Anzahl HCL-Master -->
               <ParameterType Id="%AID%_PT-HUEHCLMasterCount" Name="HUEHCLMasterCount">
-                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="4" />
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="8" />
               </ParameterType>
               
               <!-- HCL-Uhrzeit (HH:MM als Zeichenfolge) -->
@@ -174,6 +179,10 @@
                   <Enumeration Text="HCL Manager 2" Value="2" Id="%ENID%" />
                   <Enumeration Text="HCL Manager 3" Value="3" Id="%ENID%" />
                   <Enumeration Text="HCL Manager 4" Value="4" Id="%ENID%" />
+                  <Enumeration Text="HCL Manager 5" Value="5" Id="%ENID%" />
+                  <Enumeration Text="HCL Manager 6" Value="6" Id="%ENID%" />
+                  <Enumeration Text="HCL Manager 7" Value="7" Id="%ENID%" />
+                  <Enumeration Text="HCL Manager 8" Value="8" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
               
@@ -199,8 +208,16 @@
               <Parameter Id="%AID%_P-1400007" Name="HUEPairingWindow" ParameterType="%AID%_PT-HUEPairingWindow" Text="Pairing-Zeitfenster (Sekunden)" Value="30">
                 <Memory CodeSegment="%MID%" Offset="30" BitOffset="0" />
               </Parameter>
+
+              <Parameter Id="%AID%_P-1400040" Name="HUESwitchOnTransitionSec" ParameterType="%AID%_PT-HUESwitchTransitionSec" Text="Einschaltgeschwindigkeit (Sekunden)" Value="2">
+                <Memory CodeSegment="%MID%" Offset="1036" BitOffset="0" />
+              </Parameter>
+
+              <Parameter Id="%AID%_P-1400041" Name="HUESwitchOffTransitionSec" ParameterType="%AID%_PT-HUESwitchTransitionSec" Text="Ausschaltgeschwindigkeit (Sekunden)" Value="6">
+                <Memory CodeSegment="%MID%" Offset="1037" BitOffset="0" />
+              </Parameter>
               
-              <Parameter Id="%AID%_P-1400005" Name="HUEChannelCount" ParameterType="%AID%_PT-HUEChannelCount" Text="Anzahl aktiver Kanäle" Value="4">
+              <Parameter Id="%AID%_P-1400005" Name="HUEChannelCount" ParameterType="%AID%_PT-HUEChannelCount" Text="Anzahl aktiver Kanäle" Value="4" SuffixText=" von 24">
                 <Memory CodeSegment="%MID%" Offset="29" BitOffset="0" />
               </Parameter>
               
@@ -209,7 +226,7 @@
                 <Memory CodeSegment="%MID%" Offset="31" BitOffset="0" />
               </Parameter>
               
-              <Parameter Id="%AID%_P-1400011" Name="HUEHCLMasterCount" ParameterType="%AID%_PT-HUEHCLMasterCount" Text="Anzahl HCL Manager" Value="0">
+              <Parameter Id="%AID%_P-1400011" Name="HUEHCLMasterCount" ParameterType="%AID%_PT-HUEHCLMasterCount" Text="Anzahl HCL Manager" Value="0" SuffixText=" von 8">
                 <Memory CodeSegment="%MID%" Offset="32" BitOffset="0" />
               </Parameter>
               
@@ -222,49 +239,59 @@
               </Parameter>
 
               <Parameter Id="%AID%_P-1400014" Name="HUEHCLLockFallback" ParameterType="%AID%_PT-HUEHCLLockFallback" Text="Rückfallzeit nach HCL-Sperre" Value="0">
-                <Memory CodeSegment="%MID%" Offset="251" BitOffset="0" />
-              </Parameter>
-
-              <Parameter Id="%AID%_P-1400015" Name="HUEHCLLockFallbackEnable" ParameterType="%AID%_PT-HUEHCLLockFallbackEnable" Text="Rückfall aktivieren" Value="1">
-                <Memory CodeSegment="%MID%" Offset="251" BitOffset="0" />
+                <Memory CodeSegment="%MID%" Offset="1026" BitOffset="0" />
               </Parameter>
 
               <Parameter Id="%AID%_P-1400016" Name="HUEHCLM1StatusKoEnable" ParameterType="%AID%_PT-HUEResetAuth" Text="Manager 1 Status-KOs verwenden" Value="1">
-                <Memory CodeSegment="%MID%" Offset="252" BitOffset="0" />
+                <Memory CodeSegment="%MID%" Offset="1027" BitOffset="0" />
               </Parameter>
               <Parameter Id="%AID%_P-1400017" Name="HUEHCLM2StatusKoEnable" ParameterType="%AID%_PT-HUEResetAuth" Text="Manager 2 Status-KOs verwenden" Value="1">
-                <Memory CodeSegment="%MID%" Offset="252" BitOffset="1" />
+                <Memory CodeSegment="%MID%" Offset="1027" BitOffset="1" />
               </Parameter>
               <Parameter Id="%AID%_P-1400018" Name="HUEHCLM3StatusKoEnable" ParameterType="%AID%_PT-HUEResetAuth" Text="Manager 3 Status-KOs verwenden" Value="1">
-                <Memory CodeSegment="%MID%" Offset="252" BitOffset="2" />
+                <Memory CodeSegment="%MID%" Offset="1027" BitOffset="2" />
               </Parameter>
               <Parameter Id="%AID%_P-1400019" Name="HUEHCLM4StatusKoEnable" ParameterType="%AID%_PT-HUEResetAuth" Text="Manager 4 Status-KOs verwenden" Value="1">
-                <Memory CodeSegment="%MID%" Offset="252" BitOffset="3" />
+                <Memory CodeSegment="%MID%" Offset="1027" BitOffset="3" />
               </Parameter>
 
-              <Parameter Id="%AID%_P-1400020" Name="HUEHCLM1LockFallbackEnable" ParameterType="%AID%_PT-HUEHCLLockFallbackEnable" Text="Rückfall aktivieren" Value="1">
-                <Memory CodeSegment="%MID%" Offset="253" BitOffset="0" />
-              </Parameter>
               <Parameter Id="%AID%_P-1400021" Name="HUEHCLM1LockFallback" ParameterType="%AID%_PT-HUEHCLLockFallback" Text="Rückfallzeit nach HCL-Sperre" Value="0">
-                <Memory CodeSegment="%MID%" Offset="254" BitOffset="0" />
-              </Parameter>
-              <Parameter Id="%AID%_P-1400022" Name="HUEHCLM2LockFallbackEnable" ParameterType="%AID%_PT-HUEHCLLockFallbackEnable" Text="Rückfall aktivieren" Value="1">
-                <Memory CodeSegment="%MID%" Offset="253" BitOffset="1" />
+                <Memory CodeSegment="%MID%" Offset="1028" BitOffset="0" />
               </Parameter>
               <Parameter Id="%AID%_P-1400023" Name="HUEHCLM2LockFallback" ParameterType="%AID%_PT-HUEHCLLockFallback" Text="Rückfallzeit nach HCL-Sperre" Value="0">
-                <Memory CodeSegment="%MID%" Offset="255" BitOffset="0" />
-              </Parameter>
-              <Parameter Id="%AID%_P-1400024" Name="HUEHCLM3LockFallbackEnable" ParameterType="%AID%_PT-HUEHCLLockFallbackEnable" Text="Rückfall aktivieren" Value="1">
-                <Memory CodeSegment="%MID%" Offset="253" BitOffset="2" />
+                <Memory CodeSegment="%MID%" Offset="1029" BitOffset="0" />
               </Parameter>
               <Parameter Id="%AID%_P-1400025" Name="HUEHCLM3LockFallback" ParameterType="%AID%_PT-HUEHCLLockFallback" Text="Rückfallzeit nach HCL-Sperre" Value="0">
-                <Memory CodeSegment="%MID%" Offset="256" BitOffset="0" />
-              </Parameter>
-              <Parameter Id="%AID%_P-1400026" Name="HUEHCLM4LockFallbackEnable" ParameterType="%AID%_PT-HUEHCLLockFallbackEnable" Text="Rückfall aktivieren" Value="1">
-                <Memory CodeSegment="%MID%" Offset="253" BitOffset="3" />
+                <Memory CodeSegment="%MID%" Offset="1030" BitOffset="0" />
               </Parameter>
               <Parameter Id="%AID%_P-1400027" Name="HUEHCLM4LockFallback" ParameterType="%AID%_PT-HUEHCLLockFallback" Text="Rückfallzeit nach HCL-Sperre" Value="0">
-                <Memory CodeSegment="%MID%" Offset="257" BitOffset="0" />
+                <Memory CodeSegment="%MID%" Offset="1031" BitOffset="0" />
+              </Parameter>
+
+              <Parameter Id="%AID%_P-1400028" Name="HUEHCLM5StatusKoEnable" ParameterType="%AID%_PT-HUEResetAuth" Text="Manager 5 Status-KOs verwenden" Value="1">
+                <Memory CodeSegment="%MID%" Offset="1027" BitOffset="4" />
+              </Parameter>
+              <Parameter Id="%AID%_P-1400029" Name="HUEHCLM6StatusKoEnable" ParameterType="%AID%_PT-HUEResetAuth" Text="Manager 6 Status-KOs verwenden" Value="1">
+                <Memory CodeSegment="%MID%" Offset="1027" BitOffset="5" />
+              </Parameter>
+              <Parameter Id="%AID%_P-1400030" Name="HUEHCLM7StatusKoEnable" ParameterType="%AID%_PT-HUEResetAuth" Text="Manager 7 Status-KOs verwenden" Value="1">
+                <Memory CodeSegment="%MID%" Offset="1027" BitOffset="6" />
+              </Parameter>
+              <Parameter Id="%AID%_P-1400031" Name="HUEHCLM8StatusKoEnable" ParameterType="%AID%_PT-HUEResetAuth" Text="Manager 8 Status-KOs verwenden" Value="1">
+                <Memory CodeSegment="%MID%" Offset="1027" BitOffset="7" />
+              </Parameter>
+
+              <Parameter Id="%AID%_P-1400033" Name="HUEHCLM5LockFallback" ParameterType="%AID%_PT-HUEHCLLockFallback" Text="Rückfallzeit nach HCL-Sperre" Value="0">
+                <Memory CodeSegment="%MID%" Offset="1032" BitOffset="0" />
+              </Parameter>
+              <Parameter Id="%AID%_P-1400035" Name="HUEHCLM6LockFallback" ParameterType="%AID%_PT-HUEHCLLockFallback" Text="Rückfallzeit nach HCL-Sperre" Value="0">
+                <Memory CodeSegment="%MID%" Offset="1033" BitOffset="0" />
+              </Parameter>
+              <Parameter Id="%AID%_P-1400037" Name="HUEHCLM7LockFallback" ParameterType="%AID%_PT-HUEHCLLockFallback" Text="Rückfallzeit nach HCL-Sperre" Value="0">
+                <Memory CodeSegment="%MID%" Offset="1034" BitOffset="0" />
+              </Parameter>
+              <Parameter Id="%AID%_P-1400039" Name="HUEHCLM8LockFallback" ParameterType="%AID%_PT-HUEHCLLockFallback" Text="Rückfallzeit nach HCL-Sperre" Value="0">
+                <Memory CodeSegment="%MID%" Offset="1035" BitOffset="0" />
               </Parameter>
               
               <!-- HCL-Master 1 - 10 Stützpunkte -->
@@ -431,11 +458,179 @@
               <Parameter Id="%AID%_P-1440029" Name="HCLM4SP9Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M4 SP10 Kelvin" Value="2400"><Memory CodeSegment="%MID%" Offset="353" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1440030" Name="HCLM4SP9Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M4 SP10 Helligkeit" Value="10"><Memory CodeSegment="%MID%" Offset="355" BitOffset="0" /></Parameter>
 
+              <!-- HCL-Master 5 Stützpunkte (Offset 531-610) -->
+              <Parameter Id="%AID%_P-1450001" Name="HCLM5SP0Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M5 SP1 Zeit" Value="00:00"><Memory CodeSegment="%MID%" Offset="531" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450002" Name="HCLM5SP0Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M5 SP1 Kelvin" Value="2400"><Memory CodeSegment="%MID%" Offset="536" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450003" Name="HCLM5SP0Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M5 SP1 Helligkeit" Value="15"><Memory CodeSegment="%MID%" Offset="538" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1450004" Name="HCLM5SP1Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M5 SP2 Zeit" Value="06:00"><Memory CodeSegment="%MID%" Offset="539" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450005" Name="HCLM5SP1Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M5 SP2 Kelvin" Value="2700"><Memory CodeSegment="%MID%" Offset="544" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450006" Name="HCLM5SP1Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M5 SP2 Helligkeit" Value="25"><Memory CodeSegment="%MID%" Offset="546" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1450007" Name="HCLM5SP2Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M5 SP3 Zeit" Value="08:00"><Memory CodeSegment="%MID%" Offset="547" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450008" Name="HCLM5SP2Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M5 SP3 Kelvin" Value="3400"><Memory CodeSegment="%MID%" Offset="552" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450009" Name="HCLM5SP2Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M5 SP3 Helligkeit" Value="45"><Memory CodeSegment="%MID%" Offset="554" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1450010" Name="HCLM5SP3Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M5 SP4 Zeit" Value="10:00"><Memory CodeSegment="%MID%" Offset="555" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450011" Name="HCLM5SP3Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M5 SP4 Kelvin" Value="4300"><Memory CodeSegment="%MID%" Offset="560" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450012" Name="HCLM5SP3Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M5 SP4 Helligkeit" Value="70"><Memory CodeSegment="%MID%" Offset="562" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1450013" Name="HCLM5SP4Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M5 SP5 Zeit" Value="12:00"><Memory CodeSegment="%MID%" Offset="563" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450014" Name="HCLM5SP4Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M5 SP5 Kelvin" Value="5000"><Memory CodeSegment="%MID%" Offset="568" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450015" Name="HCLM5SP4Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M5 SP5 Helligkeit" Value="80"><Memory CodeSegment="%MID%" Offset="570" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1450016" Name="HCLM5SP5Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M5 SP6 Zeit" Value="14:00"><Memory CodeSegment="%MID%" Offset="571" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450017" Name="HCLM5SP5Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M5 SP6 Kelvin" Value="4700"><Memory CodeSegment="%MID%" Offset="576" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450018" Name="HCLM5SP5Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M5 SP6 Helligkeit" Value="65"><Memory CodeSegment="%MID%" Offset="578" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1450019" Name="HCLM5SP6Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M5 SP7 Zeit" Value="16:00"><Memory CodeSegment="%MID%" Offset="579" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450020" Name="HCLM5SP6Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M5 SP7 Kelvin" Value="3900"><Memory CodeSegment="%MID%" Offset="584" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450021" Name="HCLM5SP6Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M5 SP7 Helligkeit" Value="50"><Memory CodeSegment="%MID%" Offset="586" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1450022" Name="HCLM5SP7Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M5 SP8 Zeit" Value="18:00"><Memory CodeSegment="%MID%" Offset="587" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450023" Name="HCLM5SP7Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M5 SP8 Kelvin" Value="3100"><Memory CodeSegment="%MID%" Offset="592" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450024" Name="HCLM5SP7Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M5 SP8 Helligkeit" Value="35"><Memory CodeSegment="%MID%" Offset="594" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1450025" Name="HCLM5SP8Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M5 SP9 Zeit" Value="20:00"><Memory CodeSegment="%MID%" Offset="595" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450026" Name="HCLM5SP8Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M5 SP9 Kelvin" Value="2600"><Memory CodeSegment="%MID%" Offset="600" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450027" Name="HCLM5SP8Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M5 SP9 Helligkeit" Value="20"><Memory CodeSegment="%MID%" Offset="602" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1450028" Name="HCLM5SP9Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M5 SP10 Zeit" Value="22:00"><Memory CodeSegment="%MID%" Offset="603" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450029" Name="HCLM5SP9Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M5 SP10 Kelvin" Value="2400"><Memory CodeSegment="%MID%" Offset="608" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450030" Name="HCLM5SP9Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M5 SP10 Helligkeit" Value="10"><Memory CodeSegment="%MID%" Offset="610" BitOffset="0" /></Parameter>
+
+              <!-- HCL-Master 6 Stützpunkte (Offset 611-690) -->
+              <Parameter Id="%AID%_P-1460001" Name="HCLM6SP0Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M6 SP1 Zeit" Value="00:00"><Memory CodeSegment="%MID%" Offset="611" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460002" Name="HCLM6SP0Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M6 SP1 Kelvin" Value="2400"><Memory CodeSegment="%MID%" Offset="616" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460003" Name="HCLM6SP0Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M6 SP1 Helligkeit" Value="15"><Memory CodeSegment="%MID%" Offset="618" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1460004" Name="HCLM6SP1Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M6 SP2 Zeit" Value="06:00"><Memory CodeSegment="%MID%" Offset="619" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460005" Name="HCLM6SP1Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M6 SP2 Kelvin" Value="2700"><Memory CodeSegment="%MID%" Offset="624" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460006" Name="HCLM6SP1Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M6 SP2 Helligkeit" Value="25"><Memory CodeSegment="%MID%" Offset="626" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1460007" Name="HCLM6SP2Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M6 SP3 Zeit" Value="08:00"><Memory CodeSegment="%MID%" Offset="627" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460008" Name="HCLM6SP2Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M6 SP3 Kelvin" Value="3400"><Memory CodeSegment="%MID%" Offset="632" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460009" Name="HCLM6SP2Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M6 SP3 Helligkeit" Value="45"><Memory CodeSegment="%MID%" Offset="634" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1460010" Name="HCLM6SP3Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M6 SP4 Zeit" Value="10:00"><Memory CodeSegment="%MID%" Offset="635" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460011" Name="HCLM6SP3Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M6 SP4 Kelvin" Value="4300"><Memory CodeSegment="%MID%" Offset="640" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460012" Name="HCLM6SP3Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M6 SP4 Helligkeit" Value="70"><Memory CodeSegment="%MID%" Offset="642" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1460013" Name="HCLM6SP4Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M6 SP5 Zeit" Value="12:00"><Memory CodeSegment="%MID%" Offset="643" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460014" Name="HCLM6SP4Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M6 SP5 Kelvin" Value="5000"><Memory CodeSegment="%MID%" Offset="648" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460015" Name="HCLM6SP4Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M6 SP5 Helligkeit" Value="80"><Memory CodeSegment="%MID%" Offset="650" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1460016" Name="HCLM6SP5Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M6 SP6 Zeit" Value="14:00"><Memory CodeSegment="%MID%" Offset="651" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460017" Name="HCLM6SP5Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M6 SP6 Kelvin" Value="4700"><Memory CodeSegment="%MID%" Offset="656" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460018" Name="HCLM6SP5Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M6 SP6 Helligkeit" Value="65"><Memory CodeSegment="%MID%" Offset="658" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1460019" Name="HCLM6SP6Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M6 SP7 Zeit" Value="16:00"><Memory CodeSegment="%MID%" Offset="659" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460020" Name="HCLM6SP6Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M6 SP7 Kelvin" Value="3900"><Memory CodeSegment="%MID%" Offset="664" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460021" Name="HCLM6SP6Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M6 SP7 Helligkeit" Value="50"><Memory CodeSegment="%MID%" Offset="666" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1460022" Name="HCLM6SP7Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M6 SP8 Zeit" Value="18:00"><Memory CodeSegment="%MID%" Offset="667" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460023" Name="HCLM6SP7Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M6 SP8 Kelvin" Value="3100"><Memory CodeSegment="%MID%" Offset="672" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460024" Name="HCLM6SP7Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M6 SP8 Helligkeit" Value="35"><Memory CodeSegment="%MID%" Offset="674" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1460025" Name="HCLM6SP8Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M6 SP9 Zeit" Value="20:00"><Memory CodeSegment="%MID%" Offset="675" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460026" Name="HCLM6SP8Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M6 SP9 Kelvin" Value="2600"><Memory CodeSegment="%MID%" Offset="680" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460027" Name="HCLM6SP8Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M6 SP9 Helligkeit" Value="20"><Memory CodeSegment="%MID%" Offset="682" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1460028" Name="HCLM6SP9Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M6 SP10 Zeit" Value="22:00"><Memory CodeSegment="%MID%" Offset="683" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460029" Name="HCLM6SP9Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M6 SP10 Kelvin" Value="2400"><Memory CodeSegment="%MID%" Offset="688" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460030" Name="HCLM6SP9Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M6 SP10 Helligkeit" Value="10"><Memory CodeSegment="%MID%" Offset="690" BitOffset="0" /></Parameter>
+
+              <!-- HCL-Master 7 Stützpunkte (Offset 691-770) -->
+              <Parameter Id="%AID%_P-1470001" Name="HCLM7SP0Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M7 SP1 Zeit" Value="00:00"><Memory CodeSegment="%MID%" Offset="691" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470002" Name="HCLM7SP0Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M7 SP1 Kelvin" Value="2400"><Memory CodeSegment="%MID%" Offset="696" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470003" Name="HCLM7SP0Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M7 SP1 Helligkeit" Value="15"><Memory CodeSegment="%MID%" Offset="698" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1470004" Name="HCLM7SP1Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M7 SP2 Zeit" Value="06:00"><Memory CodeSegment="%MID%" Offset="699" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470005" Name="HCLM7SP1Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M7 SP2 Kelvin" Value="2700"><Memory CodeSegment="%MID%" Offset="704" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470006" Name="HCLM7SP1Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M7 SP2 Helligkeit" Value="25"><Memory CodeSegment="%MID%" Offset="706" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1470007" Name="HCLM7SP2Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M7 SP3 Zeit" Value="08:00"><Memory CodeSegment="%MID%" Offset="707" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470008" Name="HCLM7SP2Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M7 SP3 Kelvin" Value="3400"><Memory CodeSegment="%MID%" Offset="712" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470009" Name="HCLM7SP2Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M7 SP3 Helligkeit" Value="45"><Memory CodeSegment="%MID%" Offset="714" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1470010" Name="HCLM7SP3Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M7 SP4 Zeit" Value="10:00"><Memory CodeSegment="%MID%" Offset="715" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470011" Name="HCLM7SP3Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M7 SP4 Kelvin" Value="4300"><Memory CodeSegment="%MID%" Offset="720" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470012" Name="HCLM7SP3Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M7 SP4 Helligkeit" Value="70"><Memory CodeSegment="%MID%" Offset="722" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1470013" Name="HCLM7SP4Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M7 SP5 Zeit" Value="12:00"><Memory CodeSegment="%MID%" Offset="723" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470014" Name="HCLM7SP4Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M7 SP5 Kelvin" Value="5000"><Memory CodeSegment="%MID%" Offset="728" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470015" Name="HCLM7SP4Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M7 SP5 Helligkeit" Value="80"><Memory CodeSegment="%MID%" Offset="730" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1470016" Name="HCLM7SP5Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M7 SP6 Zeit" Value="14:00"><Memory CodeSegment="%MID%" Offset="731" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470017" Name="HCLM7SP5Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M7 SP6 Kelvin" Value="4700"><Memory CodeSegment="%MID%" Offset="736" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470018" Name="HCLM7SP5Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M7 SP6 Helligkeit" Value="65"><Memory CodeSegment="%MID%" Offset="738" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1470019" Name="HCLM7SP6Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M7 SP7 Zeit" Value="16:00"><Memory CodeSegment="%MID%" Offset="739" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470020" Name="HCLM7SP6Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M7 SP7 Kelvin" Value="3900"><Memory CodeSegment="%MID%" Offset="744" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470021" Name="HCLM7SP6Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M7 SP7 Helligkeit" Value="50"><Memory CodeSegment="%MID%" Offset="746" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1470022" Name="HCLM7SP7Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M7 SP8 Zeit" Value="18:00"><Memory CodeSegment="%MID%" Offset="747" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470023" Name="HCLM7SP7Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M7 SP8 Kelvin" Value="3100"><Memory CodeSegment="%MID%" Offset="752" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470024" Name="HCLM7SP7Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M7 SP8 Helligkeit" Value="35"><Memory CodeSegment="%MID%" Offset="754" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1470025" Name="HCLM7SP8Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M7 SP9 Zeit" Value="20:00"><Memory CodeSegment="%MID%" Offset="755" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470026" Name="HCLM7SP8Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M7 SP9 Kelvin" Value="2600"><Memory CodeSegment="%MID%" Offset="760" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470027" Name="HCLM7SP8Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M7 SP9 Helligkeit" Value="20"><Memory CodeSegment="%MID%" Offset="762" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1470028" Name="HCLM7SP9Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M7 SP10 Zeit" Value="22:00"><Memory CodeSegment="%MID%" Offset="763" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470029" Name="HCLM7SP9Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M7 SP10 Kelvin" Value="2400"><Memory CodeSegment="%MID%" Offset="768" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470030" Name="HCLM7SP9Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M7 SP10 Helligkeit" Value="10"><Memory CodeSegment="%MID%" Offset="770" BitOffset="0" /></Parameter>
+
+              <!-- HCL-Master 8 Stützpunkte (Offset 771-850) -->
+              <Parameter Id="%AID%_P-1480001" Name="HCLM8SP0Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M8 SP1 Zeit" Value="00:00"><Memory CodeSegment="%MID%" Offset="771" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480002" Name="HCLM8SP0Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M8 SP1 Kelvin" Value="2400"><Memory CodeSegment="%MID%" Offset="776" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480003" Name="HCLM8SP0Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M8 SP1 Helligkeit" Value="15"><Memory CodeSegment="%MID%" Offset="778" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1480004" Name="HCLM8SP1Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M8 SP2 Zeit" Value="06:00"><Memory CodeSegment="%MID%" Offset="779" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480005" Name="HCLM8SP1Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M8 SP2 Kelvin" Value="2700"><Memory CodeSegment="%MID%" Offset="784" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480006" Name="HCLM8SP1Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M8 SP2 Helligkeit" Value="25"><Memory CodeSegment="%MID%" Offset="786" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1480007" Name="HCLM8SP2Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M8 SP3 Zeit" Value="08:00"><Memory CodeSegment="%MID%" Offset="787" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480008" Name="HCLM8SP2Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M8 SP3 Kelvin" Value="3400"><Memory CodeSegment="%MID%" Offset="792" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480009" Name="HCLM8SP2Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M8 SP3 Helligkeit" Value="45"><Memory CodeSegment="%MID%" Offset="794" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1480010" Name="HCLM8SP3Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M8 SP4 Zeit" Value="10:00"><Memory CodeSegment="%MID%" Offset="795" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480011" Name="HCLM8SP3Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M8 SP4 Kelvin" Value="4300"><Memory CodeSegment="%MID%" Offset="800" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480012" Name="HCLM8SP3Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M8 SP4 Helligkeit" Value="70"><Memory CodeSegment="%MID%" Offset="802" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1480013" Name="HCLM8SP4Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M8 SP5 Zeit" Value="12:00"><Memory CodeSegment="%MID%" Offset="803" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480014" Name="HCLM8SP4Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M8 SP5 Kelvin" Value="5000"><Memory CodeSegment="%MID%" Offset="808" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480015" Name="HCLM8SP4Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M8 SP5 Helligkeit" Value="80"><Memory CodeSegment="%MID%" Offset="810" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1480016" Name="HCLM8SP5Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M8 SP6 Zeit" Value="14:00"><Memory CodeSegment="%MID%" Offset="811" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480017" Name="HCLM8SP5Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M8 SP6 Kelvin" Value="4700"><Memory CodeSegment="%MID%" Offset="816" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480018" Name="HCLM8SP5Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M8 SP6 Helligkeit" Value="65"><Memory CodeSegment="%MID%" Offset="818" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1480019" Name="HCLM8SP6Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M8 SP7 Zeit" Value="16:00"><Memory CodeSegment="%MID%" Offset="819" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480020" Name="HCLM8SP6Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M8 SP7 Kelvin" Value="3900"><Memory CodeSegment="%MID%" Offset="824" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480021" Name="HCLM8SP6Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M8 SP7 Helligkeit" Value="50"><Memory CodeSegment="%MID%" Offset="826" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1480022" Name="HCLM8SP7Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M8 SP8 Zeit" Value="18:00"><Memory CodeSegment="%MID%" Offset="827" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480023" Name="HCLM8SP7Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M8 SP8 Kelvin" Value="3100"><Memory CodeSegment="%MID%" Offset="832" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480024" Name="HCLM8SP7Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M8 SP8 Helligkeit" Value="35"><Memory CodeSegment="%MID%" Offset="834" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1480025" Name="HCLM8SP8Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M8 SP9 Zeit" Value="20:00"><Memory CodeSegment="%MID%" Offset="835" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480026" Name="HCLM8SP8Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M8 SP9 Kelvin" Value="2600"><Memory CodeSegment="%MID%" Offset="840" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480027" Name="HCLM8SP8Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M8 SP9 Helligkeit" Value="20"><Memory CodeSegment="%MID%" Offset="842" BitOffset="0" /></Parameter>
+              
+              <Parameter Id="%AID%_P-1480028" Name="HCLM8SP9Time" ParameterType="%AID%_PT-HUEHCLTime" Text="M8 SP10 Zeit" Value="22:00"><Memory CodeSegment="%MID%" Offset="843" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480029" Name="HCLM8SP9Kelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="M8 SP10 Kelvin" Value="2400"><Memory CodeSegment="%MID%" Offset="848" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480030" Name="HCLM8SP9Brightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="M8 SP10 Helligkeit" Value="10"><Memory CodeSegment="%MID%" Offset="850" BitOffset="0" /></Parameter>
+
               <!-- Namen der HCL-Master -->
               <Parameter Id="%AID%_P-1410100" Name="HCLM1Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Manager 1" Value=""><Memory CodeSegment="%MID%" Offset="356" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1420100" Name="HCLM2Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Manager 2" Value=""><Memory CodeSegment="%MID%" Offset="381" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1430100" Name="HCLM3Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Manager 3" Value=""><Memory CodeSegment="%MID%" Offset="406" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1440100" Name="HCLM4Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Manager 4" Value=""><Memory CodeSegment="%MID%" Offset="431" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450100" Name="HCLM5Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Manager 5" Value=""><Memory CodeSegment="%MID%" Offset="851" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460100" Name="HCLM6Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Manager 6" Value=""><Memory CodeSegment="%MID%" Offset="876" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470100" Name="HCLM7Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Manager 7" Value=""><Memory CodeSegment="%MID%" Offset="901" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480100" Name="HCLM8Name" ParameterType="%AID%_PT-HUEHCLMasterName" Text="Name HCL Manager 8" Value=""><Memory CodeSegment="%MID%" Offset="926" BitOffset="0" /></Parameter>
 
               <!-- Erweiterte Parameter HCL-Master 1 -->
               <Parameter Id="%AID%_P-1410201" Name="HCLM1CurveType" ParameterType="%AID%_PT-HUEHCLCurveType" Text="Kurventyp" Value="0"><Memory CodeSegment="%MID%" Offset="456" BitOffset="0" /></Parameter>
@@ -472,6 +667,46 @@
               <Parameter Id="%AID%_P-1440205" Name="HCLM4Sunset" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunset (HH:MM)" Value="19:30"><Memory CodeSegment="%MID%" Offset="523" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1440206" Name="HCLM4SunriseOffset" ParameterType="%AID%_PT-HUEHCLOffsetMinutes" Text="Sunrise Offset (min)" Value="0"><Memory CodeSegment="%MID%" Offset="528" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-1440207" Name="HCLM4SunsetOffset" ParameterType="%AID%_PT-HUEHCLOffsetMinutes" Text="Sunset Offset (min)" Value="0"><Memory CodeSegment="%MID%" Offset="530" BitOffset="0" /></Parameter>
+
+
+              <!-- Erweiterte Parameter HCL-Master 5 -->
+              <Parameter Id="%AID%_P-1450201" Name="HCLM5CurveType" ParameterType="%AID%_PT-HUEHCLCurveType" Text="Kurventyp" Value="0"><Memory CodeSegment="%MID%" Offset="951" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450202" Name="HCLM5SlewRate" ParameterType="%AID%_PT-HUEHCLSlewRate" Text="Slew-Rate (K/min)" Value="10"><Memory CodeSegment="%MID%" Offset="952" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450203" Name="HCLM5ManualKelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="Manual Kelvin" Value="4000"><Memory CodeSegment="%MID%" Offset="954" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450204" Name="HCLM5Sunrise" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunrise (HH:MM)" Value="06:30"><Memory CodeSegment="%MID%" Offset="956" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450205" Name="HCLM5Sunset" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunset (HH:MM)" Value="19:30"><Memory CodeSegment="%MID%" Offset="961" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450206" Name="HCLM5SunriseOffset" ParameterType="%AID%_PT-HUEHCLOffsetMinutes" Text="Sunrise Offset (min)" Value="0"><Memory CodeSegment="%MID%" Offset="966" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1450207" Name="HCLM5SunsetOffset" ParameterType="%AID%_PT-HUEHCLOffsetMinutes" Text="Sunset Offset (min)" Value="0"><Memory CodeSegment="%MID%" Offset="968" BitOffset="0" /></Parameter>
+
+
+              <!-- Erweiterte Parameter HCL-Master 6 -->
+              <Parameter Id="%AID%_P-1460201" Name="HCLM6CurveType" ParameterType="%AID%_PT-HUEHCLCurveType" Text="Kurventyp" Value="0"><Memory CodeSegment="%MID%" Offset="970" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460202" Name="HCLM6SlewRate" ParameterType="%AID%_PT-HUEHCLSlewRate" Text="Slew-Rate (K/min)" Value="10"><Memory CodeSegment="%MID%" Offset="971" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460203" Name="HCLM6ManualKelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="Manual Kelvin" Value="4000"><Memory CodeSegment="%MID%" Offset="973" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460204" Name="HCLM6Sunrise" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunrise (HH:MM)" Value="06:30"><Memory CodeSegment="%MID%" Offset="975" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460205" Name="HCLM6Sunset" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunset (HH:MM)" Value="19:30"><Memory CodeSegment="%MID%" Offset="980" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460206" Name="HCLM6SunriseOffset" ParameterType="%AID%_PT-HUEHCLOffsetMinutes" Text="Sunrise Offset (min)" Value="0"><Memory CodeSegment="%MID%" Offset="985" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1460207" Name="HCLM6SunsetOffset" ParameterType="%AID%_PT-HUEHCLOffsetMinutes" Text="Sunset Offset (min)" Value="0"><Memory CodeSegment="%MID%" Offset="987" BitOffset="0" /></Parameter>
+
+
+              <!-- Erweiterte Parameter HCL-Master 7 -->
+              <Parameter Id="%AID%_P-1470201" Name="HCLM7CurveType" ParameterType="%AID%_PT-HUEHCLCurveType" Text="Kurventyp" Value="0"><Memory CodeSegment="%MID%" Offset="989" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470202" Name="HCLM7SlewRate" ParameterType="%AID%_PT-HUEHCLSlewRate" Text="Slew-Rate (K/min)" Value="10"><Memory CodeSegment="%MID%" Offset="990" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470203" Name="HCLM7ManualKelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="Manual Kelvin" Value="4000"><Memory CodeSegment="%MID%" Offset="992" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470204" Name="HCLM7Sunrise" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunrise (HH:MM)" Value="06:30"><Memory CodeSegment="%MID%" Offset="994" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470205" Name="HCLM7Sunset" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunset (HH:MM)" Value="19:30"><Memory CodeSegment="%MID%" Offset="999" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470206" Name="HCLM7SunriseOffset" ParameterType="%AID%_PT-HUEHCLOffsetMinutes" Text="Sunrise Offset (min)" Value="0"><Memory CodeSegment="%MID%" Offset="1004" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1470207" Name="HCLM7SunsetOffset" ParameterType="%AID%_PT-HUEHCLOffsetMinutes" Text="Sunset Offset (min)" Value="0"><Memory CodeSegment="%MID%" Offset="1006" BitOffset="0" /></Parameter>
+
+
+              <!-- Erweiterte Parameter HCL-Master 8 -->
+              <Parameter Id="%AID%_P-1480201" Name="HCLM8CurveType" ParameterType="%AID%_PT-HUEHCLCurveType" Text="Kurventyp" Value="0"><Memory CodeSegment="%MID%" Offset="1008" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480202" Name="HCLM8SlewRate" ParameterType="%AID%_PT-HUEHCLSlewRate" Text="Slew-Rate (K/min)" Value="10"><Memory CodeSegment="%MID%" Offset="1009" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480203" Name="HCLM8ManualKelvin" ParameterType="%AID%_PT-HUEHCLKelvin" Text="Manual Kelvin" Value="4000"><Memory CodeSegment="%MID%" Offset="1011" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480204" Name="HCLM8Sunrise" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunrise (HH:MM)" Value="06:30"><Memory CodeSegment="%MID%" Offset="1013" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480205" Name="HCLM8Sunset" ParameterType="%AID%_PT-HUEHCLTime" Text="Sunset (HH:MM)" Value="19:30"><Memory CodeSegment="%MID%" Offset="1018" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480206" Name="HCLM8SunriseOffset" ParameterType="%AID%_PT-HUEHCLOffsetMinutes" Text="Sunrise Offset (min)" Value="0"><Memory CodeSegment="%MID%" Offset="1023" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-1480207" Name="HCLM8SunsetOffset" ParameterType="%AID%_PT-HUEHCLOffsetMinutes" Text="Sunset Offset (min)" Value="0"><Memory CodeSegment="%MID%" Offset="1025" BitOffset="0" /></Parameter>
             </Parameters>
             
             <ParameterRefs>
@@ -481,24 +716,29 @@
               <ParameterRef Id="%AID%_P-1400006_R-140000601" RefId="%AID%_P-1400006" />
               <ParameterRef Id="%AID%_P-1400005_R-140000501" RefId="%AID%_P-1400005" />
               <ParameterRef Id="%AID%_P-1400007_R-140000701" RefId="%AID%_P-1400007" />
+              <ParameterRef Id="%AID%_P-1400040_R-140004001" RefId="%AID%_P-1400040" />
+              <ParameterRef Id="%AID%_P-1400041_R-140004101" RefId="%AID%_P-1400041" />
               <ParameterRef Id="%AID%_P-1400010_R-140001001" RefId="%AID%_P-1400010" />
               <ParameterRef Id="%AID%_P-1400011_R-140001101" RefId="%AID%_P-1400011" />
               <ParameterRef Id="%AID%_P-1400012_R-140001201" RefId="%AID%_P-1400012" />
               <ParameterRef Id="%AID%_P-1400013_R-140001301" RefId="%AID%_P-1400013" />
               <ParameterRef Id="%AID%_P-1400014_R-140001401" RefId="%AID%_P-1400014" />
-              <ParameterRef Id="%AID%_P-1400015_R-140001501" RefId="%AID%_P-1400015" />
               <ParameterRef Id="%AID%_P-1400016_R-140001601" RefId="%AID%_P-1400016" />
               <ParameterRef Id="%AID%_P-1400017_R-140001701" RefId="%AID%_P-1400017" />
               <ParameterRef Id="%AID%_P-1400018_R-140001801" RefId="%AID%_P-1400018" />
               <ParameterRef Id="%AID%_P-1400019_R-140001901" RefId="%AID%_P-1400019" />
-              <ParameterRef Id="%AID%_P-1400020_R-140002001" RefId="%AID%_P-1400020" />
               <ParameterRef Id="%AID%_P-1400021_R-140002101" RefId="%AID%_P-1400021" />
-              <ParameterRef Id="%AID%_P-1400022_R-140002201" RefId="%AID%_P-1400022" />
               <ParameterRef Id="%AID%_P-1400023_R-140002301" RefId="%AID%_P-1400023" />
-              <ParameterRef Id="%AID%_P-1400024_R-140002401" RefId="%AID%_P-1400024" />
               <ParameterRef Id="%AID%_P-1400025_R-140002501" RefId="%AID%_P-1400025" />
-              <ParameterRef Id="%AID%_P-1400026_R-140002601" RefId="%AID%_P-1400026" />
               <ParameterRef Id="%AID%_P-1400027_R-140002701" RefId="%AID%_P-1400027" />
+              <ParameterRef Id="%AID%_P-1400028_R-140002801" RefId="%AID%_P-1400028" />
+              <ParameterRef Id="%AID%_P-1400029_R-140002901" RefId="%AID%_P-1400029" />
+              <ParameterRef Id="%AID%_P-1400030_R-140003001" RefId="%AID%_P-1400030" />
+              <ParameterRef Id="%AID%_P-1400031_R-140003101" RefId="%AID%_P-1400031" />
+              <ParameterRef Id="%AID%_P-1400033_R-140003301" RefId="%AID%_P-1400033" />
+              <ParameterRef Id="%AID%_P-1400035_R-140003501" RefId="%AID%_P-1400035" />
+              <ParameterRef Id="%AID%_P-1400037_R-140003701" RefId="%AID%_P-1400037" />
+              <ParameterRef Id="%AID%_P-1400039_R-140003901" RefId="%AID%_P-1400039" />
 
               <ParameterRef Id="%AID%_P-1410100_R-141010001" RefId="%AID%_P-1410100" />
               <ParameterRef Id="%AID%_P-1420100_R-142010001" RefId="%AID%_P-1420100" />
@@ -536,6 +776,42 @@
               <ParameterRef Id="%AID%_P-1440205_R-144020501" RefId="%AID%_P-1440205" />
               <ParameterRef Id="%AID%_P-1440206_R-144020601" RefId="%AID%_P-1440206" />
               <ParameterRef Id="%AID%_P-1440207_R-144020701" RefId="%AID%_P-1440207" />
+
+
+              <ParameterRef Id="%AID%_P-1450201_R-145020101" RefId="%AID%_P-1450201" />
+              <ParameterRef Id="%AID%_P-1450202_R-145020201" RefId="%AID%_P-1450202" />
+              <ParameterRef Id="%AID%_P-1450203_R-145020301" RefId="%AID%_P-1450203" />
+              <ParameterRef Id="%AID%_P-1450204_R-145020401" RefId="%AID%_P-1450204" />
+              <ParameterRef Id="%AID%_P-1450205_R-145020501" RefId="%AID%_P-1450205" />
+              <ParameterRef Id="%AID%_P-1450206_R-145020601" RefId="%AID%_P-1450206" />
+              <ParameterRef Id="%AID%_P-1450207_R-145020701" RefId="%AID%_P-1450207" />
+
+
+              <ParameterRef Id="%AID%_P-1460201_R-146020101" RefId="%AID%_P-1460201" />
+              <ParameterRef Id="%AID%_P-1460202_R-146020201" RefId="%AID%_P-1460202" />
+              <ParameterRef Id="%AID%_P-1460203_R-146020301" RefId="%AID%_P-1460203" />
+              <ParameterRef Id="%AID%_P-1460204_R-146020401" RefId="%AID%_P-1460204" />
+              <ParameterRef Id="%AID%_P-1460205_R-146020501" RefId="%AID%_P-1460205" />
+              <ParameterRef Id="%AID%_P-1460206_R-146020601" RefId="%AID%_P-1460206" />
+              <ParameterRef Id="%AID%_P-1460207_R-146020701" RefId="%AID%_P-1460207" />
+
+
+              <ParameterRef Id="%AID%_P-1470201_R-147020101" RefId="%AID%_P-1470201" />
+              <ParameterRef Id="%AID%_P-1470202_R-147020201" RefId="%AID%_P-1470202" />
+              <ParameterRef Id="%AID%_P-1470203_R-147020301" RefId="%AID%_P-1470203" />
+              <ParameterRef Id="%AID%_P-1470204_R-147020401" RefId="%AID%_P-1470204" />
+              <ParameterRef Id="%AID%_P-1470205_R-147020501" RefId="%AID%_P-1470205" />
+              <ParameterRef Id="%AID%_P-1470206_R-147020601" RefId="%AID%_P-1470206" />
+              <ParameterRef Id="%AID%_P-1470207_R-147020701" RefId="%AID%_P-1470207" />
+
+
+              <ParameterRef Id="%AID%_P-1480201_R-148020101" RefId="%AID%_P-1480201" />
+              <ParameterRef Id="%AID%_P-1480202_R-148020201" RefId="%AID%_P-1480202" />
+              <ParameterRef Id="%AID%_P-1480203_R-148020301" RefId="%AID%_P-1480203" />
+              <ParameterRef Id="%AID%_P-1480204_R-148020401" RefId="%AID%_P-1480204" />
+              <ParameterRef Id="%AID%_P-1480205_R-148020501" RefId="%AID%_P-1480205" />
+              <ParameterRef Id="%AID%_P-1480206_R-148020601" RefId="%AID%_P-1480206" />
+              <ParameterRef Id="%AID%_P-1480207_R-148020701" RefId="%AID%_P-1480207" />
               
               <!-- Parameter-Referenzen HCL-Master 1 -->
               <ParameterRef Id="%AID%_P-1410001_R-141000101" RefId="%AID%_P-1410001" />
@@ -664,6 +940,130 @@
               <ParameterRef Id="%AID%_P-1440028_R-144002801" RefId="%AID%_P-1440028" />
               <ParameterRef Id="%AID%_P-1440029_R-144002901" RefId="%AID%_P-1440029" />
               <ParameterRef Id="%AID%_P-1440030_R-144003001" RefId="%AID%_P-1440030" />
+
+              <ParameterRef Id="%AID%_P-1450001_R-145000101" RefId="%AID%_P-1450001" />
+              <ParameterRef Id="%AID%_P-1450002_R-145000201" RefId="%AID%_P-1450002" />
+              <ParameterRef Id="%AID%_P-1450003_R-145000301" RefId="%AID%_P-1450003" />
+              <ParameterRef Id="%AID%_P-1450004_R-145000401" RefId="%AID%_P-1450004" />
+              <ParameterRef Id="%AID%_P-1450005_R-145000501" RefId="%AID%_P-1450005" />
+              <ParameterRef Id="%AID%_P-1450006_R-145000601" RefId="%AID%_P-1450006" />
+              <ParameterRef Id="%AID%_P-1450007_R-145000701" RefId="%AID%_P-1450007" />
+              <ParameterRef Id="%AID%_P-1450008_R-145000801" RefId="%AID%_P-1450008" />
+              <ParameterRef Id="%AID%_P-1450009_R-145000901" RefId="%AID%_P-1450009" />
+              <ParameterRef Id="%AID%_P-1450010_R-145001001" RefId="%AID%_P-1450010" />
+              <ParameterRef Id="%AID%_P-1450011_R-145001101" RefId="%AID%_P-1450011" />
+              <ParameterRef Id="%AID%_P-1450012_R-145001201" RefId="%AID%_P-1450012" />
+              <ParameterRef Id="%AID%_P-1450013_R-145001301" RefId="%AID%_P-1450013" />
+              <ParameterRef Id="%AID%_P-1450014_R-145001401" RefId="%AID%_P-1450014" />
+              <ParameterRef Id="%AID%_P-1450015_R-145001501" RefId="%AID%_P-1450015" />
+              <ParameterRef Id="%AID%_P-1450016_R-145001601" RefId="%AID%_P-1450016" />
+              <ParameterRef Id="%AID%_P-1450017_R-145001701" RefId="%AID%_P-1450017" />
+              <ParameterRef Id="%AID%_P-1450018_R-145001801" RefId="%AID%_P-1450018" />
+              <ParameterRef Id="%AID%_P-1450019_R-145001901" RefId="%AID%_P-1450019" />
+              <ParameterRef Id="%AID%_P-1450020_R-145002001" RefId="%AID%_P-1450020" />
+              <ParameterRef Id="%AID%_P-1450021_R-145002101" RefId="%AID%_P-1450021" />
+              <ParameterRef Id="%AID%_P-1450022_R-145002201" RefId="%AID%_P-1450022" />
+              <ParameterRef Id="%AID%_P-1450023_R-145002301" RefId="%AID%_P-1450023" />
+              <ParameterRef Id="%AID%_P-1450024_R-145002401" RefId="%AID%_P-1450024" />
+              <ParameterRef Id="%AID%_P-1450025_R-145002501" RefId="%AID%_P-1450025" />
+              <ParameterRef Id="%AID%_P-1450026_R-145002601" RefId="%AID%_P-1450026" />
+              <ParameterRef Id="%AID%_P-1450027_R-145002701" RefId="%AID%_P-1450027" />
+              <ParameterRef Id="%AID%_P-1450028_R-145002801" RefId="%AID%_P-1450028" />
+              <ParameterRef Id="%AID%_P-1450029_R-145002901" RefId="%AID%_P-1450029" />
+              <ParameterRef Id="%AID%_P-1450030_R-145003001" RefId="%AID%_P-1450030" />
+
+              <ParameterRef Id="%AID%_P-1460001_R-146000101" RefId="%AID%_P-1460001" />
+              <ParameterRef Id="%AID%_P-1460002_R-146000201" RefId="%AID%_P-1460002" />
+              <ParameterRef Id="%AID%_P-1460003_R-146000301" RefId="%AID%_P-1460003" />
+              <ParameterRef Id="%AID%_P-1460004_R-146000401" RefId="%AID%_P-1460004" />
+              <ParameterRef Id="%AID%_P-1460005_R-146000501" RefId="%AID%_P-1460005" />
+              <ParameterRef Id="%AID%_P-1460006_R-146000601" RefId="%AID%_P-1460006" />
+              <ParameterRef Id="%AID%_P-1460007_R-146000701" RefId="%AID%_P-1460007" />
+              <ParameterRef Id="%AID%_P-1460008_R-146000801" RefId="%AID%_P-1460008" />
+              <ParameterRef Id="%AID%_P-1460009_R-146000901" RefId="%AID%_P-1460009" />
+              <ParameterRef Id="%AID%_P-1460010_R-146001001" RefId="%AID%_P-1460010" />
+              <ParameterRef Id="%AID%_P-1460011_R-146001101" RefId="%AID%_P-1460011" />
+              <ParameterRef Id="%AID%_P-1460012_R-146001201" RefId="%AID%_P-1460012" />
+              <ParameterRef Id="%AID%_P-1460013_R-146001301" RefId="%AID%_P-1460013" />
+              <ParameterRef Id="%AID%_P-1460014_R-146001401" RefId="%AID%_P-1460014" />
+              <ParameterRef Id="%AID%_P-1460015_R-146001501" RefId="%AID%_P-1460015" />
+              <ParameterRef Id="%AID%_P-1460016_R-146001601" RefId="%AID%_P-1460016" />
+              <ParameterRef Id="%AID%_P-1460017_R-146001701" RefId="%AID%_P-1460017" />
+              <ParameterRef Id="%AID%_P-1460018_R-146001801" RefId="%AID%_P-1460018" />
+              <ParameterRef Id="%AID%_P-1460019_R-146001901" RefId="%AID%_P-1460019" />
+              <ParameterRef Id="%AID%_P-1460020_R-146002001" RefId="%AID%_P-1460020" />
+              <ParameterRef Id="%AID%_P-1460021_R-146002101" RefId="%AID%_P-1460021" />
+              <ParameterRef Id="%AID%_P-1460022_R-146002201" RefId="%AID%_P-1460022" />
+              <ParameterRef Id="%AID%_P-1460023_R-146002301" RefId="%AID%_P-1460023" />
+              <ParameterRef Id="%AID%_P-1460024_R-146002401" RefId="%AID%_P-1460024" />
+              <ParameterRef Id="%AID%_P-1460025_R-146002501" RefId="%AID%_P-1460025" />
+              <ParameterRef Id="%AID%_P-1460026_R-146002601" RefId="%AID%_P-1460026" />
+              <ParameterRef Id="%AID%_P-1460027_R-146002701" RefId="%AID%_P-1460027" />
+              <ParameterRef Id="%AID%_P-1460028_R-146002801" RefId="%AID%_P-1460028" />
+              <ParameterRef Id="%AID%_P-1460029_R-146002901" RefId="%AID%_P-1460029" />
+              <ParameterRef Id="%AID%_P-1460030_R-146003001" RefId="%AID%_P-1460030" />
+
+              <ParameterRef Id="%AID%_P-1470001_R-147000101" RefId="%AID%_P-1470001" />
+              <ParameterRef Id="%AID%_P-1470002_R-147000201" RefId="%AID%_P-1470002" />
+              <ParameterRef Id="%AID%_P-1470003_R-147000301" RefId="%AID%_P-1470003" />
+              <ParameterRef Id="%AID%_P-1470004_R-147000401" RefId="%AID%_P-1470004" />
+              <ParameterRef Id="%AID%_P-1470005_R-147000501" RefId="%AID%_P-1470005" />
+              <ParameterRef Id="%AID%_P-1470006_R-147000601" RefId="%AID%_P-1470006" />
+              <ParameterRef Id="%AID%_P-1470007_R-147000701" RefId="%AID%_P-1470007" />
+              <ParameterRef Id="%AID%_P-1470008_R-147000801" RefId="%AID%_P-1470008" />
+              <ParameterRef Id="%AID%_P-1470009_R-147000901" RefId="%AID%_P-1470009" />
+              <ParameterRef Id="%AID%_P-1470010_R-147001001" RefId="%AID%_P-1470010" />
+              <ParameterRef Id="%AID%_P-1470011_R-147001101" RefId="%AID%_P-1470011" />
+              <ParameterRef Id="%AID%_P-1470012_R-147001201" RefId="%AID%_P-1470012" />
+              <ParameterRef Id="%AID%_P-1470013_R-147001301" RefId="%AID%_P-1470013" />
+              <ParameterRef Id="%AID%_P-1470014_R-147001401" RefId="%AID%_P-1470014" />
+              <ParameterRef Id="%AID%_P-1470015_R-147001501" RefId="%AID%_P-1470015" />
+              <ParameterRef Id="%AID%_P-1470016_R-147001601" RefId="%AID%_P-1470016" />
+              <ParameterRef Id="%AID%_P-1470017_R-147001701" RefId="%AID%_P-1470017" />
+              <ParameterRef Id="%AID%_P-1470018_R-147001801" RefId="%AID%_P-1470018" />
+              <ParameterRef Id="%AID%_P-1470019_R-147001901" RefId="%AID%_P-1470019" />
+              <ParameterRef Id="%AID%_P-1470020_R-147002001" RefId="%AID%_P-1470020" />
+              <ParameterRef Id="%AID%_P-1470021_R-147002101" RefId="%AID%_P-1470021" />
+              <ParameterRef Id="%AID%_P-1470022_R-147002201" RefId="%AID%_P-1470022" />
+              <ParameterRef Id="%AID%_P-1470023_R-147002301" RefId="%AID%_P-1470023" />
+              <ParameterRef Id="%AID%_P-1470024_R-147002401" RefId="%AID%_P-1470024" />
+              <ParameterRef Id="%AID%_P-1470025_R-147002501" RefId="%AID%_P-1470025" />
+              <ParameterRef Id="%AID%_P-1470026_R-147002601" RefId="%AID%_P-1470026" />
+              <ParameterRef Id="%AID%_P-1470027_R-147002701" RefId="%AID%_P-1470027" />
+              <ParameterRef Id="%AID%_P-1470028_R-147002801" RefId="%AID%_P-1470028" />
+              <ParameterRef Id="%AID%_P-1470029_R-147002901" RefId="%AID%_P-1470029" />
+              <ParameterRef Id="%AID%_P-1470030_R-147003001" RefId="%AID%_P-1470030" />
+
+              <ParameterRef Id="%AID%_P-1480001_R-148000101" RefId="%AID%_P-1480001" />
+              <ParameterRef Id="%AID%_P-1480002_R-148000201" RefId="%AID%_P-1480002" />
+              <ParameterRef Id="%AID%_P-1480003_R-148000301" RefId="%AID%_P-1480003" />
+              <ParameterRef Id="%AID%_P-1480004_R-148000401" RefId="%AID%_P-1480004" />
+              <ParameterRef Id="%AID%_P-1480005_R-148000501" RefId="%AID%_P-1480005" />
+              <ParameterRef Id="%AID%_P-1480006_R-148000601" RefId="%AID%_P-1480006" />
+              <ParameterRef Id="%AID%_P-1480007_R-148000701" RefId="%AID%_P-1480007" />
+              <ParameterRef Id="%AID%_P-1480008_R-148000801" RefId="%AID%_P-1480008" />
+              <ParameterRef Id="%AID%_P-1480009_R-148000901" RefId="%AID%_P-1480009" />
+              <ParameterRef Id="%AID%_P-1480010_R-148001001" RefId="%AID%_P-1480010" />
+              <ParameterRef Id="%AID%_P-1480011_R-148001101" RefId="%AID%_P-1480011" />
+              <ParameterRef Id="%AID%_P-1480012_R-148001201" RefId="%AID%_P-1480012" />
+              <ParameterRef Id="%AID%_P-1480013_R-148001301" RefId="%AID%_P-1480013" />
+              <ParameterRef Id="%AID%_P-1480014_R-148001401" RefId="%AID%_P-1480014" />
+              <ParameterRef Id="%AID%_P-1480015_R-148001501" RefId="%AID%_P-1480015" />
+              <ParameterRef Id="%AID%_P-1480016_R-148001601" RefId="%AID%_P-1480016" />
+              <ParameterRef Id="%AID%_P-1480017_R-148001701" RefId="%AID%_P-1480017" />
+              <ParameterRef Id="%AID%_P-1480018_R-148001801" RefId="%AID%_P-1480018" />
+              <ParameterRef Id="%AID%_P-1480019_R-148001901" RefId="%AID%_P-1480019" />
+              <ParameterRef Id="%AID%_P-1480020_R-148002001" RefId="%AID%_P-1480020" />
+              <ParameterRef Id="%AID%_P-1480021_R-148002101" RefId="%AID%_P-1480021" />
+              <ParameterRef Id="%AID%_P-1480022_R-148002201" RefId="%AID%_P-1480022" />
+              <ParameterRef Id="%AID%_P-1480023_R-148002301" RefId="%AID%_P-1480023" />
+              <ParameterRef Id="%AID%_P-1480024_R-148002401" RefId="%AID%_P-1480024" />
+              <ParameterRef Id="%AID%_P-1480025_R-148002501" RefId="%AID%_P-1480025" />
+              <ParameterRef Id="%AID%_P-1480026_R-148002601" RefId="%AID%_P-1480026" />
+              <ParameterRef Id="%AID%_P-1480027_R-148002701" RefId="%AID%_P-1480027" />
+              <ParameterRef Id="%AID%_P-1480028_R-148002801" RefId="%AID%_P-1480028" />
+              <ParameterRef Id="%AID%_P-1480029_R-148002901" RefId="%AID%_P-1480029" />
+              <ParameterRef Id="%AID%_P-1480030_R-148003001" RefId="%AID%_P-1480030" />
             </ParameterRefs>
             
             <ComObjectTable>
@@ -695,6 +1095,23 @@
               <ComObject Id="%AID%_O-1400018" Name="HUEHCLM3LockStatus" Text="Status HCL Sperre M3" Number="17" FunctionText="Aktueller Sperrstatus für Manager 3" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
               <ComObject Id="%AID%_O-1400019" Name="HUEHCLM4Lock" Text="HCL Sperre M4" Number="18" FunctionText="HCL-Ausgabe für Manager 4 sperren (1=Sperre aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
               <ComObject Id="%AID%_O-1400020" Name="HUEHCLM4LockStatus" Text="Status HCL Sperre M4" Number="19" FunctionText="Aktueller Sperrstatus für Manager 4" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-1400021" Name="HUEHCLM5StatusBrightness" Text="HCL M5 Soll Helligkeit" Number="20" FunctionText="Berechnete Soll-Helligkeit Master 5" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <ComObject Id="%AID%_O-1400022" Name="HUEHCLM5StatusColorTemp" Text="HCL M5 Soll Farbtemp." Number="21" FunctionText="Berechnete Soll-Farbtemperatur Master 5" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
+              <ComObject Id="%AID%_O-1400023" Name="HUEHCLM6StatusBrightness" Text="HCL M6 Soll Helligkeit" Number="22" FunctionText="Berechnete Soll-Helligkeit Master 6" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <ComObject Id="%AID%_O-1400024" Name="HUEHCLM6StatusColorTemp" Text="HCL M6 Soll Farbtemp." Number="23" FunctionText="Berechnete Soll-Farbtemperatur Master 6" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
+              <ComObject Id="%AID%_O-1400025" Name="HUEHCLM7StatusBrightness" Text="HCL M7 Soll Helligkeit" Number="24" FunctionText="Berechnete Soll-Helligkeit Master 7" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <ComObject Id="%AID%_O-1400026" Name="HUEHCLM7StatusColorTemp" Text="HCL M7 Soll Farbtemp." Number="25" FunctionText="Berechnete Soll-Farbtemperatur Master 7" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
+              <ComObject Id="%AID%_O-1400027" Name="HUEHCLM8StatusBrightness" Text="HCL M8 Soll Helligkeit" Number="26" FunctionText="Berechnete Soll-Helligkeit Master 8" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <ComObject Id="%AID%_O-1400028" Name="HUEHCLM8StatusColorTemp" Text="HCL M8 Soll Farbtemp." Number="27" FunctionText="Berechnete Soll-Farbtemperatur Master 8" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
+
+              <ComObject Id="%AID%_O-1400029" Name="HUEHCLM5Lock" Text="HCL Sperre M5" Number="28" FunctionText="HCL-Ausgabe für Manager 5 sperren (1=Sperre aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-1400030" Name="HUEHCLM5LockStatus" Text="Status HCL Sperre M5" Number="29" FunctionText="Aktueller Sperrstatus für Manager 5" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-1400031" Name="HUEHCLM6Lock" Text="HCL Sperre M6" Number="30" FunctionText="HCL-Ausgabe für Manager 6 sperren (1=Sperre aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-1400032" Name="HUEHCLM6LockStatus" Text="Status HCL Sperre M6" Number="31" FunctionText="Aktueller Sperrstatus für Manager 6" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-1400033" Name="HUEHCLM7Lock" Text="HCL Sperre M7" Number="32" FunctionText="HCL-Ausgabe für Manager 7 sperren (1=Sperre aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-1400034" Name="HUEHCLM7LockStatus" Text="Status HCL Sperre M7" Number="33" FunctionText="Aktueller Sperrstatus für Manager 7" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-1400035" Name="HUEHCLM8Lock" Text="HCL Sperre M8" Number="34" FunctionText="HCL-Ausgabe für Manager 8 sperren (1=Sperre aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-1400036" Name="HUEHCLM8LockStatus" Text="Status HCL Sperre M8" Number="35" FunctionText="Aktueller Sperrstatus für Manager 8" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
             </ComObjectTable>
             
             <ComObjectRefs>
@@ -718,6 +1135,22 @@
               <ComObjectRef Id="%AID%_O-1400018_R-140001801" RefId="%AID%_O-1400018" />
               <ComObjectRef Id="%AID%_O-1400019_R-140001901" RefId="%AID%_O-1400019" />
               <ComObjectRef Id="%AID%_O-1400020_R-140002001" RefId="%AID%_O-1400020" />
+              <ComObjectRef Id="%AID%_O-1400021_R-140002101" RefId="%AID%_O-1400021" />
+              <ComObjectRef Id="%AID%_O-1400022_R-140002201" RefId="%AID%_O-1400022" />
+              <ComObjectRef Id="%AID%_O-1400023_R-140002301" RefId="%AID%_O-1400023" />
+              <ComObjectRef Id="%AID%_O-1400024_R-140002401" RefId="%AID%_O-1400024" />
+              <ComObjectRef Id="%AID%_O-1400025_R-140002501" RefId="%AID%_O-1400025" />
+              <ComObjectRef Id="%AID%_O-1400026_R-140002601" RefId="%AID%_O-1400026" />
+              <ComObjectRef Id="%AID%_O-1400027_R-140002701" RefId="%AID%_O-1400027" />
+              <ComObjectRef Id="%AID%_O-1400028_R-140002801" RefId="%AID%_O-1400028" />
+              <ComObjectRef Id="%AID%_O-1400029_R-140002901" RefId="%AID%_O-1400029" />
+              <ComObjectRef Id="%AID%_O-1400030_R-140003001" RefId="%AID%_O-1400030" />
+              <ComObjectRef Id="%AID%_O-1400031_R-140003101" RefId="%AID%_O-1400031" />
+              <ComObjectRef Id="%AID%_O-1400032_R-140003201" RefId="%AID%_O-1400032" />
+              <ComObjectRef Id="%AID%_O-1400033_R-140003301" RefId="%AID%_O-1400033" />
+              <ComObjectRef Id="%AID%_O-1400034_R-140003401" RefId="%AID%_O-1400034" />
+              <ComObjectRef Id="%AID%_O-1400035_R-140003501" RefId="%AID%_O-1400035" />
+              <ComObjectRef Id="%AID%_O-1400036_R-140003601" RefId="%AID%_O-1400036" />
             </ComObjectRefs>
           
           </Static>
@@ -754,6 +1187,12 @@
                 <ParameterRefRef RefId="%AID%_P-1400003_R-140000301" HelpContext="HUE-Authentication-zuruecksetzen" />
                 <ParameterRefRef RefId="%AID%_P-1400006_R-140000601" HelpContext="HUE-Bridge-Verbindungsstatus" />
                 <ParameterRefRef RefId="%AID%_P-1400007_R-140000701" HelpContext="HUE-Pairing-Trigger" />
+
+                <ParameterSeparator Id="%AID%_PS-HUESwitchTransitionLine" Text="" UIHint="HorizontalRuler" />
+                <ParameterSeparator Id="%AID%_PS-HUESwitchTransition" Text="Einschaltverhalten" UIHint="Headline" HelpContext="HUE-Bridge-Konfiguration" />
+                <ParameterRefRef RefId="%AID%_P-1400040_R-140004001" HelpContext="HUE-Einstellungen" />
+                <ParameterRefRef RefId="%AID%_P-1400041_R-140004101" HelpContext="HUE-Einstellungen" />
+                <ParameterSeparator Id="%AID%_PS-HUESwitchTransitionInfo" Text="Gilt global für alle Hue-Kanäle (mit und ohne HCL)." UIHint="Information" HelpContext="HUE-Bridge-Konfiguration" />
                 
                 <!-- Status-KO nur anzeigen wenn aktiviert -->
                 <choose ParamRefId="%AID%_P-1400006_R-140000601">
@@ -762,7 +1201,6 @@
                   </when>
                 </choose>
 
-                <ParameterSeparator Id="%AID%_PS-HUEPairingInfo" Text="Pairing per ETS-Trigger: 1 auf KO senden, Link-Button an der Bridge drücken, Status prüfen." UIHint="Information" HelpContext="HUE-Pairing-Trigger" />
                 <ComObjectRefRef RefId="%AID%_O-1400002_R-140000201" HelpContext="HUE-Pairing-Trigger" />
               </ParameterBlock>
               
@@ -783,12 +1221,7 @@
                     <ParameterRefRef RefId="%AID%_P-1400013_R-140001301" HelpContext="HUE-Einstellungen" />
 
                     <ParameterSeparator Id="%AID%_PS-HUEHCLLock" Text="HCL Sperre (global)" UIHint="Headline" />
-                    <ParameterRefRef RefId="%AID%_P-1400015_R-140001501" HelpContext="HUE-HCL-Sperre-global" />
-                    <choose ParamRefId="%AID%_P-1400015_R-140001501">
-                      <when test="1">
-                        <ParameterRefRef RefId="%AID%_P-1400014_R-140001401" HelpContext="HUE-HCL-Sperre-global" />
-                      </when>
-                    </choose>
+                    <ParameterRefRef RefId="%AID%_P-1400014_R-140001401" HelpContext="HUE-HCL-Sperre-global" />
 
                     <ComObjectRefRef RefId="%AID%_O-1400003_R-140000301" HelpContext="HUE-HCL-Sperre-global-Status-HCL-Sperre" />
                     <ComObjectRefRef RefId="%AID%_O-1400004_R-140000401" HelpContext="HUE-HCL-Sperre-global-Status-HCL-Sperre" />
@@ -814,7 +1247,7 @@
                     <!-- Reiter HCL-Master 1 -->
                     <choose ParamRefId="%AID%_P-1400011_R-140001101">
                       <when test="&gt;=1">
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM1" Name="HCLM1" Text="HCL Manager 1: {{0: ...}}" TextParameterRefId="%AID%_P-1410100_R-141010001" HelpContext="HUE-HCL-Manager-14">
+                        <ParameterBlock Id="%AID%_PB-HUEHCLM1" Name="HCLM1" Text="HCL Manager 1: {{0: ...}}" TextParameterRefId="%AID%_P-1410100_R-141010001" HelpContext="HUE-HCL-Manager-18">
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM1Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1410100_R-141010001" />
                           <ParameterRefRef RefId="%AID%_P-1400016_R-140001601" />
@@ -825,12 +1258,7 @@
                             </when>
                           </choose>
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM1Lock" Text="HCL Sperre (spezifisch)" UIHint="Headline" />
-                          <ParameterRefRef RefId="%AID%_P-1400020_R-140002001" />
-                          <choose ParamRefId="%AID%_P-1400020_R-140002001">
-                            <when test="1">
-                              <ParameterRefRef RefId="%AID%_P-1400021_R-140002101" />
-                            </when>
-                          </choose>
+                          <ParameterRefRef RefId="%AID%_P-1400021_R-140002101" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM1Advanced" Text="Erweiterte Kurve" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1410201_R-141020101" />
                           <ParameterRefRef RefId="%AID%_P-1410202_R-141020201" />
@@ -932,7 +1360,7 @@
                     <!-- Reiter HCL-Master 2 -->
                     <choose ParamRefId="%AID%_P-1400011_R-140001101">
                       <when test="&gt;=2">
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM2" Name="HCLM2" Text="HCL Manager 2: {{0: ...}}" TextParameterRefId="%AID%_P-1420100_R-142010001" HelpContext="HUE-HCL-Manager-14">
+                        <ParameterBlock Id="%AID%_PB-HUEHCLM2" Name="HCLM2" Text="HCL Manager 2: {{0: ...}}" TextParameterRefId="%AID%_P-1420100_R-142010001" HelpContext="HUE-HCL-Manager-18">
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM2Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1420100_R-142010001" />
                           <ParameterRefRef RefId="%AID%_P-1400017_R-140001701" />
@@ -943,12 +1371,7 @@
                             </when>
                           </choose>
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM2Lock" Text="HCL Sperre (spezifisch)" UIHint="Headline" />
-                          <ParameterRefRef RefId="%AID%_P-1400022_R-140002201" />
-                          <choose ParamRefId="%AID%_P-1400022_R-140002201">
-                            <when test="1">
-                              <ParameterRefRef RefId="%AID%_P-1400023_R-140002301" />
-                            </when>
-                          </choose>
+                          <ParameterRefRef RefId="%AID%_P-1400023_R-140002301" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM2Advanced" Text="Erweiterte Kurve" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1420201_R-142020101" />
                           <ParameterRefRef RefId="%AID%_P-1420202_R-142020201" />
@@ -1050,7 +1473,7 @@
                     <!-- Reiter HCL-Master 3 -->
                     <choose ParamRefId="%AID%_P-1400011_R-140001101">
                       <when test="&gt;=3">
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM3" Name="HCLM3" Text="HCL Manager 3: {{0: ...}}" TextParameterRefId="%AID%_P-1430100_R-143010001" HelpContext="HUE-HCL-Manager-14">
+                        <ParameterBlock Id="%AID%_PB-HUEHCLM3" Name="HCLM3" Text="HCL Manager 3: {{0: ...}}" TextParameterRefId="%AID%_P-1430100_R-143010001" HelpContext="HUE-HCL-Manager-18">
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM3Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1430100_R-143010001" />
                           <ParameterRefRef RefId="%AID%_P-1400018_R-140001801" />
@@ -1061,12 +1484,7 @@
                             </when>
                           </choose>
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM3Lock" Text="HCL Sperre (spezifisch)" UIHint="Headline" />
-                          <ParameterRefRef RefId="%AID%_P-1400024_R-140002401" />
-                          <choose ParamRefId="%AID%_P-1400024_R-140002401">
-                            <when test="1">
-                              <ParameterRefRef RefId="%AID%_P-1400025_R-140002501" />
-                            </when>
-                          </choose>
+                          <ParameterRefRef RefId="%AID%_P-1400025_R-140002501" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM3Advanced" Text="Erweiterte Kurve" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1430201_R-143020101" />
                           <ParameterRefRef RefId="%AID%_P-1430202_R-143020201" />
@@ -1168,7 +1586,7 @@
                     <!-- Reiter HCL-Master 4 -->
                     <choose ParamRefId="%AID%_P-1400011_R-140001101">
                       <when test="&gt;=4">
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM4" Name="HCLM4" Text="HCL Manager 4: {{0: ...}}" TextParameterRefId="%AID%_P-1440100_R-144010001" HelpContext="HUE-HCL-Manager-14">
+                        <ParameterBlock Id="%AID%_PB-HUEHCLM4" Name="HCLM4" Text="HCL Manager 4: {{0: ...}}" TextParameterRefId="%AID%_P-1440100_R-144010001" HelpContext="HUE-HCL-Manager-18">
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM4Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1440100_R-144010001" />
                           <ParameterRefRef RefId="%AID%_P-1400019_R-140001901" />
@@ -1179,12 +1597,7 @@
                             </when>
                           </choose>
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM4Lock" Text="HCL Sperre (spezifisch)" UIHint="Headline" />
-                          <ParameterRefRef RefId="%AID%_P-1400026_R-140002601" />
-                          <choose ParamRefId="%AID%_P-1400026_R-140002601">
-                            <when test="1">
-                              <ParameterRefRef RefId="%AID%_P-1400027_R-140002701" />
-                            </when>
-                          </choose>
+                          <ParameterRefRef RefId="%AID%_P-1400027_R-140002701" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM4Advanced" Text="Erweiterte Kurve" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1440201_R-144020101" />
                           <ParameterRefRef RefId="%AID%_P-1440202_R-144020201" />

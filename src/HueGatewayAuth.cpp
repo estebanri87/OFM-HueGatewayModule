@@ -11,7 +11,7 @@ bool HueGatewayAuth::authenticate(const char* bridgeIP)
 {
     Serial.printf("[HueGatewayAuth] Authenticating with bridge at %s\n", bridgeIP);
     
-    // App-Key aus Speicher laden
+    // Load App-Key from storage.
     _appKey = loadAppKey();
     _clientKey = loadClientKey();
     
@@ -21,7 +21,7 @@ bool HueGatewayAuth::authenticate(const char* bridgeIP)
         return true;
     }
 
-    // Non-blocking: einmaliger Versuch
+    // Non-blocking: single attempt.
     Serial.println("[HueGatewayAuth] Requesting new App-Key (single attempt)...");
     return requestAppKeyOnce(bridgeIP);
 }

@@ -26,10 +26,6 @@
               </Parameter>
 
               <!-- Kanal-spezifische HCL-Sperre -->
-              <Parameter Id="%AID%_P-%TT%5%CC%010" Name="CH%C%HCLLockFallbackEnable" ParameterType="%AID%_PT-HUEHCLLockFallbackEnable" Text="Rückfall aktivieren" Value="1">
-                <Memory CodeSegment="%MID%" Offset="85" BitOffset="0" />
-              </Parameter>
-
               <Parameter Id="%AID%_P-%TT%5%CC%011" Name="CH%C%HCLLockFallback" ParameterType="%AID%_PT-HUEHCLLockFallback" Text="Rückfallzeit nach HCL-Sperre" Value="0">
                 <Memory CodeSegment="%MID%" Offset="86" BitOffset="0" />
               </Parameter>
@@ -69,7 +65,6 @@
               <ParameterRef Id="%AID%_P-%TT%5%CC%001_R-%TT%5%CC%00101" RefId="%AID%_P-%TT%5%CC%001" />
               <ParameterRef Id="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" RefId="%AID%_P-%TT%5%CC%008" />
               <ParameterRef Id="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701" RefId="%AID%_P-%TT%5%CC%007" />
-              <ParameterRef Id="%AID%_P-%TT%5%CC%010_R-%TT%5%CC%01001" RefId="%AID%_P-%TT%5%CC%010" />
               <ParameterRef Id="%AID%_P-%TT%5%CC%011_R-%TT%5%CC%01101" RefId="%AID%_P-%TT%5%CC%011" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%002_R-%TT%5%CC%00201" RefId="%AID%_UP-%TT%5%CC%002" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%003_R-%TT%5%CC%00301" RefId="%AID%_UP-%TT%5%CC%003" />
@@ -135,12 +130,7 @@
                           <choose ParamRefId="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701">
                             <when test=">=1">
                               <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLLockHeader" Text="HCL Sperre (spezifisch)" UIHint="Headline" />
-                              <ParameterRefRef RefId="%AID%_P-%TT%5%CC%010_R-%TT%5%CC%01001" />
-                              <choose ParamRefId="%AID%_P-%TT%5%CC%010_R-%TT%5%CC%01001">
-                                <when test="1">
-                                  <ParameterRefRef RefId="%AID%_P-%TT%5%CC%011_R-%TT%5%CC%01101" />
-                                </when>
-                              </choose>
+                              <ParameterRefRef RefId="%AID%_P-%TT%5%CC%011_R-%TT%5%CC%01101" />
                             </when>
                           </choose>
                         </when>

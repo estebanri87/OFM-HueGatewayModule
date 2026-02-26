@@ -8,12 +8,24 @@ uint16_t Setpoint::parseTime(const char* timeStr) {
     if (!timeStr || timeStr[0] == '\0') {
         return 0xFFFF;
     }
-    
-    int hours = 0, minutes = 0;
-    if (sscanf(timeStr, "%d:%d", &hours, &minutes) != 2) {
+
+    const char h0 = timeStr[0];
+    const char h1 = timeStr[1];
+    const char sep = timeStr[2];
+    const char m0 = timeStr[3];
+    const char m1 = timeStr[4];
+
+    if (h0 < '0' || h0 > '9' ||
+        h1 < '0' || h1 > '9' ||
+        sep != ':' ||
+        m0 < '0' || m0 > '9' ||
+        m1 < '0' || m1 > '9') {
         return 0xFFFF;
     }
-    
+
+    const int hours = (h0 - '0') * 10 + (h1 - '0');
+    const int minutes = (m0 - '0') * 10 + (m1 - '0');
+
     if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
         return 0xFFFF;
     }

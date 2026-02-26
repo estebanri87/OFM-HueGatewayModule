@@ -54,6 +54,8 @@ HueGatewayLight::HueGatewayLight(const String& lightId, const String& name, HueG
     , _lastRelativeDimCmdMs(0)
     , _relativeDimCooldownUntilMs(0)
     , _relativeDimErrorStreak(0)
+    , _switchOnTransitionSec(2)
+    , _switchOffTransitionSec(6)
 {
 }
 
@@ -93,6 +95,7 @@ void HueGatewayLight::processKnxSwitch(bool value)
     }
     
     _on = value;
+    uint8_t switchTransitionSec = value ? _switchOnTransitionSec : _switchOffTransitionSec;
 
     if (_on && _brightness == 0 && _minBrightnessHue > 0)
     {
@@ -102,7 +105,7 @@ void HueGatewayLight::processKnxSwitch(bool value)
     // On switch-on with HCL assignment, apply the current interpolated HCL target.
     if (value
         && _hclMasterNum > 0
-        && _hclMasterNum <= 4
+        && _hclMasterNum <= 8
         && !_hclChannelLockActive
         && !HCL::masterManager.isApplyBlocked()
         && !HCL::masterManager.isMasterApplyBlocked(_hclMasterNum)) {
@@ -118,19 +121,17 @@ void HueGatewayLight::processKnxSwitch(bool value)
         Serial.printf("[HueGatewayLight] %s - Applying HCL Master %d values: %dK, %d%% (%d Hue)\n",
                      _name.c_str(), _hclMasterNum, hclValue.kelvin, hclValue.brightness, _brightness);
         
-        // UX preference: fast switch-on, slow switch-off.
-        uint8_t fadeDuration = value ? 0 : HCL::masterManager.getFadeDuration();
         if (_lightType >= 2)
         {
-            sendToHueWithColorTemp(hclValue.kelvin, fadeDuration);
+            sendToHueWithColorTemp(hclValue.kelvin, switchTransitionSec);
             return;
         }
 
-        sendToHue();
+        sendToHue(switchTransitionSec);
         return;
     }
     
-    sendToHue();
+    sendToHue(switchTransitionSec);
 }
 
 void HueGatewayLight::processKnxBrightness(uint8_t value)
@@ -140,6 +141,8 @@ void HueGatewayLight::processKnxBrightness(uint8_t value)
     
     Serial.printf("[HueGatewayLight] %s - KNX Brightness: %d%% (DPT 5.001)\n", _name.c_str(), value);
     
+    const bool previousOn = _on;
+
     // KNX DPT 5.001: 0-100% -> Hue 0-254.
     _brightness = (uint8_t)((value / 100.0f) * 254.0f);
 
@@ -161,6 +164,13 @@ void HueGatewayLight::processKnxBrightness(uint8_t value)
         Serial.printf("[HueGatewayLight] %s - Auto-off due to brightness = 0\n", _name.c_str());
     }
     
+    if (previousOn != _on)
+    {
+        const uint8_t transitionSec = _on ? _switchOnTransitionSec : _switchOffTransitionSec;
+        sendToHue(transitionSec);
+        return;
+    }
+
     sendToHue();
 }
 
@@ -428,7 +438,7 @@ void HueGatewayLight::sendStatusToKnx()
 
 // ===== Private Methods =====
 
-void HueGatewayLight::sendToHue()
+void HueGatewayLight::sendToHue(uint8_t fadeDurationSec)
 {
     if (!_client || !_client->isInitialized())
     {
@@ -437,15 +447,15 @@ void HueGatewayLight::sendToHue()
     }
     
     bool success = _isGroupedTarget
-        ? _client->setGroupedLightState(_lightId, _on, _brightness)
-        : _client->setLightState(_lightId, _on, _brightness);
+        ? _client->setGroupedLightState(_lightId, _on, _brightness, fadeDurationSec)
+        : _client->setLightState(_lightId, _on, _brightness, fadeDurationSec);
     
     if (success)
     {
         _lastUpdate = millis();
         sendStatusToKnx();
-        Serial.printf("[HueGatewayLight] %s - Sent to Hue: On:%d Bri:%d\n",
-                      _name.c_str(), _on, _brightness);
+        Serial.printf("[HueGatewayLight] %s - Sent to Hue: On:%d Bri:%d fade:%us\n",
+                  _name.c_str(), _on, _brightness, static_cast<unsigned>(fadeDurationSec));
     }
     else
     {
@@ -486,6 +496,12 @@ void HueGatewayLight::setMinBrightness(uint8_t minBrightness)
 
     _minBrightnessPercent = minBrightness;
     _minBrightnessHue = static_cast<uint8_t>((static_cast<uint16_t>(_minBrightnessPercent) * 254U) / 100U);
+}
+
+void HueGatewayLight::setSwitchTransitionDurations(uint8_t onTransitionSec, uint8_t offTransitionSec)
+{
+    _switchOnTransitionSec = onTransitionSec;
+    _switchOffTransitionSec = offTransitionSec;
 }
 
 uint16_t HueGatewayLight::kelvinToMirek(uint16_t kelvin)
@@ -556,7 +572,7 @@ void HueGatewayLight::sendToHueWithColorTemp(uint16_t kelvin, uint8_t fadeDurati
     if (!success && _isGroupedTarget)
     {
         Serial.printf("[HueGatewayLight] %s - grouped CT update failed, fallback to state-only\n", _name.c_str());
-        success = _client->setGroupedLightState(_lightId, _on, _brightness);
+        success = _client->setGroupedLightState(_lightId, _on, _brightness, fadeDuration);
     }
 
     if (success)
@@ -576,7 +592,7 @@ void HueGatewayLight::loop()
     if (!_initialized
         || !_on
         || _hclMasterNum == 0
-        || _hclMasterNum > 4
+        || _hclMasterNum > 8
         || _hclChannelLockActive
         || HCL::masterManager.isApplyBlocked()
         || HCL::masterManager.isMasterApplyBlocked(_hclMasterNum))

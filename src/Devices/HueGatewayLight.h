@@ -113,7 +113,7 @@ public:
     uint8_t getBlue() const { return _currentBlue; }
     
     /**
-    * @brief Assigns HCL master (0 = none, 1-4 = master number).
+    * @brief Assigns HCL master (0 = none, 1-8 = master number).
      */
     void setHCLMaster(uint8_t masterNum) { _hclMasterNum = masterNum; }
     
@@ -134,6 +134,8 @@ public:
     * @brief Sets minimum allowed brightness in percent (0-100).
      */
     void setMinBrightness(uint8_t minBrightness);
+
+    void setSwitchTransitionDurations(uint8_t onTransitionSec, uint8_t offTransitionSec);
 
     void setGroupedTarget(bool groupedTarget) { _isGroupedTarget = groupedTarget; }
     bool isGroupedTarget() const { return _isGroupedTarget; }
@@ -168,7 +170,7 @@ private:
     bool _isGroupedTarget;
     
     // HCL configuration and current interpolation state.
-    uint8_t _hclMasterNum;  // 0 = no HCL, 1-4 = HCL master number
+    uint8_t _hclMasterNum;  // 0 = no HCL, 1-8 = HCL master number
     bool _hclChannelLockActive;
     bool _fadingActive;     // true while a fade transition is active
     uint16_t _currentKelvin; // Current color temperature in Kelvin
@@ -181,11 +183,13 @@ private:
     unsigned long _lastRelativeDimCmdMs;
     unsigned long _relativeDimCooldownUntilMs;
     uint8_t _relativeDimErrorStreak;
+    uint8_t _switchOnTransitionSec;
+    uint8_t _switchOffTransitionSec;
     
     /**
     * @brief Sends current on/brightness state to Hue Bridge.
      */
-    void sendToHue();
+    void sendToHue(uint8_t fadeDurationSec = 0);
     
     /**
     * @brief Sends current state including color temperature to Hue Bridge.
