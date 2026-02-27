@@ -1160,7 +1160,7 @@
               
               <ParameterBlock Id="%AID%_PB-HUEMain" Name="HueGateway" Text="Hue Bridge" Icon="cog-outline" HelpContext="HUE-Bridge-Konfiguration">
                 
-                <ParameterSeparator Id="%AID%_PS-HUETitle" Text="Philips Hue Bridge" UIHint="Headline" HelpContext="HUE-Allgemein" />
+                <ParameterSeparator Id="%AID%_PS-HUETitle" Text="Philips Hue Gateway" UIHint="Headline" HelpContext="HUE-Allgemein" />
                 <ParameterSeparator Id="%AID%_PS-HUEVersion" Text="Version: %ModuleVersion%" />
                 <ParameterSeparator Id="%AID%_PS-HUELine1" Text="" UIHint="HorizontalRuler" />
 
@@ -1192,7 +1192,7 @@
                 <ParameterSeparator Id="%AID%_PS-HUESwitchTransition" Text="Einschaltverhalten" UIHint="Headline" HelpContext="HUE-Bridge-Konfiguration" />
                 <ParameterRefRef RefId="%AID%_P-1400040_R-140004001" HelpContext="HUE-Einstellungen" />
                 <ParameterRefRef RefId="%AID%_P-1400041_R-140004101" HelpContext="HUE-Einstellungen" />
-                <ParameterSeparator Id="%AID%_PS-HUESwitchTransitionInfo" Text="Gilt global für alle Hue-Kanäle (mit und ohne HCL)." UIHint="Information" HelpContext="HUE-Bridge-Konfiguration" />
+                <ParameterSeparator Id="%AID%_PS-HUESwitchTransitionInfo" Text="Hinweis: Hue-Leuchten haben je nach Modell/Firmware ein eigenes Übergangsverhalten. Die eingestellten Zeiten wirken zusätzlich darauf, daher kann die reale Schaltzeit leicht abweichen." UIHint="Information" HelpContext="HUE-Bridge-Konfiguration" />
                 
                 <!-- Status-KO nur anzeigen wenn aktiviert -->
                 <choose ParamRefId="%AID%_P-1400006_R-140000601">
