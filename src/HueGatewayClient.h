@@ -170,6 +170,8 @@ public:
     bool startEventStream();
     void stopEventStream();
     bool isEventStreamConnected() { return _eventStreamConnected && _eventClient.connected(); }
+    void setEventStreamAutoRestartEnabled(bool enabled) { _eventAutoRestartEnabled = enabled; }
+    bool isEventStreamAutoRestartEnabled() const { return _eventAutoRestartEnabled; }
     int pollEventStream(HueGatewayEventLightUpdate* updates, int maxUpdates);
     
     /**
@@ -214,6 +216,7 @@ private:
     unsigned long _eventLastDataMs;
     uint8_t _eventParseErrorStreak;
     uint32_t _eventDropCount;
+    bool _eventAutoRestartEnabled;
     String _eventLineBuffer;
     String _eventDataBuffer;
 

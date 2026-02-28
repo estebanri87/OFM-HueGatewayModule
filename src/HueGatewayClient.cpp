@@ -9,7 +9,7 @@ namespace
 static constexpr size_t kMaxEventLineChars = 4096U;
 static constexpr size_t kMaxEventPayloadChars = 8192U;
 #if defined(DEVICE_REG1_LAN_TP_BASE) || defined(DEVICE_DEV_REG1_LAN_TP_Base_V00_11)
-static constexpr uint32_t kTlsMinInternalFreeBytes = 62000U;
+static constexpr uint32_t kTlsMinInternalFreeBytes = 46000U;
 static constexpr uint32_t kTlsMinInternalLargestBlockBytes = 32000U;
 #else
 static constexpr uint32_t kTlsMinInternalFreeBytes = 70000U;
@@ -135,6 +135,7 @@ HueGatewayClient::HueGatewayClient()
     , _eventLastDataMs(0)
     , _eventParseErrorStreak(0)
     , _eventDropCount(0)
+    , _eventAutoRestartEnabled(true)
 {
 }
 
@@ -166,6 +167,7 @@ bool HueGatewayClient::begin(const String& bridgeIP, const String& appKey)
     _eventStreamConnected = false;
     _eventParseErrorStreak = 0;
     _eventLastDataMs = millis();
+    _eventAutoRestartEnabled = true;
     
     Serial.printf("[HueGatewayClient] Initialized - Bridge: %s\n", _bridgeIP.c_str());
     return true;
@@ -1813,7 +1815,7 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDoc
     _http.setTimeout(2000);
     const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected) && _eventClient.connected();
 
-    if (eventWasActive)
+    if (eventWasActive && _eventAutoRestartEnabled)
     {
         Serial.println("[HueGatewayClient] Pausing EventStream for HTTPS GET");
         _http.end();
@@ -1893,7 +1895,7 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDoc
     
     _http.end();
 
-    if (eventWasActive)
+    if (eventWasActive && _eventAutoRestartEnabled)
     {
         if (!hasTlsInternalHeadroom())
         {
@@ -1916,7 +1918,7 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
     const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected) && _eventClient.connected();
     bool eventPausedForPut = false;
 
-    if (eventWasActive && !hasTlsInternalHeadroom())
+    if (eventWasActive && _eventAutoRestartEnabled && !hasTlsInternalHeadroom())
     {
         Serial.println("[HueGatewayClient] Pausing EventStream for HTTPS PUT (internal TLS headroom low)");
         _http.end();

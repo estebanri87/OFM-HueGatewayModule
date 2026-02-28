@@ -31,8 +31,13 @@ static constexpr unsigned long kBridgePingBackoffMaxMs = 120000UL;
 static constexpr unsigned long kBridgeHealthForEventstreamMs = 15000UL;
 static constexpr unsigned long kBridgeHealthRecentSkipPingMs = 60000UL;
 static constexpr unsigned long kEventStreamRetryBaseMs = 1000UL;
+static constexpr unsigned long kBootEventStreamWarmupMs = 15000UL;
+static constexpr unsigned long kDeviceSetupRetryBaseMs = 20000UL;
+static constexpr unsigned long kDeviceSetupRetryMaxMs = 60000UL;
 static constexpr unsigned long kPollingSnapshotCacheMs = 25000UL;
 static constexpr unsigned long kPollingSnapshotHardMaxAgeMs = 90000UL;
+static constexpr uint32_t kSetupMinInternalFreeBytes = 42000U;
+static constexpr uint32_t kSetupMinInternalLargestBlockBytes = 28000U;
 static constexpr int kWebScanMaxLights = 192;
 static constexpr int kWebScanMaxTargets = 192;
 static constexpr unsigned long kWebScanCacheStaleMs = 15000UL;
@@ -41,6 +46,25 @@ static bool sEventStreamEnabled = (OPENKNX_HUE_EVENTSTREAM_POLICY_DEFAULT != 0);
 
 static unsigned long sBridgeNextPingAllowedMs = 0UL;
 static unsigned long sBridgePingBackoffMs = kBridgePingBackoffMinMs;
+
+static bool hasSetupTlsHeadroom()
+{
+    const size_t freeInternal = heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+    const size_t largestInternal = heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+    return freeInternal >= kSetupMinInternalFreeBytes && largestInternal >= kSetupMinInternalLargestBlockBytes;
+}
+
+static void logSetupTlsHeadroom(const char* phase)
+{
+    const size_t freeInternal = heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+    const size_t largestInternal = heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+    Serial.printf("[HueGatewayModule] HEAP %s intFree=%u intLargest=%u (need free>=%u largest>=%u)\n",
+                  phase,
+                  static_cast<unsigned>(freeInternal),
+                  static_cast<unsigned>(largestInternal),
+                  static_cast<unsigned>(kSetupMinInternalFreeBytes),
+                  static_cast<unsigned>(kSetupMinInternalLargestBlockBytes));
+}
 
 static String readFixedTimeParam(const uint8_t* rawTime)
 {
@@ -295,8 +319,10 @@ static String getRequestLocalIpString(httpd_req_t* req)
 HueGatewayModule::HueGatewayModule()
     : _initialized(false)
     , _lastConnectionCheckMs(0)
+    , _bootStartMs(0)
     , _lastRefreshTickMs(0)
     , _lastDeviceSetupRetryMs(0)
+    , _deviceSetupRetryBackoffMs(kDeviceSetupRetryBaseMs)
     , _lastEventStreamRetryMs(0)
     , _eventStreamRetryBackoffMs(kEventStreamRetryBaseMs)
     , _eventStreamPauseUntilMs(0)
@@ -385,6 +411,7 @@ void HueGatewayModule::setup()
 {
     Serial.println("[HueGatewayModule] Setup started");
     Serial.println("[HueGatewayModule] Initializing...");
+    _bootStartMs = millis();
 
     static bool extmemConfigured = false;
     if (!extmemConfigured && psramFound())
@@ -452,6 +479,14 @@ void HueGatewayModule::loop()
 
     if (_client && _client->isInitialized() && !_authPending)
     {
+        uint8_t configuredChannels = ParamHUE_HUEChannelCount;
+        if (configuredChannels > MAX_LIGHTS)
+        {
+            configuredChannels = MAX_LIGHTS;
+        }
+
+        const bool suppressEventStreamRetryForSetup = (configuredChannels > 0) && _deviceSetupNeedsRetry;
+
         if (!sEventStreamEnabled)
         {
             if (_client->isEventStreamConnected())
@@ -464,6 +499,17 @@ void HueGatewayModule::loop()
         }
         else if (!_client->isEventStreamConnected())
         {
+            if (suppressEventStreamRetryForSetup)
+            {
+                static unsigned long sLastSetupRetrySuppressLogMs = 0;
+                if ((now - sLastSetupRetrySuppressLogMs) >= 10000UL || now < sLastSetupRetrySuppressLogMs)
+                {
+                    Serial.println("[HueGatewayModule] EventStream retry suppressed until device setup succeeds");
+                    sLastSetupRetrySuppressLogMs = now;
+                }
+            }
+            else
+            {
             const bool bridgeHealthyForEventstream = (_lastBridgeHealthOkMs != 0)
                 && ((now - _lastBridgeHealthOkMs) <= kBridgeHealthForEventstreamMs);
 
@@ -502,6 +548,7 @@ void HueGatewayModule::loop()
                 {
                     _eventStreamFailureCount = 0;
                 }
+            }
             }
 
             HueGatewayEventLightUpdate updates[MAX_LIGHTS];
@@ -563,18 +610,26 @@ void HueGatewayModule::loop()
 
             if (initClientWithAppKey())
             {
-                bool bridgeReachable = _client && _client->pingBridgeApiV2();
+                uint8_t configuredChannels = ParamHUE_HUEChannelCount;
+                if (configuredChannels > MAX_LIGHTS)
+                {
+                    configuredChannels = MAX_LIGHTS;
+                }
+
+                const bool requiresDeviceSetup = configuredChannels > 0;
+                bool bridgeReachable = true;
+                if (!requiresDeviceSetup)
+                {
+                    bridgeReachable = _client && _client->pingBridgeApiV2();
+                }
                 if (bridgeReachable)
                 {
-                    setupDevices();
-
-                    uint8_t configuredChannels = ParamHUE_HUEChannelCount;
-                    if (configuredChannels > MAX_LIGHTS)
+                    if (requiresDeviceSetup)
                     {
-                        configuredChannels = MAX_LIGHTS;
+                        setupDevices();
                     }
 
-                    const bool setupHealthy = (configuredChannels == 0) || (_lightCount > 0);
+                    const bool setupHealthy = (!requiresDeviceSetup) || (_lightCount > 0);
                     if (setupHealthy)
                     {
                         updateStatus(BridgeStatus::CONNECTED);
@@ -614,7 +669,7 @@ void HueGatewayModule::loop()
 
         if (configuredChannels > 0 && _deviceSetupNeedsRetry)
         {
-            if ((now - _lastDeviceSetupRetryMs) >= 5000UL)
+            if ((now - _lastDeviceSetupRetryMs) >= _deviceSetupRetryBackoffMs)
             {
                 _lastDeviceSetupRetryMs = now;
                 Serial.printf("[HueGatewayModule] Device map requires retry (%u channels configured), retrying setupDevices()\n",
@@ -1597,18 +1652,53 @@ void HueGatewayModule::setupDevices()
     
     if (channelCount == 0)
     {
+        _deviceSetupRetryBackoffMs = kDeviceSetupRetryBaseMs;
         Serial.println("[HueGatewayModule] No channels configured");
         return;
     }
-    
-    // Retrieve all lights from the bridge for validation/mapping.
+
+    if (!hasSetupTlsHeadroom())
+    {
+        _deviceSetupNeedsRetry = true;
+        _deviceSetupRetryBackoffMs = min<unsigned long>(_deviceSetupRetryBackoffMs * 2UL, kDeviceSetupRetryMaxMs);
+        Serial.printf("[HueGatewayModule] setupDevices deferred: low internal TLS headroom, retry in %lu s\n",
+                      static_cast<unsigned long>(_deviceSetupRetryBackoffMs / 1000UL));
+        logSetupTlsHeadroom("setup-deferred");
+        return;
+    }
+
+    const unsigned long setupStartMs = millis();
+    _client->setEventStreamAutoRestartEnabled(false);
     if (_client->isEventStreamConnected())
     {
+        Serial.println("[HueGatewayModule] Setup session: pausing EventStream once");
         _client->stopEventStream();
         _lastEventStreamRetryMs = millis();
         delay(20);
     }
 
+    auto finalizeSetupSession = [&](const char* phase)
+    {
+        _client->setEventStreamAutoRestartEnabled(true);
+
+        if (sEventStreamEnabled && !_client->isEventStreamConnected())
+        {
+            if (_client->startEventStream())
+            {
+                Serial.println("[HueGatewayModule] Setup session: EventStream resumed");
+            }
+            else
+            {
+                Serial.println("[HueGatewayModule] Setup session: EventStream resume deferred/failed (retry loop active)");
+            }
+        }
+
+        Serial.printf("[HueGatewayModule] setupDevices duration=%lu ms (%s)\n",
+                      static_cast<unsigned long>(millis() - setupStartMs),
+                      phase ? phase : "done");
+    };
+    
+    // Retrieve all lights from the bridge for validation/mapping.
     static HueGatewayLightState allLights[MAX_LIGHTS];
     int bridgeLightCount = _client->getLights(allLights, MAX_LIGHTS);
     if (bridgeLightCount <= 0)
@@ -1621,9 +1711,19 @@ void HueGatewayModule::setupDevices()
     if (bridgeLightCount <= 0)
     {
         _deviceSetupNeedsRetry = true;
+        _deviceSetupRetryBackoffMs = min<unsigned long>(_deviceSetupRetryBackoffMs * 2UL, kDeviceSetupRetryMaxMs);
         Serial.println("[HueGatewayModule] Bridge returned 0 lights, deferring device mapping retry");
+        finalizeSetupSession("no-lights");
         return;
     }
+
+    static HueGatewayTargetInfo roomTargets[kWebScanMaxTargets];
+    static HueGatewayTargetInfo zoneTargets[kWebScanMaxTargets];
+    const int roomTargetCount = _client->getRoomTargets(roomTargets, kWebScanMaxTargets);
+    const int zoneTargetCount = _client->getZoneTargets(zoneTargets, kWebScanMaxTargets);
+    Serial.printf("[HueGatewayModule] Prefetched grouped targets: rooms=%d zones=%d\n",
+                  roomTargetCount,
+                  zoneTargetCount);
     
     // Load channels from ETS parameters.
     // Prefer UUID mapping from ETS, fallback to index when UUID is empty.
@@ -1714,9 +1814,35 @@ void HueGatewayModule::setupDevices()
 
         auto tryResolveRoom = [&]() -> bool
         {
+            for (int i = 0; i < roomTargetCount; i++)
+            {
+                if (!(roomTargets[i].id.equalsIgnoreCase(targetProbe)
+                      || roomTargets[i].name.equalsIgnoreCase(targetProbe)))
+                {
+                    continue;
+                }
+
+                if (roomTargets[i].groupedLightId.length() == 0)
+                {
+                    continue;
+                }
+
+                fallbackLight.id = roomTargets[i].groupedLightId;
+                fallbackLight.name = String("Room: ") + roomTargets[i].name;
+                fallbackLight.supportsColorTemp = false;
+                fallbackLight.supportsColor = false;
+                selectedLight = &fallbackLight;
+                targetIsGrouped = true;
+                targetIsRoom = true;
+                targetIsZone = false;
+                return true;
+            }
+
             String groupedRid;
             String groupedName;
-            if (_client->resolveGroupedLightForRoom(targetProbe, groupedRid, groupedName) && groupedRid.length() > 0)
+            if (roomTargetCount <= 0
+                && _client->resolveGroupedLightForRoom(targetProbe, groupedRid, groupedName)
+                && groupedRid.length() > 0)
             {
                 fallbackLight.id = groupedRid;
                 fallbackLight.name = String("Room: ") + groupedName;
@@ -1733,9 +1859,35 @@ void HueGatewayModule::setupDevices()
 
         auto tryResolveZone = [&]() -> bool
         {
+            for (int i = 0; i < zoneTargetCount; i++)
+            {
+                if (!(zoneTargets[i].id.equalsIgnoreCase(targetProbe)
+                      || zoneTargets[i].name.equalsIgnoreCase(targetProbe)))
+                {
+                    continue;
+                }
+
+                if (zoneTargets[i].groupedLightId.length() == 0)
+                {
+                    continue;
+                }
+
+                fallbackLight.id = zoneTargets[i].groupedLightId;
+                fallbackLight.name = String("Zone: ") + zoneTargets[i].name;
+                fallbackLight.supportsColorTemp = false;
+                fallbackLight.supportsColor = false;
+                selectedLight = &fallbackLight;
+                targetIsGrouped = true;
+                targetIsRoom = false;
+                targetIsZone = true;
+                return true;
+            }
+
             String groupedRid;
             String groupedName;
-            if (_client->resolveGroupedLightForZone(targetProbe, groupedRid, groupedName) && groupedRid.length() > 0)
+            if (zoneTargetCount <= 0
+                && _client->resolveGroupedLightForZone(targetProbe, groupedRid, groupedName)
+                && groupedRid.length() > 0)
             {
                 fallbackLight.id = groupedRid;
                 fallbackLight.name = String("Zone: ") + groupedName;
@@ -1938,6 +2090,7 @@ void HueGatewayModule::setupDevices()
     if (enabledChannels > 0 && (_lightCount == 0 || (bridgeLightCount <= 0 && hasIndexMappedChannel) || hasUnresolvedGroupTarget))
     {
         _deviceSetupNeedsRetry = true;
+        _deviceSetupRetryBackoffMs = min<unsigned long>(_deviceSetupRetryBackoffMs * 2UL, kDeviceSetupRetryMaxMs);
         Serial.printf("[HueGatewayModule] setupDevices incomplete (enabled=%u, mapped=%d, bridgeLights=%d, unresolvedGroup=%u), retry scheduled\n",
                       static_cast<unsigned>(enabledChannels),
                       _lightCount,
@@ -1947,11 +2100,13 @@ void HueGatewayModule::setupDevices()
     else
     {
         _deviceSetupNeedsRetry = false;
+        _deviceSetupRetryBackoffMs = kDeviceSetupRetryBaseMs;
     }
     
     Serial.printf("[HueGatewayModule] Initialized %d lights\n", _lightCount);
     _lastChannelSyncOkMs = millis();
     _devicesInitialized = true;
+    finalizeSetupSession("ok");
 }
 
 void HueGatewayModule::setupHCL()
@@ -2275,11 +2430,18 @@ void HueGatewayModule::setupHCL()
 void HueGatewayModule::checkConnection()
 {
     const unsigned long now = millis();
+    uint8_t configuredChannels = ParamHUE_HUEChannelCount;
+    if (configuredChannels > MAX_LIGHTS)
+    {
+        configuredChannels = MAX_LIGHTS;
+    }
+    const bool blockConnectedStatusUntilSetup = (configuredChannels > 0)
+        && (_deviceSetupNeedsRetry || _lightCount <= 0);
 
     if (_client && _client->isInitialized() && _client->isEventStreamConnected())
     {
         _lastBridgeHealthOkMs = now;
-        if (!_authPending && _bridgeStatus != BridgeStatus::CONNECTED)
+        if (!_authPending && !blockConnectedStatusUntilSetup && _bridgeStatus != BridgeStatus::CONNECTED)
         {
             updateStatus(BridgeStatus::CONNECTED);
         }
@@ -2307,7 +2469,7 @@ void HueGatewayModule::checkConnection()
         && (now - _lastChannelSyncOkMs) <= 25000UL)
     {
         _lastBridgeHealthOkMs = now;
-        if (!_authPending && _bridgeStatus != BridgeStatus::CONNECTED)
+        if (!_authPending && !blockConnectedStatusUntilSetup && _bridgeStatus != BridgeStatus::CONNECTED)
         {
             updateStatus(BridgeStatus::CONNECTED);
         }
@@ -2316,7 +2478,7 @@ void HueGatewayModule::checkConnection()
 
     if (_lastBridgeHealthOkMs != 0 && (now - _lastBridgeHealthOkMs) <= kBridgeHealthRecentSkipPingMs)
     {
-        if (!_authPending && _bridgeStatus != BridgeStatus::CONNECTED)
+        if (!_authPending && !blockConnectedStatusUntilSetup && _bridgeStatus != BridgeStatus::CONNECTED)
         {
             updateStatus(BridgeStatus::CONNECTED);
         }
@@ -2338,7 +2500,7 @@ void HueGatewayModule::checkConnection()
         _lastBridgeHealthOkMs = now;
         sBridgePingBackoffMs = kBridgePingBackoffMinMs;
         sBridgeNextPingAllowedMs = 0;
-        if (!_authPending && _bridgeStatus != BridgeStatus::CONNECTED)
+        if (!_authPending && !blockConnectedStatusUntilSetup && _bridgeStatus != BridgeStatus::CONNECTED)
         {
             updateStatus(BridgeStatus::CONNECTED);
         }
@@ -3427,10 +3589,33 @@ bool HueGatewayModule::initClientWithAppKey()
     Serial.printf("[HueGatewayModule] EventStream policy default=%d, enabled=%s\n",
                   static_cast<int>(OPENKNX_HUE_EVENTSTREAM_POLICY_DEFAULT),
                   sEventStreamEnabled ? "yes" : "no");
+
+    uint8_t configuredChannels = ParamHUE_HUEChannelCount;
+    if (configuredChannels > MAX_LIGHTS)
+    {
+        configuredChannels = MAX_LIGHTS;
+    }
+    const bool requiresDeviceSetup = configuredChannels > 0;
+    const bool inWarmupWindow = (_bootStartMs != 0)
+        && ((millis() - _bootStartMs) < kBootEventStreamWarmupMs);
+
     if (sEventStreamEnabled)
     {
-        bool eventStreamStarted = _client->startEventStream();
-        Serial.printf("[HueGatewayModule] EventStream initial start: %s\n", eventStreamStarted ? "ok" : "failed (fallback polling active)");
+        if (requiresDeviceSetup)
+        {
+            Serial.println("[HueGatewayModule] EventStream initial start deferred until setupDevices succeeds");
+        }
+        else if (inWarmupWindow)
+        {
+            const unsigned long warmupLeftMs = kBootEventStreamWarmupMs - (millis() - _bootStartMs);
+            Serial.printf("[HueGatewayModule] EventStream initial start deferred by warmup (%lu ms left)\n",
+                          static_cast<unsigned long>(warmupLeftMs));
+        }
+        else
+        {
+            bool eventStreamStarted = _client->startEventStream();
+            Serial.printf("[HueGatewayModule] EventStream initial start: %s\n", eventStreamStarted ? "ok" : "failed (fallback polling active)");
+        }
     }
     else
     {

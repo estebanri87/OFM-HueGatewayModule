@@ -59,8 +59,10 @@ public:
 private:
     bool _initialized;
     unsigned long _lastConnectionCheckMs;
+    unsigned long _bootStartMs;
     unsigned long _lastRefreshTickMs;
     unsigned long _lastDeviceSetupRetryMs;
+    unsigned long _deviceSetupRetryBackoffMs;
     unsigned long _lastEventStreamRetryMs;
     unsigned long _eventStreamRetryBackoffMs;
     unsigned long _eventStreamPauseUntilMs;
