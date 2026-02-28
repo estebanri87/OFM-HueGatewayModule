@@ -8,8 +8,14 @@ namespace
 {
 static constexpr size_t kMaxEventLineChars = 4096U;
 static constexpr size_t kMaxEventPayloadChars = 8192U;
+#if defined(DEVICE_REG1_LAN_TP_BASE) || defined(DEVICE_DEV_REG1_LAN_TP_Base_V00_11)
+static constexpr uint32_t kTlsMinInternalFreeBytes = 62000U;
+static constexpr uint32_t kTlsMinInternalLargestBlockBytes = 32000U;
+#else
 static constexpr uint32_t kTlsMinInternalFreeBytes = 70000U;
 static constexpr uint32_t kTlsMinInternalLargestBlockBytes = 50000U;
+#endif
+static constexpr unsigned long kLightLocationCacheMs = 300000UL;
 
 float dimmingStepCodeToPercent(uint8_t stepCode)
 {
@@ -198,82 +204,109 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights)
 
     JsonArrayConst data = doc["data"].as<JsonArrayConst>();
     std::vector<LightLocation> locations;
-    std::vector<DeviceLightLink> deviceLightLinks;
 
-    // Build a direct device->light map from light payload first.
-    // This is robust even if /device does not expose light refs on some bridge firmwares.
-    for (JsonObjectConst light : data)
+    static std::vector<LightLocation> sCachedLocations;
+    static unsigned long sLocationCacheValidUntilMs = 0UL;
+
+    const unsigned long now = millis();
+    const bool cacheValid = !sCachedLocations.empty()
+        && sLocationCacheValidUntilMs != 0UL
+        && now <= sLocationCacheValidUntilMs;
+
+    if (cacheValid)
     {
-        const char* lightRid = light["id"] | "";
-        const char* ownerRid = light["owner"]["rid"] | "";
-        if (lightRid[0] == '\0' || ownerRid[0] == '\0')
+        locations = sCachedLocations;
+    }
+    else
+    {
+        std::vector<DeviceLightLink> deviceLightLinks;
+        deviceLightLinks.reserve(static_cast<size_t>(data.size()));
+
+        // Build a direct device->light map from light payload first.
+        // This is robust even if /device does not expose light refs on some bridge firmwares.
+        for (JsonObjectConst light : data)
         {
-            continue;
+            const char* lightRid = light["id"] | "";
+            const char* ownerRid = light["owner"]["rid"] | "";
+            if (lightRid[0] == '\0' || ownerRid[0] == '\0')
+            {
+                continue;
+            }
+
+            DeviceLightLink link;
+            link.deviceId = String(ownerRid);
+            link.lightId = String(lightRid);
+            deviceLightLinks.push_back(link);
         }
 
-        DeviceLightLink link;
-        link.deviceId = String(ownerRid);
-        link.lightId = String(lightRid);
-        deviceLightLinks.push_back(link);
-    }
+        static DynamicJsonDocument deviceDoc(32768);
+        static DynamicJsonDocument deviceFilterDoc(512);
+        deviceFilterDoc.clear();
+        JsonObject deviceFilterRoot = deviceFilterDoc.to<JsonObject>();
+        JsonObject deviceFilterData = deviceFilterRoot["data"][0].to<JsonObject>();
+        deviceFilterData["id"] = true;
+        deviceFilterData["services"][0]["rid"] = true;
+        deviceFilterData["services"][0]["rtype"] = true;
+        deviceFilterData["children"][0]["rid"] = true;
+        deviceFilterData["children"][0]["rtype"] = true;
+        deviceFilterData["grouped_services"][0]["rid"] = true;
+        deviceFilterData["grouped_services"][0]["rtype"] = true;
+        deviceDoc.clear();
+        int deviceStatus = httpGet("/clip/v2/resource/device", deviceDoc, &deviceFilterDoc);
+        if (isHttpSuccessStatus(deviceStatus))
+        {
+            appendDeviceLightLinksFromDoc(deviceLightLinks, deviceDoc);
+        }
 
-    static DynamicJsonDocument deviceDoc(32768);
-    static DynamicJsonDocument deviceFilterDoc(512);
-    deviceFilterDoc.clear();
-    JsonObject deviceFilterRoot = deviceFilterDoc.to<JsonObject>();
-    JsonObject deviceFilterData = deviceFilterRoot["data"][0].to<JsonObject>();
-    deviceFilterData["id"] = true;
-    deviceFilterData["services"][0]["rid"] = true;
-    deviceFilterData["services"][0]["rtype"] = true;
-    deviceFilterData["children"][0]["rid"] = true;
-    deviceFilterData["children"][0]["rtype"] = true;
-    deviceFilterData["grouped_services"][0]["rid"] = true;
-    deviceFilterData["grouped_services"][0]["rtype"] = true;
-    deviceDoc.clear();
-    int deviceStatus = httpGet("/clip/v2/resource/device", deviceDoc, &deviceFilterDoc);
-    if (isHttpSuccessStatus(deviceStatus))
-    {
-        appendDeviceLightLinksFromDoc(deviceLightLinks, deviceDoc);
-    }
+        static DynamicJsonDocument roomDoc(32768);
+        static DynamicJsonDocument locationFilterDoc(640);
+        locationFilterDoc.clear();
+        JsonObject locationFilterRoot = locationFilterDoc.to<JsonObject>();
+        JsonObject locationFilterData = locationFilterRoot["data"][0].to<JsonObject>();
+        locationFilterData["id"] = true;
+        locationFilterData["id_v1"] = true;
+        locationFilterData["metadata"]["name"] = true;
+        locationFilterData["name"] = true;
+        locationFilterData["children"][0]["rid"] = true;
+        locationFilterData["children"][0]["rtype"] = true;
+        locationFilterData["services"][0]["rid"] = true;
+        locationFilterData["services"][0]["rtype"] = true;
+        locationFilterData["grouped_services"][0]["rid"] = true;
+        locationFilterData["grouped_services"][0]["rtype"] = true;
+        roomDoc.clear();
+        int roomStatus = httpGet("/clip/v2/resource/room", roomDoc, &locationFilterDoc);
+        if (isHttpSuccessStatus(roomStatus))
+        {
+            appendLocationsFromDoc(locations, roomDoc, true, deviceLightLinks);
+        }
 
-    static DynamicJsonDocument roomDoc(32768);
-    static DynamicJsonDocument locationFilterDoc(640);
-    locationFilterDoc.clear();
-    JsonObject locationFilterRoot = locationFilterDoc.to<JsonObject>();
-    JsonObject locationFilterData = locationFilterRoot["data"][0].to<JsonObject>();
-    locationFilterData["id"] = true;
-    locationFilterData["id_v1"] = true;
-    locationFilterData["metadata"]["name"] = true;
-    locationFilterData["name"] = true;
-    locationFilterData["children"][0]["rid"] = true;
-    locationFilterData["children"][0]["rtype"] = true;
-    locationFilterData["services"][0]["rid"] = true;
-    locationFilterData["services"][0]["rtype"] = true;
-    locationFilterData["grouped_services"][0]["rid"] = true;
-    locationFilterData["grouped_services"][0]["rtype"] = true;
-    roomDoc.clear();
-    int roomStatus = httpGet("/clip/v2/resource/room", roomDoc, &locationFilterDoc);
-    if (isHttpSuccessStatus(roomStatus))
-    {
-        appendLocationsFromDoc(locations, roomDoc, true, deviceLightLinks);
-    }
+        static DynamicJsonDocument zoneDoc(32768);
+        zoneDoc.clear();
+        int zoneStatus = httpGet("/clip/v2/resource/zone", zoneDoc, &locationFilterDoc);
+        if (isHttpSuccessStatus(zoneStatus))
+        {
+            appendLocationsFromDoc(locations, zoneDoc, false, deviceLightLinks);
+        }
 
-    static DynamicJsonDocument zoneDoc(32768);
-    zoneDoc.clear();
-    int zoneStatus = httpGet("/clip/v2/resource/zone", zoneDoc, &locationFilterDoc);
-    if (isHttpSuccessStatus(zoneStatus))
-    {
-        appendLocationsFromDoc(locations, zoneDoc, false, deviceLightLinks);
-    }
+        const size_t roomItems = roomDoc["data"].is<JsonArrayConst>() ? roomDoc["data"].as<JsonArrayConst>().size() : 0;
+        const size_t zoneItems = zoneDoc["data"].is<JsonArrayConst>() ? zoneDoc["data"].as<JsonArrayConst>().size() : 0;
+        if (locations.empty() && (roomItems > 0 || zoneItems > 0))
+        {
+            Serial.printf("[HueGatewayClient] WARNING: No room/zone mapping created (roomItems=%u zoneItems=%u links=%u)\n",
+                        static_cast<unsigned>(roomItems),
+                        static_cast<unsigned>(zoneItems),
+                        static_cast<unsigned>(deviceLightLinks.size()));
+        }
 
-    const size_t roomItems = roomDoc["data"].is<JsonArrayConst>() ? roomDoc["data"].as<JsonArrayConst>().size() : 0;
-    const size_t zoneItems = zoneDoc["data"].is<JsonArrayConst>() ? zoneDoc["data"].as<JsonArrayConst>().size() : 0;
-    if (locations.empty() && (roomItems > 0 || zoneItems > 0))
-    {
-        Serial.printf("[HueGatewayClient] WARNING: No room/zone mapping created (roomItems=%u zoneItems=%u links=%u)\n",
-                      static_cast<unsigned>(roomItems),
-                      static_cast<unsigned>(zoneItems),
-                      static_cast<unsigned>(deviceLightLinks.size()));
+        if (!locations.empty())
+        {
+            sCachedLocations = locations;
+            sLocationCacheValidUntilMs = now + kLightLocationCacheMs;
+        }
+        else if (!sCachedLocations.empty())
+        {
+            locations = sCachedLocations;
+        }
     }
 
     int count = 0;
@@ -1881,14 +1914,16 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
     Serial.printf("[HueGatewayClient] HTTP PUT %s payload=%s\n", url.c_str(), payload.c_str());
     _http.setTimeout(2000);
     const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected) && _eventClient.connected();
+    bool eventPausedForPut = false;
 
-    if (eventWasActive)
+    if (eventWasActive && !hasTlsInternalHeadroom())
     {
-        Serial.println("[HueGatewayClient] Pausing EventStream for HTTPS PUT");
+        Serial.println("[HueGatewayClient] Pausing EventStream for HTTPS PUT (internal TLS headroom low)");
         _http.end();
         stopEventStream();
         _secureClient.stop();
         delay(25);
+        eventPausedForPut = true;
     }
     
     _http.begin(_secureClient, url);
@@ -1910,7 +1945,7 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
     
     _http.end();
 
-    if (eventWasActive)
+    if (eventPausedForPut)
     {
         if (!hasTlsInternalHeadroom())
         {

@@ -18,20 +18,26 @@
 
 namespace
 {
+#ifndef OPENKNX_HUE_EVENTSTREAM_POLICY_DEFAULT
+#define OPENKNX_HUE_EVENTSTREAM_POLICY_DEFAULT 1
+#endif
+
 static constexpr unsigned long kFastTrackFirstDelayMs = 200UL;
 static constexpr unsigned long kFastTrackSecondDelayMs = 300UL;
 static constexpr unsigned long kFastTrackCooldownMs = 800UL;
 static constexpr uint8_t kFastTrackChecksPerCommand = 2;
-static constexpr unsigned long kBridgePingBackoffMinMs = 15000UL;
+static constexpr unsigned long kBridgePingBackoffMinMs = 60000UL;
 static constexpr unsigned long kBridgePingBackoffMaxMs = 120000UL;
 static constexpr unsigned long kBridgeHealthForEventstreamMs = 15000UL;
-static constexpr unsigned long kBridgeHealthRecentSkipPingMs = 12000UL;
-static constexpr unsigned long kPollingSnapshotCacheMs = 5000UL;
+static constexpr unsigned long kBridgeHealthRecentSkipPingMs = 60000UL;
+static constexpr unsigned long kEventStreamRetryBaseMs = 1000UL;
+static constexpr unsigned long kPollingSnapshotCacheMs = 25000UL;
+static constexpr unsigned long kPollingSnapshotHardMaxAgeMs = 90000UL;
 static constexpr int kWebScanMaxLights = 192;
 static constexpr int kWebScanMaxTargets = 192;
 static constexpr unsigned long kWebScanCacheStaleMs = 15000UL;
 static constexpr unsigned long kWebScanTimeoutMs = 90000UL;
-static bool sEventStreamEnabled = false;
+static bool sEventStreamEnabled = (OPENKNX_HUE_EVENTSTREAM_POLICY_DEFAULT != 0);
 
 static unsigned long sBridgeNextPingAllowedMs = 0UL;
 static unsigned long sBridgePingBackoffMs = kBridgePingBackoffMinMs;
@@ -292,7 +298,7 @@ HueGatewayModule::HueGatewayModule()
     , _lastRefreshTickMs(0)
     , _lastDeviceSetupRetryMs(0)
     , _lastEventStreamRetryMs(0)
-    , _eventStreamRetryBackoffMs(10000)
+    , _eventStreamRetryBackoffMs(kEventStreamRetryBaseMs)
     , _eventStreamPauseUntilMs(0)
     , _eventStreamFailureCount(0)
     , _client(nullptr)
@@ -452,7 +458,7 @@ void HueGatewayModule::loop()
             {
                 _client->stopEventStream();
             }
-            _eventStreamRetryBackoffMs = 10000;
+            _eventStreamRetryBackoffMs = kEventStreamRetryBaseMs;
             _eventStreamPauseUntilMs = 0;
             _eventStreamFailureCount = 0;
         }
@@ -464,7 +470,7 @@ void HueGatewayModule::loop()
             if (_eventStreamPauseUntilMs != 0 && now >= _eventStreamPauseUntilMs)
             {
                 _eventStreamPauseUntilMs = 0;
-                _eventStreamRetryBackoffMs = 10000;
+                _eventStreamRetryBackoffMs = kEventStreamRetryBaseMs;
                 _eventStreamFailureCount = 0;
                 Serial.println("[HueGatewayModule] EventStream cooldown elapsed, retrying");
             }
@@ -509,7 +515,7 @@ void HueGatewayModule::loop()
         }
         else
         {
-            _eventStreamRetryBackoffMs = 10000;
+            _eventStreamRetryBackoffMs = kEventStreamRetryBaseMs;
             _eventStreamPauseUntilMs = 0;
             _eventStreamFailureCount = 0;
 
@@ -654,7 +660,7 @@ const std::string HueGatewayModule::name()
 
 const std::string HueGatewayModule::version()
 {
-    return "0.3.0";
+    return "0.3.1";
 }
 
 void HueGatewayModule::processInputKo(GroupObject& ko)
@@ -1904,11 +1910,11 @@ void HueGatewayModule::setupDevices()
         _lights[ch]->setMinBrightness(minBrightness);
         uint8_t switchOnTransitionSec = 2;
         uint8_t switchOffTransitionSec = 6;
-        #ifdef ParamHUESwitchOnTransitionSec
-        switchOnTransitionSec = ParamHUESwitchOnTransitionSec;
+        #ifdef ParamHUE_HUESwitchOnTransitionSec
+        switchOnTransitionSec = ParamHUE_HUESwitchOnTransitionSec;
         #endif
-        #ifdef ParamHUESwitchOffTransitionSec
-        switchOffTransitionSec = ParamHUESwitchOffTransitionSec;
+        #ifdef ParamHUE_HUESwitchOffTransitionSec
+        switchOffTransitionSec = ParamHUE_HUESwitchOffTransitionSec;
         #endif
         _lights[ch]->setSwitchTransitionDurations(switchOnTransitionSec, switchOffTransitionSec);
         _channelLastPollMs[ch] = 0;
@@ -2295,6 +2301,19 @@ void HueGatewayModule::checkConnection()
         return;
     }
 
+    if (_lightCount > 0
+        && !_client->isEventStreamConnected()
+        && _lastChannelSyncOkMs != 0
+        && (now - _lastChannelSyncOkMs) <= 25000UL)
+    {
+        _lastBridgeHealthOkMs = now;
+        if (!_authPending && _bridgeStatus != BridgeStatus::CONNECTED)
+        {
+            updateStatus(BridgeStatus::CONNECTED);
+        }
+        return;
+    }
+
     if (_lastBridgeHealthOkMs != 0 && (now - _lastBridgeHealthOkMs) <= kBridgeHealthRecentSkipPingMs)
     {
         if (!_authPending && _bridgeStatus != BridgeStatus::CONNECTED)
@@ -2351,6 +2370,13 @@ void HueGatewayModule::checkConnection()
 
 void HueGatewayModule::refreshLightStatus()
 {
+    static bool sPollingModeMarkerLogged = false;
+    if (!sPollingModeMarkerLogged)
+    {
+        sPollingModeMarkerLogged = true;
+        Serial.println("[HueGatewayModule] Polling mode v2 active (alternating endpoint fetch + extended cache)");
+    }
+
     if (!_client || !_client->isInitialized())
     {
         return;
@@ -2444,7 +2470,50 @@ void HueGatewayModule::refreshLightStatus()
     HueGatewayLightState* groupedSnapshot = pollGroupedLights;
     int groupedCount = 0;
 
-    if (dueLightChannels > 0 && cacheValidUntilMs != 0 && now <= cacheValidUntilMs)
+    static unsigned long lastLightSnapshotMs = 0UL;
+    static unsigned long lastGroupedSnapshotMs = 0UL;
+    static bool sPollGroupedThisCycle = false;
+
+    const bool lightCacheReusable = (dueLightChannels > 0 && cacheValidUntilMs != 0 && now <= cacheValidUntilMs);
+    const bool groupedCacheReusable = (dueGroupedChannels > 0 && groupedCacheValidUntilMs != 0 && now <= groupedCacheValidUntilMs);
+    const bool haveLightSnapshot = (cachedCount > 0 && lastLightSnapshotMs != 0 && (now - lastLightSnapshotMs) <= kPollingSnapshotHardMaxAgeMs);
+    const bool haveGroupedSnapshot = (cachedGroupedCount > 0 && lastGroupedSnapshotMs != 0 && (now - lastGroupedSnapshotMs) <= kPollingSnapshotHardMaxAgeMs);
+
+    bool fetchLightNow = false;
+    bool fetchGroupedNow = false;
+
+    if (dueLightChannels > 0 && dueGroupedChannels > 0)
+    {
+        if (!haveLightSnapshot && !haveGroupedSnapshot)
+        {
+            fetchLightNow = true;
+            fetchGroupedNow = true;
+        }
+        else if (!haveLightSnapshot)
+        {
+            fetchLightNow = true;
+        }
+        else if (!haveGroupedSnapshot)
+        {
+            fetchGroupedNow = true;
+        }
+        else if (sPollGroupedThisCycle)
+        {
+            fetchGroupedNow = true;
+        }
+        else
+        {
+            fetchLightNow = true;
+        }
+        sPollGroupedThisCycle = !sPollGroupedThisCycle;
+    }
+    else
+    {
+        fetchLightNow = (dueLightChannels > 0) && !lightCacheReusable;
+        fetchGroupedNow = (dueGroupedChannels > 0) && !groupedCacheReusable;
+    }
+
+    if ((lightCacheReusable || haveLightSnapshot) && !fetchLightNow)
     {
         lightSnapshot = cachedLights;
         count = cachedCount;
@@ -2456,7 +2525,7 @@ void HueGatewayModule::refreshLightStatus()
         Serial.printf("[HueGatewayModule] Polling returned %d light(s)\n", count);
     }
 
-    if (dueGroupedChannels > 0 && groupedCacheValidUntilMs != 0 && now <= groupedCacheValidUntilMs)
+    if ((groupedCacheReusable || haveGroupedSnapshot) && !fetchGroupedNow)
     {
         groupedSnapshot = cachedGroupedLights;
         groupedCount = cachedGroupedCount;
@@ -2498,6 +2567,10 @@ void HueGatewayModule::refreshLightStatus()
             cachedLights[i] = pollLights[i];
         }
         cacheValidUntilMs = now + kPollingSnapshotCacheMs;
+        if (count > 0)
+        {
+            lastLightSnapshotMs = now;
+        }
         lightSnapshot = cachedLights;
     }
 
@@ -2509,6 +2582,10 @@ void HueGatewayModule::refreshLightStatus()
             cachedGroupedLights[i] = pollGroupedLights[i];
         }
         groupedCacheValidUntilMs = now + kPollingSnapshotCacheMs;
+        if (groupedCount > 0)
+        {
+            lastGroupedSnapshotMs = now;
+        }
         groupedSnapshot = cachedGroupedLights;
     }
 
@@ -3347,6 +3424,9 @@ bool HueGatewayModule::initClientWithAppKey()
 
     _lastEventStreamRetryMs = 0;
     _reconnectBackoffMs = 10000;
+    Serial.printf("[HueGatewayModule] EventStream policy default=%d, enabled=%s\n",
+                  static_cast<int>(OPENKNX_HUE_EVENTSTREAM_POLICY_DEFAULT),
+                  sEventStreamEnabled ? "yes" : "no");
     if (sEventStreamEnabled)
     {
         bool eventStreamStarted = _client->startEventStream();

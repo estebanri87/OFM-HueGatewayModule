@@ -139,6 +139,7 @@ public:
 
     void setGroupedTarget(bool groupedTarget) { _isGroupedTarget = groupedTarget; }
     bool isGroupedTarget() const { return _isGroupedTarget; }
+    unsigned long getLastHueWriteSuccessMs() const { return _lastHueWriteSuccessMs; }
 
 private:
     String _lightId;
@@ -176,6 +177,9 @@ private:
     uint16_t _currentKelvin; // Current color temperature in Kelvin
     unsigned long _lastHCLUpdate; // Timestamp of last HCL update (millis)
     uint8_t _lastHCLBrightness; // Last applied HCL brightness (%)
+    uint16_t _hclPhaseOffsetMs;
+    unsigned long _nextHCLDueMs;
+    unsigned long _lastHueWriteSuccessMs;
     
     // Lifecycle flags.
     bool _initialized;
