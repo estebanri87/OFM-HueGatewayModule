@@ -173,7 +173,7 @@ bool HueGatewayClient::begin(const String& bridgeIP, const String& appKey)
     return true;
 }
 
-int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights)
+int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights, bool includeLocations)
 {
     if (!_initialized)
     {
@@ -207,22 +207,24 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights)
     JsonArrayConst data = doc["data"].as<JsonArrayConst>();
     std::vector<LightLocation> locations;
 
-    static std::vector<LightLocation> sCachedLocations;
-    static unsigned long sLocationCacheValidUntilMs = 0UL;
-
-    const unsigned long now = millis();
-    const bool cacheValid = !sCachedLocations.empty()
-        && sLocationCacheValidUntilMs != 0UL
-        && now <= sLocationCacheValidUntilMs;
-
-    if (cacheValid)
+    if (includeLocations)
     {
-        locations = sCachedLocations;
-    }
-    else
-    {
-        std::vector<DeviceLightLink> deviceLightLinks;
-        deviceLightLinks.reserve(static_cast<size_t>(data.size()));
+        static std::vector<LightLocation> sCachedLocations;
+        static unsigned long sLocationCacheValidUntilMs = 0UL;
+
+        const unsigned long now = millis();
+        const bool cacheValid = !sCachedLocations.empty()
+            && sLocationCacheValidUntilMs != 0UL
+            && now <= sLocationCacheValidUntilMs;
+
+        if (cacheValid)
+        {
+            locations = sCachedLocations;
+        }
+        else
+        {
+            std::vector<DeviceLightLink> deviceLightLinks;
+            deviceLightLinks.reserve(static_cast<size_t>(data.size()));
 
         // Build a direct device->light map from light payload first.
         // This is robust even if /device does not expose light refs on some bridge firmwares.
@@ -300,14 +302,15 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights)
                         static_cast<unsigned>(deviceLightLinks.size()));
         }
 
-        if (!locations.empty())
-        {
-            sCachedLocations = locations;
-            sLocationCacheValidUntilMs = now + kLightLocationCacheMs;
-        }
-        else if (!sCachedLocations.empty())
-        {
-            locations = sCachedLocations;
+            if (!locations.empty())
+            {
+                sCachedLocations = locations;
+                sLocationCacheValidUntilMs = now + kLightLocationCacheMs;
+            }
+            else if (!sCachedLocations.empty())
+            {
+                locations = sCachedLocations;
+            }
         }
     }
 
@@ -1715,6 +1718,7 @@ int HueGatewayClient::parseEventPayload(const String& payload, HueGatewayEventLi
             {
                 continue;
             }
+            const bool isGroupedResource = (strcmp(type, "grouped_light") == 0);
 
             const char* id = item["id"] | "";
             if (id[0] == '\0' || updateCount >= maxUpdates)
@@ -1724,6 +1728,7 @@ int HueGatewayClient::parseEventPayload(const String& payload, HueGatewayEventLi
 
             HueGatewayEventLightUpdate& update = updates[updateCount];
             update.lightId = String(id);
+            update.isGroupedResource = isGroupedResource;
             update.hasOn = false;
             update.on = false;
             update.hasBrightness = false;

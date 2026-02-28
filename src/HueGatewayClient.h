@@ -42,6 +42,7 @@ struct HueGatewayLightState
 struct HueGatewayEventLightUpdate
 {
     String lightId;
+    bool isGroupedResource;
     bool hasOn;
     bool on;
     bool hasBrightness;
@@ -81,7 +82,7 @@ public:
     * @param maxLights Maximum number of entries (array size)
     * @return number of discovered lights
      */
-    int getLights(HueGatewayLightState* lights, int maxLights);
+    int getLights(HueGatewayLightState* lights, int maxLights, bool includeLocations = true);
     int getGroupedLights(HueGatewayLightState* groupedLights, int maxLights);
     
     /**

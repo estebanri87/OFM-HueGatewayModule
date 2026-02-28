@@ -110,6 +110,9 @@ private:
     unsigned long _authWindowMs;
     unsigned long _lastReconnectTryMs;
     unsigned long _reconnectBackoffMs;
+    unsigned long _setupCircuitOpenUntilMs;
+    uint8_t _setupCircuitTrips;
+    unsigned long _lastLoopBudgetLogMs;
     bool _manualPairingRequired;
     bool _pairingTriggerLastState;
     unsigned long _lastPairingTriggerMs;
