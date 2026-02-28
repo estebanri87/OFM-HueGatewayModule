@@ -9,6 +9,7 @@
 #include <lwip/sockets.h>
 #include <lwip/inet.h>
 #include <cstring>
+#include <new>
 
 #if __has_include("NetworkModule.h")
 #include "NetworkModule.h"
@@ -21,12 +22,15 @@ static constexpr unsigned long kFastTrackFirstDelayMs = 200UL;
 static constexpr unsigned long kFastTrackSecondDelayMs = 300UL;
 static constexpr unsigned long kFastTrackCooldownMs = 800UL;
 static constexpr uint8_t kFastTrackChecksPerCommand = 2;
-
 static constexpr unsigned long kBridgePingBackoffMinMs = 15000UL;
 static constexpr unsigned long kBridgePingBackoffMaxMs = 120000UL;
 static constexpr unsigned long kBridgeHealthForEventstreamMs = 15000UL;
 static constexpr unsigned long kBridgeHealthRecentSkipPingMs = 12000UL;
 static constexpr unsigned long kPollingSnapshotCacheMs = 5000UL;
+static constexpr int kWebScanMaxLights = 192;
+static constexpr int kWebScanMaxTargets = 192;
+static constexpr unsigned long kWebScanCacheStaleMs = 15000UL;
+static constexpr unsigned long kWebScanTimeoutMs = 90000UL;
 static bool sEventStreamEnabled = false;
 
 static unsigned long sBridgeNextPingAllowedMs = 0UL;
@@ -317,6 +321,8 @@ HueGatewayModule::HueGatewayModule()
     , _webScanInProgress(false)
     , _networkConnectedLast(false)
     , _mdnsStarted(false)
+    , _webScanStartedMs(0)
+    , _lastWebScanDurationMs(0)
     , _lastWebScanMs(0)
     , _lastWebScanLightCount(-1)
     , _hclLockActive(false)
@@ -352,6 +358,7 @@ HueGatewayModule::HueGatewayModule()
         _hclMasterValuesPublished[i] = false;
     }
 
+    _lastWebScanError = "";
     _lastWebScanHtml = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Hue-Geräte laden</title></head><body><h1>🔍 Hue-Geräte laden</h1><p>Noch kein Scan durchgeführt.</p></body></html>";
     _lastWebScanText = "Noch kein Scan durchgeführt.\n";
 }
@@ -630,7 +637,11 @@ void HueGatewayModule::loop()
     {
         _webScanRequested = false;
         _webScanInProgress = true;
+        _webScanStartedMs = millis();
+        _lastWebScanError = "";
         updateWebScanCache();
+        _lastWebScanDurationMs = (_webScanStartedMs == 0) ? 0 : (millis() - _webScanStartedMs);
+        _webScanStartedMs = 0;
         _lastWebScanMs = millis();
         _webScanInProgress = false;
     }
@@ -947,12 +958,22 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
             return true;
         }
         
-        static HueGatewayLightState lights[MAX_LIGHTS];
-        int count = client.getLights(lights, MAX_LIGHTS);
-        HueGatewayTargetInfo rooms[MAX_LIGHTS];
-        HueGatewayTargetInfo zones[MAX_LIGHTS];
-        int roomCount = client.getRoomTargets(rooms, MAX_LIGHTS);
-        int zoneCount = client.getZoneTargets(zones, MAX_LIGHTS);
+        HueGatewayLightState* lights = new (std::nothrow) HueGatewayLightState[kWebScanMaxLights];
+        HueGatewayTargetInfo* rooms = new (std::nothrow) HueGatewayTargetInfo[kWebScanMaxTargets];
+        HueGatewayTargetInfo* zones = new (std::nothrow) HueGatewayTargetInfo[kWebScanMaxTargets];
+
+        if (lights == nullptr || rooms == nullptr || zones == nullptr)
+        {
+            delete[] lights;
+            delete[] rooms;
+            delete[] zones;
+            Serial.println("ERROR: Nicht genug RAM fuer Hue-Scan-Puffer");
+            return true;
+        }
+
+        int count = client.getLights(lights, kWebScanMaxLights);
+        int roomCount = client.getRoomTargets(rooms, kWebScanMaxTargets);
+        int zoneCount = client.getZoneTargets(zones, kWebScanMaxTargets);
         
         Serial.println("Found Lights:");
         Serial.println("---------------------------------");
@@ -1004,6 +1025,10 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
         Serial.println("3. Set channel to active");
         Serial.println("Legacy fallback still works: 'Hue Lampen-ID (UUID)' or prefixes room:/zone:");
         Serial.println("=================================");
+
+        delete[] lights;
+        delete[] rooms;
+        delete[] zones;
         
         return true;
     }
@@ -3448,6 +3473,18 @@ bool HueGatewayModule::startPairing()
         return false;
     }
 
+    if (_webScanInProgress || _webScanRequested || _lastWebScanText.length() > 2048 || _lastWebScanHtml.length() > 4096)
+    {
+        Serial.printf("[HueGatewayModule] Releasing web scan cache before pairing (text=%u, html=%u)\n",
+                      static_cast<unsigned>(_lastWebScanText.length()),
+                      static_cast<unsigned>(_lastWebScanHtml.length()));
+    }
+    _webScanRequested = false;
+    _webScanInProgress = false;
+    _lastWebScanError = "";
+    _lastWebScanHtml = "";
+    _lastWebScanText = "";
+
     resetDevices();
     _auth.clearAppKey();
     _manualPairingRequired = false;
@@ -3543,6 +3580,41 @@ static esp_err_t send_text(httpd_req_t* req, const String& text, int status)
     httpd_resp_set_type(req, "text/plain; charset=UTF-8");
     httpd_resp_set_status(req, status == 200 ? "200 OK" : "500 Internal Server Error");
     return httpd_resp_send(req, text.c_str(), HTTPD_RESP_USE_STRLEN);
+}
+
+static esp_err_t begin_chunked_html(httpd_req_t* req)
+{
+    httpd_resp_set_type(req, "text/html; charset=UTF-8");
+    httpd_resp_set_status(req, "200 OK");
+    return ESP_OK;
+}
+
+static esp_err_t send_html_chunk(httpd_req_t* req, const String& chunk)
+{
+    return httpd_resp_send_chunk(req, chunk.c_str(), chunk.length());
+}
+
+static esp_err_t end_html_chunks(httpd_req_t* req)
+{
+    return httpd_resp_send_chunk(req, nullptr, 0);
+}
+
+static String escape_html(const String& input)
+{
+    String out;
+    out.reserve(input.length() + 32);
+    for (size_t i = 0; i < input.length(); i++)
+    {
+        char ch = input[i];
+        switch (ch)
+        {
+            case '&': out += "&amp;"; break;
+            case '<': out += "&lt;"; break;
+            case '>': out += "&gt;"; break;
+            default: out += ch; break;
+        }
+    }
+    return out;
 }
 
 static String maskKey(const String& key)
@@ -3649,7 +3721,7 @@ esp_err_t HueGatewayModule::handleWebScan(httpd_req_t* req)
     if (self == nullptr)
         return httpd_resp_send_500(req);
 
-    if (!self->_client || !self->_initialized)
+    if (!self->_client || !self->_initialized || !self->_client->isInitialized())
     {
         const String hueBaseUri = String(openknxWebUI.getBaseUri()) + "/hue";
 
@@ -3665,18 +3737,45 @@ esp_err_t HueGatewayModule::handleWebScan(httpd_req_t* req)
     if (self->_webScanInProgress)
     {
         const String hueBaseUri = String(openknxWebUI.getBaseUri()) + "/hue";
+        const unsigned long elapsedMs = (self->_webScanStartedMs == 0) ? 0 : (millis() - self->_webScanStartedMs);
+
+        if (elapsedMs > kWebScanTimeoutMs)
+        {
+            self->_webScanInProgress = false;
+            self->_webScanRequested = false;
+            self->_lastWebScanDurationMs = elapsedMs;
+            self->_lastWebScanError = "Web-Scan Timeout nach " + String(elapsedMs / 1000UL) + " Sekunden";
+
+            String html;
+            html.reserve(1024);
+            html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Hue-Geräte laden</title></head><body>";
+            html += "<h1>⚠️ Hue-Scan dauert zu lange</h1>";
+            html += "<p>Der Scan läuft seit " + String(elapsedMs / 1000UL) + " Sekunden. Das überschreitet den Timeout.</p>";
+            html += "<p>Bitte Tester-Feedback inkl. Seriellog senden: JSON parse error, Content-Length, HTTP GET failed.</p>";
+            html += "<a href='" + hueBaseUri + "/scan'><button>Erneut versuchen</button></a> ";
+            html += "<a href='" + hueBaseUri + "/scan.txt'><button>TXT Status</button></a> ";
+            html += "<a href='" + hueBaseUri + "'><button>← Zurück</button></a></body></html>";
+            self->_lastWebScanHtml = html;
+            self->_lastWebScanText = "Scan-Timeout nach " + String(elapsedMs / 1000UL) + " Sekunden. Bitte Seriellog mit JSON parse error / Content-Length / HTTP GET failed senden.\n";
+            self->_lastWebScanLightCount = 0;
+            return send_html(req, html, 200);
+        }
+
         String html;
         html.reserve(384);
         html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><meta http-equiv='refresh' content='2'><title>Hue-Geräte laden</title></head><body>";
         html += "<h1>🔄 Hue-Geräte laden</h1><p>Scan läuft... Seite aktualisiert sich automatisch.</p>";
+        if (elapsedMs > 0)
+        {
+            html += "<p>Laufzeit: " + String(elapsedMs / 1000UL) + " Sekunden</p>";
+        }
         html += "<a href='" + hueBaseUri + "'>← Zurück</a></body></html>";
         return send_html(req, html, 200);
     }
 
     const bool noScanYet = (self->_lastWebScanMs == 0);
-    const bool stale = (!noScanYet) && ((millis() - self->_lastWebScanMs) > 15000UL);
-    const bool retryAfterNoLights = (self->_lastWebScanLightCount <= 0);
-    if (noScanYet || stale || retryAfterNoLights)
+    const bool stale = (!noScanYet) && ((millis() - self->_lastWebScanMs) > kWebScanCacheStaleMs);
+    if (noScanYet || stale)
     {
         self->_webScanRequested = true;
         const String hueBaseUri = String(openknxWebUI.getBaseUri()) + "/hue";
@@ -3688,8 +3787,71 @@ esp_err_t HueGatewayModule::handleWebScan(httpd_req_t* req)
         return send_html(req, html, 200);
     }
 
-    String html = self->getBridgeScanHTML();
-    return send_html(req, html, 200);
+    const String hueBaseUri = String(openknxWebUI.getBaseUri()) + "/hue";
+
+    if (begin_chunked_html(req) != ESP_OK)
+    {
+        return httpd_resp_send_500(req);
+    }
+
+    String chunk;
+    chunk.reserve(768);
+    chunk = "<!DOCTYPE html><html><head><meta charset='UTF-8'>";
+    chunk += "<title>Hue-Geräte von Bridge</title>";
+    chunk += "<style>body{font-family:'Courier New',monospace;margin:40px;background:#1e1e1e;color:#d4d4d4;}";
+    chunk += "h1{color:#4ec9b0;}";
+    chunk += ".light{background:#252526;padding:15px;margin:10px 0;border-left:4px solid #007acc;border-radius:3px;}";
+    chunk += ".light-id{color:#ce9178;font-size:0.9em;word-break:break-all;}";
+    chunk += ".status{color:#b5cea8;}";
+    chunk += ".error{color:#f48771;background:#3c1f1e;padding:15px;border-left:4px solid #f48771;}";
+    chunk += "button{padding:8px 15px;margin:5px;background:#007acc;color:white;border:none;border-radius:3px;cursor:pointer;}";
+    chunk += "button:hover{background:#005a9e;}</style></head><body>";
+    chunk += "<h1>🔍 Hue-Geräte von Bridge</h1>";
+
+    if (send_html_chunk(req, chunk) != ESP_OK)
+    {
+        return httpd_resp_send_500(req);
+    }
+
+    chunk = "";
+    chunk.reserve(512);
+    if (self->_lastWebScanLightCount <= 0)
+    {
+        chunk += "<div class='error'>❌ Keine Leuchten gefunden! Bitte Bridge-Verbindung prüfen.</div>";
+        if (self->_lastWebScanError.length() > 0)
+        {
+            chunk += "<div class='error'>Diagnose: " + self->_lastWebScanError + "</div>";
+        }
+    }
+    else
+    {
+        chunk += "<p>Es wurden <strong>" + String(self->_lastWebScanLightCount) + "</strong> Leuchten gefunden:</p>";
+        if (self->_lastWebScanDurationMs > 0)
+        {
+            chunk += "<p>Scan-Dauer: " + String(self->_lastWebScanDurationMs / 1000UL) + " Sekunden</p>";
+        }
+        chunk += "<p><strong>Details:</strong></p><pre style='white-space:pre-wrap;background:#252526;padding:12px;border-radius:3px;'>";
+        chunk += escape_html(self->_lastWebScanText);
+        chunk += "</pre>";
+    }
+
+    if (send_html_chunk(req, chunk) != ESP_OK)
+    {
+        return httpd_resp_send_500(req);
+    }
+
+    chunk = "<br><p><strong>Tipp:</strong> Die Leuchten-ID kopieren und in die ETS-Kanalparameter einfügen.</p>";
+    chunk += "<button onclick='location.reload()'>Aktualisieren</button>";
+    chunk += "<a href='" + hueBaseUri + "/scan.txt'><button>TXT herunterladen</button></a>";
+    chunk += "<a href='" + hueBaseUri + "'><button>Zurück</button></a>";
+    chunk += "</body></html>";
+
+    if (send_html_chunk(req, chunk) != ESP_OK)
+    {
+        return httpd_resp_send_500(req);
+    }
+
+    return end_html_chunks(req);
 }
 
 esp_err_t HueGatewayModule::handleWebScanText(httpd_req_t* req)
@@ -3698,18 +3860,37 @@ esp_err_t HueGatewayModule::handleWebScanText(httpd_req_t* req)
     if (self == nullptr)
         return httpd_resp_send_500(req);
 
-    if (!self->_client || !self->_initialized)
+    if (!self->_client || !self->_initialized || !self->_client->isInitialized())
         return send_text(req, "Keine aktive Bridge-Verbindung. Bitte zuerst Pairing starten und den Hue-Bridge-Button druecken.\n", 200);
 
     if (self->_webScanInProgress)
     {
-        return send_text(req, "Scan läuft, bitte in 2-3 Sekunden erneut abrufen.\n", 200);
+        const unsigned long elapsedMs = (self->_webScanStartedMs == 0) ? 0 : (millis() - self->_webScanStartedMs);
+        if (elapsedMs > kWebScanTimeoutMs)
+        {
+            self->_webScanInProgress = false;
+            self->_webScanRequested = false;
+            self->_lastWebScanDurationMs = elapsedMs;
+            self->_lastWebScanError = "Web-Scan Timeout nach " + String(elapsedMs / 1000UL) + " Sekunden";
+            self->_lastWebScanText = "Scan-Timeout nach " + String(elapsedMs / 1000UL) + " Sekunden. Bitte Seriellog mit JSON parse error / Content-Length / HTTP GET failed senden.\n";
+            self->_lastWebScanLightCount = 0;
+            return send_text(req,
+                             "Scan-Timeout: Der Hue-Scan dauert zu lange. Bitte Seriellog mit JSON parse error / Content-Length / HTTP GET failed senden und Scan erneut starten.\n",
+                             200);
+        }
+
+        String text = "Scan läuft, bitte in 2-3 Sekunden erneut abrufen.";
+        if (elapsedMs > 0)
+        {
+            text += " Laufzeit=" + String(elapsedMs / 1000UL) + "s.";
+        }
+        text += "\n";
+        return send_text(req, text, 200);
     }
 
     const bool noScanYet = (self->_lastWebScanMs == 0);
-    const bool stale = (!noScanYet) && ((millis() - self->_lastWebScanMs) > 15000UL);
-    const bool retryAfterNoLights = (self->_lastWebScanLightCount <= 0);
-    if (noScanYet || stale || retryAfterNoLights)
+    const bool stale = (!noScanYet) && ((millis() - self->_lastWebScanMs) > kWebScanCacheStaleMs);
+    if (noScanYet || stale)
     {
         self->_webScanRequested = true;
         return send_text(req, "Scan gestartet, bitte in 2-3 Sekunden erneut abrufen.\n", 200);
@@ -4010,8 +4191,11 @@ String HueGatewayModule::getBridgeScanText()
 
 void HueGatewayModule::updateWebScanCache()
 {
+    _lastWebScanError = "";
+
     if (!_client || !_initialized || !_client->isInitialized())
     {
+        _lastWebScanError = "Keine aktive Bridge-Verbindung";
         _lastWebScanHtml = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Hue-Geräte laden</title></head><body><h1>ℹ️ Hue-Geräte laden</h1><p>Keine aktive Bridge-Verbindung.</p></body></html>";
         _lastWebScanText = "Keine aktive Bridge-Verbindung.\n";
         _lastWebScanLightCount = -1;
@@ -4026,32 +4210,20 @@ void HueGatewayModule::updateWebScanCache()
     }
 
     const int previousLightCount = _lastWebScanLightCount;
-    const String previousHtml = _lastWebScanHtml;
-    const String previousText = _lastWebScanText;
 
-    static HueGatewayLightState lights[MAX_LIGHTS];
-    int count = _client->getLights(lights, MAX_LIGHTS);
-    if (count <= 0)
+    const String previousText = _lastWebScanText;
+    const unsigned long scanDurationMs = (_webScanStartedMs == 0) ? 0 : (millis() - _webScanStartedMs);
+
+    HueGatewayLightState* lights = new (std::nothrow) HueGatewayLightState[kWebScanMaxLights];
+    if (lights == nullptr)
     {
-        delay(60);
-        count = _client->getLights(lights, MAX_LIGHTS);
+        _lastWebScanLightCount = 0;
+        _lastWebScanError = "Nicht genug RAM fuer Hue-Scan-Liste";
+        _lastWebScanText = "Web-Scan fehlgeschlagen: Nicht genug RAM fuer Hue-Scan-Liste.\n";
+        return;
     }
 
-    const String hueBaseUri = String(openknxWebUI.getBaseUri()) + "/hue";
-
-    String html;
-    html.reserve(2048 + (count > 0 ? (count * 320) : 256));
-    html = "<!DOCTYPE html><html><head><meta charset='UTF-8'>";
-    html += "<title>Hue-Geräte von Bridge</title>";
-    html += "<style>body{font-family:'Courier New',monospace;margin:40px;background:#1e1e1e;color:#d4d4d4;}";
-    html += "h1{color:#4ec9b0;}";
-    html += ".light{background:#252526;padding:15px;margin:10px 0;border-left:4px solid #007acc;border-radius:3px;}";
-    html += ".light-id{color:#ce9178;font-size:0.9em;word-break:break-all;}";
-    html += ".status{color:#b5cea8;}";
-    html += ".error{color:#f48771;background:#3c1f1e;padding:15px;border-left:4px solid #f48771;}";
-    html += "button{padding:8px 15px;margin:5px;background:#007acc;color:white;border:none;border-radius:3px;cursor:pointer;}";
-    html += "button:hover{background:#005a9e;}</style></head><body>";
-    html += "<h1>🔍 Hue-Geräte von Bridge</h1>";
+    int count = _client->getLights(lights, kWebScanMaxLights);
 
     String text;
     text.reserve(256 + (count > 0 ? (count * 180) : 64));
@@ -4063,77 +4235,46 @@ void HueGatewayModule::updateWebScanCache()
         if (previousLightCount > 0)
         {
             _lastWebScanLightCount = previousLightCount;
-            _lastWebScanHtml = previousHtml;
             _lastWebScanText = previousText;
+            _lastWebScanError = "Scan lieferte 0 Leuchten, vorheriges Ergebnis beibehalten";
             Serial.println("[HueGatewayModule] Web scan returned 0 lights, keeping previous successful result");
+            delete[] lights;
             return;
         }
 
-        html += "<div class='error'>❌ Keine Leuchten gefunden! Bitte Bridge-Verbindung prüfen.</div>";
-        html += "<br><a href='" + hueBaseUri + "'><button>← Zurück</button></a></body></html>";
+        const bool bridgeApiReachable = _client->pingBridgeApiV2();
+        if (!bridgeApiReachable)
+        {
+            _lastWebScanError = "Bridge API v2 nicht erreichbar oder Timeout";
+        }
+        else
+        {
+            _lastWebScanError = "Keine Leuchten gefunden oder JSON-Antwort konnte nicht vollständig geparst werden";
+        }
+
         text += "Keine Leuchten gefunden. Bitte Bridge-Verbindung prüfen.\n";
+        text += "Diagnose: " + _lastWebScanError + "\n";
+        if (scanDurationMs > 0)
+        {
+            text += "Scan-Dauer: " + String(scanDurationMs / 1000UL) + " Sekunden\n";
+        }
+        text += "Hinweis: Bei großen Installationen kann ein JSON-Parsefehler durch zu große Antwort auftreten (Seriellog prüfen).\n";
         _lastWebScanLightCount = 0;
-        _lastWebScanHtml = html;
+        _lastWebScanHtml = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Hue-Geräte laden</title></head><body><h1>⚠️ Hue-Geräte laden</h1><p>Keine Leuchten gefunden.</p></body></html>";
         _lastWebScanText = text;
+        delete[] lights;
         return;
     }
 
-    html += "<p>Es wurden <strong>" + String(count) + "</strong> Leuchten gefunden:</p>";
     for (int i = 0; i < count; i++)
     {
-        html += "<div class='light'>";
-        html += "<strong>Leuchte " + String(i + 1) + ":</strong> " + String(lights[i].name.c_str()) + "<br>";
-        html += "<span class='light-id'>ID: " + String(lights[i].id.c_str()) + "</span><br>";
-        html += "<span class='status'>Status: " + String(lights[i].on ? "EIN" : "AUS");
         String roomName = lights[i].room.length() ? lights[i].room : "-";
         String roomRid = lights[i].roomRid.length() ? lights[i].roomRid : "-";
         String roomNo = lights[i].roomIdV1.length() ? lights[i].roomIdV1 : "-";
         String zoneName = lights[i].zone.length() ? lights[i].zone : "-";
         String zoneRid = lights[i].zoneRid.length() ? lights[i].zoneRid : "-";
         String zoneNo = lights[i].zoneIdV1.length() ? lights[i].zoneIdV1 : "-";
-        html += " | Helligkeit: " + String(lights[i].brightness) + "/254";
-        html += " | Raum: " + roomName;
-        if (roomRid != "-" || roomNo != "-")
-        {
-            html += " (";
-            bool needComma = false;
-            if (roomRid != "-")
-            {
-                html += "ID: " + roomRid;
-                needComma = true;
-            }
-            if (roomNo != "-")
-            {
-                if (needComma)
-                {
-                    html += ", ";
-                }
-                html += "Nr: " + roomNo;
-            }
-            html += ")";
-        }
-        html += " | Zone: " + zoneName;
-        if (zoneRid != "-" || zoneNo != "-")
-        {
-            html += " (";
-            bool needComma = false;
-            if (zoneRid != "-")
-            {
-                html += "ID: " + zoneRid;
-                needComma = true;
-            }
-            if (zoneNo != "-")
-            {
-                if (needComma)
-                {
-                    html += ", ";
-                }
-                html += "Nr: " + zoneNo;
-            }
-            html += ")";
-        }
-        html += "</span>";
-        html += "</div>";
+
 
         text += String(i + 1) + ") " + lights[i].name + "\n";
         text += "    ID: " + lights[i].id + "\n";
@@ -4182,15 +4323,16 @@ void HueGatewayModule::updateWebScanCache()
         text += "\n";
     }
 
-    html += "<br><p><strong>Tipp:</strong> Die Leuchten-ID kopieren und in die ETS-Kanalparameter einfügen.</p>";
-    html += "<button onclick='location.reload()'>Aktualisieren</button>";
-    html += "<a href='" + hueBaseUri + "/scan.txt'><button>TXT herunterladen</button></a>";
-    html += "<a href='" + hueBaseUri + "'><button>Zurück</button></a>";
-    html += "</body></html>";
+    if (scanDurationMs > 0)
+    {
+        text += "Scan-Dauer: " + String(scanDurationMs / 1000UL) + " Sekunden\n";
+    }
 
     _lastWebScanLightCount = count;
-    _lastWebScanHtml = html;
+    _lastWebScanError = "";
+    _lastWebScanHtml = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Hue-Geräte geladen</title></head><body><h1>Hue-Geräte geladen</h1><p>Daten im Stream-Renderer bereit.</p></body></html>";
     _lastWebScanText = text;
+    delete[] lights;
 }
 
 

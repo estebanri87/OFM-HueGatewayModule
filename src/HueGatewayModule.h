@@ -117,10 +117,13 @@ private:
     bool _webScanInProgress;
     bool _networkConnectedLast;
     bool _mdnsStarted;
+    unsigned long _webScanStartedMs;
+    unsigned long _lastWebScanDurationMs;
     unsigned long _lastWebScanMs;
     int _lastWebScanLightCount;
     String _lastWebScanHtml;
     String _lastWebScanText;
+    String _lastWebScanError;
     bool _hclLockActive;
     uint8_t _hclLockFallbackMode;
     unsigned long _hclLockActivatedMs;

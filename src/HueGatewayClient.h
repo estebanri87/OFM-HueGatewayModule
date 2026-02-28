@@ -240,7 +240,7 @@ private:
     * @param doc JsonDocument for the response payload
      * @return HTTP Status Code
      */
-    int httpGet(const String& endpoint, JsonDocument& doc);
+    int httpGet(const String& endpoint, JsonDocument& doc, JsonDocument* filterDoc = nullptr);
     
     /**
     * @brief Executes an HTTP PUT request.
