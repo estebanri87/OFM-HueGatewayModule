@@ -42,6 +42,7 @@ struct HueGatewayLightState
 struct HueGatewayEventLightUpdate
 {
     String lightId;
+    bool isGroupedResource;
     bool hasOn;
     bool on;
     bool hasBrightness;
@@ -81,7 +82,7 @@ public:
     * @param maxLights Maximum number of entries (array size)
     * @return number of discovered lights
      */
-    int getLights(HueGatewayLightState* lights, int maxLights);
+    int getLights(HueGatewayLightState* lights, int maxLights, bool includeLocations = true);
     int getGroupedLights(HueGatewayLightState* groupedLights, int maxLights);
     
     /**
@@ -170,6 +171,8 @@ public:
     bool startEventStream();
     void stopEventStream();
     bool isEventStreamConnected() { return _eventStreamConnected && _eventClient.connected(); }
+    void setEventStreamAutoRestartEnabled(bool enabled) { _eventAutoRestartEnabled = enabled; }
+    bool isEventStreamAutoRestartEnabled() const { return _eventAutoRestartEnabled; }
     int pollEventStream(HueGatewayEventLightUpdate* updates, int maxUpdates);
     
     /**
@@ -214,6 +217,7 @@ private:
     unsigned long _eventLastDataMs;
     uint8_t _eventParseErrorStreak;
     uint32_t _eventDropCount;
+    bool _eventAutoRestartEnabled;
     String _eventLineBuffer;
     String _eventDataBuffer;
 
@@ -240,7 +244,7 @@ private:
     * @param doc JsonDocument for the response payload
      * @return HTTP Status Code
      */
-    int httpGet(const String& endpoint, JsonDocument& doc);
+    int httpGet(const String& endpoint, JsonDocument& doc, JsonDocument* filterDoc = nullptr);
     
     /**
     * @brief Executes an HTTP PUT request.

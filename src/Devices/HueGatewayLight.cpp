@@ -6,6 +6,9 @@
 
 namespace
 {
+static constexpr unsigned long kGlobalHclWriteSpacingMs = 220UL;
+static unsigned long sGlobalHclWriteNextAllowedMs = 0UL;
+
 float dimmingStepCodeToPercent(uint8_t stepCode)
 {
     switch (stepCode)
@@ -19,6 +22,18 @@ float dimmingStepCodeToPercent(uint8_t stepCode)
         case 7: return 1.5625f;
         default: return 0.0f;
     }
+}
+
+uint16_t stablePhaseOffsetMs(const String& id)
+{
+    uint32_t hash = 2166136261u;
+    for (size_t i = 0; i < id.length(); i++)
+    {
+        hash ^= static_cast<uint8_t>(id[i]);
+        hash *= 16777619u;
+    }
+
+    return static_cast<uint16_t>(150u + (hash % 850u));
 }
 }
 
@@ -49,6 +64,9 @@ HueGatewayLight::HueGatewayLight(const String& lightId, const String& name, HueG
     , _currentKelvin(4000)
     , _lastHCLUpdate(0)
     , _lastHCLBrightness(0)
+    , _hclPhaseOffsetMs(0)
+    , _nextHCLDueMs(0)
+    , _lastHueWriteSuccessMs(0)
     , _initialized(false)
     , _lastUpdate(0)
     , _lastRelativeDimCmdMs(0)
@@ -57,6 +75,7 @@ HueGatewayLight::HueGatewayLight(const String& lightId, const String& name, HueG
     , _switchOnTransitionSec(2)
     , _switchOffTransitionSec(6)
 {
+    _hclPhaseOffsetMs = stablePhaseOffsetMs(_lightId);
 }
 
 HueGatewayLight::~HueGatewayLight()
@@ -116,6 +135,8 @@ void HueGatewayLight::processKnxSwitch(bool value)
         
         // Prime loop state for continuous HCL updates.
         _lastHCLUpdate = millis();
+        const uint32_t updateIntervalSec = HCL::masterManager.getUpdateInterval();
+        _nextHCLDueMs = _lastHCLUpdate + (updateIntervalSec * 1000UL);
         _lastHCLBrightness = hclValue.brightness;
         
         Serial.printf("[HueGatewayLight] %s - Applying HCL Master %d values: %dK, %d%% (%d Hue)\n",
@@ -453,6 +474,7 @@ void HueGatewayLight::sendToHue(uint8_t fadeDurationSec)
     if (success)
     {
         _lastUpdate = millis();
+        _lastHueWriteSuccessMs = _lastUpdate;
         sendStatusToKnx();
         Serial.printf("[HueGatewayLight] %s - Sent to Hue: On:%d Bri:%d fade:%us\n",
                   _name.c_str(), _on, _brightness, static_cast<unsigned>(fadeDurationSec));
@@ -578,6 +600,7 @@ void HueGatewayLight::sendToHueWithColorTemp(uint16_t kelvin, uint8_t fadeDurati
     if (success)
     {
         _lastUpdate = millis();
+        _lastHueWriteSuccessMs = _lastUpdate;
         sendStatusToKnx();
     }
     else
@@ -601,24 +624,53 @@ void HueGatewayLight::loop()
     // Read update interval from HCL manager (seconds).
     uint32_t updateIntervalSec = HCL::masterManager.getUpdateInterval();
     unsigned long updateIntervalMs = updateIntervalSec * 1000UL;
+    if (updateIntervalMs == 0)
+    {
+        updateIntervalMs = 1000UL;
+    }
     
-    // Enforce update interval.
     unsigned long now = millis();
-    if (updateIntervalMs > 0 && (now - _lastHCLUpdate) < updateIntervalMs)
+    if (_nextHCLDueMs == 0)
+    {
+        unsigned long phase = _hclPhaseOffsetMs;
+        if (phase > updateIntervalMs)
+        {
+            phase = phase % updateIntervalMs;
+        }
+        _nextHCLDueMs = now + phase;
+    }
+
+    if (now < _nextHCLDueMs)
         return;
+
+    _nextHCLDueMs = now + updateIntervalMs;
     
     // Fetch current interpolated HCL target values.
     HCL::InterpolatedValue hclValue = HCL::masterManager.getCurrentValue(_hclMasterNum);
     
     // Update when at least a small effective step changed.
-    // Keep thresholds low so slow night/day curves continue to fade as configured.
+    // Use practical thresholds to reduce API pressure and loop blocking.
+    static constexpr uint8_t kHclMinBrightnessStepPercent = 2;
+    static constexpr uint16_t kHclMinKelvinStep = 12;
     const int previousKelvin = static_cast<int>(_currentKelvin);
     const int previousBrightness = static_cast<int>(_lastHCLBrightness);
-    bool kelvinChanged = abs(static_cast<int>(hclValue.kelvin) - previousKelvin) >= 1;
-    bool brightnessChanged = abs(static_cast<int>(hclValue.brightness) - previousBrightness) >= 1;
+    bool kelvinChanged = abs(static_cast<int>(hclValue.kelvin) - previousKelvin) >= static_cast<int>(kHclMinKelvinStep);
+    bool brightnessChanged = abs(static_cast<int>(hclValue.brightness) - previousBrightness) >= static_cast<int>(kHclMinBrightnessStepPercent);
     
     if (!kelvinChanged && !brightnessChanged)
         return;
+
+    if (now < sGlobalHclWriteNextAllowedMs)
+    {
+        unsigned long retryAt = sGlobalHclWriteNextAllowedMs;
+        if (_nextHCLDueMs == 0 || retryAt < _nextHCLDueMs)
+        {
+            _nextHCLDueMs = retryAt;
+        }
+        return;
+    }
+
+    sGlobalHclWriteNextAllowedMs = now + kGlobalHclWriteSpacingMs;
     
     // Apply changed values and publish update.
     _lastHCLUpdate = now;

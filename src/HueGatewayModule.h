@@ -22,8 +22,8 @@ struct HueGatewayEventLightUpdate;
  * It communicates with the Hue Bridge via Hue API v2 and exposes device
  * functions through KNX communication objects.
  * 
- * @version 0.3.0
- * @date 2026-02-26
+ * @version 0.3.1
+ * @date 2026-02-28
  */
 
 class HueGatewayModule : public OpenKNX::Module
@@ -59,8 +59,10 @@ public:
 private:
     bool _initialized;
     unsigned long _lastConnectionCheckMs;
+    unsigned long _bootStartMs;
     unsigned long _lastRefreshTickMs;
     unsigned long _lastDeviceSetupRetryMs;
+    unsigned long _deviceSetupRetryBackoffMs;
     unsigned long _lastEventStreamRetryMs;
     unsigned long _eventStreamRetryBackoffMs;
     unsigned long _eventStreamPauseUntilMs;
@@ -108,6 +110,9 @@ private:
     unsigned long _authWindowMs;
     unsigned long _lastReconnectTryMs;
     unsigned long _reconnectBackoffMs;
+    unsigned long _setupCircuitOpenUntilMs;
+    uint8_t _setupCircuitTrips;
+    unsigned long _lastLoopBudgetLogMs;
     bool _manualPairingRequired;
     bool _pairingTriggerLastState;
     unsigned long _lastPairingTriggerMs;
@@ -117,10 +122,13 @@ private:
     bool _webScanInProgress;
     bool _networkConnectedLast;
     bool _mdnsStarted;
+    unsigned long _webScanStartedMs;
+    unsigned long _lastWebScanDurationMs;
     unsigned long _lastWebScanMs;
     int _lastWebScanLightCount;
     String _lastWebScanHtml;
     String _lastWebScanText;
+    String _lastWebScanError;
     bool _hclLockActive;
     uint8_t _hclLockFallbackMode;
     unsigned long _hclLockActivatedMs;
