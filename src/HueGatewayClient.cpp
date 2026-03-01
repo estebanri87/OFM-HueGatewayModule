@@ -8,8 +8,14 @@ namespace
 {
 static constexpr size_t kMaxEventLineChars = 4096U;
 static constexpr size_t kMaxEventPayloadChars = 8192U;
+#if defined(DEVICE_REG1_LAN_TP_BASE) || defined(DEVICE_DEV_REG1_LAN_TP_Base_V00_11)
+static constexpr uint32_t kTlsMinInternalFreeBytes = 46000U;
+static constexpr uint32_t kTlsMinInternalLargestBlockBytes = 32000U;
+#else
 static constexpr uint32_t kTlsMinInternalFreeBytes = 70000U;
 static constexpr uint32_t kTlsMinInternalLargestBlockBytes = 50000U;
+#endif
+static constexpr unsigned long kLightLocationCacheMs = 300000UL;
 
 float dimmingStepCodeToPercent(uint8_t stepCode)
 {
@@ -129,6 +135,7 @@ HueGatewayClient::HueGatewayClient()
     , _eventLastDataMs(0)
     , _eventParseErrorStreak(0)
     , _eventDropCount(0)
+    , _eventAutoRestartEnabled(true)
 {
 }
 
@@ -160,12 +167,13 @@ bool HueGatewayClient::begin(const String& bridgeIP, const String& appKey)
     _eventStreamConnected = false;
     _eventParseErrorStreak = 0;
     _eventLastDataMs = millis();
+    _eventAutoRestartEnabled = true;
     
     Serial.printf("[HueGatewayClient] Initialized - Bridge: %s\n", _bridgeIP.c_str());
     return true;
 }
 
-int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights)
+int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights, bool includeLocations)
 {
     if (!_initialized)
     {
@@ -173,9 +181,21 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights)
         return 0;
     }
 
-    static DynamicJsonDocument doc(16384);
+    static DynamicJsonDocument doc(65536);
+    static DynamicJsonDocument lightFilterDoc(768);
+    lightFilterDoc.clear();
+    JsonObject lightFilterRoot = lightFilterDoc.to<JsonObject>();
+    JsonObject lightFilterData = lightFilterRoot["data"][0].to<JsonObject>();
+    lightFilterData["id"] = true;
+    lightFilterData["metadata"]["name"] = true;
+    lightFilterData["on"]["on"] = true;
+    lightFilterData["owner"]["rid"] = true;
+    lightFilterData["dimming"]["brightness"] = true;
+    lightFilterData["color_temperature"]["mirek"] = true;
+    lightFilterData["color"]["xy"]["x"] = true;
+    lightFilterData["color"]["xy"]["y"] = true;
     doc.clear();
-    int statusCode = httpGet("/clip/v2/resource/light", doc);
+    int statusCode = httpGet("/clip/v2/resource/light", doc, &lightFilterDoc);
 
     if (!isHttpSuccessStatus(statusCode))
     {
@@ -186,57 +206,112 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights)
 
     JsonArrayConst data = doc["data"].as<JsonArrayConst>();
     std::vector<LightLocation> locations;
-    std::vector<DeviceLightLink> deviceLightLinks;
 
-    // Build a direct device->light map from light payload first.
-    // This is robust even if /device does not expose light refs on some bridge firmwares.
-    for (JsonObjectConst light : data)
+    if (includeLocations)
     {
-        const char* lightRid = light["id"] | "";
-        const char* ownerRid = light["owner"]["rid"] | "";
-        if (lightRid[0] == '\0' || ownerRid[0] == '\0')
+        static std::vector<LightLocation> sCachedLocations;
+        static unsigned long sLocationCacheValidUntilMs = 0UL;
+
+        const unsigned long now = millis();
+        const bool cacheValid = !sCachedLocations.empty()
+            && sLocationCacheValidUntilMs != 0UL
+            && now <= sLocationCacheValidUntilMs;
+
+        if (cacheValid)
         {
-            continue;
+            locations = sCachedLocations;
+        }
+        else
+        {
+            std::vector<DeviceLightLink> deviceLightLinks;
+            deviceLightLinks.reserve(static_cast<size_t>(data.size()));
+
+        // Build a direct device->light map from light payload first.
+        // This is robust even if /device does not expose light refs on some bridge firmwares.
+        for (JsonObjectConst light : data)
+        {
+            const char* lightRid = light["id"] | "";
+            const char* ownerRid = light["owner"]["rid"] | "";
+            if (lightRid[0] == '\0' || ownerRid[0] == '\0')
+            {
+                continue;
+            }
+
+            DeviceLightLink link;
+            link.deviceId = String(ownerRid);
+            link.lightId = String(lightRid);
+            deviceLightLinks.push_back(link);
         }
 
-        DeviceLightLink link;
-        link.deviceId = String(ownerRid);
-        link.lightId = String(lightRid);
-        deviceLightLinks.push_back(link);
-    }
+        static DynamicJsonDocument deviceDoc(32768);
+        static DynamicJsonDocument deviceFilterDoc(512);
+        deviceFilterDoc.clear();
+        JsonObject deviceFilterRoot = deviceFilterDoc.to<JsonObject>();
+        JsonObject deviceFilterData = deviceFilterRoot["data"][0].to<JsonObject>();
+        deviceFilterData["id"] = true;
+        deviceFilterData["services"][0]["rid"] = true;
+        deviceFilterData["services"][0]["rtype"] = true;
+        deviceFilterData["children"][0]["rid"] = true;
+        deviceFilterData["children"][0]["rtype"] = true;
+        deviceFilterData["grouped_services"][0]["rid"] = true;
+        deviceFilterData["grouped_services"][0]["rtype"] = true;
+        deviceDoc.clear();
+        int deviceStatus = httpGet("/clip/v2/resource/device", deviceDoc, &deviceFilterDoc);
+        if (isHttpSuccessStatus(deviceStatus))
+        {
+            appendDeviceLightLinksFromDoc(deviceLightLinks, deviceDoc);
+        }
 
-    static DynamicJsonDocument deviceDoc(24576);
-    deviceDoc.clear();
-    int deviceStatus = httpGet("/clip/v2/resource/device", deviceDoc);
-    if (isHttpSuccessStatus(deviceStatus))
-    {
-        appendDeviceLightLinksFromDoc(deviceLightLinks, deviceDoc);
-    }
+        static DynamicJsonDocument roomDoc(32768);
+        static DynamicJsonDocument locationFilterDoc(640);
+        locationFilterDoc.clear();
+        JsonObject locationFilterRoot = locationFilterDoc.to<JsonObject>();
+        JsonObject locationFilterData = locationFilterRoot["data"][0].to<JsonObject>();
+        locationFilterData["id"] = true;
+        locationFilterData["id_v1"] = true;
+        locationFilterData["metadata"]["name"] = true;
+        locationFilterData["name"] = true;
+        locationFilterData["children"][0]["rid"] = true;
+        locationFilterData["children"][0]["rtype"] = true;
+        locationFilterData["services"][0]["rid"] = true;
+        locationFilterData["services"][0]["rtype"] = true;
+        locationFilterData["grouped_services"][0]["rid"] = true;
+        locationFilterData["grouped_services"][0]["rtype"] = true;
+        roomDoc.clear();
+        int roomStatus = httpGet("/clip/v2/resource/room", roomDoc, &locationFilterDoc);
+        if (isHttpSuccessStatus(roomStatus))
+        {
+            appendLocationsFromDoc(locations, roomDoc, true, deviceLightLinks);
+        }
 
-    static DynamicJsonDocument roomDoc(12288);
-    roomDoc.clear();
-    int roomStatus = httpGet("/clip/v2/resource/room", roomDoc);
-    if (isHttpSuccessStatus(roomStatus))
-    {
-        appendLocationsFromDoc(locations, roomDoc, true, deviceLightLinks);
-    }
+        static DynamicJsonDocument zoneDoc(32768);
+        zoneDoc.clear();
+        int zoneStatus = httpGet("/clip/v2/resource/zone", zoneDoc, &locationFilterDoc);
+        if (isHttpSuccessStatus(zoneStatus))
+        {
+            appendLocationsFromDoc(locations, zoneDoc, false, deviceLightLinks);
+        }
 
-    static DynamicJsonDocument zoneDoc(12288);
-    zoneDoc.clear();
-    int zoneStatus = httpGet("/clip/v2/resource/zone", zoneDoc);
-    if (isHttpSuccessStatus(zoneStatus))
-    {
-        appendLocationsFromDoc(locations, zoneDoc, false, deviceLightLinks);
-    }
+        const size_t roomItems = roomDoc["data"].is<JsonArrayConst>() ? roomDoc["data"].as<JsonArrayConst>().size() : 0;
+        const size_t zoneItems = zoneDoc["data"].is<JsonArrayConst>() ? zoneDoc["data"].as<JsonArrayConst>().size() : 0;
+        if (locations.empty() && (roomItems > 0 || zoneItems > 0))
+        {
+            Serial.printf("[HueGatewayClient] WARNING: No room/zone mapping created (roomItems=%u zoneItems=%u links=%u)\n",
+                        static_cast<unsigned>(roomItems),
+                        static_cast<unsigned>(zoneItems),
+                        static_cast<unsigned>(deviceLightLinks.size()));
+        }
 
-    const size_t roomItems = roomDoc["data"].is<JsonArrayConst>() ? roomDoc["data"].as<JsonArrayConst>().size() : 0;
-    const size_t zoneItems = zoneDoc["data"].is<JsonArrayConst>() ? zoneDoc["data"].as<JsonArrayConst>().size() : 0;
-    if (locations.empty() && (roomItems > 0 || zoneItems > 0))
-    {
-        Serial.printf("[HueGatewayClient] WARNING: No room/zone mapping created (roomItems=%u zoneItems=%u links=%u)\n",
-                      static_cast<unsigned>(roomItems),
-                      static_cast<unsigned>(zoneItems),
-                      static_cast<unsigned>(deviceLightLinks.size()));
+            if (!locations.empty())
+            {
+                sCachedLocations = locations;
+                sLocationCacheValidUntilMs = now + kLightLocationCacheMs;
+            }
+            else if (!sCachedLocations.empty())
+            {
+                locations = sCachedLocations;
+            }
+        }
     }
 
     int count = 0;
@@ -332,9 +407,20 @@ int HueGatewayClient::getGroupedLights(HueGatewayLightState* groupedLights, int 
         return 0;
     }
 
-    static DynamicJsonDocument doc(12288);
+    static DynamicJsonDocument doc(32768);
+    static DynamicJsonDocument groupedLightFilterDoc(640);
+    groupedLightFilterDoc.clear();
+    JsonObject groupedFilterRoot = groupedLightFilterDoc.to<JsonObject>();
+    JsonObject groupedFilterData = groupedFilterRoot["data"][0].to<JsonObject>();
+    groupedFilterData["id"] = true;
+    groupedFilterData["metadata"]["name"] = true;
+    groupedFilterData["on"]["on"] = true;
+    groupedFilterData["dimming"]["brightness"] = true;
+    groupedFilterData["color_temperature"]["mirek"] = true;
+    groupedFilterData["color"]["xy"]["x"] = true;
+    groupedFilterData["color"]["xy"]["y"] = true;
     doc.clear();
-    int statusCode = httpGet("/clip/v2/resource/grouped_light", doc);
+    int statusCode = httpGet("/clip/v2/resource/grouped_light", doc, &groupedLightFilterDoc);
     if (!isHttpSuccessStatus(statusCode))
     {
         Serial.printf("[HueGatewayClient] ERROR: GET grouped_light failed - HTTP %d\n", statusCode);
@@ -1000,10 +1086,22 @@ bool HueGatewayClient::resolveGroupedLightForTarget(const String& endpoint, cons
         return false;
     }
 
-    static DynamicJsonDocument doc(16384);
+    static DynamicJsonDocument doc(32768);
+    static DynamicJsonDocument targetFilterDoc(512);
+    targetFilterDoc.clear();
+    JsonObject targetFilterRoot = targetFilterDoc.to<JsonObject>();
+    JsonObject targetFilterData = targetFilterRoot["data"][0].to<JsonObject>();
+    targetFilterData["id"] = true;
+    targetFilterData["metadata"]["name"] = true;
+    targetFilterData["services"][0]["rid"] = true;
+    targetFilterData["services"][0]["rtype"] = true;
+    targetFilterData["children"][0]["rid"] = true;
+    targetFilterData["children"][0]["rtype"] = true;
+    targetFilterData["grouped_services"][0]["rid"] = true;
+    targetFilterData["grouped_services"][0]["rtype"] = true;
     doc.clear();
 
-    int statusCode = httpGet(endpoint, doc);
+    int statusCode = httpGet(endpoint, doc, &targetFilterDoc);
     if (!isHttpSuccessStatus(statusCode))
     {
         Serial.printf("[HueGatewayClient] ERROR: GET %s failed - HTTP %d\n", endpoint.c_str(), statusCode);
@@ -1054,10 +1152,22 @@ int HueGatewayClient::getTargetsForEndpoint(const String& endpoint, HueGatewayTa
         return 0;
     }
 
-    static DynamicJsonDocument doc(16384);
+    static DynamicJsonDocument doc(32768);
+    static DynamicJsonDocument targetFilterDoc(512);
+    targetFilterDoc.clear();
+    JsonObject targetFilterRoot = targetFilterDoc.to<JsonObject>();
+    JsonObject targetFilterData = targetFilterRoot["data"][0].to<JsonObject>();
+    targetFilterData["id"] = true;
+    targetFilterData["metadata"]["name"] = true;
+    targetFilterData["services"][0]["rid"] = true;
+    targetFilterData["services"][0]["rtype"] = true;
+    targetFilterData["children"][0]["rid"] = true;
+    targetFilterData["children"][0]["rtype"] = true;
+    targetFilterData["grouped_services"][0]["rid"] = true;
+    targetFilterData["grouped_services"][0]["rtype"] = true;
     doc.clear();
 
-    int statusCode = httpGet(endpoint, doc);
+    int statusCode = httpGet(endpoint, doc, &targetFilterDoc);
     if (!isHttpSuccessStatus(statusCode))
     {
         Serial.printf("[HueGatewayClient] ERROR: GET %s failed - HTTP %d\n", endpoint.c_str(), statusCode);
@@ -1608,6 +1718,7 @@ int HueGatewayClient::parseEventPayload(const String& payload, HueGatewayEventLi
             {
                 continue;
             }
+            const bool isGroupedResource = (strcmp(type, "grouped_light") == 0);
 
             const char* id = item["id"] | "";
             if (id[0] == '\0' || updateCount >= maxUpdates)
@@ -1617,6 +1728,7 @@ int HueGatewayClient::parseEventPayload(const String& payload, HueGatewayEventLi
 
             HueGatewayEventLightUpdate& update = updates[updateCount];
             update.lightId = String(id);
+            update.isGroupedResource = isGroupedResource;
             update.hasOn = false;
             update.on = false;
             update.hasBrightness = false;
@@ -1700,7 +1812,7 @@ uint16_t HueGatewayClient::mirekToKelvin(uint16_t mirek)
 
 // ===== Private Methods =====
 
-int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc)
+int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDocument* filterDoc)
 {
     String url = buildUrl(endpoint);
     Serial.print("[HueGatewayClient] HTTP GET ");
@@ -1708,7 +1820,7 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc)
     _http.setTimeout(2000);
     const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected) && _eventClient.connected();
 
-    if (eventWasActive)
+    if (eventWasActive && _eventAutoRestartEnabled)
     {
         Serial.println("[HueGatewayClient] Pausing EventStream for HTTPS GET");
         _http.end();
@@ -1717,6 +1829,7 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc)
         delay(25);
     }
     
+    _http.useHTTP10(true);
     _http.begin(_secureClient, url);
     _http.addHeader("hue-application-key", _appKey);
     
@@ -1729,15 +1842,52 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc)
 
     if (isHttpSuccessStatus(statusCode))
     {
-        String response = _http.getString();
-        DeserializationError error = deserializeJson(doc, response);
-        
+        doc.clear();
+        Stream& responseStream = _http.getStream();
+        const int contentLength = _http.getSize();
+
+        DeserializationError error;
+        if (contentLength >= 0)
+        {
+            if (filterDoc != nullptr)
+            {
+                error = deserializeJson(doc,
+                                        responseStream,
+                                        DeserializationOption::Filter(filterDoc->as<JsonVariantConst>()));
+            }
+            else
+            {
+                error = deserializeJson(doc, responseStream);
+            }
+        }
+        else
+        {
+            String response = _http.getString();
+            if (filterDoc != nullptr)
+            {
+                error = deserializeJson(doc,
+                                        response,
+                                        DeserializationOption::Filter(filterDoc->as<JsonVariantConst>()));
+            }
+            else
+            {
+                error = deserializeJson(doc, response);
+            }
+        }
+
         if (error)
         {
             Serial.print("[HueGatewayClient] JSON parse error: ");
             Serial.println(error.c_str());
             Serial.print("[HueGatewayClient] JSON payload length: ");
-            Serial.println(response.length());
+            if (contentLength >= 0)
+            {
+                Serial.println(contentLength);
+            }
+            else
+            {
+                Serial.println("unknown");
+            }
             statusCode = -1;
         }
     }
@@ -1750,7 +1900,7 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc)
     
     _http.end();
 
-    if (eventWasActive)
+    if (eventWasActive && _eventAutoRestartEnabled)
     {
         if (!hasTlsInternalHeadroom())
         {
@@ -1771,14 +1921,16 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
     Serial.printf("[HueGatewayClient] HTTP PUT %s payload=%s\n", url.c_str(), payload.c_str());
     _http.setTimeout(2000);
     const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected) && _eventClient.connected();
+    bool eventPausedForPut = false;
 
-    if (eventWasActive)
+    if (eventWasActive && _eventAutoRestartEnabled && !hasTlsInternalHeadroom())
     {
-        Serial.println("[HueGatewayClient] Pausing EventStream for HTTPS PUT");
+        Serial.println("[HueGatewayClient] Pausing EventStream for HTTPS PUT (internal TLS headroom low)");
         _http.end();
         stopEventStream();
         _secureClient.stop();
         delay(25);
+        eventPausedForPut = true;
     }
     
     _http.begin(_secureClient, url);
@@ -1800,7 +1952,7 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
     
     _http.end();
 
-    if (eventWasActive)
+    if (eventPausedForPut)
     {
         if (!hasTlsInternalHeadroom())
         {
