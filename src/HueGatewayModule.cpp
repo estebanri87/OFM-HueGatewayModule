@@ -50,6 +50,9 @@ static constexpr int kWebScanMaxLights = 192;
 static constexpr int kWebScanMaxTargets = 192;
 static constexpr unsigned long kWebScanCacheStaleMs = 15000UL;
 static constexpr unsigned long kWebScanTimeoutMs = 180000UL;
+static constexpr size_t kDiagLogCapacity = 1000;
+static constexpr size_t kDiagLogMessageMaxLen = 220;
+static constexpr size_t kDiagDefaultDepth = 1000;
 static bool sEventStreamEnabled = (OPENKNX_HUE_EVENTSTREAM_POLICY_DEFAULT != 0);
 
 static unsigned long sBridgeNextPingAllowedMs = 0UL;
@@ -326,6 +329,264 @@ static String getRequestLocalIpString(httpd_req_t* req)
     return getDeviceIpString();
 }
 
+void HueGatewayModule::appendDiagnosticLog(const char* level, const char* category, const String& message)
+{
+    if (_diagLogRing.empty())
+    {
+        return;
+    }
+
+    String normalized = message;
+    normalized.replace('\n', ' ');
+    normalized.replace('\r', ' ');
+    if (normalized.length() > kDiagLogMessageMaxLen)
+    {
+        normalized = normalized.substring(0, kDiagLogMessageMaxLen);
+        normalized += "...";
+    }
+
+    DiagnosticLogEntry& slot = _diagLogRing[_diagLogRingHead];
+    slot.uptimeMs = millis();
+    slot.level = (level != nullptr) ? String(level) : String("INFO");
+    slot.category = (category != nullptr) ? String(category) : String("GEN");
+    slot.message = normalized;
+
+    _diagLogRingHead = (_diagLogRingHead + 1) % _diagLogRing.size();
+    if (_diagLogRingCount < _diagLogRing.size())
+    {
+        _diagLogRingCount++;
+    }
+    else
+    {
+        _diagLogDropped++;
+    }
+}
+
+static String maskIpForDiagnose(const String& ip, bool includeNetworkDetails)
+{
+    if (includeNetworkDetails)
+    {
+        return ip.length() > 0 ? ip : String("-");
+    }
+
+    if (ip.length() == 0)
+    {
+        return "-";
+    }
+
+    const int firstDot = ip.indexOf('.');
+    if (firstDot < 0)
+    {
+        return "masked";
+    }
+    const int secondDot = ip.indexOf('.', firstDot + 1);
+    if (secondDot < 0)
+    {
+        return "masked";
+    }
+
+    return ip.substring(0, secondDot) + ".x.x";
+}
+
+String HueGatewayModule::buildDiagnosticReport(size_t requestedDepth, const String& testerNote, bool includeNetworkDetails)
+{
+    const size_t available = _diagLogRingCount;
+    const size_t effectiveDepth = min(requestedDepth, available);
+    const unsigned long uptimeMs = millis();
+    const String maskedDeviceIp = maskIpForDiagnose(getDeviceIpString(), includeNetworkDetails);
+    const String maskedBridgeIp = maskIpForDiagnose(_bridgeIP, includeNetworkDetails);
+
+    String report;
+    report.reserve(26000);
+
+    report += "=== OpenKNX Hue Diagnose V1 ===\n";
+    report += "GeneratedAtMs=" + String(uptimeMs) + "\n";
+    report += "ModuleVersion=" + String(version().c_str()) + "\n";
+    report += "NetworkDetailsIncluded=" + String(includeNetworkDetails ? "1" : "0") + "\n";
+    report += "DeviceIp=" + maskedDeviceIp + "\n";
+    report += "BridgeIp=" + maskedBridgeIp + "\n\n";
+
+    report += "[RuntimeStatus]\n";
+    report += "Initialized=" + String(_initialized ? "1" : "0") + "\n";
+    report += "BridgeStatus=" + String(static_cast<int>(_bridgeStatus)) + "\n";
+    report += "AuthPending=" + String(_authPending ? "1" : "0") + "\n";
+    report += "ActiveLights=" + String(_lightCount) + "\n";
+    report += "DeviceSetupNeedsRetry=" + String(_deviceSetupNeedsRetry ? "1" : "0") + "\n";
+    report += "SetupBackoffMs=" + String(_deviceSetupRetryBackoffMs) + "\n";
+    report += "EventStreamRetryBackoffMs=" + String(_eventStreamRetryBackoffMs) + "\n";
+    report += "EventStreamPauseUntilMs=" + String(_eventStreamPauseUntilMs) + "\n";
+    report += "WebScanInProgress=" + String(_webScanInProgress ? "1" : "0") + "\n";
+    report += "WebScanLastLightCount=" + String(_lastWebScanLightCount) + "\n";
+    report += "WebScanLastDurationMs=" + String(_lastWebScanDurationMs) + "\n\n";
+
+    report += "[Resource]\n";
+    report += "FreeHeap=" + String(ESP.getFreeHeap()) + "\n";
+    report += "MinFreeHeap=" + String(ESP.getMinFreeHeap()) + "\n";
+    report += "InternalFree=" + String(static_cast<unsigned>(heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT))) + "\n";
+    report += "InternalLargest=" + String(static_cast<unsigned>(heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT))) + "\n\n";
+
+    report += "[Counters]\n";
+    report += "SetupRuns=" + String(_diagCounterSetupRuns) + "\n";
+    report += "SetupIncomplete=" + String(_diagCounterSetupIncomplete) + "\n";
+    report += "UnresolvedTargets=" + String(_diagCounterUnresolvedTargets) + "\n";
+    report += "KoCommands=" + String(_diagCounterKoCommands) + "\n";
+    report += "KoBlockedSyncDir=" + String(_diagCounterKoBlockedSyncDir) + "\n";
+    report += "KoBlockedChannelMissing=" + String(_diagCounterKoBlockedChannelMissing) + "\n";
+    report += "WebScanRuns=" + String(_diagCounterWebScanRuns) + "\n";
+    report += "WebScanTimeouts=" + String(_diagCounterWebScanTimeouts) + "\n";
+    report += "DiagLogDropped=" + String(_diagLogDropped) + "\n\n";
+
+    report += "[HttpEventStats]\n";
+    if (_client != nullptr)
+    {
+        const HueGatewayClient::DiagnosticsStats& stats = _client->getDiagnosticsStats();
+        report += "HttpGetCount=" + String(stats.httpGetCount) + "\n";
+        report += "HttpPutCount=" + String(stats.httpPutCount) + "\n";
+        report += "HttpGetErrors=" + String(stats.httpGetErrorCount) + "\n";
+        report += "HttpPutErrors=" + String(stats.httpPutErrorCount) + "\n";
+        report += "HttpTimeouts=" + String(stats.httpTimeoutCount) + "\n";
+        report += "LastHttpMethod=" + (stats.lastHttpMethod.length() > 0 ? stats.lastHttpMethod : String("-")) + "\n";
+        report += "LastHttpEndpoint=" + (stats.lastHttpEndpoint.length() > 0 ? stats.lastHttpEndpoint : String("-")) + "\n";
+        report += "LastHttpStatus=" + String(stats.lastHttpStatusCode) + "\n";
+        report += "EventConnectOk=" + String(stats.eventConnectOk) + "\n";
+        report += "EventConnectFail=" + String(stats.eventConnectFail) + "\n";
+        report += "EventStopCount=" + String(stats.eventStopCount) + "\n";
+        report += "EventDisconnectCount=" + String(stats.eventDisconnectCount) + "\n";
+        report += "EventHandshakeTimeouts=" + String(stats.eventHandshakeTimeoutCount) + "\n";
+        report += "EventHttpErrors=" + String(stats.eventHttpErrorCount) + "\n";
+    }
+    else
+    {
+        report += "Client=not-initialized\n";
+    }
+    report += "\n";
+
+    report += "[LastSetupSnapshot]\n";
+    report += "EnabledChannels=" + String(_diagLastEnabledChannels) + "\n";
+    report += "BridgeLightCount=" + String(_diagLastBridgeLightCount) + "\n";
+    report += "RoomTargetCount=" + String(_diagLastRoomTargetCount) + "\n";
+    report += "ZoneTargetCount=" + String(_diagLastZoneTargetCount) + "\n";
+    report += "HasUnresolvedGroupTarget=" + String(_diagLastHasUnresolvedGroupTarget ? "1" : "0") + "\n\n";
+
+    report += "[ChannelSnapshot]\n";
+    uint8_t configuredChannels = ParamHUE_HUEChannelCount;
+    if (configuredChannels > MAX_LIGHTS)
+    {
+        configuredChannels = MAX_LIGHTS;
+    }
+
+    for (uint8_t ch = 0; ch < configuredChannels; ch++)
+    {
+        uint8_t _channelIndex = ch;
+        const bool channelDisabled = ParamHUE_CHDisabled;
+        String targetRid = "";
+        #ifdef ParamHUE_CHTargetRIDStr
+        {
+            std::string t = ParamHUE_CHTargetRIDStr;
+            targetRid = String(t.c_str());
+            targetRid.trim();
+        }
+        #endif
+
+        std::string legacyStd = ParamHUE_CHLightUUIDStr;
+        String legacyUuid(legacyStd.c_str());
+        legacyUuid.trim();
+
+        uint8_t targetType = 0;
+        #ifdef ParamHUE_CHTargetType
+        targetType = ParamHUE_CHTargetType;
+        #endif
+
+        uint8_t syncDir = ParamHUE_CHSyncDir;
+        uint8_t pollIntervalSec = ParamHUE_CHPollInterval;
+
+        String mappedName = "-";
+        String mappedId = "-";
+        String grouped = "-";
+        String lastWriteMs = "-";
+        if (_lights[ch] != nullptr)
+        {
+            mappedName = _lights[ch]->getName();
+            mappedId = _lights[ch]->getLightId();
+            grouped = _lights[ch]->isGroupedTarget() ? "1" : "0";
+            lastWriteMs = String(_lights[ch]->getLastHueWriteSuccessMs());
+        }
+
+        report += "ch=" + String(ch + 1)
+            + " disabled=" + String(channelDisabled ? "1" : "0")
+            + " sync=" + String(syncDir)
+            + " poll=" + String(pollIntervalSec)
+            + " targetType=" + String(targetType)
+            + " targetRid=" + (targetRid.length() > 0 ? targetRid : String("-"))
+            + " legacyUuid=" + (legacyUuid.length() > 0 ? legacyUuid : String("-"))
+            + " mappedName=" + mappedName
+            + " mappedId=" + mappedId
+            + " grouped=" + grouped
+            + " lastHueWriteMs=" + lastWriteMs
+                + " lastKoMs=" + String(_diagLastKoCommandMs[ch])
+                + " lastKoType=" + String(_diagLastKoType[ch])
+                + " lastKoValue=" + (_diagLastKoValue[ch].length() > 0 ? _diagLastKoValue[ch] : String("-"))
+                + " koBlockReason=" + (_diagLastKoBlockReason[ch].length() > 0 ? _diagLastKoBlockReason[ch] : String("-"))
+                + " traceMs=" + String(_diagLastWriteTraceMs[ch])
+                + " traceDurMs=" + String(_diagLastWriteTraceDurationMs[ch])
+                + " traceResult=" + (_diagLastWriteTraceResult[ch].length() > 0 ? _diagLastWriteTraceResult[ch] : String("-"))
+                + " traceHttpStatus=" + String(_diagLastWriteTraceHttpStatus[ch])
+                + " traceHttpMethod=" + (_diagLastWriteTraceMethod[ch].length() > 0 ? _diagLastWriteTraceMethod[ch] : String("-"))
+                + " traceHttpEndpoint=" + (_diagLastWriteTraceEndpoint[ch].length() > 0 ? _diagLastWriteTraceEndpoint[ch] : String("-"))
+            + "\n";
+    }
+    report += "\n";
+
+    report += "[LastHueScanText]\n";
+    if (_lastWebScanText.length() > 0)
+    {
+        report += _lastWebScanText;
+        if (!_lastWebScanText.endsWith("\n"))
+        {
+            report += "\n";
+        }
+    }
+    else
+    {
+        report += "(none)\n";
+    }
+    report += "\n";
+
+    report += "[RingLog]\n";
+    report += "RingCapacity=" + String(static_cast<unsigned long>(_diagLogRing.size())) + "\n";
+    report += "RequestedDepth=" + String(static_cast<unsigned long>(requestedDepth)) + "\n";
+    report += "EffectiveDepth=" + String(static_cast<unsigned long>(effectiveDepth)) + "\n";
+
+    if (effectiveDepth > 0 && !_diagLogRing.empty())
+    {
+        const size_t ringSize = _diagLogRing.size();
+        size_t first = (_diagLogRingHead + ringSize - effectiveDepth) % ringSize;
+        for (size_t i = 0; i < effectiveDepth; i++)
+        {
+            const DiagnosticLogEntry& entry = _diagLogRing[(first + i) % ringSize];
+            report += String(entry.uptimeMs);
+            report += "|";
+            report += entry.level;
+            report += "|";
+            report += entry.category;
+            report += "|";
+            report += entry.message;
+            report += "\n";
+        }
+    }
+    else
+    {
+        report += "(no entries)\n";
+    }
+    report += "\n";
+
+    report += "[TesterNote]\n";
+    report += testerNote.length() > 0 ? testerNote : String("-");
+    report += "\n";
+
+    return report;
+}
+
 HueGatewayModule::HueGatewayModule()
     : _initialized(false)
     , _lastConnectionCheckMs(0)
@@ -375,6 +636,22 @@ HueGatewayModule::HueGatewayModule()
     , _hclLockActivatedMs(0)
     , _hclLockAutoReleaseMs(0)
     , _hclLockActivationDayOfYear(-1)
+    , _diagLogRingHead(0)
+    , _diagLogRingCount(0)
+    , _diagLogDropped(0)
+    , _diagCounterSetupRuns(0)
+    , _diagCounterSetupIncomplete(0)
+    , _diagCounterUnresolvedTargets(0)
+    , _diagCounterKoCommands(0)
+    , _diagCounterKoBlockedSyncDir(0)
+    , _diagCounterKoBlockedChannelMissing(0)
+    , _diagCounterWebScanRuns(0)
+    , _diagCounterWebScanTimeouts(0)
+    , _diagLastEnabledChannels(0)
+    , _diagLastBridgeLightCount(0)
+    , _diagLastRoomTargetCount(0)
+    , _diagLastZoneTargetCount(0)
+    , _diagLastHasUnresolvedGroupTarget(false)
 {
     // Light-Array initialisieren
     for (int i = 0; i < MAX_LIGHTS; i++)
@@ -389,6 +666,16 @@ HueGatewayModule::HueGatewayModule()
         _hclChannelLockActivatedMs[i] = 0;
         _hclChannelLockAutoReleaseMs[i] = 0;
         _hclChannelLockActivationDayOfYear[i] = -1;
+        _diagLastKoCommandMs[i] = 0;
+        _diagLastKoType[i] = 0xFF;
+        _diagLastKoValue[i] = "";
+        _diagLastKoBlockReason[i] = "-";
+        _diagLastWriteTraceMs[i] = 0;
+        _diagLastWriteTraceDurationMs[i] = 0;
+        _diagLastWriteTraceHttpStatus[i] = 0;
+        _diagLastWriteTraceResult[i] = "-";
+        _diagLastWriteTraceMethod[i] = "-";
+        _diagLastWriteTraceEndpoint[i] = "-";
     }
 
     for (uint8_t i = 0; i < HCL::MasterManager::MAX_MASTERS; i++)
@@ -411,7 +698,7 @@ HueGatewayModule::HueGatewayModule()
 HueGatewayModule::~HueGatewayModule()
 {
     resetDevices();
-    
+
     // Cleanup Client
     if (_client)
     {
@@ -425,6 +712,13 @@ void HueGatewayModule::setup()
     Serial.println("[HueGatewayModule] Setup started");
     Serial.println("[HueGatewayModule] Initializing...");
     _bootStartMs = millis();
+
+    if (_diagLogRing.empty())
+    {
+        _diagLogRing.resize(kDiagLogCapacity);
+    }
+
+    appendDiagnosticLog("INFO", "BOOT", "Setup started");
 
     static bool extmemConfigured = false;
     if (!extmemConfigured && psramFound())
@@ -443,6 +737,7 @@ void HueGatewayModule::setup()
     
     _initialized = true;
     Serial.println("[HueGatewayModule] Setup complete");
+    appendDiagnosticLog("INFO", "BOOT", "Setup complete");
 }
 
 void HueGatewayModule::loop()
@@ -861,20 +1156,6 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
         return;
     }
 
-    // Forward KO to the corresponding light.
-    // Per-channel structure (11 KOs):
-    // KO 0: Switch (DPT 1.001)
-    // KO 1: Brightness absolute (DPT 5.001)
-    // KO 2: Dimming relative (DPT 3.007)
-    // KO 3: Status Switch (DPT 1.001)
-    // KO 4: Status Brightness (DPT 5.001)
-    // KO 5: ColorTemp (DPT 7.600)
-    // KO 6: Status ColorTemp (DPT 7.600)
-    // KO 7: ColorRGB (DPT 232.600)
-    // KO 8: Status ColorRGB (DPT 232.600)
-    // KO 9: HCL lock channel-specific (DPT 1.001)
-    // KO 10: status HCL lock channel-specific (DPT 1.001)
-    
     int32_t channel = HUE_KoCalcChannel(koNumber);
     if (channel < 0 || channel >= MAX_LIGHTS)
     {
@@ -899,15 +1180,28 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
 
     uint8_t _channelIndex = static_cast<uint8_t>(channel);
     uint8_t syncDir = ParamHUE_CHSyncDir;
-
-    // SyncDir: 0=None, 1=KNX->Hue, 2=Hue->KNX, 3=Bidirectional
     bool isCommandKo = (koType == 0 || koType == 1 || koType == 2 || koType == 5 || koType == 7);
+
+    if (isCommandKo)
+    {
+        _diagCounterKoCommands++;
+        _diagLastKoCommandMs[channel] = nowMs;
+        _diagLastKoType[channel] = koType;
+        _diagLastKoBlockReason[channel] = "ok";
+    }
+
     if (isCommandKo && !(syncDir == 1 || syncDir == 3))
     {
+        _diagCounterKoBlockedSyncDir++;
+        _diagLastKoBlockReason[channel] = "syncdir";
         Serial.printf("[HueGatewayModule] Channel %d SyncDir=%u blocks KNX->Hue command (KO type %u)\n",
                       channel + 1,
                       static_cast<unsigned>(syncDir),
                       static_cast<unsigned>(koType));
+        appendDiagnosticLog("WARN", "KNX", String("ch=") + String(channel + 1)
+            + " blocked=syncdir"
+            + " sync=" + String(static_cast<unsigned>(syncDir))
+            + " koType=" + String(static_cast<unsigned>(koType)));
         return;
     }
 
@@ -923,62 +1217,154 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
 
         if (_lights[channel] == nullptr)
         {
+            if (isCommandKo)
+            {
+                _diagCounterKoBlockedChannelMissing++;
+                _diagLastKoBlockReason[channel] = "channel-missing";
+            }
+
             static uint32_t lastNotConfiguredLogMs = 0;
             if ((nowMs - lastNotConfiguredLogMs) >= 10000 || nowMs < lastNotConfiguredLogMs)
             {
                 Serial.printf("[HueGatewayModule] Channel %d not configured\n", channel + 1);
                 lastNotConfiguredLogMs = nowMs;
             }
+
+            if (isCommandKo)
+            {
+                appendDiagnosticLog("WARN", "KNX", String("ch=") + String(channel + 1)
+                    + " blocked=channel-missing"
+                    + " koType=" + String(static_cast<unsigned>(koType)));
+            }
             return;
         }
     }
-    
+
+    unsigned long commandStartMs = nowMs;
+    unsigned long beforeHueWriteMs = (_lights[channel] != nullptr) ? _lights[channel]->getLastHueWriteSuccessMs() : 0;
+    String commandValue = "-";
+    HueGatewayClient::DiagnosticsStats statsBefore;
+    if (_client != nullptr)
+    {
+        statsBefore = _client->getDiagnosticsStats();
+    }
+
     switch (koType)
     {
-        case 0:  // Switch KO
+        case 0:
         {
             bool value = ko.value(Dpt(1, 1));
+            commandValue = String(value ? "1" : "0");
             _lights[channel]->processKnxSwitch(value);
             break;
         }
-        case 1:  // Brightness KO (absolute)
+        case 1:
         {
             uint8_t value = ko.value(Dpt(5, 1));
+            commandValue = String(static_cast<unsigned>(value));
             _lights[channel]->processKnxBrightness(value);
             break;
         }
-        case 2:  // Dimming KO (relative)
+        case 2:
         {
             uint8_t controlBit = ko.value(Dpt(3, 7, 0));
             uint8_t stepCode = ko.value(Dpt(3, 7, 1));
             uint8_t value = static_cast<uint8_t>(((controlBit & 0x01) << 3) | (stepCode & 0x07));
+            commandValue = String(static_cast<unsigned>(value));
             _lights[channel]->processKnxDimming(value);
             break;
         }
-        case 3:  // Status Switch KO (read-only, no processing)
+        case 3:
+        case 4:
             break;
-        case 4:  // Status Brightness KO (read-only, no processing)
-            break;
-        case 5:  // ColorTemp KO
+        case 5:
         {
             uint16_t kelvin = ko.value(Dpt(7, 600));
+            commandValue = String(static_cast<unsigned>(kelvin));
             _lights[channel]->processKnxColorTemp(kelvin);
             break;
         }
-        case 6:  // Status ColorTemp KO (read-only, no processing)
+        case 6:
             break;
-        case 7:  // ColorRGB KO
+        case 7:
         {
             uint8_t* rgb = ko.valueRef();
+            commandValue = String(static_cast<unsigned>(rgb[0])) + "," + String(static_cast<unsigned>(rgb[1])) + "," + String(static_cast<unsigned>(rgb[2]));
             _lights[channel]->processKnxColorRGB(rgb[0], rgb[1], rgb[2]);
             break;
         }
-        case 8:  // Status ColorRGB KO (read-only, no processing)
+        case 8:
             break;
-        case 9:  // HCL channel lock KO (already handled above)
+        case 10:
             break;
-        case 10: // Status HCL channel lock KO (read-only)
+        default:
             break;
+    }
+
+    if (isCommandKo)
+    {
+        const unsigned long finishedMs = millis();
+        const unsigned long durationMs = (finishedMs >= commandStartMs) ? (finishedMs - commandStartMs) : 0;
+        _diagLastKoValue[channel] = commandValue;
+        _diagLastWriteTraceMs[channel] = finishedMs;
+        _diagLastWriteTraceDurationMs[channel] = durationMs;
+
+        int httpStatus = 0;
+        String httpMethod = "-";
+        String httpEndpoint = "-";
+        String result = "no-http";
+        uint32_t putDelta = 0;
+
+        if (_client != nullptr)
+        {
+            const HueGatewayClient::DiagnosticsStats& statsAfter = _client->getDiagnosticsStats();
+            if (statsAfter.httpPutCount >= statsBefore.httpPutCount)
+            {
+                putDelta = statsAfter.httpPutCount - statsBefore.httpPutCount;
+            }
+            else
+            {
+                putDelta = (0xFFFFFFFFu - statsBefore.httpPutCount) + statsAfter.httpPutCount + 1u;
+            }
+
+            httpStatus = statsAfter.lastHttpStatusCode;
+            if (statsAfter.lastHttpMethod.length() > 0)
+            {
+                httpMethod = statsAfter.lastHttpMethod;
+            }
+            if (statsAfter.lastHttpEndpoint.length() > 0)
+            {
+                httpEndpoint = statsAfter.lastHttpEndpoint;
+            }
+        }
+
+        const unsigned long afterHueWriteMs = (_lights[channel] != nullptr) ? _lights[channel]->getLastHueWriteSuccessMs() : 0;
+        const bool writeSuccessByTimestamp = (afterHueWriteMs > 0) && (afterHueWriteMs != beforeHueWriteMs) && (afterHueWriteMs >= commandStartMs);
+        const bool writeSuccessByStatus = (putDelta > 0) && (httpStatus >= 200) && (httpStatus < 300);
+        if (writeSuccessByTimestamp || writeSuccessByStatus)
+        {
+            result = "ok";
+        }
+        else if (putDelta > 0)
+        {
+            result = "http-fail";
+        }
+
+        _diagLastWriteTraceHttpStatus[channel] = httpStatus;
+        _diagLastWriteTraceMethod[channel] = httpMethod;
+        _diagLastWriteTraceEndpoint[channel] = httpEndpoint;
+        _diagLastWriteTraceResult[channel] = result;
+
+        appendDiagnosticLog(writeSuccessByTimestamp || writeSuccessByStatus ? "INFO" : "WARN",
+            "KNXWRITE",
+            String("ch=") + String(channel + 1)
+            + " koType=" + String(static_cast<unsigned>(koType))
+            + " value=" + commandValue
+            + " result=" + result
+            + " status=" + String(httpStatus)
+            + " method=" + httpMethod
+            + " endpoint=" + httpEndpoint
+            + " durMs=" + String(durationMs));
     }
 
     if (isCommandKo && _lights[channel] != nullptr)
@@ -1665,6 +2051,9 @@ void HueGatewayModule::setupBridge()
 
 void HueGatewayModule::setupDevices()
 {
+    _diagCounterSetupRuns++;
+    appendDiagnosticLog("INFO", "SETUP", "setupDevices start");
+
     const unsigned long nowMs = millis();
     if (_setupCircuitOpenUntilMs != 0 && nowMs < _setupCircuitOpenUntilMs)
     {
@@ -1779,9 +2168,11 @@ void HueGatewayModule::setupDevices()
     if (bridgeLightCount <= 0)
     {
         _deviceSetupNeedsRetry = true;
+        _diagCounterSetupIncomplete++;
         _deviceSetupRetryBackoffMs = min<unsigned long>(_deviceSetupRetryBackoffMs * 2UL, kDeviceSetupRetryMaxMs);
         registerSetupFailure("no-lights");
         Serial.println("[HueGatewayModule] Bridge returned 0 lights, deferring device mapping retry");
+        appendDiagnosticLog("WARN", "SETUP", "setupDevices incomplete: bridge returned no lights");
         finalizeSetupSession("no-lights");
         return;
     }
@@ -1818,6 +2209,9 @@ void HueGatewayModule::setupDevices()
     static HueGatewayTargetInfo zoneTargets[kWebScanMaxTargets];
     const int roomTargetCount = needRoomTargets ? _client->getRoomTargets(roomTargets, kWebScanMaxTargets) : 0;
     const int zoneTargetCount = needZoneTargets ? _client->getZoneTargets(zoneTargets, kWebScanMaxTargets) : 0;
+    _diagLastBridgeLightCount = bridgeLightCount;
+    _diagLastRoomTargetCount = roomTargetCount;
+    _diagLastZoneTargetCount = zoneTargetCount;
     Serial.printf("[HueGatewayModule] Prefetched grouped targets: rooms=%d zones=%d (needed room=%u zone=%u)\n",
                   roomTargetCount,
                   zoneTargetCount,
@@ -2186,9 +2580,16 @@ void HueGatewayModule::setupDevices()
     }
 
     uint8_t enabledChannels = countEnabledChannels();
+    _diagLastEnabledChannels = enabledChannels;
+    _diagLastHasUnresolvedGroupTarget = hasUnresolvedGroupTarget;
     if (enabledChannels > 0 && (_lightCount == 0 || (bridgeLightCount <= 0 && hasIndexMappedChannel) || hasUnresolvedGroupTarget))
     {
         _deviceSetupNeedsRetry = true;
+        _diagCounterSetupIncomplete++;
+        if (hasUnresolvedGroupTarget)
+        {
+            _diagCounterUnresolvedTargets++;
+        }
         _deviceSetupRetryBackoffMs = min<unsigned long>(_deviceSetupRetryBackoffMs * 2UL, kDeviceSetupRetryMaxMs);
         registerSetupFailure("mapping-incomplete");
         Serial.printf("[HueGatewayModule] setupDevices incomplete (enabled=%u, mapped=%d, bridgeLights=%d, unresolvedGroup=%u), retry scheduled\n",
@@ -2196,6 +2597,7 @@ void HueGatewayModule::setupDevices()
                       _lightCount,
                       bridgeLightCount,
                       hasUnresolvedGroupTarget ? 1 : 0);
+        appendDiagnosticLog("WARN", "MAP", "setupDevices incomplete: mapping unresolved or empty");
     }
     else
     {
@@ -2206,6 +2608,7 @@ void HueGatewayModule::setupDevices()
     }
     
     Serial.printf("[HueGatewayModule] Initialized %d lights\n", _lightCount);
+        appendDiagnosticLog("INFO", "SETUP", String("setupDevices done: mapped=") + String(_lightCount));
     _lastChannelSyncOkMs = millis();
     _devicesInitialized = true;
     finalizeSetupSession("ok");
@@ -3669,6 +4072,7 @@ void HueGatewayModule::updateStatus(BridgeStatus status)
     
     sendStatusKO(status == BridgeStatus::CONNECTED);
     Serial.printf("[HueGatewayModule] Status: %s\n", statusText);
+    appendDiagnosticLog("INFO", "STATE", String("status=") + String(statusText));
 }
 
 void HueGatewayModule::sendStatusKO(bool connected)
@@ -3696,6 +4100,7 @@ void HueGatewayModule::pollAuthentication()
         updateStatus(BridgeStatus::CONNECTION_LOST);
         Serial.printf("[HueGatewayModule] Authentication timeout after %lu ms - button not pressed\n",
                       static_cast<unsigned long>(now - _authStartTime));
+        appendDiagnosticLog("WARN", "AUTH", "pairing timeout (button not pressed)");
         return;
     }
 
@@ -3716,6 +4121,7 @@ void HueGatewayModule::pollAuthentication()
     {
         _authPending = false;
         Serial.println("[HueGatewayModule] Authentication successful");
+        appendDiagnosticLog("INFO", "AUTH", "pairing successful");
         updateStatus(BridgeStatus::AUTHENTICATING);
 
         if (initClientWithAppKey())
@@ -4120,6 +4526,101 @@ static String maskKey(const String& key)
     return String("***") + key.substring(key.length() - 6);
 }
 
+static size_t parseDiagnosticDepth(const String& value)
+{
+    long parsed = value.toInt();
+    if (parsed <= 0)
+    {
+        return kDiagDefaultDepth;
+    }
+
+    if (parsed <= 500)
+    {
+        return 500;
+    }
+    if (parsed <= 1000)
+    {
+        return 1000;
+    }
+    return 2000;
+}
+
+static String urlEncode(const String& input)
+{
+    const char* hex = "0123456789ABCDEF";
+    String encoded;
+    encoded.reserve(input.length() * 3);
+
+    for (size_t i = 0; i < input.length(); i++)
+    {
+        const uint8_t c = static_cast<uint8_t>(input[i]);
+        const bool unreserved = (c >= 'a' && c <= 'z')
+            || (c >= 'A' && c <= 'Z')
+            || (c >= '0' && c <= '9')
+            || c == '-' || c == '_' || c == '.' || c == '~';
+
+        if (unreserved)
+        {
+            encoded += static_cast<char>(c);
+        }
+        else if (c == ' ')
+        {
+            encoded += '+';
+        }
+        else
+        {
+            encoded += '%';
+            encoded += hex[(c >> 4) & 0x0F];
+            encoded += hex[c & 0x0F];
+        }
+    }
+
+    return encoded;
+}
+
+static void readDiagnoseQuery(httpd_req_t* req, size_t& depth, String& note, bool& viewMode, bool& includeNetworkDetails)
+{
+    depth = kDiagDefaultDepth;
+    note = "";
+    viewMode = false;
+    includeNetworkDetails = false;
+
+    if (req == nullptr)
+    {
+        return;
+    }
+
+    char query[640] = {0};
+    if (httpd_req_get_url_query_str(req, query, sizeof(query)) != ESP_OK)
+    {
+        return;
+    }
+
+    char depthValue[16] = {0};
+    if (httpd_query_key_value(query, "depth", depthValue, sizeof(depthValue)) == ESP_OK)
+    {
+        depth = parseDiagnosticDepth(String(depthValue));
+    }
+
+    char noteValue[384] = {0};
+    if (httpd_query_key_value(query, "note", noteValue, sizeof(noteValue)) == ESP_OK)
+    {
+        note = String(noteValue);
+    }
+
+    char viewValue[8] = {0};
+    if (httpd_query_key_value(query, "view", viewValue, sizeof(viewValue)) == ESP_OK)
+    {
+        viewMode = (strcmp(viewValue, "1") == 0);
+    }
+
+    char netValue[8] = {0};
+    if (httpd_query_key_value(query, "net", netValue, sizeof(netValue)) == ESP_OK)
+    {
+        includeNetworkDetails = (strcmp(netValue, "1") == 0);
+    }
+}
+
 void HueGatewayModule::setupWebUI()
 {
     WebHandler scanTextHandler;
@@ -4133,6 +4634,18 @@ void HueGatewayModule::setupWebUI()
         .user_ctx = this
     };
     openknxWebUI.addHandler(scanTextHandler);
+
+    WebHandler diagnoseTextHandler;
+    diagnoseTextHandler.name = "Hue Diagnose (Text)";
+    diagnoseTextHandler.uri = "/hue/diagnose.txt";
+    diagnoseTextHandler.isVisible = false;
+    diagnoseTextHandler.httpd = {
+        .uri = "/hue/diagnose.txt",
+        .method = HTTP_GET,
+        .handler = HueGatewayModule::handleWebDiagnoseText,
+        .user_ctx = this
+    };
+    openknxWebUI.addHandler(diagnoseTextHandler);
 
     WebPage scanPage;
     scanPage.uri = "/hue/scan";
@@ -4154,6 +4667,13 @@ void HueGatewayModule::setupWebUI()
     pairPage.handler = HueGatewayModule::pageWebPair;
     pairPage.arg = this;
     openknxWebUI.addPage(pairPage);
+
+    WebPage diagnosePage;
+    diagnosePage.uri = "/hue/diagnose";
+    diagnosePage.name = "Hue-Diagnose";
+    diagnosePage.handler = HueGatewayModule::pageWebDiagnose;
+    diagnosePage.arg = this;
+    openknxWebUI.addPage(diagnosePage);
 
     WebPage rootPage;
     rootPage.uri = "/hue";
@@ -4186,6 +4706,7 @@ esp_err_t HueGatewayModule::handleWebRoot(httpd_req_t* req)
     html += "<a href='" + hueBaseUri + "/pair'>🔗 Pairing starten</a>";
     html += "<a href='" + hueBaseUri + "/scan'>🔍 Hue-Geräte laden</a>";
     html += "<a href='" + hueBaseUri + "/status'>📊 Status</a>";
+    html += "<a href='" + hueBaseUri + "/diagnose'>🧰 Diagnose</a>";
     html += "</div>";
     html += "<div class='card'><h3>Info</h3>";
     html += "<p><strong>Geräte-IP:</strong> " + getRequestLocalIpString(req) + "</p>";
@@ -4237,8 +4758,10 @@ esp_err_t HueGatewayModule::handleWebScan(httpd_req_t* req)
         {
             self->_webScanInProgress = false;
             self->_webScanRequested = false;
+            self->_diagCounterWebScanTimeouts++;
             self->_lastWebScanDurationMs = elapsedMs;
             self->_lastWebScanError = "Web-Scan Timeout nach " + String(elapsedMs / 1000UL) + " Sekunden";
+            self->appendDiagnosticLog("WARN", "WEBSCAN", String("timeout after ") + String(elapsedMs) + " ms");
 
             String html;
             html.reserve(1024);
@@ -4586,7 +5109,8 @@ esp_err_t HueGatewayModule::handleWebStatus(httpd_req_t* req)
     }
 
     html += "</table>";
-    html += "<br><a href='" + hueBaseUri + "'>← Zurück</a></body></html>";
+    html += "<br><a href='" + hueBaseUri + "/diagnose'>🧰 Diagnose erstellen</a> ";
+    html += "<a href='" + hueBaseUri + "'>← Zurück</a></body></html>";
 
     return send_html(req, html, 200);
 }
@@ -4627,6 +5151,114 @@ esp_err_t HueGatewayModule::handleWebPair(httpd_req_t* req)
     html += "<a href='" + hueBaseUri + "'>Zurück</a></div></body></html>";
 
     return send_html(req, html, 200);
+}
+
+esp_err_t HueGatewayModule::handleWebDiagnose(httpd_req_t* req)
+{
+    HueGatewayModule* self = static_cast<HueGatewayModule*>(req->user_ctx);
+    if (self == nullptr)
+        return httpd_resp_send_500(req);
+
+    const String hueBaseUri = String(openknxWebUI.getBaseUri()) + "/hue";
+
+    size_t depth = kDiagDefaultDepth;
+    String note;
+    bool viewMode = false;
+    bool includeNetworkDetails = false;
+    readDiagnoseQuery(req, depth, note, viewMode, includeNetworkDetails);
+
+    String html;
+    html.reserve(24000);
+    html = "<!DOCTYPE html><html><head><meta charset='UTF-8'>";
+    html += "<title>Hue-Diagnose</title>";
+    html += "<style>body{font-family:Arial,sans-serif;margin:40px;background:#f5f5f5;}";
+    html += ".card{background:#fff;padding:16px;margin:10px 0;border-radius:5px;box-shadow:0 2px 5px rgba(0,0,0,0.08);}";
+    html += "label{display:block;margin:8px 0 4px 0;}select,input,textarea{width:100%;padding:8px;box-sizing:border-box;}";
+    html += "button,a.btn{display:inline-block;padding:10px 14px;margin:6px 6px 6px 0;background:#007bff;color:#fff;text-decoration:none;border:none;border-radius:3px;cursor:pointer;}";
+    html += "pre{white-space:pre-wrap;background:#111;color:#ddd;padding:12px;border-radius:4px;max-height:420px;overflow:auto;}";
+    html += "</style></head><body>";
+    html += "<h1>🧰 Hue-Diagnose</h1>";
+
+    html += "<div class='card'><form id='diagForm' method='GET' action='" + hueBaseUri + "/diagnose'>";
+    html += "<input type='hidden' name='view' value='1'>";
+    html += "<label>Logtiefe</label>";
+    html += "<select name='depth'>";
+    html += "<option value='500'" + String(depth == 500 ? " selected" : "") + ">500</option>";
+    html += "<option value='1000'" + String(depth == 1000 ? " selected" : "") + ">1000</option>";
+    html += "<option value='2000'" + String(depth == 2000 ? " selected" : "") + ">2000</option>";
+    html += "</select>";
+    html += "<label>Tester-Notiz</label>";
+    html += "<textarea name='note' rows='3' placeholder='Was wurde getestet? Welche Gruppenadresse? Erwartet/Passiert?'>" + escape_html(note) + "</textarea>";
+    html += "<label><input type='checkbox' name='net' value='1' style='width:auto;margin-right:8px;'" + String(includeNetworkDetails ? " checked" : "") + ">Vollständige Netzwerkdetails (Device-/Bridge-IP) einfügen</label>";
+    html += "<button type='submit'>Diagnose erstellen</button>";
+    html += "</form></div>";
+
+    String querySuffix = "?depth=" + String(static_cast<unsigned long>(depth));
+    if (note.length() > 0)
+    {
+        querySuffix += "&note=" + urlEncode(note);
+    }
+    if (includeNetworkDetails)
+    {
+        querySuffix += "&net=1";
+    }
+
+    html += "<div class='card'>";
+    html += "<a class='btn' id='diagDownload' href='" + hueBaseUri + "/diagnose.txt" + querySuffix + "' onclick='return downloadDiag(event)'>Diagnose herunterladen</a>";
+    html += "<button type='button' onclick='copyDiag()'>Diagnose in Zwischenablage</button>";
+    html += "<a class='btn' href='" + hueBaseUri + "'>Zurück</a>";
+    html += "</div>";
+
+    if (viewMode)
+    {
+        const size_t previewDepth = min<size_t>(depth, static_cast<size_t>(120));
+        String report = self->buildDiagnosticReport(previewDepth, note, includeNetworkDetails);
+        html += "<div class='card'><h3>Vorschau</h3><pre id='diagText'>" + escape_html(report) + "</pre></div>";
+        if (depth > previewDepth)
+        {
+            html += "<div class='card'><p>Hinweis: Vorschau zeigt die letzten " + String(static_cast<unsigned long>(previewDepth)) + " Einträge. Vollständiger Export über \"Diagnose herunterladen\".</p></div>";
+        }
+    }
+    else
+    {
+        html += "<div class='card'><p>Diagnose wird beim Klick auf \"Diagnose erstellen\" oder \"Diagnose herunterladen\" erzeugt.</p><pre id='diagText' style='display:none'></pre></div>";
+    }
+
+    html += "<script>";
+    html += "function diagUrl(){const dl=document.getElementById('diagDownload');if(!dl||!dl.href){throw new Error('Download-Link fehlt');}const u=new URL(dl.href,window.location.href);u.searchParams.set('_ts',Date.now().toString());return u.toString();}";
+    html += "function diagViewUrl(){const form=document.getElementById('diagForm');if(!form||!form.action){throw new Error('Diagnose-Formular fehlt');}const fd=new FormData(form);const u=new URL(form.action,window.location.href);u.searchParams.set('view','1');const depth=fd.get('depth');if(depth){u.searchParams.set('depth',depth.toString());}const note=fd.get('note');if(note){u.searchParams.set('note',note.toString());}if(fd.get('net')==='1'){u.searchParams.set('net','1');}u.searchParams.set('_ts',Date.now().toString());return u.toString();}";
+    html += "function looksLikeHtml(text){if(!text){return false;}const head=text.slice(0,300).toLowerCase();return head.includes('<!doctype html')||head.includes('<html')||head.includes('<head')||head.includes('<body');}";
+    html += "function extractDiagFromHtml(html){const parser=new DOMParser();const doc=parser.parseFromString(html,'text/html');const pre=doc.getElementById('diagText');if(!pre){return '';}const txt=pre.textContent||'';return txt.trim();}";
+    html += "async function loadDiagText(){const r=await fetch(diagUrl(),{cache:'no-store'});if(!r.ok){throw new Error('HTTP '+r.status);}const primary=await r.text();if(!looksLikeHtml(primary)){return primary;}const inline=extractDiagFromHtml(primary);if(inline.length>0){return inline;}const rf=await fetch(diagViewUrl(),{cache:'no-store'});if(!rf.ok){throw new Error('Fallback HTTP '+rf.status);}const html=await rf.text();const extracted=extractDiagFromHtml(html);if(extracted.length===0){throw new Error('Diagnose-Text konnte nicht aus HTML extrahiert werden');}return extracted;}";
+    html += "async function downloadDiag(ev){if(ev){ev.preventDefault();}try{const txt=await loadDiagText();const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='hue-diagnose-'+Date.now()+'.txt';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);return false;}catch(e){alert('Download fehlgeschlagen: '+(e&&e.message?e.message:'unbekannter Fehler'));return false;}}";
+    html += "async function copyDiag(){try{const t=await loadDiagText();const target=document.getElementById('diagText');if(target){target.textContent=t;}if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(t);alert('Diagnose in Zwischenablage kopiert');return;}const ta=document.createElement('textarea');ta.value=t;ta.setAttribute('readonly','readonly');ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.focus();ta.select();const ok=document.execCommand('copy');ta.remove();if(!ok){throw new Error('Browser blockiert Kopieren');}alert('Diagnose in Zwischenablage kopiert');}catch(e){alert('Kopieren fehlgeschlagen: '+(e&&e.message?e.message:'unbekannter Fehler')+'\\nBitte Diagnose herunterladen verwenden.');}}";
+    html += "</script>";
+
+    html += "</body></html>";
+    return send_html(req, html, 200);
+}
+
+esp_err_t HueGatewayModule::handleWebDiagnoseText(httpd_req_t* req)
+{
+    HueGatewayModule* self = static_cast<HueGatewayModule*>(req->user_ctx);
+    if (self == nullptr)
+        return httpd_resp_send_500(req);
+
+    size_t depth = kDiagDefaultDepth;
+    String note;
+    bool viewMode = false;
+    bool includeNetworkDetails = false;
+    readDiagnoseQuery(req, depth, note, viewMode, includeNetworkDetails);
+
+    self->appendDiagnosticLog("INFO", "DIAG", String("diagnose export depth=") + String(static_cast<unsigned long>(depth)) + String(" net=") + String(includeNetworkDetails ? "1" : "0"));
+
+    const String report = self->buildDiagnosticReport(depth, note, includeNetworkDetails);
+    String fileName = "hue-diagnose-" + String(millis()) + ".txt";
+
+    httpd_resp_set_type(req, "text/plain; charset=UTF-8");
+    String contentDisposition = "attachment; filename=\"" + fileName + "\"";
+    httpd_resp_set_hdr(req, "Content-Disposition", contentDisposition.c_str());
+    return httpd_resp_send(req, report.c_str(), HTTPD_RESP_USE_STRLEN);
 }
 
 esp_err_t HueGatewayModule::pageWebRoot(const char* uri, httpd_req_t* req, void* arg)
@@ -4673,6 +5305,17 @@ esp_err_t HueGatewayModule::pageWebPair(const char* uri, httpd_req_t* req, void*
     return HueGatewayModule::handleWebPair(req);
 }
 
+esp_err_t HueGatewayModule::pageWebDiagnose(const char* uri, httpd_req_t* req, void* arg)
+{
+    (void)uri;
+    HueGatewayModule* self = static_cast<HueGatewayModule*>(arg);
+    if (self == nullptr)
+        return httpd_resp_send_500(req);
+
+    req->user_ctx = self;
+    return HueGatewayModule::handleWebDiagnose(req);
+}
+
 String HueGatewayModule::getBridgeScanHTML()
 {
     return _lastWebScanHtml;
@@ -4685,6 +5328,8 @@ String HueGatewayModule::getBridgeScanText()
 
 void HueGatewayModule::updateWebScanCache()
 {
+    _diagCounterWebScanRuns++;
+    appendDiagnosticLog("INFO", "WEBSCAN", "scan start");
     _lastWebScanError = "";
 
     if (!_client || !_initialized || !_client->isInitialized())
@@ -4732,6 +5377,7 @@ void HueGatewayModule::updateWebScanCache()
             _lastWebScanText = previousText;
             _lastWebScanError = "Scan lieferte 0 Leuchten, vorheriges Ergebnis beibehalten";
             Serial.println("[HueGatewayModule] Web scan returned 0 lights, keeping previous successful result");
+            appendDiagnosticLog("WARN", "WEBSCAN", "scan returned 0 lights, previous result kept");
             delete[] lights;
             return;
         }
@@ -4756,6 +5402,7 @@ void HueGatewayModule::updateWebScanCache()
         _lastWebScanLightCount = 0;
         _lastWebScanHtml = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Hue-Geräte laden</title></head><body><h1>⚠️ Hue-Geräte laden</h1><p>Keine Leuchten gefunden.</p></body></html>";
         _lastWebScanText = text;
+        appendDiagnosticLog("WARN", "WEBSCAN", String("scan returned no lights, error=") + _lastWebScanError);
         delete[] lights;
         return;
     }
@@ -4826,6 +5473,7 @@ void HueGatewayModule::updateWebScanCache()
     _lastWebScanError = "";
     _lastWebScanHtml = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Hue-Geräte geladen</title></head><body><h1>Hue-Geräte geladen</h1><p>Daten im Stream-Renderer bereit.</p></body></html>";
     _lastWebScanText = text;
+    appendDiagnosticLog("INFO", "WEBSCAN", String("scan done, lights=") + String(count));
     delete[] lights;
 }
 

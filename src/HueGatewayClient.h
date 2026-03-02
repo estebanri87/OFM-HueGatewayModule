@@ -65,6 +65,24 @@ struct HueGatewayTargetInfo
 class HueGatewayClient
 {
 public:
+    struct DiagnosticsStats
+    {
+        uint32_t httpGetCount;
+        uint32_t httpPutCount;
+        uint32_t httpGetErrorCount;
+        uint32_t httpPutErrorCount;
+        uint32_t httpTimeoutCount;
+        uint32_t eventConnectOk;
+        uint32_t eventConnectFail;
+        uint32_t eventStopCount;
+        uint32_t eventDisconnectCount;
+        uint32_t eventHandshakeTimeoutCount;
+        uint32_t eventHttpErrorCount;
+        int lastHttpStatusCode;
+        String lastHttpMethod;
+        String lastHttpEndpoint;
+    };
+
     HueGatewayClient();
     ~HueGatewayClient();
     
@@ -174,6 +192,7 @@ public:
     void setEventStreamAutoRestartEnabled(bool enabled) { _eventAutoRestartEnabled = enabled; }
     bool isEventStreamAutoRestartEnabled() const { return _eventAutoRestartEnabled; }
     int pollEventStream(HueGatewayEventLightUpdate* updates, int maxUpdates);
+    const DiagnosticsStats& getDiagnosticsStats() const { return _diagStats; }
     
     /**
     * @brief Converts Kelvin to mirek.
@@ -220,6 +239,7 @@ private:
     bool _eventAutoRestartEnabled;
     String _eventLineBuffer;
     String _eventDataBuffer;
+    DiagnosticsStats _diagStats;
 
     struct LightLocation
     {

@@ -4,6 +4,7 @@
 #include <WiFi.h>
 #include <ESPmDNS.h>
 #include <ArduinoJson.h>
+#include <vector>
 #include "OpenKNX.h"
 #include "knxprod.h"
 #include "HueGatewayAuth.h"
@@ -57,6 +58,13 @@ public:
     };
     
 private:
+    struct DiagnosticLogEntry {
+        unsigned long uptimeMs;
+        String level;
+        String category;
+        String message;
+    };
+
     bool _initialized;
     unsigned long _lastConnectionCheckMs;
     unsigned long _bootStartMs;
@@ -147,6 +155,37 @@ private:
     uint16_t _hclLastPublishedKelvin[HCL::MasterManager::MAX_MASTERS];
     uint8_t _hclLastPublishedBrightness[HCL::MasterManager::MAX_MASTERS];
     bool _hclMasterValuesPublished[HCL::MasterManager::MAX_MASTERS];
+
+    // In-memory diagnostics (for WebUI support package export).
+    std::vector<DiagnosticLogEntry> _diagLogRing;
+    size_t _diagLogRingHead;
+    size_t _diagLogRingCount;
+    uint32_t _diagLogDropped;
+    uint32_t _diagCounterSetupRuns;
+    uint32_t _diagCounterSetupIncomplete;
+    uint32_t _diagCounterUnresolvedTargets;
+    uint32_t _diagCounterKoCommands;
+    uint32_t _diagCounterKoBlockedSyncDir;
+    uint32_t _diagCounterKoBlockedChannelMissing;
+    uint32_t _diagCounterWebScanRuns;
+    uint32_t _diagCounterWebScanTimeouts;
+    unsigned long _diagLastKoCommandMs[MAX_LIGHTS];
+    uint8_t _diagLastKoType[MAX_LIGHTS];
+    String _diagLastKoValue[MAX_LIGHTS];
+    String _diagLastKoBlockReason[MAX_LIGHTS];
+    unsigned long _diagLastWriteTraceMs[MAX_LIGHTS];
+    unsigned long _diagLastWriteTraceDurationMs[MAX_LIGHTS];
+    int _diagLastWriteTraceHttpStatus[MAX_LIGHTS];
+    String _diagLastWriteTraceResult[MAX_LIGHTS];
+    String _diagLastWriteTraceMethod[MAX_LIGHTS];
+    String _diagLastWriteTraceEndpoint[MAX_LIGHTS];
+
+    // Last setup snapshot for diagnostics.
+    uint8_t _diagLastEnabledChannels;
+    int _diagLastBridgeLightCount;
+    int _diagLastRoomTargetCount;
+    int _diagLastZoneTargetCount;
+    bool _diagLastHasUnresolvedGroupTarget;
     
     void setupBridge();
     void setupDevices();
@@ -167,18 +206,23 @@ private:
     static esp_err_t handleWebScanText(httpd_req_t* req);
     static esp_err_t handleWebStatus(httpd_req_t* req);
     static esp_err_t handleWebPair(httpd_req_t* req);
+    static esp_err_t handleWebDiagnose(httpd_req_t* req);
+    static esp_err_t handleWebDiagnoseText(httpd_req_t* req);
     
     // Web UI pages (under WEBUI_BASE_URI)
     static esp_err_t pageWebRoot(const char* uri, httpd_req_t* req, void* arg);
     static esp_err_t pageWebScan(const char* uri, httpd_req_t* req, void* arg);
     static esp_err_t pageWebStatus(const char* uri, httpd_req_t* req, void* arg);
     static esp_err_t pageWebPair(const char* uri, httpd_req_t* req, void* arg);
+    static esp_err_t pageWebDiagnose(const char* uri, httpd_req_t* req, void* arg);
     
     // Scan functions
     void performBridgeScan();
     void updateWebScanCache();
     String getBridgeScanHTML();
     String getBridgeScanText();
+    String buildDiagnosticReport(size_t requestedDepth, const String& testerNote, bool includeNetworkDetails);
+    void appendDiagnosticLog(const char* level, const char* category, const String& message);
     void resetDevices();
     
     // Helper Methods

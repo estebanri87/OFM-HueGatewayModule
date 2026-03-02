@@ -136,6 +136,7 @@ HueGatewayClient::HueGatewayClient()
     , _eventParseErrorStreak(0)
     , _eventDropCount(0)
     , _eventAutoRestartEnabled(true)
+    , _diagStats{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", ""}
 {
 }
 
@@ -1489,6 +1490,7 @@ bool HueGatewayClient::startEventStream()
     logHeapStats("before-event-connect");
     if (!_eventClient.connect(_bridgeIP.c_str(), 443))
     {
+        _diagStats.eventConnectFail++;
         Serial.println("[HueGatewayClient] EventStream connect failed");
         logHeapStats("event-connect-failed");
         return false;
@@ -1521,6 +1523,7 @@ void HueGatewayClient::stopEventStream()
     _eventDataBuffer = "";
     if (_eventClient.connected())
     {
+        _diagStats.eventStopCount++;
         Serial.println("[HueGatewayClient] EventStream stopping");
         _eventClient.stop();
     }
@@ -1539,6 +1542,7 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
 
         if ((millis() - _eventHandshakeStartMs) > 3000UL && !_eventClient.available())
         {
+            _diagStats.eventHandshakeTimeoutCount++;
             Serial.println("[HueGatewayClient] EventStream header timeout");
             stopEventStream();
             return 0;
@@ -1555,6 +1559,7 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
         int statusCode = parseHttpStatusCode(statusLine);
         if (!isHttpSuccessStatus(statusCode))
         {
+            _diagStats.eventHttpErrorCount++;
             Serial.printf("[HueGatewayClient] EventStream HTTP error: %s\n", statusLine.c_str());
             stopEventStream();
             return 0;
@@ -1580,6 +1585,7 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
         _eventLineBuffer = "";
         _eventDataBuffer = "";
         _eventStreamConnected = true;
+        _diagStats.eventConnectOk++;
         Serial.println("[HueGatewayClient] EventStream connected");
     }
 
@@ -1666,6 +1672,7 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
 
     if (!_eventClient.connected())
     {
+        _diagStats.eventDisconnectCount++;
         Serial.println("[HueGatewayClient] EventStream disconnected");
         stopEventStream();
     }
@@ -1817,6 +1824,9 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDoc
     String url = buildUrl(endpoint);
     Serial.print("[HueGatewayClient] HTTP GET ");
     Serial.println(url);
+    _diagStats.httpGetCount++;
+    _diagStats.lastHttpMethod = "GET";
+    _diagStats.lastHttpEndpoint = endpoint;
     _http.setTimeout(2000);
     const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected) && _eventClient.connected();
 
@@ -1834,9 +1844,15 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDoc
     _http.addHeader("hue-application-key", _appKey);
     
     int statusCode = _http.GET();
+    _diagStats.lastHttpStatusCode = statusCode;
 
     if (statusCode < 0)
     {
+        _diagStats.httpGetErrorCount++;
+        if (statusCode == HTTPC_ERROR_READ_TIMEOUT)
+        {
+            _diagStats.httpTimeoutCount++;
+        }
         logHeapStats("http-get-failed");
     }
 
@@ -1896,6 +1912,10 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDoc
         Serial.print("[HueGatewayClient] HTTP GET failed (");
         Serial.print(statusCode);
         Serial.println(")");
+        if (statusCode >= 0)
+        {
+            _diagStats.httpGetErrorCount++;
+        }
     }
     
     _http.end();
@@ -1919,6 +1939,9 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
 {
     String url = buildUrl(endpoint);
     Serial.printf("[HueGatewayClient] HTTP PUT %s payload=%s\n", url.c_str(), payload.c_str());
+    _diagStats.httpPutCount++;
+    _diagStats.lastHttpMethod = "PUT";
+    _diagStats.lastHttpEndpoint = endpoint;
     _http.setTimeout(2000);
     const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected) && _eventClient.connected();
     bool eventPausedForPut = false;
@@ -1938,14 +1961,24 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
     _http.addHeader("hue-application-key", _appKey);
     
     int statusCode = _http.PUT(payload);
+    _diagStats.lastHttpStatusCode = statusCode;
 
     if (statusCode < 0)
     {
+        _diagStats.httpPutErrorCount++;
+        if (statusCode == HTTPC_ERROR_READ_TIMEOUT)
+        {
+            _diagStats.httpTimeoutCount++;
+        }
         logHeapStats("http-put-failed");
     }
 
     if (!isHttpSuccessStatus(statusCode))
     {
+        if (statusCode >= 0)
+        {
+            _diagStats.httpPutErrorCount++;
+        }
         String response = _http.getString();
         Serial.printf("[HueGatewayClient] HTTP PUT failed (%d): %s\n", statusCode, response.c_str());
     }
