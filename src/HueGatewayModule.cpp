@@ -51,9 +51,9 @@ static constexpr int kWebScanMaxLights = 192;
 static constexpr int kWebScanMaxTargets = 192;
 static constexpr unsigned long kWebScanCacheStaleMs = 15000UL;
 static constexpr unsigned long kWebScanTimeoutMs = 180000UL;
-static constexpr size_t kDiagLogCapacity = 1000;
+static constexpr size_t kDiagLogCapacity = 500;
 static constexpr size_t kDiagLogMessageMaxLen = 220;
-static constexpr size_t kDiagDefaultDepth = 1000;
+static constexpr size_t kDiagDefaultDepth = 500;
 static bool sEventStreamEnabled = (OPENKNX_HUE_EVENTSTREAM_POLICY_DEFAULT != 0);
 
 static unsigned long sBridgeNextPingAllowedMs = 0UL;
@@ -1053,7 +1053,7 @@ const std::string HueGatewayModule::name()
 
 const std::string HueGatewayModule::version()
 {
-    return "0.3.2";
+    return "0.3.3";
 }
 
 void HueGatewayModule::processInputKo(GroupObject& ko)
@@ -2223,10 +2223,49 @@ void HueGatewayModule::setupDevices()
     }
     #endif
 
-    static HueGatewayTargetInfo roomTargets[kWebScanMaxTargets];
-    static HueGatewayTargetInfo zoneTargets[kWebScanMaxTargets];
-    const int roomTargetCount = needRoomTargets ? _client->getRoomTargets(roomTargets, kWebScanMaxTargets) : 0;
-    const int zoneTargetCount = needZoneTargets ? _client->getZoneTargets(zoneTargets, kWebScanMaxTargets) : 0;
+    std::unique_ptr<HueGatewayTargetInfo[]> roomTargets;
+    std::unique_ptr<HueGatewayTargetInfo[]> zoneTargets;
+    int roomTargetCapacity = needRoomTargets ? kWebScanMaxTargets : 0;
+    int zoneTargetCapacity = needZoneTargets ? kWebScanMaxTargets : 0;
+
+    if (needRoomTargets)
+    {
+        roomTargets.reset(new (std::nothrow) HueGatewayTargetInfo[roomTargetCapacity]);
+        if (!roomTargets)
+        {
+            roomTargetCapacity = MAX_LIGHTS;
+            roomTargets.reset(new (std::nothrow) HueGatewayTargetInfo[roomTargetCapacity]);
+        }
+
+        if (!roomTargets)
+        {
+            roomTargetCapacity = 0;
+            appendDiagnosticLog("WARN", "SETUP", "room target buffer alloc failed, fallback to direct resolve");
+        }
+    }
+
+    if (needZoneTargets)
+    {
+        zoneTargets.reset(new (std::nothrow) HueGatewayTargetInfo[zoneTargetCapacity]);
+        if (!zoneTargets)
+        {
+            zoneTargetCapacity = MAX_LIGHTS;
+            zoneTargets.reset(new (std::nothrow) HueGatewayTargetInfo[zoneTargetCapacity]);
+        }
+
+        if (!zoneTargets)
+        {
+            zoneTargetCapacity = 0;
+            appendDiagnosticLog("WARN", "SETUP", "zone target buffer alloc failed, fallback to direct resolve");
+        }
+    }
+
+    const int roomTargetCount = (needRoomTargets && roomTargets)
+        ? _client->getRoomTargets(roomTargets.get(), roomTargetCapacity)
+        : 0;
+    const int zoneTargetCount = (needZoneTargets && zoneTargets)
+        ? _client->getZoneTargets(zoneTargets.get(), zoneTargetCapacity)
+        : 0;
     _diagLastBridgeLightCount = bridgeLightCount;
     _diagLastRoomTargetCount = roomTargetCount;
     _diagLastZoneTargetCount = zoneTargetCount;
@@ -4300,10 +4339,11 @@ void HueGatewayModule::applyEventStreamUpdates(const HueGatewayEventLightUpdate*
         return;
     }
 
+    const unsigned long nowMs = millis();
+
     if (_lightCount <= 0)
     {
         static uint32_t lastNoChannelEventLogMs = 0;
-        uint32_t nowMs = millis();
         if ((nowMs - lastNoChannelEventLogMs) >= 30000 || nowMs < lastNoChannelEventLogMs)
         {
             Serial.println("[HueGatewayModule] EventStream update ignored (no Hue channels configured)");
@@ -4368,6 +4408,24 @@ void HueGatewayModule::applyEventStreamUpdates(const HueGatewayEventLightUpdate*
             _channelFastTrackRemaining[i] = 0;
             _channelFastTrackNextMs[i] = 0;
 
+            if (_lights[i]->isGroupedTarget())
+            {
+                const unsigned long fastTrackAtMs = nowMs + kFastTrackFirstDelayMs;
+                for (int k = 0; k < MAX_LIGHTS; k++)
+                {
+                    if (_lights[k] == nullptr || _lights[k]->isGroupedTarget())
+                    {
+                        continue;
+                    }
+
+                    _channelFastTrackRemaining[k] = max<uint8_t>(_channelFastTrackRemaining[k], static_cast<uint8_t>(1));
+                    if (_channelFastTrackNextMs[k] == 0 || _channelFastTrackNextMs[k] > fastTrackAtMs)
+                    {
+                        _channelFastTrackNextMs[k] = fastTrackAtMs;
+                    }
+                }
+            }
+
             applied = true;
             break;
         }
@@ -4412,7 +4470,6 @@ void HueGatewayModule::applyEventStreamUpdates(const HueGatewayEventLightUpdate*
             pendingIgnoredGroupedSampleId = ignoredGroupedSampleId;
         }
 
-        uint32_t nowMs = millis();
         if ((nowMs - lastIgnoredSummaryMs) >= 30000 || nowMs < lastIgnoredSummaryMs)
         {
             Serial.printf("[HueGatewayModule] EventStream ignored unmapped updates: light=%lu grouped=%lu sample(light=%s grouped=%s)\n",
@@ -4627,15 +4684,12 @@ static size_t parseDiagnosticDepth(const String& value)
         return kDiagDefaultDepth;
     }
 
-    if (parsed <= 500)
+    if (parsed > static_cast<long>(kDiagLogCapacity))
     {
-        return 500;
+        return kDiagLogCapacity;
     }
-    if (parsed <= 1000)
-    {
-        return 1000;
-    }
-    return 2000;
+
+    return static_cast<size_t>(parsed);
 }
 
 static String urlEncode(const String& input)
@@ -5276,9 +5330,8 @@ esp_err_t HueGatewayModule::handleWebDiagnose(httpd_req_t* req)
     html += "<input type='hidden' name='view' value='1'>";
     html += "<label>Logtiefe</label>";
     html += "<select name='depth'>";
-    html += "<option value='500'" + String(depth == 500 ? " selected" : "") + ">500</option>";
-    html += "<option value='1000'" + String(depth == 1000 ? " selected" : "") + ">1000</option>";
-    html += "<option value='2000'" + String(depth == 2000 ? " selected" : "") + ">2000</option>";
+    html += "<option value='120'" + String(depth == 120 ? " selected" : "") + ">120 (Vorschau)</option>";
+    html += "<option value='500'" + String(depth == 500 ? " selected" : "") + ">500 (Maximum)</option>";
     html += "</select>";
     html += "<label>Tester-Notiz</label>";
     html += "<textarea name='note' rows='3' placeholder='Was wurde getestet? Welche Gruppenadresse? Erwartet/Passiert?'>" + escape_html(note) + "</textarea>";

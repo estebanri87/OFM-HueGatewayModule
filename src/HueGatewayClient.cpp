@@ -1,6 +1,7 @@
 #include "HueGatewayClient.h"
 #include <cstring>
 #include <functional>
+#include <memory>
 #include <math.h>
 #include <esp_heap_caps.h>
 
@@ -182,8 +183,8 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights, boo
         return 0;
     }
 
-    static DynamicJsonDocument doc(65536);
-    static DynamicJsonDocument lightFilterDoc(768);
+    DynamicJsonDocument doc(65536);
+    DynamicJsonDocument lightFilterDoc(768);
     lightFilterDoc.clear();
     JsonObject lightFilterRoot = lightFilterDoc.to<JsonObject>();
     JsonObject lightFilterData = lightFilterRoot["data"][0].to<JsonObject>();
@@ -244,8 +245,8 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights, boo
             deviceLightLinks.push_back(link);
         }
 
-        static DynamicJsonDocument deviceDoc(32768);
-        static DynamicJsonDocument deviceFilterDoc(512);
+        DynamicJsonDocument deviceDoc(32768);
+        DynamicJsonDocument deviceFilterDoc(512);
         deviceFilterDoc.clear();
         JsonObject deviceFilterRoot = deviceFilterDoc.to<JsonObject>();
         JsonObject deviceFilterData = deviceFilterRoot["data"][0].to<JsonObject>();
@@ -263,8 +264,8 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights, boo
             appendDeviceLightLinksFromDoc(deviceLightLinks, deviceDoc);
         }
 
-        static DynamicJsonDocument roomDoc(32768);
-        static DynamicJsonDocument locationFilterDoc(640);
+        DynamicJsonDocument roomDoc(32768);
+        DynamicJsonDocument locationFilterDoc(640);
         locationFilterDoc.clear();
         JsonObject locationFilterRoot = locationFilterDoc.to<JsonObject>();
         JsonObject locationFilterData = locationFilterRoot["data"][0].to<JsonObject>();
@@ -285,7 +286,7 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights, boo
             appendLocationsFromDoc(locations, roomDoc, true, deviceLightLinks);
         }
 
-        static DynamicJsonDocument zoneDoc(32768);
+        DynamicJsonDocument zoneDoc(32768);
         zoneDoc.clear();
         int zoneStatus = httpGet("/clip/v2/resource/zone", zoneDoc, &locationFilterDoc);
         if (isHttpSuccessStatus(zoneStatus))
@@ -328,7 +329,7 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights, boo
         String ownerRid = light["owner"]["rid"].as<String>();
 
         float brightnessPct = light["dimming"]["brightness"].as<float>();
-        lights[count].brightness = static_cast<uint8_t>(brightnessPct * 2.54f);
+        lights[count].brightness = static_cast<uint8_t>(roundf(brightnessPct * 2.54f));
 
         lights[count].reachable = light["owner"].isNull() == false;
         lights[count].supportsColorTemp = !light["color_temperature"].isNull();
@@ -408,8 +409,8 @@ int HueGatewayClient::getGroupedLights(HueGatewayLightState* groupedLights, int 
         return 0;
     }
 
-    static DynamicJsonDocument doc(32768);
-    static DynamicJsonDocument groupedLightFilterDoc(640);
+    DynamicJsonDocument doc(32768);
+    DynamicJsonDocument groupedLightFilterDoc(640);
     groupedLightFilterDoc.clear();
     JsonObject groupedFilterRoot = groupedLightFilterDoc.to<JsonObject>();
     JsonObject groupedFilterData = groupedFilterRoot["data"][0].to<JsonObject>();
@@ -451,7 +452,7 @@ int HueGatewayClient::getGroupedLights(HueGatewayLightState* groupedLights, int 
         float brightnessPct = item["dimming"]["brightness"].as<float>();
         if (brightnessPct < 0.0f) brightnessPct = 0.0f;
         if (brightnessPct > 100.0f) brightnessPct = 100.0f;
-        groupedLights[count].brightness = static_cast<uint8_t>(brightnessPct * 2.54f);
+        groupedLights[count].brightness = static_cast<uint8_t>(roundf(brightnessPct * 2.54f));
 
         groupedLights[count].supportsColorTemp = !item["color_temperature"].isNull();
         groupedLights[count].supportsColor = !item["color"].isNull();
@@ -1087,8 +1088,8 @@ bool HueGatewayClient::resolveGroupedLightForTarget(const String& endpoint, cons
         return false;
     }
 
-    static DynamicJsonDocument doc(32768);
-    static DynamicJsonDocument targetFilterDoc(512);
+    DynamicJsonDocument doc(32768);
+    DynamicJsonDocument targetFilterDoc(512);
     targetFilterDoc.clear();
     JsonObject targetFilterRoot = targetFilterDoc.to<JsonObject>();
     JsonObject targetFilterData = targetFilterRoot["data"][0].to<JsonObject>();
@@ -1153,8 +1154,8 @@ int HueGatewayClient::getTargetsForEndpoint(const String& endpoint, HueGatewayTa
         return 0;
     }
 
-    static DynamicJsonDocument doc(32768);
-    static DynamicJsonDocument targetFilterDoc(512);
+    DynamicJsonDocument doc(32768);
+    DynamicJsonDocument targetFilterDoc(512);
     targetFilterDoc.clear();
     JsonObject targetFilterRoot = targetFilterDoc.to<JsonObject>();
     JsonObject targetFilterData = targetFilterRoot["data"][0].to<JsonObject>();

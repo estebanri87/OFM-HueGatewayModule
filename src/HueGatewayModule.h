@@ -23,7 +23,7 @@ struct HueGatewayEventLightUpdate;
  * It communicates with the Hue Bridge via Hue API v2 and exposes device
  * functions through KNX communication objects.
  * 
- * @version 0.3.2
+ * @version 0.3.3
  * @date 2026-04-04
  */
 
