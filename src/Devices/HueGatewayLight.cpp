@@ -57,6 +57,7 @@ HueGatewayLight::HueGatewayLight(const String& lightId, const String& name, HueG
     , _lightType(0)
     , _minBrightnessPercent(0)
     , _minBrightnessHue(0)
+    , _lastNonZeroBrightnessHue(0)
     , _isGroupedTarget(false)
     , _hclMasterNum(0)
     , _hclChannelLockActive(false)
@@ -116,9 +117,21 @@ void HueGatewayLight::processKnxSwitch(bool value)
     _on = value;
     uint8_t switchTransitionSec = value ? _switchOnTransitionSec : _switchOffTransitionSec;
 
-    if (_on && _brightness == 0 && _minBrightnessHue > 0)
+    if (_on && _brightness == 0)
     {
-        _brightness = _minBrightnessHue;
+        if (_isGroupedTarget && _lastNonZeroBrightnessHue > 0)
+        {
+            _brightness = _lastNonZeroBrightnessHue;
+        }
+        else if (_minBrightnessHue > 0)
+        {
+            _brightness = _minBrightnessHue;
+        }
+    }
+
+    if (_brightness > 0)
+    {
+        _lastNonZeroBrightnessHue = _brightness;
     }
     
     // On switch-on with HCL assignment, apply the current interpolated HCL target.
@@ -170,6 +183,11 @@ void HueGatewayLight::processKnxBrightness(uint8_t value)
     if (_brightness > 0 && _brightness < _minBrightnessHue)
     {
         _brightness = _minBrightnessHue;
+    }
+
+    if (_brightness > 0)
+    {
+        _lastNonZeroBrightnessHue = _brightness;
     }
     
     // Auto-turn on when brightness is set above zero.
@@ -297,6 +315,11 @@ void HueGatewayLight::applyRelativeDimmingCache(bool brighter, uint8_t steps)
         _brightness = _minBrightnessHue;
     }
 
+    if (_brightness > 0)
+    {
+        _lastNonZeroBrightnessHue = _brightness;
+    }
+
     Serial.printf("[HueGatewayLight] %s - KNX Dimming: %s stepCode=%u (%.3f%%) -> Cached Brightness: %u\n",
                   _name.c_str(),
                   brighter ? "BRIGHTER" : "DARKER",
@@ -397,6 +420,11 @@ void HueGatewayLight::updateFromHue(bool on, uint8_t brightness, uint16_t colorT
         changed = true;
     }
 
+    if (_brightness > 0)
+    {
+        _lastNonZeroBrightnessHue = _brightness;
+    }
+
     if (_lightType >= 2 && colorTempKelvin >= 2000 && colorTempKelvin <= 6500 && _currentKelvin != colorTempKelvin)
     {
         _currentKelvin = colorTempKelvin;
@@ -428,8 +456,11 @@ void HueGatewayLight::sendStatusToKnx()
     
     // Publish status to dedicated feedback KOs.
     // Hue 0-254 -> KNX 0-100%.
-    // Report 0% while switched off, even if Hue internally keeps the last dim level.
-    uint8_t statusBrightnessHue = _on ? _brightness : 0;
+    // For grouped targets keep reporting last known non-zero level while switched off,
+    // so KNX status reflects the level that will be restored on next switch-on.
+    uint8_t statusBrightnessHue = _on
+        ? _brightness
+        : (_isGroupedTarget ? _lastNonZeroBrightnessHue : 0);
     uint8_t brightnessPercent = (uint8_t)((statusBrightnessHue / 254.0f) * 100.0f);
     
     // KO Status Switch: DPT 1.001 (bool) - On/Off feedback.

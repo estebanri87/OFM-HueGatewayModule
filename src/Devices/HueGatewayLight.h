@@ -168,6 +168,7 @@ private:
     uint8_t _lightType;
     uint8_t _minBrightnessPercent;
     uint8_t _minBrightnessHue;
+    uint8_t _lastNonZeroBrightnessHue;
     bool _isGroupedTarget;
     
     // HCL configuration and current interpolation state.
