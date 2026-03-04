@@ -178,7 +178,7 @@ void HueGatewayLight::processKnxBrightness(uint8_t value)
     const bool previousOn = _on;
 
     // KNX DPT 5.001: 0-100% -> Hue 0-254.
-    _brightness = (uint8_t)((value / 100.0f) * 254.0f);
+    _brightness = static_cast<uint8_t>(roundf((value / 100.0f) * 254.0f));
 
     if (_brightness > 0 && _brightness < _minBrightnessHue)
     {
@@ -461,7 +461,7 @@ void HueGatewayLight::sendStatusToKnx()
     uint8_t statusBrightnessHue = _on
         ? _brightness
         : (_isGroupedTarget ? _lastNonZeroBrightnessHue : 0);
-    uint8_t brightnessPercent = (uint8_t)((statusBrightnessHue / 254.0f) * 100.0f);
+    uint8_t brightnessPercent = static_cast<uint8_t>(roundf((statusBrightnessHue / 254.0f) * 100.0f));
     
     // KO Status Switch: DPT 1.001 (bool) - On/Off feedback.
     knx.getGroupObject(_koStatusSwitch).value(_on, Dpt(1, 1));
