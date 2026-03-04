@@ -9,6 +9,7 @@
 #include <lwip/sockets.h>
 #include <lwip/inet.h>
 #include <cstring>
+#include <memory>
 #include <new>
 
 #if __has_include("NetworkModule.h")
@@ -1052,7 +1053,7 @@ const std::string HueGatewayModule::name()
 
 const std::string HueGatewayModule::version()
 {
-    return "0.3.1";
+    return "0.3.2";
 }
 
 void HueGatewayModule::processInputKo(GroupObject& ko)
@@ -2087,8 +2088,6 @@ void HueGatewayModule::setupDevices()
     {
         channelCount = MAX_LIGHTS;
     }
-
-    resetDevices();
     
     if (!_client || !_client->isInitialized())
     {
@@ -2156,12 +2155,31 @@ void HueGatewayModule::setupDevices()
     };
     
     // Retrieve all lights from the bridge for validation/mapping.
-    static HueGatewayLightState allLights[MAX_LIGHTS];
-    int bridgeLightCount = _client->getLights(allLights, MAX_LIGHTS, false);
+    int lightFetchCapacity = kWebScanMaxLights;
+    std::unique_ptr<HueGatewayLightState[]> allLights(new (std::nothrow) HueGatewayLightState[lightFetchCapacity]);
+    if (!allLights)
+    {
+        lightFetchCapacity = MAX_LIGHTS;
+        allLights.reset(new (std::nothrow) HueGatewayLightState[lightFetchCapacity]);
+    }
+
+    if (!allLights)
+    {
+        _deviceSetupNeedsRetry = true;
+        _diagCounterSetupIncomplete++;
+        _deviceSetupRetryBackoffMs = min<unsigned long>(_deviceSetupRetryBackoffMs * 2UL, kDeviceSetupRetryMaxMs);
+        registerSetupFailure("alloc-lights-buffer");
+        Serial.println("[HueGatewayModule] setupDevices aborted: cannot allocate light fetch buffer");
+        appendDiagnosticLog("WARN", "SETUP", "setupDevices incomplete: light fetch buffer alloc failed");
+        finalizeSetupSession("alloc-failed");
+        return;
+    }
+
+    int bridgeLightCount = _client->getLights(allLights.get(), lightFetchCapacity, false);
     if (bridgeLightCount <= 0)
     {
         delay(60);
-        bridgeLightCount = _client->getLights(allLights, MAX_LIGHTS, false);
+        bridgeLightCount = _client->getLights(allLights.get(), lightFetchCapacity, false);
     }
     Serial.printf("[HueGatewayModule] Bridge has %d lights\n", bridgeLightCount);
 
@@ -2225,6 +2243,8 @@ void HueGatewayModule::setupDevices()
     {
         maxChannels = MAX_LIGHTS;
     }
+    bool mappedChannels[MAX_LIGHTS] = {false};
+    int mappedCount = 0;
     bool hasIndexMappedChannel = false;
     bool hasUnresolvedGroupTarget = false;
     for (uint8_t ch = 0; ch < maxChannels; ch++)
@@ -2234,6 +2254,15 @@ void HueGatewayModule::setupDevices()
         if (ParamHUE_CHDisabled)
         {
             Serial.printf("[HueGatewayModule] Channel %d: Disabled\n", ch + 1);
+            if (_lights[ch] != nullptr)
+            {
+                delete _lights[ch];
+                _lights[ch] = nullptr;
+            }
+            _channelLastPollMs[ch] = 0;
+            _channelFastTrackNextMs[ch] = 0;
+            _channelFastTrackCooldownUntilMs[ch] = 0;
+            _channelFastTrackRemaining[ch] = 0;
             continue;
         }
 
@@ -2475,6 +2504,15 @@ void HueGatewayModule::setupDevices()
                               static_cast<unsigned>(configuredTargetType),
                               configuredTargetRid.length() > 0 ? 1U : 0U,
                               hasLegacyUuid ? 1U : 0U);
+
+                if (_lights[ch] != nullptr)
+                {
+                    mappedChannels[ch] = true;
+                    mappedCount++;
+                    Serial.printf("[HueGatewayModule] Channel %d: keeping previous mapping (%s)\n",
+                                  ch + 1,
+                                  _lights[ch]->getLightId().c_str());
+                }
                 continue;
             }
         }
@@ -2488,6 +2526,11 @@ void HueGatewayModule::setupDevices()
         if (selectedLight == nullptr || selectedLight->id.isEmpty())
         {
             Serial.printf("[HueGatewayModule] Channel %d: No valid bridge light selected\n", ch + 1);
+            if (_lights[ch] != nullptr)
+            {
+                mappedChannels[ch] = true;
+                mappedCount++;
+            }
             continue;
         }
 
@@ -2500,8 +2543,27 @@ void HueGatewayModule::setupDevices()
         uint16_t koStatusColorTemp = koBase + 6;
         uint16_t koStatusColorRGB = koBase + 8;
         
-        // Create a HueGatewayLight instance for this channel.
-        _lights[ch] = new HueGatewayLight(selectedLight->id, selectedLight->name, _client);
+        const bool needsRecreate = (_lights[ch] == nullptr)
+            || !_lights[ch]->getLightId().equalsIgnoreCase(selectedLight->id)
+            || (_lights[ch]->isGroupedTarget() != targetIsGrouped);
+
+        if (needsRecreate)
+        {
+            if (_lights[ch] != nullptr)
+            {
+                delete _lights[ch];
+            }
+
+            _lights[ch] = new HueGatewayLight(selectedLight->id, selectedLight->name, _client);
+            if (_lights[ch] == nullptr)
+            {
+                Serial.printf("[HueGatewayModule] Channel %d: allocation failed for %s\n",
+                              ch + 1,
+                              selectedLight->id.c_str());
+                continue;
+            }
+        }
+
         _lights[ch]->begin(koSwitch, koBrightness, koDimming, koStatusSwitch, koStatusBrightness, koStatusColorTemp, koStatusColorRGB);
         _lights[ch]->setGroupedTarget(targetIsGrouped);
 
@@ -2575,9 +2637,40 @@ void HueGatewayModule::setupDevices()
                       static_cast<unsigned>(minBrightness),
                       static_cast<unsigned>(hclMaster),
                       koSwitch, koBrightness, koDimming, koStatusSwitch, koStatusBrightness);
-        
-        _lightCount++;
+
+        mappedChannels[ch] = true;
+        mappedCount++;
     }
+
+    for (uint8_t ch = maxChannels; ch < MAX_LIGHTS; ch++)
+    {
+        if (_lights[ch] != nullptr)
+        {
+            delete _lights[ch];
+            _lights[ch] = nullptr;
+        }
+        _channelLastPollMs[ch] = 0;
+        _channelFastTrackNextMs[ch] = 0;
+        _channelFastTrackCooldownUntilMs[ch] = 0;
+        _channelFastTrackRemaining[ch] = 0;
+    }
+
+    for (uint8_t ch = 0; ch < maxChannels; ch++)
+    {
+        if (mappedChannels[ch] || _lights[ch] == nullptr)
+        {
+            continue;
+        }
+
+        delete _lights[ch];
+        _lights[ch] = nullptr;
+        _channelLastPollMs[ch] = 0;
+        _channelFastTrackNextMs[ch] = 0;
+        _channelFastTrackCooldownUntilMs[ch] = 0;
+        _channelFastTrackRemaining[ch] = 0;
+    }
+
+    _lightCount = mappedCount;
 
     uint8_t enabledChannels = countEnabledChannels();
     _diagLastEnabledChannels = enabledChannels;
@@ -2608,7 +2701,7 @@ void HueGatewayModule::setupDevices()
     }
     
     Serial.printf("[HueGatewayModule] Initialized %d lights\n", _lightCount);
-        appendDiagnosticLog("INFO", "SETUP", String("setupDevices done: mapped=") + String(_lightCount));
+    appendDiagnosticLog("INFO", "SETUP", String("setupDevices done: mapped=") + String(_lightCount));
     _lastChannelSyncOkMs = millis();
     _devicesInitialized = true;
     finalizeSetupSession("ok");
