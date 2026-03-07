@@ -207,6 +207,14 @@ public:
     * @return Kelvin value (2000-6536)
      */
     static uint16_t mirekToKelvin(uint16_t mirek);
+
+    /**
+    * @brief Converts KNX DPT 3.007 step code to a bounded practical dimming delta in percent.
+    * Step code 1 = fastest practical dimming, 7 = slowest practical dimming.
+    * @param steps Step code (0-7)
+    * @return Brightness delta in percent
+     */
+    static float relativeDimmingDeltaPercent(uint8_t steps);
     
     /**
     * @brief Returns whether the client has been initialized.

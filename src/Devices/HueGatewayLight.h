@@ -188,6 +188,10 @@ private:
     unsigned long _lastRelativeDimCmdMs;
     unsigned long _relativeDimCooldownUntilMs;
     uint8_t _relativeDimErrorStreak;
+    bool _relativeDimHoldActive;
+    bool _relativeDimHoldBrighter;
+    uint8_t _relativeDimHoldSteps;
+    unsigned long _relativeDimNextMs;
     uint8_t _switchOnTransitionSec;
     uint8_t _switchOffTransitionSec;
     

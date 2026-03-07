@@ -18,21 +18,6 @@ static constexpr uint32_t kTlsMinInternalLargestBlockBytes = 50000U;
 #endif
 static constexpr unsigned long kLightLocationCacheMs = 300000UL;
 
-float dimmingStepCodeToPercent(uint8_t stepCode)
-{
-    switch (stepCode)
-    {
-        case 1: return 100.0f;
-        case 2: return 50.0f;
-        case 3: return 25.0f;
-        case 4: return 12.5f;
-        case 5: return 6.25f;
-        case 6: return 3.125f;
-        case 7: return 1.5625f;
-        default: return 0.0f;
-    }
-}
-
 bool isHttpSuccessStatus(int statusCode)
 {
     return statusCode >= 200 && statusCode < 300;
@@ -909,17 +894,7 @@ bool HueGatewayClient::setLightDimmingDelta(const String& lightId, bool brighter
         steps = 7;
     }
 
-    // KNX DPT 3.007 step code mapping (Control Dimming):
-    // 1=100%, 2=50%, 3=25%, 4=12.5%, 5=6.25%, 6=3.125%, 7=1.5625%
-    float brightnessDeltaPct = dimmingStepCodeToPercent(steps);
-    if (brightnessDeltaPct < 0.1f)
-    {
-        brightnessDeltaPct = 0.1f;
-    }
-    if (brightnessDeltaPct > 100.0f)
-    {
-        brightnessDeltaPct = 100.0f;
-    }
+    float brightnessDeltaPct = relativeDimmingDeltaPercent(steps);
 
     String endpoint = "/clip/v2/resource/light/" + lightId;
 
@@ -967,15 +942,7 @@ bool HueGatewayClient::setGroupedLightDimmingDelta(const String& groupedLightId,
         steps = 7;
     }
 
-    float brightnessDeltaPct = dimmingStepCodeToPercent(steps);
-    if (brightnessDeltaPct < 0.1f)
-    {
-        brightnessDeltaPct = 0.1f;
-    }
-    if (brightnessDeltaPct > 100.0f)
-    {
-        brightnessDeltaPct = 100.0f;
-    }
+    float brightnessDeltaPct = relativeDimmingDeltaPercent(steps);
 
     String endpoint = "/clip/v2/resource/grouped_light/" + groupedLightId;
 
@@ -1816,6 +1783,43 @@ uint16_t HueGatewayClient::mirekToKelvin(uint16_t mirek)
     uint16_t kelvin = 1000000 / mirek;
     
     return kelvin;
+}
+
+float HueGatewayClient::relativeDimmingDeltaPercent(uint8_t steps)
+{
+    if (steps == 0)
+    {
+        return 0.0f;
+    }
+
+    if (steps > 7)
+    {
+        steps = 7;
+    }
+
+    float deltaPercent = 0.0f;
+    switch (steps)
+    {
+        case 1: deltaPercent = 6.0f; break;
+        case 2: deltaPercent = 5.2f; break;
+        case 3: deltaPercent = 4.6f; break;
+        case 4: deltaPercent = 4.0f; break;
+        case 5: deltaPercent = 3.4f; break;
+        case 6: deltaPercent = 2.8f; break;
+        case 7: deltaPercent = 2.2f; break;
+        default: deltaPercent = 0.0f; break;
+    }
+
+    if (deltaPercent < 1.0f)
+    {
+        deltaPercent = 1.0f;
+    }
+    if (deltaPercent > 6.0f)
+    {
+        deltaPercent = 6.0f;
+    }
+
+    return deltaPercent;
 }
 
 // ===== Private Methods =====

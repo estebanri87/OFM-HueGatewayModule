@@ -1053,7 +1053,7 @@ const std::string HueGatewayModule::name()
 
 const std::string HueGatewayModule::version()
 {
-    return "0.3.3";
+    return "0.3.4";
 }
 
 void HueGatewayModule::processInputKo(GroupObject& ko)
@@ -4339,11 +4339,10 @@ void HueGatewayModule::applyEventStreamUpdates(const HueGatewayEventLightUpdate*
         return;
     }
 
-    const unsigned long nowMs = millis();
-
     if (_lightCount <= 0)
     {
         static uint32_t lastNoChannelEventLogMs = 0;
+        uint32_t nowMs = millis();
         if ((nowMs - lastNoChannelEventLogMs) >= 30000 || nowMs < lastNoChannelEventLogMs)
         {
             Serial.println("[HueGatewayModule] EventStream update ignored (no Hue channels configured)");
@@ -4408,24 +4407,6 @@ void HueGatewayModule::applyEventStreamUpdates(const HueGatewayEventLightUpdate*
             _channelFastTrackRemaining[i] = 0;
             _channelFastTrackNextMs[i] = 0;
 
-            if (_lights[i]->isGroupedTarget())
-            {
-                const unsigned long fastTrackAtMs = nowMs + kFastTrackFirstDelayMs;
-                for (int k = 0; k < MAX_LIGHTS; k++)
-                {
-                    if (_lights[k] == nullptr || _lights[k]->isGroupedTarget())
-                    {
-                        continue;
-                    }
-
-                    _channelFastTrackRemaining[k] = max<uint8_t>(_channelFastTrackRemaining[k], static_cast<uint8_t>(1));
-                    if (_channelFastTrackNextMs[k] == 0 || _channelFastTrackNextMs[k] > fastTrackAtMs)
-                    {
-                        _channelFastTrackNextMs[k] = fastTrackAtMs;
-                    }
-                }
-            }
-
             applied = true;
             break;
         }
@@ -4470,6 +4451,7 @@ void HueGatewayModule::applyEventStreamUpdates(const HueGatewayEventLightUpdate*
             pendingIgnoredGroupedSampleId = ignoredGroupedSampleId;
         }
 
+        uint32_t nowMs = millis();
         if ((nowMs - lastIgnoredSummaryMs) >= 30000 || nowMs < lastIgnoredSummaryMs)
         {
             Serial.printf("[HueGatewayModule] EventStream ignored unmapped updates: light=%lu grouped=%lu sample(light=%s grouped=%s)\n",
