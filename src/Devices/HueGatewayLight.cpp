@@ -98,7 +98,11 @@ void HueGatewayLight::processKnxSwitch(bool value)
 
     _relativeDimHoldActive = false;
     
-    Serial.printf("[HueGatewayLight] %s - KNX Switch: %d\n", _name.c_str(), value);
+    Serial.printf("[HueGatewayLight] %s - KNX Switch: %d (onFade:%us offFade:%us => fade:%us)\n", 
+                  _name.c_str(), value, 
+                  static_cast<unsigned>(_switchOnTransitionSec),
+                  static_cast<unsigned>(_switchOffTransitionSec),
+                  static_cast<unsigned>(value ? _switchOnTransitionSec : _switchOffTransitionSec));
     
     // Stop ongoing fade immediately when switching off.
     if (!value && _fadingActive) {
@@ -219,7 +223,7 @@ void HueGatewayLight::processKnxDimming(uint8_t control)
     uint8_t steps = control & 0x07;  // Bits 0-2
     bool brighter = (control & 0x08) != 0;  // Bit 3
     unsigned long nowMs = millis();
-    
+
     // Ignore stop telegram (0 steps).
     if (steps == 0)
     {

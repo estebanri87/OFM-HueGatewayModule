@@ -136,6 +136,8 @@ public:
     void setMinBrightness(uint8_t minBrightness);
 
     void setSwitchTransitionDurations(uint8_t onTransitionSec, uint8_t offTransitionSec);
+    uint8_t getSwitchOnTransitionSec() const { return _switchOnTransitionSec; }
+    uint8_t getSwitchOffTransitionSec() const { return _switchOffTransitionSec; }
 
     void setGroupedTarget(bool groupedTarget) { _isGroupedTarget = groupedTarget; }
     bool isGroupedTarget() const { return _isGroupedTarget; }
