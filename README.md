@@ -35,9 +35,9 @@ pio run
 ## ETS Runtime-Verhalten
 
 - `SyncDir` steuert die Datenrichtung pro Kanal:
-  - `1` = nur KNX → Hue
-  - `2` = nur Hue → KNX
-  - `3` = bidirektional
+  - `0` = nur KNX → Hue
+  - `1` = nur Hue → KNX
+  - `2` = bidirektional
 - `PollInterval` gilt pro Kanal für Hue → KNX Status-Übernahme:
   - `0` = deaktiviert (kein Polling auf diesem Kanal)
   - `>0` = Pollingintervall in Sekunden
@@ -49,19 +49,19 @@ pio run
   - Einen Hue-Kanal aktivieren und einer realen Leuchte zuordnen (UUID gesetzt).
   - Für den Test dieselbe Leuchte in der Hue App sichtbar lassen.
 
-2. `SyncDir = 1` (nur KNX → Hue)
+2. `SyncDir = 0` (nur KNX → Hue)
   - ETS senden: Schalten, Helligkeit, Dimmen.
   - Erwartung: Leuchte reagiert in Hue.
   - Änderung in Hue App (manuell):
   - Erwartung: keine Status-Rückmeldung nach KNX (Status-KOs bleiben unverändert).
 
-3. `SyncDir = 2` (nur Hue → KNX)
+3. `SyncDir = 1` (nur Hue → KNX)
   - ETS senden: Schalten/Helligkeit.
   - Erwartung: wird ignoriert (keine Änderung an der Leuchte).
   - Änderung in Hue App (manuell):
   - Erwartung: Status-KOs werden gemäß `PollInterval` aktualisiert.
 
-4. `SyncDir = 3` (bidirektional)
+4. `SyncDir = 2` (bidirektional)
   - ETS und Hue App abwechselnd verwenden.
   - Erwartung: beide Richtungen funktionieren.
 

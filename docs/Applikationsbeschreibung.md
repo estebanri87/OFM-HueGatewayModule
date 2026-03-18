@@ -120,6 +120,16 @@ Löscht den gespeicherten App-Key.
 Anschließend ist eine erneute Authentifizierung erforderlich.
 
 <!-- DOC -->
+### Pairing-Zeitfenster
+
+Legt fest, wie lange das Modul nach einem Pairing-Trigger auf den Link-Button der Hue Bridge wartet.
+
+Hinweise:
+- Bereich: `5..120 s`
+- Standard: `30 s`
+- Gilt sowohl für Pairing per ETS-KO als auch für das Pairing über das Webinterface.
+
+<!-- DOC -->
 ### Status Verbindung
 
 Blendet das KO **Bridge Verbindungsstatus** ein.
@@ -132,17 +142,23 @@ Blendet das KO **Bridge Verbindungsstatus** ein.
 Legt fest, wie viele Hue-Kanäle (0-24) in ETS sichtbar/aktiv sind.
 Empfehlung: nur tatsächlich benötigte Kanäle aktivieren.
 
+Hinweis:
+- Viele aktive Kanäle erhöhen Parametrierungsumfang, Kommunikationsobjekte und die Größe der ETS-Projektierung.
+
 <!-- DOC -->
 ### Einschaltverhalten
 
-Globale Einstellung für das Schaltverhalten aller Hue-Kanäle.
+Globale Einstellung für die Übergangszeit bei Zustandswechseln aller Hue-Kanäle.
 
-- **Einschaltgeschwindigkeit (Sekunden)**
-- **Ausschaltgeschwindigkeit (Sekunden)**
+- **Einschaltgeschwindigkeit (Sekunden)**: Übergangszeit beim Wechsel von `Aus` nach `Ein`
+- **Ausschaltgeschwindigkeit (Sekunden)**: Übergangszeit beim Wechsel von `Ein` nach `Aus`
 
 Hinweise:
 - Die Werte gelten für alle Kanäle (keine kanal-spezifische Einstellung).
-- Die Einstellungen wirken sowohl mit als auch ohne aktive HCL-Zuordnung.
+- Die Einstellungen wirken sowohl mit als auch ohne aktive Lichtmanager-Zuordnung.
+- Die Zeiten werden insbesondere beim Schalten sowie bei Helligkeitswerten verwendet, die ein automatisches Ein- oder Ausschalten auslösen.
+- Reine Dimmänderungen ohne Zustandswechsel verwenden diese Parameter nicht automatisch.
+- Standardwerte: `2 s` für Ein, `6 s` für Aus.
 - Für typische Praxisanforderungen: Einschalten eher kurz, Ausschalten eher länger.
 
 <!-- DOC HelpContext="Kanal" -->
@@ -220,7 +236,7 @@ Der Lampentyp bestimmt, welche KOs sichtbar/aktiv sind:
 - **Nur schalten**: Schalten + Status Schalten
 - **Dimmbar**: zusätzlich Helligkeit/Dimmen + Status Helligkeit
 - **Farbtemperatur**: zusätzlich Farbtemperatur + Status Farbtemperatur
-- **Farbe (RGB)**: zusätzlich RGB + Status RGB
+- **Farbe RGB**: zusätzlich RGB + Status RGB
 
 Hinweise:
 - Für Zieltyp **Raum/Zone** sind Schalten, Dimmen, Farbtemperatur und RGB grundsätzlich nutzbar.
@@ -233,10 +249,14 @@ Deaktiviert den Kanal ohne Verlust der Parametrierung.
 
 <!-- DOC -->
 ### Synchronisationsrichtung
-- **Keine Synchronisation**: Keine KNX->Hue-Kommandos und keine Hue->KNX-Statusübernahme.
-- **Nur KNX zu Hue**: Telegramme steuern Hue, Statusrückmeldungen aus Hue werden ignoriert.
-- **Nur Hue zu KNX**: KNX-Kommandos werden blockiert, Status wird aus Hue übernommen.
-- **Bidirektional**: KNX-Kommandos und Hue-Statusübernahme aktiv. (Standardempfehlung)
+Es stehen drei Betriebsarten zur Verfügung:
+
+1. **Nur KNX zu Hue**: Telegramme steuern Hue, Statusrückmeldungen aus Hue werden ignoriert. Sichtbar sind nur die Steuer-KOs.
+2. **Nur Hue zu KNX**: KNX-Kommandos werden blockiert, Status wird aus Hue übernommen. Sichtbar sind nur die Status-KOs.
+3. **Bidirektional**: KNX-Kommandos und Hue-Statusübernahme aktiv. Sichtbar sind Steuer- und Status-KOs. (Standardempfehlung)
+
+Hinweis:
+- Für relatives Dimmen gibt es kein separates KO `Status Dimmen`. Die Rückmeldung des aktuellen Dimmstands erfolgt über `Status Helligkeit`.
 
 <!-- DOC -->
 ### Polling-Intervall
@@ -271,46 +291,48 @@ Mindestwert für Helligkeit >0, um Flackern bei niedrigen Dimmwerten zu vermeide
 Beispiel: `5 %` für kritische Leuchten.
 
 <!-- DOC -->
-### HCL Manager Zuordnung
+### Lichtmanager Zuordnung
 
-Ordnet den Kanal einem HCL-Manager (1..8) zu.
-Bei `Kein HCL` arbeitet der Kanal ohne HCL-Übernahme.
+Ordnet den Kanal einem Lichtmanager (1..8) zu.
+Bei `Kein Lichtmanager` arbeitet der Kanal ohne automatische Sollwert-Übernahme.
 
 <!-- DOC -->
-### HCL Sperre (kanal-spezifisch)
+### Sperre (kanal-spezifisch)
 
-Sperrt die HCL-Ausgabe nur für den jeweiligen Hue-Kanal.
-Andere Kanäle mit gleicher HCL-Manager-Zuordnung bleiben unverändert aktiv.
+Sperrt die automatische Lichtmanager-Ausgabe nur für den jeweiligen Hue-Kanal.
+Andere Kanäle mit gleicher Lichtmanager-Zuordnung bleiben unverändert aktiv.
+Der zugeordnete Lichtmanager selbst läuft weiter und versorgt weiterhin alle anderen ihm zugeordneten Hue-Kanäle.
 
 Sichtbarkeit:
-- Nur bei Lampentyp `Farbtemperatur` oder `Farbe (RGB)`.
-- Nur wenn beim Kanal ein HCL-Manager `1..8` zugeordnet ist.
+- Nur bei Lampentyp `Farbtemperatur` oder `Farbe RGB`.
+- Nur wenn beim Kanal ein Lichtmanager `1..8` zugeordnet ist.
 
 Option je Kanal:
-- **Rückfallzeit nach HCL-Sperre** (inkl. Tageswechsel, `kein Rückfall` möglich)
+- **Rückfallzeit nach Sperre** (inkl. Tageswechsel, `kein Rückfall` möglich)
+- **Rückfallstrategie nach Sperre**: zentrale Vorgabe, siehe Abschnitt [Rückfallstrategie nach Sperre](#rückfallstrategie-nach-sperre)
 
 KOs je Kanal:
-- `HCL Sperre` (Eingang)
-- `Status HCL Sperre` (Ausgang)
+- `Sperre` (Eingang)
+- `Status Sperre` (Ausgang)
 
 Praxisbeispiel:
-- Wohn-/Essbereich mit gemeinsamem HCL-Manager.
-- Am Abend läuft im Essbereich HCL weiter, im Wohnzimmer wird per Taster `HCL Sperre` aktiviert, damit dort eine feste, warme Szene bleibt.
-- Am nächsten Morgen hebt die konfigurierte Rückfallzeit die Sperre automatisch auf und der Kanal folgt wieder der HCL-Kurve.
+- Wohn-/Essbereich mit gemeinsamem Lichtmanager.
+- Am Abend läuft im Essbereich der Lichtmanager weiter, im Wohnzimmer wird per Taster `Sperre` aktiviert, damit dort eine feste, warme Szene bleibt.
+- Am nächsten Morgen hebt die konfigurierte Rückfallzeit die Sperre automatisch auf und der Kanal folgt wieder der Lichtmanager-Kurve.
 
 <!-- DOC -->
-## HCL Manager
+## Lichtmanager
 
 <!-- DOC -->
-### Human Centric Lighting (HCL)
+### Human Centric Lighting
 
 Aktiviert zeitabhängige Sollwerte für Helligkeit und Farbtemperatur.
-Bis zu 8 HCL Manager können parallel definiert werden.
+Bis zu 8 Lichtmanager können parallel definiert werden.
 
 <!-- DOC -->
-### HCL Manager Auswahl
+### Lichtmanager Auswahl
 
-Legt die Anzahl sichtbarer HCL-Managerseiten (1..8) fest.
+Legt die Anzahl sichtbarer Lichtmanager-Seiten (1..8) fest.
 
 <!-- DOC -->
 ### Einstellungen
@@ -318,67 +340,112 @@ Legt die Anzahl sichtbarer HCL-Managerseiten (1..8) fest.
 - **Aktualisierungsintervall (Sekunden)**
 - **Überblendzeit (Sekunden)**
 
-Sollwerte werden aus der HCL-Kurve berechnet und bei Wertänderung als Status-KO übertragen.
+Sollwerte werden aus der Lichtmanager-Kurve berechnet und bei Wertänderung als Status-KO übertragen.
 
 <!-- DOC -->
-### HCL Sperre (global)
+### Sperre (global)
 
-Sperrt HCL-Ausgabe für alle Manager.
+Sperrt die automatische Ausgabe aller Lichtmanager.
 
 Option:
-- **Rückfallzeit nach HCL-Sperre** (inkl. Tageswechsel, `kein Rückfall` möglich)
+- **Rückfallzeit nach Sperre** (inkl. Tageswechsel, `kein Rückfall` möglich)
+- **Rückfallstrategie nach Sperre**: wirkt für globale, manager-spezifische und kanal-spezifische Sperren
 
 KOs:
-- `HCL Sperre (global)` (Eingang)
-- `Status HCL Sperre` (Ausgang)
+- `Sperre (global)` (Eingang)
+- `Status Sperre` (Ausgang)
 
 <!-- DOC -->
-### Status-KOs je HCL Manager
+### Rückfallstrategie nach Sperre
+
+Zusätzlich zur Rückfallzeit gibt es eine zentrale Strategie, wie Sperren wieder aufgehoben werden.
+Diese Vorgabe gilt für globale, manager-spezifische und kanal-spezifische Sperren.
+
+Verfügbare Strategien:
+1. **Definierte Rückfallzeit**: verwendet ausschließlich die gewählte Rückfallzeit aus der Dropdown-Liste.
+2. **Freie Dauer**: verwendet den Parameter **Freie Rückfalldauer** in Sekunden.
+3. **Freie Uhrzeit**: verwendet den Parameter **Rückfall-Uhrzeit (HH:MM)**.
+4. **Dauer ODER Uhrzeit**: hebt die Sperre auf, sobald entweder die freie Dauer abgelaufen ist oder die Rückfall-Uhrzeit erreicht wird.
+5. **Nur externes Entsperren**: es erfolgt keine automatische Freigabe; die Sperre muss über ein KO aufgehoben werden.
+
+Ergänzende Parameter:
+- **Freie Rückfalldauer**: Bereich `0..65535 s`, Standard `1800 s`
+- **Rückfall-Uhrzeit (HH:MM)**: Standard `03:00`
+
+Hinweis:
+- Für das externe Entsperren steht zusätzlich das globale KO `Entsperren Trigger` zur Verfügung.
+
+<!-- DOC -->
+### Status-KOs je Lichtmanager
 
 Aktiviert pro Manager die Ausgabe:
-- `Status Helligkeit Soll`
-- `Status Farbtemperatur Soll`
+- `Status Helligkeit Soll` (`1 Byte`, `0..100 %`)
+- `Status Farbtemperatur Soll` (`2 Byte`, `2000..6500 K`)
+
+Hinweise:
+- Die Ausgabe erfolgt zyklisch gemäß **Aktualisierungsintervall** des Lichtmanager-Bereichs.
+- Die KOs liefern die vom Lichtmanager berechneten Sollwerte, unabhängig davon, wie viele Kanäle diesem zugeordnet sind.
 
 <!-- DOC -->
-### HCL Manager 1..8
+### Lichtmanager 1..8
 
 Jeder Manager besitzt identischen Aufbau:
 
 #### Bezeichnung
-Freie ETS-Bezeichnung des Managers.
+Freie ETS-Bezeichnung des Lichtmanagers.
 
-#### HCL Sperre (spezifisch)
-Sperrt nur den jeweiligen Manager.
+#### Lichtmanager Sperre (spezifisch)
+Sperrt nur den jeweiligen Lichtmanager.
+Alle Hue-Kanäle, die diesem Lichtmanager zugeordnet sind, erhalten während der Sperre keine automatischen Sollwerte mehr.
 
 Optionen je Manager:
-- **Rückfallzeit nach HCL-Sperre**
+- **Rückfallzeit nach Sperre**
+- **Rückfallstrategie nach Sperre**: zentrale Vorgabe, siehe Abschnitt [Rückfallstrategie nach Sperre](#rückfallstrategie-nach-sperre)
 
-KOs je Manager:
-- `HCL Sperre Mx` (Eingang)
-- `Status HCL Sperre Mx` (Ausgang)
+KOs je Lichtmanager:
+- `Sperre Lichtmanager x` (Eingang)
+- `Status Sperre Lichtmanager x` (Ausgang)
 
 #### Erweiterte Kurve
 Kurventyp:
 - **FixedTime**
 - **SunPosition**
-- **Manual Kelvin**
+- **Manual**
+- **Astronomischer Sonnenstand**
 
 Erweiterte Parameter je Manager:
 - **Slew-Rate (K/min)**: begrenzt die Kelvin-Änderung pro Minute (`0` = keine Begrenzung).
-- **Manual Kelvin**: fixer Kelvin-Sollwert bei Kurventyp `Manual Kelvin`.
+- **Manuelle Farbtemperatur**: fixer Kelvin-Sollwert bei Kurventyp `Manual` (Bereich `2000..6500 K`).
 - **Sonnenaufgang/Sonnenuntergang** und **Offsets (min)**: relevant für Kurventyp `SunPosition`.
+- **Astro Min/Max Kelvin** und **Astro Min/Max Helligkeit**: relevant für Kurventyp `Astronomischer Sonnenstand`.
+
+Kurventypen im Detail:
+1. **FixedTime**
+	Lineare Interpolation zwischen klassischen Stützpunkten aus Zeit, Helligkeit und Farbtemperatur.
+2. **SunPosition**
+	Nutzt ebenfalls Stützpunkte, richtet die Tagesform aber an Sonnenaufgang und Sonnenuntergang mit konfigurierbaren Offsets aus.
+	Die Minimal- und Maximalwerte werden aus den gesetzten Stützpunkten abgeleitet.
+3. **Manual**
+	Verwendet eine feste Farbtemperatur aus dem Parameter **Manuelle Farbtemperatur**.
+	Optionale Stützpunkte beeinflussen in diesem Modus nur den Helligkeitsverlauf.
+4. **Astronomischer Sonnenstand**
+	Verwendet keine Stützpunkte.
+	Helligkeit und Farbtemperatur werden direkt aus dem Sonnenstand berechnet und zwischen den Astro-Min-/Max-Werten skaliert.
+	Grundlage sind die OpenKNX-Basisparameter für Standort und Zeitzone.
 
 #### Stützpunkte
-Bis zu 10 Stützpunkte je Manager.
+Bis zu 10 Stützpunkte je Manager bei Kurventyp `FixedTime` oder `SunPosition`.
 
 Hinweise:
-- Mindestens 2 gültige Zeit-Stützpunkte erforderlich.
-- Bei **Manual Kelvin** werden Zeit + Helligkeit verwendet; Kelvin kommt aus dem Manual-Kelvin-Parameter.
+- Bei `FixedTime` und `SunPosition` sind mindestens 2 gültige Zeit-Stützpunkte erforderlich.
+- Bei `Manual` sind Stützpunkte optional; wenn sie gesetzt werden, definieren sie Zeit + Helligkeit, die Farbtemperatur kommt aus dem Parameter **Manuelle Farbtemperatur**.
+- Bei `Manual` ohne Stützpunkte bleibt die Helligkeit konstant auf `100 %`, die Farbtemperatur auf dem konfigurierten manuellen Kelvin-Wert.
+- Bei `Astronomischer Sonnenstand` werden keine Stützpunkte verwendet; stattdessen werden Minimal- und Maximalwerte für Kelvin und Helligkeit genutzt.
 
 Beispiel:
 - SP1 `06:00 / 3000K / 30%`
 - SP2 `12:00 / 5000K / 90%`
-- SP3 `20:00 / 2700K / 35%`
+- SP3 `20:00 / 2400K / 35%`
 
 Praxisregel:
 - `Aktualisierungsintervall`, `Überblendzeit` und `Slew-Rate` gemeinsam abstimmen, damit Übergänge ruhig bleiben.
@@ -399,20 +466,25 @@ Optionales 1-Bit Statusobjekt (0=offline, 1=online).
 1-Bit Triggerobjekt für ETS-gestützte Pairing-Auslösung.
 
 <!-- DOC -->
-#### HCL Sperre (global) / Status HCL Sperre
+#### Sperre (global) / Status Sperre
 
-Globale HCL-Sperre inkl. Statusrückmeldung.
-
-<!-- DOC -->
-#### HCL Sperre Manager 1..8 / Status
-
-Manager-spezifische Sperrobjekte inkl. Statusrückmeldung.
-Sichtbarkeit abhängig von konfigurierte Manageranzahl.
+Globale Sperre inkl. Statusrückmeldung.
 
 <!-- DOC -->
-#### HCL Status Helligkeit Soll / Farbtemperatur Soll
+#### Entsperren Trigger
 
-Je Manager zwei Sollwert-KOs; Sichtbarkeit abhängig von Option **Status-KOs je HCL Manager**.
+1-Bit Triggerobjekt zum gleichzeitigen Aufheben aller globalen, manager-spezifischen und kanal-spezifischen Sperren.
+
+<!-- DOC -->
+#### Sperre Lichtmanager 1..8 / Status
+
+Lichtmanager-spezifische Sperrobjekte inkl. Statusrückmeldung.
+Sichtbarkeit abhängig von der konfigurierten Anzahl Lichtmanager.
+
+<!-- DOC -->
+#### Lichtmanager Status Helligkeit Soll / Farbtemperatur Soll
+
+Je Lichtmanager zwei Sollwert-KOs; Sichtbarkeit abhängig von Option **Status-KOs je Lichtmanager**.
 
 ### Pro-Kanal Kommunikationsobjekte
 
@@ -430,6 +502,9 @@ Je Manager zwei Sollwert-KOs; Sichtbarkeit abhängig von Option **Status-KOs je 
 #### Dimmen
 
 Relatives Dimmen (DPT 3.007).
+
+Hinweis:
+- Es gibt bewusst kein separates KO `Status Dimmen`, da der Rückmeldewert als absolute Helligkeit über `Status Helligkeit` bereitgestellt wird.
 
 <!-- DOC -->
 #### Status Schalten
@@ -452,14 +527,15 @@ Relatives Dimmen (DPT 3.007).
 3-Byte RGB-Eingang/-Ausgang.
 
 <!-- DOC -->
-#### HCL Sperre (kanal-spezifisch) / Status HCL Sperre
+#### Sperre (kanal-spezifisch) / Status Sperre
 
 1-Bit Sperrobjekt mit 1-Bit Statusrückmeldung je Kanal.
 
 Hinweise:
-- Wirkt nur auf die HCL-Ausgabe des einzelnen Kanals.
+- Wirkt nur auf die automatische Ausgabe des einzelnen Kanals.
+- Ein gemeinsam genutzter Lichtmanager bleibt für andere zugeordnete Hue-Kanäle weiterhin aktiv.
 - Manuelle KNX-Kommandos für Schalten/Dimmen/CT/RGB bleiben möglich.
-- Sichtbar nur bei aktivem HCL-Manager am Kanal und geeignetem Lampentyp.
+- Sichtbar nur bei aktivem Lichtmanager am Kanal und geeignetem Lampentyp.
 
 <!-- DOC -->
 ## Projektierungsbeispiele
@@ -474,11 +550,11 @@ Hinweise:
 - Sync: Bidirektional
 - Polling: 10 s
 
-### Beispiel 3: HCL im Arbeitszimmer
+### Beispiel 3: Lichtmanager im Arbeitszimmer
 - Lampentyp: Farbtemperatur
-- HCL Manager: 1
-- HCL Intervall: 60 s
-- HCL Sperre M1 via KO auf GA für Präsenz/Abwesenheit
+- Lichtmanager: 1
+- Intervall Lichtmanager: 60 s
+- Sperre Lichtmanager 1 via KO auf GA für Präsenz/Abwesenheit
 
 ### Beispiel 4: Raumsteuerung (Zone/Room) mit Rückmeldung
 - Zieltyp: Raum
@@ -490,7 +566,7 @@ Hinweise:
 ### Beispiel 5: Zone mit Farbtemperatur/RGB
 - Zieltyp: Zone
 - Hue Ziel: Zone-ID (RID)
-- Lampentyp: Farbe (RGB)
+- Lampentyp: Farbe RGB
 - Sync: Bidirektional
 - Polling: 5..15 s
 - Hinweis: Wirkung abhängig von Fähigkeiten der enthaltenen Leuchten
@@ -511,17 +587,19 @@ Hinweise:
 - Sync-Richtung passend?
 
 ### Status fehlt
-- Sync auf **Hue->KNX** oder **Bidirektional** gesetzt?
+- Sync auf **Nur Hue zu KNX** oder **Bidirektional** gesetzt?
 - Polling-Intervall sinnvoll gesetzt (`0` deaktiviert zyklisches Polling)?
 - Status-KO mit GA verbunden?
 - Zieltyp/Hue Ziel korrekt und auflösbar?
 - Bei Raum/Zone: Rückmeldeverhalten mit Hue-App-Änderungen gesondert verifizieren.
 
-### HCL wirkt nicht
-- HCL global aktiviert?
+### Lichtmanager wirkt nicht
+- Lichtmanager global aktiviert?
 - Manager zugewiesen?
-- Min. 2 gültige Stützpunkte?
-- Globale/spezifische HCL-Sperre aktiv?
+- Bei `FixedTime`/`SunPosition`: mind. 2 gültige Stützpunkte?
+- Bei `Manual`: gewünschte manuelle Farbtemperatur gesetzt und optionaler Helligkeitsverlauf passend parametriert?
+- Bei `Astronomischer Sonnenstand`: sinnvolle Astro-Min/Max-Werte gesetzt?
+- Globale/spezifische Sperre aktiv?
 
 <!-- DOC -->
 ## Inbetriebnahme-Checkliste
@@ -531,7 +609,7 @@ Hinweise:
 - Lampentyp passend zur realen Leuchte
 - Sync/Polling passend zur Anwendung
 - Benötigte Status-KOs mit GAs verbunden
-- HCL-Funktion inkl. Sperren (global/spezifisch) getestet
+- Lichtmanager-Funktion inkl. Sperren (global/spezifisch) getestet
 
 <!-- DOC -->
 ## Lizenz und Haftung

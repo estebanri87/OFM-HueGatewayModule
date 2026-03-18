@@ -3,16 +3,17 @@
 Jeder Manager besitzt identischen Aufbau:
 
 #### Bezeichnung
-Freie ETS-Bezeichnung des Managers.
+Freie ETS-Bezeichnung des Lichtmanagers.
 
 #### Lichtmanager Sperre (spezifisch)
-Sperrt nur den jeweiligen Manager.
+Sperrt nur den jeweiligen Lichtmanager.
+Alle Hue-Kanäle, die diesem Lichtmanager zugeordnet sind, erhalten während der Sperre keine automatischen Sollwerte mehr.
 
 Optionen je Manager:
 - **Rückfallzeit nach Sperre**
 - **Rückfallstrategie nach Sperre**: zentrale Vorgabe, siehe Abschnitt Rückfallstrategie nach Sperre
 
-KOs je Manager:
+KOs je Lichtmanager:
 - `Sperre Lichtmanager x` (Eingang)
 - `Status Sperre Lichtmanager x` (Ausgang)
 

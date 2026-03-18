@@ -5,5 +5,5 @@
 - Lampentyp passend zur realen Leuchte
 - Sync/Polling passend zur Anwendung
 - Benötigte Status-KOs mit GAs verbunden
-- HCL-Funktion inkl. Sperren (global/spezifisch) getestet
+- Lichtmanager-Funktion inkl. Sperren (global/spezifisch) getestet
 
