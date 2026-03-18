@@ -822,7 +822,10 @@ bool HueGatewayClient::setLightState(const String& lightId, bool on, uint8_t bri
     
     DynamicJsonDocument doc(512);
     doc["on"]["on"] = on;
-    doc["dimming"]["brightness"] = brightnessPct;
+    if (on)
+    {
+        doc["dimming"]["brightness"] = brightnessPct;
+    }
     if (fadeDurationSec > 0)
     {
         doc["dynamics"]["duration"] = static_cast<uint32_t>(fadeDurationSec) * 1000UL;
@@ -857,7 +860,10 @@ bool HueGatewayClient::setGroupedLightState(const String& groupedLightId, bool o
 
     DynamicJsonDocument doc(512);
     doc["on"]["on"] = on;
-    doc["dimming"]["brightness"] = brightnessPct;
+    if (on)
+    {
+        doc["dimming"]["brightness"] = brightnessPct;
+    }
     if (fadeDurationSec > 0)
     {
         doc["dynamics"]["duration"] = static_cast<uint32_t>(fadeDurationSec) * 1000UL;
@@ -1201,9 +1207,11 @@ bool HueGatewayClient::setLightStateWithColorTemp(const String& lightId, bool on
     // API v2 structure with on, dimming, color_temperature, and dynamics
     DynamicJsonDocument doc(512);
     doc["on"]["on"] = on;
-    doc["dimming"]["brightness"] = brightnessPct;
-    doc["color_temperature"]["mirek"] = clampedMirek;
-    
+    if (on)
+    {
+        doc["dimming"]["brightness"] = brightnessPct;
+        doc["color_temperature"]["mirek"] = clampedMirek;
+    }
     if (fadeDurationSec > 0) {
         doc["dynamics"]["duration"] = fadeDurationMs;
     }
@@ -1246,8 +1254,11 @@ bool HueGatewayClient::setGroupedLightStateWithColorTemp(const String& groupedLi
 
     DynamicJsonDocument doc(512);
     doc["on"]["on"] = on;
-    doc["dimming"]["brightness"] = brightnessPct;
-    doc["color_temperature"]["mirek"] = clampedMirek;
+    if (on)
+    {
+        doc["dimming"]["brightness"] = brightnessPct;
+        doc["color_temperature"]["mirek"] = clampedMirek;
+    }
     if (fadeDurationSec > 0)
     {
         doc["dynamics"]["duration"] = fadeDurationMs;
