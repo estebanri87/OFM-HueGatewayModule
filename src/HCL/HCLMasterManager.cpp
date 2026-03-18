@@ -12,6 +12,7 @@ MasterManager::MasterManager()
     , _fadeDurationSec(5)       // Default: 5 seconds
     , _lastUpdateMs(0)
     , _lastTimeMinutes(0xFFFF)
+    , _lastDayOfYear(-1)
 {
     // Initialize current values to defaults
     for (uint8_t i = 0; i < MAX_MASTERS; i++) {
@@ -23,9 +24,10 @@ MasterManager::MasterManager()
 void MasterManager::setup() {
     _lastUpdateMs = millis();
     _lastTimeMinutes = 0xFFFF;  // Force initial update
+    _lastDayOfYear = -1;
 }
 
-void MasterManager::loop(uint16_t currentTimeMinutes) {
+void MasterManager::loop(uint16_t currentTimeMinutes, int16_t dayOfYear) {
     if (!_enabled) {
         return;
     }
@@ -33,10 +35,11 @@ void MasterManager::loop(uint16_t currentTimeMinutes) {
     uint32_t now = millis();
     
     // Check if it's time to update
-    if ((now - _lastUpdateMs) >= _updateIntervalMs || _lastTimeMinutes != currentTimeMinutes) {
-        updateCurrentValues(currentTimeMinutes);
+    if ((now - _lastUpdateMs) >= _updateIntervalMs || _lastTimeMinutes != currentTimeMinutes || _lastDayOfYear != dayOfYear) {
+        updateCurrentValues(currentTimeMinutes, dayOfYear);
         _lastUpdateMs = now;
         _lastTimeMinutes = currentTimeMinutes;
+        _lastDayOfYear = dayOfYear;
     }
 }
 
@@ -91,11 +94,11 @@ uint32_t MasterManager::getTimeUntilNextUpdate() const {
     return _updateIntervalMs - elapsed;
 }
 
-void MasterManager::updateCurrentValues(uint16_t currentTimeMinutes) {
+void MasterManager::updateCurrentValues(uint16_t currentTimeMinutes, int16_t dayOfYear) {
     uint32_t now = millis();
     for (uint8_t i = 0; i < MAX_MASTERS; i++) {
         if (_masters[i].isValid()) {
-            _currentValues[i] = _masters[i].calculateValue(currentTimeMinutes, now);
+            _currentValues[i] = _masters[i].calculateValue(currentTimeMinutes, now, dayOfYear);
             
             #ifdef DEBUG_HCL
             Serial.printf("[HCL] Master %d: %dK, %d%%\n", 
