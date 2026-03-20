@@ -136,6 +136,8 @@ public:
     void setMinBrightness(uint8_t minBrightness);
 
     void setSwitchTransitionDurations(uint8_t onTransitionSec, uint8_t offTransitionSec);
+    uint8_t getSwitchOnTransitionSec() const { return _switchOnTransitionSec; }
+    uint8_t getSwitchOffTransitionSec() const { return _switchOffTransitionSec; }
 
     void setGroupedTarget(bool groupedTarget) { _isGroupedTarget = groupedTarget; }
     bool isGroupedTarget() const { return _isGroupedTarget; }
@@ -168,6 +170,7 @@ private:
     uint8_t _lightType;
     uint8_t _minBrightnessPercent;
     uint8_t _minBrightnessHue;
+    uint8_t _lastNonZeroBrightnessHue;
     bool _isGroupedTarget;
     
     // HCL configuration and current interpolation state.
@@ -187,6 +190,10 @@ private:
     unsigned long _lastRelativeDimCmdMs;
     unsigned long _relativeDimCooldownUntilMs;
     uint8_t _relativeDimErrorStreak;
+    bool _relativeDimHoldActive;
+    bool _relativeDimHoldBrighter;
+    uint8_t _relativeDimHoldSteps;
+    unsigned long _relativeDimNextMs;
     uint8_t _switchOnTransitionSec;
     uint8_t _switchOffTransitionSec;
     

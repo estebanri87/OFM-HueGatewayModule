@@ -32,7 +32,7 @@ public:
      * @brief Update loop - call regularly (e.g. every second)
      * @param currentTimeMinutes Current time in minutes since midnight
      */
-    void loop(uint16_t currentTimeMinutes);
+    void loop(uint16_t currentTimeMinutes, int16_t dayOfYear = -1);
     
     /**
     * @brief Get a HCL Master by index (1-8)
@@ -124,11 +124,12 @@ private:
     uint8_t _fadeDurationSec;    // Fade duration in seconds
     uint32_t _lastUpdateMs;      // Last update timestamp
     uint16_t _lastTimeMinutes;   // Last calculated time
+    int16_t _lastDayOfYear;      // Last day-of-year used for calculation
     
     /**
      * @brief Update all current values
      */
-    void updateCurrentValues(uint16_t currentTimeMinutes);
+    void updateCurrentValues(uint16_t currentTimeMinutes, int16_t dayOfYear);
 };
 
 // Global instance

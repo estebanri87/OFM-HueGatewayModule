@@ -65,6 +65,24 @@ struct HueGatewayTargetInfo
 class HueGatewayClient
 {
 public:
+    struct DiagnosticsStats
+    {
+        uint32_t httpGetCount;
+        uint32_t httpPutCount;
+        uint32_t httpGetErrorCount;
+        uint32_t httpPutErrorCount;
+        uint32_t httpTimeoutCount;
+        uint32_t eventConnectOk;
+        uint32_t eventConnectFail;
+        uint32_t eventStopCount;
+        uint32_t eventDisconnectCount;
+        uint32_t eventHandshakeTimeoutCount;
+        uint32_t eventHttpErrorCount;
+        int lastHttpStatusCode;
+        String lastHttpMethod;
+        String lastHttpEndpoint;
+    };
+
     HueGatewayClient();
     ~HueGatewayClient();
     
@@ -174,6 +192,7 @@ public:
     void setEventStreamAutoRestartEnabled(bool enabled) { _eventAutoRestartEnabled = enabled; }
     bool isEventStreamAutoRestartEnabled() const { return _eventAutoRestartEnabled; }
     int pollEventStream(HueGatewayEventLightUpdate* updates, int maxUpdates);
+    const DiagnosticsStats& getDiagnosticsStats() const { return _diagStats; }
     
     /**
     * @brief Converts Kelvin to mirek.
@@ -188,6 +207,14 @@ public:
     * @return Kelvin value (2000-6536)
      */
     static uint16_t mirekToKelvin(uint16_t mirek);
+
+    /**
+    * @brief Converts KNX DPT 3.007 step code to a bounded practical dimming delta in percent.
+    * Step code 1 = fastest practical dimming, 7 = slowest practical dimming.
+    * @param steps Step code (0-7)
+    * @return Brightness delta in percent
+     */
+    static float relativeDimmingDeltaPercent(uint8_t steps);
     
     /**
     * @brief Returns whether the client has been initialized.
@@ -220,6 +247,7 @@ private:
     bool _eventAutoRestartEnabled;
     String _eventLineBuffer;
     String _eventDataBuffer;
+    DiagnosticsStats _diagStats;
 
     struct LightLocation
     {

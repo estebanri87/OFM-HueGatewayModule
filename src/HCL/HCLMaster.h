@@ -8,7 +8,8 @@ namespace HCL {
 enum class CurveType : uint8_t {
     FixedTime = 0,
     SunPosition = 1,
-    Manual = 2
+    Manual = 2,
+    Astronomical = 3
 };
 
 /**
@@ -47,6 +48,31 @@ public:
     void setManualKelvin(uint16_t kelvin) { _manualKelvin = constrain(kelvin, 2000, 6500); }
     uint16_t getManualKelvin() const { return _manualKelvin; }
 
+    void setLocation(float latitudeDeg, float longitudeDeg) {
+        _latitudeDeg = constrain(latitudeDeg, -90.0f, 90.0f);
+        _longitudeDeg = constrain(longitudeDeg, -180.0f, 180.0f);
+    }
+    void setTimezoneOffsetMinutes(int16_t timezoneOffsetMin) {
+        _timezoneOffsetMin = constrain(timezoneOffsetMin, static_cast<int16_t>(-720), static_cast<int16_t>(840));
+    }
+    void setAstronomicalProfile(uint16_t minKelvin, uint16_t maxKelvin, uint8_t minBrightness, uint8_t maxBrightness) {
+        _astroMinKelvin = constrain(minKelvin, 2000, 6500);
+        _astroMaxKelvin = constrain(maxKelvin, 2000, 6500);
+        if (_astroMaxKelvin < _astroMinKelvin) {
+            const uint16_t temp = _astroMinKelvin;
+            _astroMinKelvin = _astroMaxKelvin;
+            _astroMaxKelvin = temp;
+        }
+
+        _astroMinBrightness = constrain(minBrightness, static_cast<uint8_t>(0), static_cast<uint8_t>(100));
+        _astroMaxBrightness = constrain(maxBrightness, static_cast<uint8_t>(0), static_cast<uint8_t>(100));
+        if (_astroMaxBrightness < _astroMinBrightness) {
+            const uint8_t temp = _astroMinBrightness;
+            _astroMinBrightness = _astroMaxBrightness;
+            _astroMaxBrightness = temp;
+        }
+    }
+
     void setSunTimes(uint16_t sunriseMinutes, uint16_t sunsetMinutes);
     void clearSunTimes() { _sunTimesValid = false; }
     bool hasSunTimes() const { return _sunTimesValid; }
@@ -65,7 +91,7 @@ public:
      * @param currentTimeMinutes Current time in minutes since midnight
      * @return Interpolated color temperature and brightness
      */
-    InterpolatedValue calculateValue(uint16_t currentTimeMinutes, uint32_t currentTimeMs);
+    InterpolatedValue calculateValue(uint16_t currentTimeMinutes, uint32_t currentTimeMs, int16_t dayOfYear = -1);
     
     /**
      * @brief Get number of valid setpoints
@@ -79,10 +105,18 @@ public:
     void sortSetpoints();
     
     /**
-     * @brief Check if master has at least 2 valid setpoints
+     * @brief Check whether the configured curve can produce valid output
      */
     bool isValid() const {
-        return getValidSetpointCount() >= 2;
+        switch (_curveType) {
+            case CurveType::Manual:
+            case CurveType::Astronomical:
+                return true;
+            case CurveType::SunPosition:
+            case CurveType::FixedTime:
+            default:
+                return getValidSetpointCount() >= 2;
+        }
     }
     
 private:
@@ -97,6 +131,13 @@ private:
     bool _sunTimesValid;
     int16_t _sunriseOffsetMin;
     int16_t _sunsetOffsetMin;
+    float _latitudeDeg;
+    float _longitudeDeg;
+    int16_t _timezoneOffsetMin;
+    uint16_t _astroMinKelvin;
+    uint16_t _astroMaxKelvin;
+    uint8_t _astroMinBrightness;
+    uint8_t _astroMaxBrightness;
     
     /**
      * @brief Linear interpolation between two values
@@ -116,6 +157,7 @@ private:
     InterpolatedValue calculateFixedTimeValue(uint16_t currentTimeMinutes) const;
     InterpolatedValue calculateSunPositionValue(uint16_t currentTimeMinutes) const;
     InterpolatedValue calculateManualValue(uint16_t currentTimeMinutes) const;
+    InterpolatedValue calculateAstronomicalValue(uint16_t currentTimeMinutes, int16_t dayOfYear) const;
     void applySlew(uint16_t targetKelvin, uint32_t currentTimeMs);
     void getSetpointRanges(uint16_t& minKelvin, uint16_t& maxKelvin, uint8_t& minBrightness, uint8_t& maxBrightness) const;
 };

@@ -6,5 +6,5 @@ Aktiviert pro Manager die Ausgabe:
 
 Hinweise:
 - Die Ausgabe erfolgt zyklisch gemäß **Aktualisierungsintervall** des Lichtmanager-Bereichs.
-- Die KOs liefern die vom Lichtmanager berechneten Sollwerte, unabhängig davon, wie viele Kanäle dem Manager zugeordnet sind.
+- Die KOs liefern die vom Lichtmanager berechneten Sollwerte, unabhängig davon, wie viele Kanäle diesem zugeordnet sind.
 

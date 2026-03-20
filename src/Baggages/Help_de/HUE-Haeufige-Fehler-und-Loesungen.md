@@ -13,15 +13,17 @@
 - Sync-Richtung passend?
 
 ### Status fehlt
-- Sync auf **Hue->KNX** oder **Bidirektional** gesetzt?
+- Sync auf **Nur Hue zu KNX** oder **Bidirektional** gesetzt?
 - Polling-Intervall sinnvoll gesetzt (`0` deaktiviert zyklisches Polling)?
 - Status-KO mit GA verbunden?
 - Zieltyp/Hue Ziel korrekt und auflösbar?
 - Bei Raum/Zone: Rückmeldeverhalten mit Hue-App-Änderungen gesondert verifizieren.
 
-### HCL wirkt nicht
-- HCL global aktiviert?
+### Lichtmanager wirkt nicht
+- Lichtmanager global aktiviert?
 - Manager zugewiesen?
-- Min. 2 gültige Stützpunkte?
-- Globale/spezifische HCL-Sperre aktiv?
+- Bei `FixedTime`/`SunPosition`: mind. 2 gültige Stützpunkte?
+- Bei `Manual`: gewünschte manuelle Farbtemperatur gesetzt und optionaler Helligkeitsverlauf passend parametriert?
+- Bei `Astronomischer Sonnenstand`: sinnvolle Astro-Min/Max-Werte gesetzt?
+- Globale/spezifische Sperre aktiv?
 

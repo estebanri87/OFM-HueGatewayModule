@@ -1,6 +1,7 @@
 #include "HueGatewayClient.h"
 #include <cstring>
 #include <functional>
+#include <memory>
 #include <math.h>
 #include <esp_heap_caps.h>
 
@@ -16,21 +17,6 @@ static constexpr uint32_t kTlsMinInternalFreeBytes = 70000U;
 static constexpr uint32_t kTlsMinInternalLargestBlockBytes = 50000U;
 #endif
 static constexpr unsigned long kLightLocationCacheMs = 300000UL;
-
-float dimmingStepCodeToPercent(uint8_t stepCode)
-{
-    switch (stepCode)
-    {
-        case 1: return 100.0f;
-        case 2: return 50.0f;
-        case 3: return 25.0f;
-        case 4: return 12.5f;
-        case 5: return 6.25f;
-        case 6: return 3.125f;
-        case 7: return 1.5625f;
-        default: return 0.0f;
-    }
-}
 
 bool isHttpSuccessStatus(int statusCode)
 {
@@ -136,6 +122,7 @@ HueGatewayClient::HueGatewayClient()
     , _eventParseErrorStreak(0)
     , _eventDropCount(0)
     , _eventAutoRestartEnabled(true)
+    , _diagStats{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", ""}
 {
 }
 
@@ -181,8 +168,8 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights, boo
         return 0;
     }
 
-    static DynamicJsonDocument doc(65536);
-    static DynamicJsonDocument lightFilterDoc(768);
+    DynamicJsonDocument doc(65536);
+    DynamicJsonDocument lightFilterDoc(768);
     lightFilterDoc.clear();
     JsonObject lightFilterRoot = lightFilterDoc.to<JsonObject>();
     JsonObject lightFilterData = lightFilterRoot["data"][0].to<JsonObject>();
@@ -243,8 +230,8 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights, boo
             deviceLightLinks.push_back(link);
         }
 
-        static DynamicJsonDocument deviceDoc(32768);
-        static DynamicJsonDocument deviceFilterDoc(512);
+        DynamicJsonDocument deviceDoc(32768);
+        DynamicJsonDocument deviceFilterDoc(512);
         deviceFilterDoc.clear();
         JsonObject deviceFilterRoot = deviceFilterDoc.to<JsonObject>();
         JsonObject deviceFilterData = deviceFilterRoot["data"][0].to<JsonObject>();
@@ -262,8 +249,8 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights, boo
             appendDeviceLightLinksFromDoc(deviceLightLinks, deviceDoc);
         }
 
-        static DynamicJsonDocument roomDoc(32768);
-        static DynamicJsonDocument locationFilterDoc(640);
+        DynamicJsonDocument roomDoc(32768);
+        DynamicJsonDocument locationFilterDoc(640);
         locationFilterDoc.clear();
         JsonObject locationFilterRoot = locationFilterDoc.to<JsonObject>();
         JsonObject locationFilterData = locationFilterRoot["data"][0].to<JsonObject>();
@@ -284,7 +271,7 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights, boo
             appendLocationsFromDoc(locations, roomDoc, true, deviceLightLinks);
         }
 
-        static DynamicJsonDocument zoneDoc(32768);
+        DynamicJsonDocument zoneDoc(32768);
         zoneDoc.clear();
         int zoneStatus = httpGet("/clip/v2/resource/zone", zoneDoc, &locationFilterDoc);
         if (isHttpSuccessStatus(zoneStatus))
@@ -327,7 +314,7 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights, boo
         String ownerRid = light["owner"]["rid"].as<String>();
 
         float brightnessPct = light["dimming"]["brightness"].as<float>();
-        lights[count].brightness = static_cast<uint8_t>(brightnessPct * 2.54f);
+        lights[count].brightness = static_cast<uint8_t>(roundf(brightnessPct * 2.54f));
 
         lights[count].reachable = light["owner"].isNull() == false;
         lights[count].supportsColorTemp = !light["color_temperature"].isNull();
@@ -407,8 +394,8 @@ int HueGatewayClient::getGroupedLights(HueGatewayLightState* groupedLights, int 
         return 0;
     }
 
-    static DynamicJsonDocument doc(32768);
-    static DynamicJsonDocument groupedLightFilterDoc(640);
+    DynamicJsonDocument doc(32768);
+    DynamicJsonDocument groupedLightFilterDoc(640);
     groupedLightFilterDoc.clear();
     JsonObject groupedFilterRoot = groupedLightFilterDoc.to<JsonObject>();
     JsonObject groupedFilterData = groupedFilterRoot["data"][0].to<JsonObject>();
@@ -450,7 +437,7 @@ int HueGatewayClient::getGroupedLights(HueGatewayLightState* groupedLights, int 
         float brightnessPct = item["dimming"]["brightness"].as<float>();
         if (brightnessPct < 0.0f) brightnessPct = 0.0f;
         if (brightnessPct > 100.0f) brightnessPct = 100.0f;
-        groupedLights[count].brightness = static_cast<uint8_t>(brightnessPct * 2.54f);
+        groupedLights[count].brightness = static_cast<uint8_t>(roundf(brightnessPct * 2.54f));
 
         groupedLights[count].supportsColorTemp = !item["color_temperature"].isNull();
         groupedLights[count].supportsColor = !item["color"].isNull();
@@ -835,7 +822,10 @@ bool HueGatewayClient::setLightState(const String& lightId, bool on, uint8_t bri
     
     DynamicJsonDocument doc(512);
     doc["on"]["on"] = on;
-    doc["dimming"]["brightness"] = brightnessPct;
+    if (on)
+    {
+        doc["dimming"]["brightness"] = brightnessPct;
+    }
     if (fadeDurationSec > 0)
     {
         doc["dynamics"]["duration"] = static_cast<uint32_t>(fadeDurationSec) * 1000UL;
@@ -870,7 +860,10 @@ bool HueGatewayClient::setGroupedLightState(const String& groupedLightId, bool o
 
     DynamicJsonDocument doc(512);
     doc["on"]["on"] = on;
-    doc["dimming"]["brightness"] = brightnessPct;
+    if (on)
+    {
+        doc["dimming"]["brightness"] = brightnessPct;
+    }
     if (fadeDurationSec > 0)
     {
         doc["dynamics"]["duration"] = static_cast<uint32_t>(fadeDurationSec) * 1000UL;
@@ -907,17 +900,7 @@ bool HueGatewayClient::setLightDimmingDelta(const String& lightId, bool brighter
         steps = 7;
     }
 
-    // KNX DPT 3.007 step code mapping (Control Dimming):
-    // 1=100%, 2=50%, 3=25%, 4=12.5%, 5=6.25%, 6=3.125%, 7=1.5625%
-    float brightnessDeltaPct = dimmingStepCodeToPercent(steps);
-    if (brightnessDeltaPct < 0.1f)
-    {
-        brightnessDeltaPct = 0.1f;
-    }
-    if (brightnessDeltaPct > 100.0f)
-    {
-        brightnessDeltaPct = 100.0f;
-    }
+    float brightnessDeltaPct = relativeDimmingDeltaPercent(steps);
 
     String endpoint = "/clip/v2/resource/light/" + lightId;
 
@@ -965,15 +948,7 @@ bool HueGatewayClient::setGroupedLightDimmingDelta(const String& groupedLightId,
         steps = 7;
     }
 
-    float brightnessDeltaPct = dimmingStepCodeToPercent(steps);
-    if (brightnessDeltaPct < 0.1f)
-    {
-        brightnessDeltaPct = 0.1f;
-    }
-    if (brightnessDeltaPct > 100.0f)
-    {
-        brightnessDeltaPct = 100.0f;
-    }
+    float brightnessDeltaPct = relativeDimmingDeltaPercent(steps);
 
     String endpoint = "/clip/v2/resource/grouped_light/" + groupedLightId;
 
@@ -1086,8 +1061,8 @@ bool HueGatewayClient::resolveGroupedLightForTarget(const String& endpoint, cons
         return false;
     }
 
-    static DynamicJsonDocument doc(32768);
-    static DynamicJsonDocument targetFilterDoc(512);
+    DynamicJsonDocument doc(32768);
+    DynamicJsonDocument targetFilterDoc(512);
     targetFilterDoc.clear();
     JsonObject targetFilterRoot = targetFilterDoc.to<JsonObject>();
     JsonObject targetFilterData = targetFilterRoot["data"][0].to<JsonObject>();
@@ -1152,8 +1127,8 @@ int HueGatewayClient::getTargetsForEndpoint(const String& endpoint, HueGatewayTa
         return 0;
     }
 
-    static DynamicJsonDocument doc(32768);
-    static DynamicJsonDocument targetFilterDoc(512);
+    DynamicJsonDocument doc(32768);
+    DynamicJsonDocument targetFilterDoc(512);
     targetFilterDoc.clear();
     JsonObject targetFilterRoot = targetFilterDoc.to<JsonObject>();
     JsonObject targetFilterData = targetFilterRoot["data"][0].to<JsonObject>();
@@ -1232,9 +1207,11 @@ bool HueGatewayClient::setLightStateWithColorTemp(const String& lightId, bool on
     // API v2 structure with on, dimming, color_temperature, and dynamics
     DynamicJsonDocument doc(512);
     doc["on"]["on"] = on;
-    doc["dimming"]["brightness"] = brightnessPct;
-    doc["color_temperature"]["mirek"] = clampedMirek;
-    
+    if (on)
+    {
+        doc["dimming"]["brightness"] = brightnessPct;
+        doc["color_temperature"]["mirek"] = clampedMirek;
+    }
     if (fadeDurationSec > 0) {
         doc["dynamics"]["duration"] = fadeDurationMs;
     }
@@ -1277,8 +1254,11 @@ bool HueGatewayClient::setGroupedLightStateWithColorTemp(const String& groupedLi
 
     DynamicJsonDocument doc(512);
     doc["on"]["on"] = on;
-    doc["dimming"]["brightness"] = brightnessPct;
-    doc["color_temperature"]["mirek"] = clampedMirek;
+    if (on)
+    {
+        doc["dimming"]["brightness"] = brightnessPct;
+        doc["color_temperature"]["mirek"] = clampedMirek;
+    }
     if (fadeDurationSec > 0)
     {
         doc["dynamics"]["duration"] = fadeDurationMs;
@@ -1489,6 +1469,7 @@ bool HueGatewayClient::startEventStream()
     logHeapStats("before-event-connect");
     if (!_eventClient.connect(_bridgeIP.c_str(), 443))
     {
+        _diagStats.eventConnectFail++;
         Serial.println("[HueGatewayClient] EventStream connect failed");
         logHeapStats("event-connect-failed");
         return false;
@@ -1521,6 +1502,7 @@ void HueGatewayClient::stopEventStream()
     _eventDataBuffer = "";
     if (_eventClient.connected())
     {
+        _diagStats.eventStopCount++;
         Serial.println("[HueGatewayClient] EventStream stopping");
         _eventClient.stop();
     }
@@ -1539,6 +1521,7 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
 
         if ((millis() - _eventHandshakeStartMs) > 3000UL && !_eventClient.available())
         {
+            _diagStats.eventHandshakeTimeoutCount++;
             Serial.println("[HueGatewayClient] EventStream header timeout");
             stopEventStream();
             return 0;
@@ -1555,6 +1538,7 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
         int statusCode = parseHttpStatusCode(statusLine);
         if (!isHttpSuccessStatus(statusCode))
         {
+            _diagStats.eventHttpErrorCount++;
             Serial.printf("[HueGatewayClient] EventStream HTTP error: %s\n", statusLine.c_str());
             stopEventStream();
             return 0;
@@ -1580,6 +1564,7 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
         _eventLineBuffer = "";
         _eventDataBuffer = "";
         _eventStreamConnected = true;
+        _diagStats.eventConnectOk++;
         Serial.println("[HueGatewayClient] EventStream connected");
     }
 
@@ -1666,6 +1651,7 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
 
     if (!_eventClient.connected())
     {
+        _diagStats.eventDisconnectCount++;
         Serial.println("[HueGatewayClient] EventStream disconnected");
         stopEventStream();
     }
@@ -1810,6 +1796,43 @@ uint16_t HueGatewayClient::mirekToKelvin(uint16_t mirek)
     return kelvin;
 }
 
+float HueGatewayClient::relativeDimmingDeltaPercent(uint8_t steps)
+{
+    if (steps == 0)
+    {
+        return 0.0f;
+    }
+
+    if (steps > 7)
+    {
+        steps = 7;
+    }
+
+    float deltaPercent = 0.0f;
+    switch (steps)
+    {
+        case 1: deltaPercent = 6.0f; break;
+        case 2: deltaPercent = 5.2f; break;
+        case 3: deltaPercent = 4.6f; break;
+        case 4: deltaPercent = 4.0f; break;
+        case 5: deltaPercent = 3.4f; break;
+        case 6: deltaPercent = 2.8f; break;
+        case 7: deltaPercent = 2.2f; break;
+        default: deltaPercent = 0.0f; break;
+    }
+
+    if (deltaPercent < 1.0f)
+    {
+        deltaPercent = 1.0f;
+    }
+    if (deltaPercent > 6.0f)
+    {
+        deltaPercent = 6.0f;
+    }
+
+    return deltaPercent;
+}
+
 // ===== Private Methods =====
 
 int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDocument* filterDoc)
@@ -1817,6 +1840,9 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDoc
     String url = buildUrl(endpoint);
     Serial.print("[HueGatewayClient] HTTP GET ");
     Serial.println(url);
+    _diagStats.httpGetCount++;
+    _diagStats.lastHttpMethod = "GET";
+    _diagStats.lastHttpEndpoint = endpoint;
     _http.setTimeout(2000);
     const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected) && _eventClient.connected();
 
@@ -1834,9 +1860,15 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDoc
     _http.addHeader("hue-application-key", _appKey);
     
     int statusCode = _http.GET();
+    _diagStats.lastHttpStatusCode = statusCode;
 
     if (statusCode < 0)
     {
+        _diagStats.httpGetErrorCount++;
+        if (statusCode == HTTPC_ERROR_READ_TIMEOUT)
+        {
+            _diagStats.httpTimeoutCount++;
+        }
         logHeapStats("http-get-failed");
     }
 
@@ -1896,6 +1928,10 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDoc
         Serial.print("[HueGatewayClient] HTTP GET failed (");
         Serial.print(statusCode);
         Serial.println(")");
+        if (statusCode >= 0)
+        {
+            _diagStats.httpGetErrorCount++;
+        }
     }
     
     _http.end();
@@ -1919,6 +1955,9 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
 {
     String url = buildUrl(endpoint);
     Serial.printf("[HueGatewayClient] HTTP PUT %s payload=%s\n", url.c_str(), payload.c_str());
+    _diagStats.httpPutCount++;
+    _diagStats.lastHttpMethod = "PUT";
+    _diagStats.lastHttpEndpoint = endpoint;
     _http.setTimeout(2000);
     const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected) && _eventClient.connected();
     bool eventPausedForPut = false;
@@ -1938,14 +1977,24 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
     _http.addHeader("hue-application-key", _appKey);
     
     int statusCode = _http.PUT(payload);
+    _diagStats.lastHttpStatusCode = statusCode;
 
     if (statusCode < 0)
     {
+        _diagStats.httpPutErrorCount++;
+        if (statusCode == HTTPC_ERROR_READ_TIMEOUT)
+        {
+            _diagStats.httpTimeoutCount++;
+        }
         logHeapStats("http-put-failed");
     }
 
     if (!isHttpSuccessStatus(statusCode))
     {
+        if (statusCode >= 0)
+        {
+            _diagStats.httpPutErrorCount++;
+        }
         String response = _http.getString();
         Serial.printf("[HueGatewayClient] HTTP PUT failed (%d): %s\n", statusCode, response.c_str());
     }

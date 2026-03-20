@@ -8,21 +8,7 @@ namespace
 {
 static constexpr unsigned long kGlobalHclWriteSpacingMs = 220UL;
 static unsigned long sGlobalHclWriteNextAllowedMs = 0UL;
-
-float dimmingStepCodeToPercent(uint8_t stepCode)
-{
-    switch (stepCode)
-    {
-        case 1: return 100.0f;
-        case 2: return 50.0f;
-        case 3: return 25.0f;
-        case 4: return 12.5f;
-        case 5: return 6.25f;
-        case 6: return 3.125f;
-        case 7: return 1.5625f;
-        default: return 0.0f;
-    }
-}
+static constexpr unsigned long kRelativeDimRepeatMs = 120UL;
 
 uint16_t stablePhaseOffsetMs(const String& id)
 {
@@ -57,6 +43,7 @@ HueGatewayLight::HueGatewayLight(const String& lightId, const String& name, HueG
     , _lightType(0)
     , _minBrightnessPercent(0)
     , _minBrightnessHue(0)
+    , _lastNonZeroBrightnessHue(0)
     , _isGroupedTarget(false)
     , _hclMasterNum(0)
     , _hclChannelLockActive(false)
@@ -72,6 +59,10 @@ HueGatewayLight::HueGatewayLight(const String& lightId, const String& name, HueG
     , _lastRelativeDimCmdMs(0)
     , _relativeDimCooldownUntilMs(0)
     , _relativeDimErrorStreak(0)
+    , _relativeDimHoldActive(false)
+    , _relativeDimHoldBrighter(false)
+    , _relativeDimHoldSteps(0)
+    , _relativeDimNextMs(0)
     , _switchOnTransitionSec(2)
     , _switchOffTransitionSec(6)
 {
@@ -104,8 +95,14 @@ void HueGatewayLight::processKnxSwitch(bool value)
 {
     if (!_initialized || !_client)
         return;
+
+    _relativeDimHoldActive = false;
     
-    Serial.printf("[HueGatewayLight] %s - KNX Switch: %d\n", _name.c_str(), value);
+    Serial.printf("[HueGatewayLight] %s - KNX Switch: %d (onFade:%us offFade:%us => fade:%us)\n", 
+                  _name.c_str(), value, 
+                  static_cast<unsigned>(_switchOnTransitionSec),
+                  static_cast<unsigned>(_switchOffTransitionSec),
+                  static_cast<unsigned>(value ? _switchOnTransitionSec : _switchOffTransitionSec));
     
     // Stop ongoing fade immediately when switching off.
     if (!value && _fadingActive) {
@@ -116,9 +113,21 @@ void HueGatewayLight::processKnxSwitch(bool value)
     _on = value;
     uint8_t switchTransitionSec = value ? _switchOnTransitionSec : _switchOffTransitionSec;
 
-    if (_on && _brightness == 0 && _minBrightnessHue > 0)
+    if (_on && _brightness == 0)
     {
-        _brightness = _minBrightnessHue;
+        if (_isGroupedTarget && _lastNonZeroBrightnessHue > 0)
+        {
+            _brightness = _lastNonZeroBrightnessHue;
+        }
+        else if (_minBrightnessHue > 0)
+        {
+            _brightness = _minBrightnessHue;
+        }
+    }
+
+    if (_brightness > 0)
+    {
+        _lastNonZeroBrightnessHue = _brightness;
     }
     
     // On switch-on with HCL assignment, apply the current interpolated HCL target.
@@ -159,17 +168,24 @@ void HueGatewayLight::processKnxBrightness(uint8_t value)
 {
     if (!_initialized || !_client)
         return;
+
+    _relativeDimHoldActive = false;
     
     Serial.printf("[HueGatewayLight] %s - KNX Brightness: %d%% (DPT 5.001)\n", _name.c_str(), value);
     
     const bool previousOn = _on;
 
     // KNX DPT 5.001: 0-100% -> Hue 0-254.
-    _brightness = (uint8_t)((value / 100.0f) * 254.0f);
+    _brightness = static_cast<uint8_t>(roundf((value / 100.0f) * 254.0f));
 
     if (_brightness > 0 && _brightness < _minBrightnessHue)
     {
         _brightness = _minBrightnessHue;
+    }
+
+    if (_brightness > 0)
+    {
+        _lastNonZeroBrightnessHue = _brightness;
     }
     
     // Auto-turn on when brightness is set above zero.
@@ -208,16 +224,13 @@ void HueGatewayLight::processKnxDimming(uint8_t control)
     bool brighter = (control & 0x08) != 0;  // Bit 3
     unsigned long nowMs = millis();
 
-    // Debounce very fast telegram bursts to reduce API pressure.
-    if ((nowMs - _lastRelativeDimCmdMs) < 100UL)
-    {
-        return;
-    }
-    _lastRelativeDimCmdMs = nowMs;
-    
     // Ignore stop telegram (0 steps).
     if (steps == 0)
     {
+        _relativeDimHoldActive = false;
+        _relativeDimHoldSteps = 0;
+        _relativeDimNextMs = 0;
+
         Serial.printf("[HueGatewayLight] %s - KNX Dimming STOP\n", _name.c_str());
 
         bool stopOk = _isGroupedTarget
@@ -240,6 +253,19 @@ void HueGatewayLight::processKnxDimming(uint8_t control)
         }
         return;
     }
+
+    // Debounce very fast telegram bursts to reduce API pressure.
+    // STOP telegrams are intentionally excluded so key release is never suppressed.
+    if ((nowMs - _lastRelativeDimCmdMs) < 100UL)
+    {
+        return;
+    }
+    _lastRelativeDimCmdMs = nowMs;
+
+    _relativeDimHoldActive = true;
+    _relativeDimHoldBrighter = brighter;
+    _relativeDimHoldSteps = steps;
+    _relativeDimNextMs = nowMs + kRelativeDimRepeatMs;
 
     // Use relative delta API when healthy, otherwise fallback to stable legacy path.
     if (_relativeDimCooldownUntilMs == 0 || nowMs >= _relativeDimCooldownUntilMs)
@@ -276,7 +302,7 @@ void HueGatewayLight::applyRelativeDimmingLegacy(bool brighter, uint8_t steps)
 
 void HueGatewayLight::applyRelativeDimmingCache(bool brighter, uint8_t steps)
 {
-    float deltaPercent = dimmingStepCodeToPercent(steps);
+    float deltaPercent = HueGatewayClient::relativeDimmingDeltaPercent(steps);
     int16_t brightnessChange = static_cast<int16_t>(roundf((deltaPercent / 100.0f) * 254.0f));
     if (brightnessChange < 1)
         brightnessChange = 1;
@@ -290,11 +316,21 @@ void HueGatewayLight::applyRelativeDimmingCache(bool brighter, uint8_t steps)
     if (newBrightness > 254)
         newBrightness = 254;
 
+    if (!brighter && _on && newBrightness == 0)
+    {
+        newBrightness = (_minBrightnessHue > 0) ? _minBrightnessHue : 1;
+    }
+
     _brightness = static_cast<uint8_t>(newBrightness);
 
     if (_brightness > 0 && _brightness < _minBrightnessHue)
     {
         _brightness = _minBrightnessHue;
+    }
+
+    if (_brightness > 0)
+    {
+        _lastNonZeroBrightnessHue = _brightness;
     }
 
     Serial.printf("[HueGatewayLight] %s - KNX Dimming: %s stepCode=%u (%.3f%%) -> Cached Brightness: %u\n",
@@ -307,10 +343,6 @@ void HueGatewayLight::applyRelativeDimmingCache(bool brighter, uint8_t steps)
     if (_brightness > 0 && !_on)
     {
         _on = true;
-    }
-    else if (_brightness == 0 && _on)
-    {
-        _on = false;
     }
 }
 
@@ -383,6 +415,17 @@ void HueGatewayLight::processKnxColorRGB(uint8_t red, uint8_t green, uint8_t blu
 
 void HueGatewayLight::updateFromHue(bool on, uint8_t brightness, uint16_t colorTempKelvin, uint8_t red, uint8_t green, uint8_t blue)
 {
+    // grouped_light can transiently report on=false while brightness is still >0
+    // around relative dim stop; keep channel ON in this short reconciliation window.
+    if (_isGroupedTarget && !on && brightness > 0)
+    {
+        const unsigned long nowMs = millis();
+        if ((nowMs - _lastRelativeDimCmdMs) <= 3000UL)
+        {
+            on = true;
+        }
+    }
+
     bool changed = false;
     
     if (_on != on)
@@ -395,6 +438,11 @@ void HueGatewayLight::updateFromHue(bool on, uint8_t brightness, uint16_t colorT
     {
         _brightness = brightness;
         changed = true;
+    }
+
+    if (_brightness > 0)
+    {
+        _lastNonZeroBrightnessHue = _brightness;
     }
 
     if (_lightType >= 2 && colorTempKelvin >= 2000 && colorTempKelvin <= 6500 && _currentKelvin != colorTempKelvin)
@@ -428,9 +476,9 @@ void HueGatewayLight::sendStatusToKnx()
     
     // Publish status to dedicated feedback KOs.
     // Hue 0-254 -> KNX 0-100%.
-    // Report 0% while switched off, even if Hue internally keeps the last dim level.
-    uint8_t statusBrightnessHue = _on ? _brightness : 0;
-    uint8_t brightnessPercent = (uint8_t)((statusBrightnessHue / 254.0f) * 100.0f);
+    // While switched off, always report 0% brightness on KNX status.
+        uint8_t statusBrightnessHue = _on ? _brightness : 0;
+    uint8_t brightnessPercent = static_cast<uint8_t>(roundf((statusBrightnessHue / 254.0f) * 100.0f));
     
     // KO Status Switch: DPT 1.001 (bool) - On/Off feedback.
     knx.getGroupObject(_koStatusSwitch).value(_on, Dpt(1, 1));
@@ -611,6 +659,44 @@ void HueGatewayLight::sendToHueWithColorTemp(uint16_t kelvin, uint8_t fadeDurati
 
 void HueGatewayLight::loop()
 {
+    if (_initialized && _client && _relativeDimHoldActive && _relativeDimHoldSteps > 0)
+    {
+        unsigned long nowMs = millis();
+        if ((long)(nowMs - _relativeDimNextMs) >= 0)
+        {
+            bool commandOk = false;
+            if (_relativeDimCooldownUntilMs == 0 || nowMs >= _relativeDimCooldownUntilMs)
+            {
+                commandOk = _isGroupedTarget
+                    ? _client->setGroupedLightDimmingDelta(_lightId, _relativeDimHoldBrighter, _relativeDimHoldSteps)
+                    : _client->setLightDimmingDelta(_lightId, _relativeDimHoldBrighter, _relativeDimHoldSteps);
+
+                if (commandOk)
+                {
+                    _relativeDimErrorStreak = 0;
+                    _relativeDimCooldownUntilMs = 0;
+                    applyRelativeDimmingCache(_relativeDimHoldBrighter, _relativeDimHoldSteps);
+                    sendStatusToKnx();
+                }
+                else
+                {
+                    _relativeDimErrorStreak = min<uint8_t>(static_cast<uint8_t>(_relativeDimErrorStreak + 1), static_cast<uint8_t>(10));
+                    if (_relativeDimErrorStreak >= 3)
+                    {
+                        _relativeDimCooldownUntilMs = nowMs + 5000UL;
+                    }
+                }
+            }
+            else
+            {
+                applyRelativeDimmingLegacy(_relativeDimHoldBrighter, _relativeDimHoldSteps);
+                commandOk = true;
+            }
+
+            _relativeDimNextMs = nowMs + (commandOk ? kRelativeDimRepeatMs : 120UL);
+        }
+    }
+
     // Only run HCL loop when initialized, switched on, and assigned to a valid master.
     if (!_initialized
         || !_on

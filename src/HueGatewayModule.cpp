@@ -9,6 +9,7 @@
 #include <lwip/sockets.h>
 #include <lwip/inet.h>
 #include <cstring>
+#include <memory>
 #include <new>
 
 #if __has_include("NetworkModule.h")
@@ -36,6 +37,8 @@ static constexpr unsigned long kEventStreamRetryBaseMs = 1000UL;
 static constexpr unsigned long kBootEventStreamWarmupMs = 15000UL;
 static constexpr unsigned long kDeviceSetupRetryBaseMs = 20000UL;
 static constexpr unsigned long kDeviceSetupRetryMaxMs = 60000UL;
+static constexpr uint8_t kEmptyLightEscalationThreshold = 3;
+static constexpr unsigned long kEmptyLightQuickRetryMs = 5000UL;
 static constexpr unsigned long kConnectedEnterHysteresisMs = 6000UL;
 static constexpr unsigned long kConnectedExitHysteresisMs = 12000UL;
 static constexpr unsigned long kSetupCircuitOpenMs = 180000UL;
@@ -50,6 +53,9 @@ static constexpr int kWebScanMaxLights = 192;
 static constexpr int kWebScanMaxTargets = 192;
 static constexpr unsigned long kWebScanCacheStaleMs = 15000UL;
 static constexpr unsigned long kWebScanTimeoutMs = 180000UL;
+static constexpr size_t kDiagLogCapacity = 500;
+static constexpr size_t kDiagLogMessageMaxLen = 220;
+static constexpr size_t kDiagDefaultDepth = 500;
 static bool sEventStreamEnabled = (OPENKNX_HUE_EVENTSTREAM_POLICY_DEFAULT != 0);
 
 static unsigned long sBridgeNextPingAllowedMs = 0UL;
@@ -326,6 +332,271 @@ static String getRequestLocalIpString(httpd_req_t* req)
     return getDeviceIpString();
 }
 
+void HueGatewayModule::appendDiagnosticLog(const char* level, const char* category, const String& message)
+{
+    if (_diagLogRing.empty())
+    {
+        return;
+    }
+
+    String normalized = message;
+    normalized.replace('\n', ' ');
+    normalized.replace('\r', ' ');
+    if (normalized.length() > kDiagLogMessageMaxLen)
+    {
+        normalized = normalized.substring(0, kDiagLogMessageMaxLen);
+        normalized += "...";
+    }
+
+    DiagnosticLogEntry& slot = _diagLogRing[_diagLogRingHead];
+    slot.uptimeMs = millis();
+    slot.level = (level != nullptr) ? String(level) : String("INFO");
+    slot.category = (category != nullptr) ? String(category) : String("GEN");
+    slot.message = normalized;
+
+    _diagLogRingHead = (_diagLogRingHead + 1) % _diagLogRing.size();
+    if (_diagLogRingCount < _diagLogRing.size())
+    {
+        _diagLogRingCount++;
+    }
+    else
+    {
+        _diagLogDropped++;
+    }
+}
+
+static String maskIpForDiagnose(const String& ip, bool includeNetworkDetails)
+{
+    if (includeNetworkDetails)
+    {
+        return ip.length() > 0 ? ip : String("-");
+    }
+
+    if (ip.length() == 0)
+    {
+        return "-";
+    }
+
+    const int firstDot = ip.indexOf('.');
+    if (firstDot < 0)
+    {
+        return "masked";
+    }
+    const int secondDot = ip.indexOf('.', firstDot + 1);
+    if (secondDot < 0)
+    {
+        return "masked";
+    }
+
+    return ip.substring(0, secondDot) + ".x.x";
+}
+
+String HueGatewayModule::buildDiagnosticReport(size_t requestedDepth, const String& testerNote, bool includeNetworkDetails)
+{
+    const size_t available = _diagLogRingCount;
+    const size_t effectiveDepth = min(requestedDepth, available);
+    const unsigned long uptimeMs = millis();
+    const String maskedDeviceIp = maskIpForDiagnose(getDeviceIpString(), includeNetworkDetails);
+    const String maskedBridgeIp = maskIpForDiagnose(_bridgeIP, includeNetworkDetails);
+
+    String report;
+    report.reserve(26000);
+
+    report += "=== OpenKNX Hue Diagnose V1 ===\n";
+    report += "GeneratedAtMs=" + String(uptimeMs) + "\n";
+    report += "ModuleVersion=" + String(version().c_str()) + "\n";
+    report += "NetworkDetailsIncluded=" + String(includeNetworkDetails ? "1" : "0") + "\n";
+    report += "DeviceIp=" + maskedDeviceIp + "\n";
+    report += "BridgeIp=" + maskedBridgeIp + "\n\n";
+
+    report += "[RuntimeStatus]\n";
+    report += "Initialized=" + String(_initialized ? "1" : "0") + "\n";
+    report += "BridgeStatus=" + String(static_cast<int>(_bridgeStatus)) + "\n";
+    report += "AuthPending=" + String(_authPending ? "1" : "0") + "\n";
+    report += "ActiveLights=" + String(_lightCount) + "\n";
+    report += "DeviceSetupNeedsRetry=" + String(_deviceSetupNeedsRetry ? "1" : "0") + "\n";
+    report += "ConsecutiveEmptyLightFetches=" + String(_consecutiveEmptyLightFetches) + "\n";
+    report += "LastValidLightFetchMs=" + String(_lastValidLightFetchMs) + "\n";
+    report += "SetupBackoffMs=" + String(_deviceSetupRetryBackoffMs) + "\n";
+    report += "EventStreamRetryBackoffMs=" + String(_eventStreamRetryBackoffMs) + "\n";
+    report += "EventStreamPauseUntilMs=" + String(_eventStreamPauseUntilMs) + "\n";
+    report += "WebScanInProgress=" + String(_webScanInProgress ? "1" : "0") + "\n";
+    report += "WebScanLastLightCount=" + String(_lastWebScanLightCount) + "\n";
+    report += "WebScanLastDurationMs=" + String(_lastWebScanDurationMs) + "\n\n";
+
+    report += "[Resource]\n";
+    report += "FreeHeap=" + String(ESP.getFreeHeap()) + "\n";
+    report += "MinFreeHeap=" + String(ESP.getMinFreeHeap()) + "\n";
+    report += "InternalFree=" + String(static_cast<unsigned>(heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT))) + "\n";
+    report += "InternalLargest=" + String(static_cast<unsigned>(heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT))) + "\n\n";
+
+    report += "[Counters]\n";
+    report += "SetupRuns=" + String(_diagCounterSetupRuns) + "\n";
+    report += "SetupIncomplete=" + String(_diagCounterSetupIncomplete) + "\n";
+    report += "UnresolvedTargets=" + String(_diagCounterUnresolvedTargets) + "\n";
+    report += "KoCommands=" + String(_diagCounterKoCommands) + "\n";
+    report += "KoBlockedSyncDir=" + String(_diagCounterKoBlockedSyncDir) + "\n";
+    report += "KoBlockedChannelMissing=" + String(_diagCounterKoBlockedChannelMissing) + "\n";
+    report += "WebScanRuns=" + String(_diagCounterWebScanRuns) + "\n";
+    report += "WebScanTimeouts=" + String(_diagCounterWebScanTimeouts) + "\n";
+    report += "EmptyLightFetches=" + String(_diagCounterEmptyLightFetches) + "\n";
+    report += "DiagLogDropped=" + String(_diagLogDropped) + "\n\n";
+
+    report += "[HttpEventStats]\n";
+    if (_client != nullptr)
+    {
+        const HueGatewayClient::DiagnosticsStats& stats = _client->getDiagnosticsStats();
+        report += "HttpGetCount=" + String(stats.httpGetCount) + "\n";
+        report += "HttpPutCount=" + String(stats.httpPutCount) + "\n";
+        report += "HttpGetErrors=" + String(stats.httpGetErrorCount) + "\n";
+        report += "HttpPutErrors=" + String(stats.httpPutErrorCount) + "\n";
+        report += "HttpTimeouts=" + String(stats.httpTimeoutCount) + "\n";
+        report += "LastHttpMethod=" + (stats.lastHttpMethod.length() > 0 ? stats.lastHttpMethod : String("-")) + "\n";
+        report += "LastHttpEndpoint=" + (stats.lastHttpEndpoint.length() > 0 ? stats.lastHttpEndpoint : String("-")) + "\n";
+        report += "LastHttpStatus=" + String(stats.lastHttpStatusCode) + "\n";
+        report += "EventConnectOk=" + String(stats.eventConnectOk) + "\n";
+        report += "EventConnectFail=" + String(stats.eventConnectFail) + "\n";
+        report += "EventStopCount=" + String(stats.eventStopCount) + "\n";
+        report += "EventDisconnectCount=" + String(stats.eventDisconnectCount) + "\n";
+        report += "EventHandshakeTimeouts=" + String(stats.eventHandshakeTimeoutCount) + "\n";
+        report += "EventHttpErrors=" + String(stats.eventHttpErrorCount) + "\n";
+    }
+    else
+    {
+        report += "Client=not-initialized\n";
+    }
+    report += "\n";
+
+    report += "[LastSetupSnapshot]\n";
+    report += "EnabledChannels=" + String(_diagLastEnabledChannels) + "\n";
+    report += "BridgeLightCount=" + String(_diagLastBridgeLightCount) + "\n";
+    report += "RoomTargetCount=" + String(_diagLastRoomTargetCount) + "\n";
+    report += "ZoneTargetCount=" + String(_diagLastZoneTargetCount) + "\n";
+    report += "HasUnresolvedGroupTarget=" + String(_diagLastHasUnresolvedGroupTarget ? "1" : "0") + "\n\n";
+
+    report += "[ChannelSnapshot]\n";
+    uint8_t configuredChannels = ParamHUE_HUEChannelCount;
+    if (configuredChannels > MAX_LIGHTS)
+    {
+        configuredChannels = MAX_LIGHTS;
+    }
+
+    for (uint8_t ch = 0; ch < configuredChannels; ch++)
+    {
+        uint8_t _channelIndex = ch;
+        const bool channelDisabled = ParamHUE_CHDisabled;
+        String targetRid = "";
+        #ifdef ParamHUE_CHTargetRIDStr
+        {
+            std::string t = ParamHUE_CHTargetRIDStr;
+            targetRid = String(t.c_str());
+            targetRid.trim();
+        }
+        #endif
+
+        std::string legacyStd = ParamHUE_CHLightUUIDStr;
+        String legacyUuid(legacyStd.c_str());
+        legacyUuid.trim();
+
+        uint8_t targetType = 0;
+        #ifdef ParamHUE_CHTargetType
+        targetType = ParamHUE_CHTargetType;
+        #endif
+
+        uint8_t syncDir = ParamHUE_CHSyncDir;
+        if (syncDir > 2)
+        {
+            syncDir = 2;
+        }
+        uint8_t pollIntervalSec = ParamHUE_CHPollInterval;
+
+        String mappedName = "-";
+        String mappedId = "-";
+        String grouped = "-";
+        String lastWriteMs = "-";
+        if (_lights[ch] != nullptr)
+        {
+            mappedName = _lights[ch]->getName();
+            mappedId = _lights[ch]->getLightId();
+            grouped = _lights[ch]->isGroupedTarget() ? "1" : "0";
+            lastWriteMs = String(_lights[ch]->getLastHueWriteSuccessMs());
+        }
+
+        report += "ch=" + String(ch + 1)
+            + " disabled=" + String(channelDisabled ? "1" : "0")
+            + " sync=" + String(syncDir)
+            + " poll=" + String(pollIntervalSec)
+            + " targetType=" + String(targetType)
+            + " targetRid=" + (targetRid.length() > 0 ? targetRid : String("-"))
+            + " legacyUuid=" + (legacyUuid.length() > 0 ? legacyUuid : String("-"))
+            + " mappedName=" + mappedName
+            + " mappedId=" + mappedId
+            + " grouped=" + grouped
+            + " lastHueWriteMs=" + lastWriteMs
+                + " lastKoMs=" + String(_diagLastKoCommandMs[ch])
+                + " lastKoType=" + String(_diagLastKoType[ch])
+                + " lastKoValue=" + (_diagLastKoValue[ch].length() > 0 ? _diagLastKoValue[ch] : String("-"))
+                + " koBlockReason=" + (_diagLastKoBlockReason[ch].length() > 0 ? _diagLastKoBlockReason[ch] : String("-"))
+                + " traceMs=" + String(_diagLastWriteTraceMs[ch])
+                + " traceDurMs=" + String(_diagLastWriteTraceDurationMs[ch])
+                + " traceResult=" + (_diagLastWriteTraceResult[ch].length() > 0 ? _diagLastWriteTraceResult[ch] : String("-"))
+                + " traceHttpStatus=" + String(_diagLastWriteTraceHttpStatus[ch])
+                + " traceHttpMethod=" + (_diagLastWriteTraceMethod[ch].length() > 0 ? _diagLastWriteTraceMethod[ch] : String("-"))
+                + " traceHttpEndpoint=" + (_diagLastWriteTraceEndpoint[ch].length() > 0 ? _diagLastWriteTraceEndpoint[ch] : String("-"))
+            + "\n";
+    }
+    report += "\n";
+
+    report += "[LastHueScanText]\n";
+    if (_lastWebScanText.length() > 0)
+    {
+        report += _lastWebScanText;
+        if (!_lastWebScanText.endsWith("\n"))
+        {
+            report += "\n";
+        }
+    }
+    else
+    {
+        report += "(none)\n";
+    }
+    report += "\n";
+
+    report += "[RingLog]\n";
+    report += "RingCapacity=" + String(static_cast<unsigned long>(_diagLogRing.size())) + "\n";
+    report += "RequestedDepth=" + String(static_cast<unsigned long>(requestedDepth)) + "\n";
+    report += "EffectiveDepth=" + String(static_cast<unsigned long>(effectiveDepth)) + "\n";
+
+    if (effectiveDepth > 0 && !_diagLogRing.empty())
+    {
+        const size_t ringSize = _diagLogRing.size();
+        size_t first = (_diagLogRingHead + ringSize - effectiveDepth) % ringSize;
+        for (size_t i = 0; i < effectiveDepth; i++)
+        {
+            const DiagnosticLogEntry& entry = _diagLogRing[(first + i) % ringSize];
+            report += String(entry.uptimeMs);
+            report += "|";
+            report += entry.level;
+            report += "|";
+            report += entry.category;
+            report += "|";
+            report += entry.message;
+            report += "\n";
+        }
+    }
+    else
+    {
+        report += "(no entries)\n";
+    }
+    report += "\n";
+
+    report += "[TesterNote]\n";
+    report += testerNote.length() > 0 ? testerNote : String("-");
+    report += "\n";
+
+    return report;
+}
+
 HueGatewayModule::HueGatewayModule()
     : _initialized(false)
     , _lastConnectionCheckMs(0)
@@ -362,6 +633,9 @@ HueGatewayModule::HueGatewayModule()
     , _lastPairingTriggerMs(0)
     , _devicesInitialized(false)
     , _deviceSetupNeedsRetry(false)
+    , _consecutiveEmptyLightFetches(0)
+    , _diagCounterEmptyLightFetches(0)
+    , _lastValidLightFetchMs(0)
     , _webScanRequested(false)
     , _webScanInProgress(false)
     , _networkConnectedLast(false)
@@ -372,9 +646,29 @@ HueGatewayModule::HueGatewayModule()
     , _lastWebScanLightCount(-1)
     , _hclLockActive(false)
     , _hclLockFallbackMode(static_cast<uint8_t>(HueGatewayModule::HclLockFallbackMode::None))
+    , _hclFallbackPolicy(static_cast<uint8_t>(HueGatewayModule::HclLockFallbackPolicy::Legacy))
+    , _hclFallbackDurationMs(0)
+    , _hclFallbackReleaseMinuteOfDay(0xFFFF)
     , _hclLockActivatedMs(0)
     , _hclLockAutoReleaseMs(0)
     , _hclLockActivationDayOfYear(-1)
+    , _hclLockActivationMinuteOfDay(-1)
+    , _diagLogRingHead(0)
+    , _diagLogRingCount(0)
+    , _diagLogDropped(0)
+    , _diagCounterSetupRuns(0)
+    , _diagCounterSetupIncomplete(0)
+    , _diagCounterUnresolvedTargets(0)
+    , _diagCounterKoCommands(0)
+    , _diagCounterKoBlockedSyncDir(0)
+    , _diagCounterKoBlockedChannelMissing(0)
+    , _diagCounterWebScanRuns(0)
+    , _diagCounterWebScanTimeouts(0)
+    , _diagLastEnabledChannels(0)
+    , _diagLastBridgeLightCount(0)
+    , _diagLastRoomTargetCount(0)
+    , _diagLastZoneTargetCount(0)
+    , _diagLastHasUnresolvedGroupTarget(false)
 {
     // Light-Array initialisieren
     for (int i = 0; i < MAX_LIGHTS; i++)
@@ -389,15 +683,30 @@ HueGatewayModule::HueGatewayModule()
         _hclChannelLockActivatedMs[i] = 0;
         _hclChannelLockAutoReleaseMs[i] = 0;
         _hclChannelLockActivationDayOfYear[i] = -1;
+        _hclChannelLockActivationMinuteOfDay[i] = -1;
+        _diagLastKoCommandMs[i] = 0;
+        _diagLastKoType[i] = 0xFF;
+        _diagLastKoValue[i] = "";
+        _diagLastKoBlockReason[i] = "-";
+        _diagLastWriteTraceMs[i] = 0;
+        _diagLastWriteTraceDurationMs[i] = 0;
+        _diagLastWriteTraceHttpStatus[i] = 0;
+        _diagLastWriteTraceResult[i] = "-";
+        _diagLastWriteTraceMethod[i] = "-";
+        _diagLastWriteTraceEndpoint[i] = "-";
     }
 
     for (uint8_t i = 0; i < HCL::MasterManager::MAX_MASTERS; i++)
     {
         _hclManagerLockActive[i] = false;
         _hclManagerLockFallbackMode[i] = static_cast<uint8_t>(HclLockFallbackMode::None);
+        _hclManagerFallbackPolicy[i] = static_cast<uint8_t>(HclLockFallbackPolicy::Legacy);
+        _hclManagerFallbackDurationMs[i] = 0;
+        _hclManagerFallbackReleaseMinuteOfDay[i] = 0xFFFF;
         _hclManagerLockActivatedMs[i] = 0;
         _hclManagerLockAutoReleaseMs[i] = 0;
         _hclManagerLockActivationDayOfYear[i] = -1;
+        _hclManagerLockActivationMinuteOfDay[i] = -1;
         _hclLastPublishedKelvin[i] = 0;
         _hclLastPublishedBrightness[i] = 0;
         _hclMasterValuesPublished[i] = false;
@@ -411,7 +720,7 @@ HueGatewayModule::HueGatewayModule()
 HueGatewayModule::~HueGatewayModule()
 {
     resetDevices();
-    
+
     // Cleanup Client
     if (_client)
     {
@@ -425,6 +734,13 @@ void HueGatewayModule::setup()
     Serial.println("[HueGatewayModule] Setup started");
     Serial.println("[HueGatewayModule] Initializing...");
     _bootStartMs = millis();
+
+    if (_diagLogRing.empty())
+    {
+        _diagLogRing.resize(kDiagLogCapacity);
+    }
+
+    appendDiagnosticLog("INFO", "BOOT", "Setup started");
 
     static bool extmemConfigured = false;
     if (!extmemConfigured && psramFound())
@@ -443,6 +759,7 @@ void HueGatewayModule::setup()
     
     _initialized = true;
     Serial.println("[HueGatewayModule] Setup complete");
+    appendDiagnosticLog("INFO", "BOOT", "Setup complete");
 }
 
 void HueGatewayModule::loop()
@@ -463,7 +780,8 @@ void HueGatewayModule::loop()
     const bool hasTime = getLocalTime(&timeinfo, 0);
     if (hasTime) {
         uint16_t currentMinutes = timeinfo.tm_hour * 60 + timeinfo.tm_min;
-        HCL::masterManager.loop(currentMinutes);
+        int16_t currentDayOfYear = static_cast<int16_t>(timeinfo.tm_yday + 1);
+        HCL::masterManager.loop(currentMinutes, currentDayOfYear);
     }
 
     evaluateHclLockFallback(hasTime ? &timeinfo : nullptr, hasTime);
@@ -646,7 +964,29 @@ void HueGatewayModule::loop()
 
             updateStatus(BridgeStatus::CONNECTING);
 
-            if (initClientWithAppKey())
+            // Soft reconnect: if client is still alive and we have a valid light mapping,
+            // try a lightweight bridge ping and re-run setupDevices() without destroying
+            // the existing mapping. This preserves KNX<->Hue connectivity during transient
+            // Bridge API issues (e.g., /clip/v2/resource/light returning empty).
+            if (_client && _client->isInitialized() && _lightCount > 0 && _client->pingBridgeApiV2())
+            {
+                Serial.println("[HueGatewayModule] Soft reconnect: bridge reachable, retrying setupDevices with existing mapping");
+                appendDiagnosticLog("INFO", "CONN", "soft reconnect: bridge ping ok, retrying setupDevices");
+                setupDevices();
+                if (_lightCount > 0)
+                {
+                    updateStatus(BridgeStatus::CONNECTED);
+                    _reconnectBackoffMs = 10000;
+                    Serial.println("[HueGatewayModule] Soft reconnect successful, mapping preserved");
+                }
+                else
+                {
+                    _reconnectBackoffMs = min<unsigned long>(_reconnectBackoffMs * 2UL, 120000UL);
+                    updateStatus(BridgeStatus::CONNECTION_LOST);
+                    Serial.println("[HueGatewayModule] Soft reconnect failed: mapping lost after setupDevices");
+                }
+            }
+            else if (initClientWithAppKey())
             {
                 uint8_t configuredChannels = ParamHUE_HUEChannelCount;
                 if (configuredChannels > MAX_LIGHTS)
@@ -757,7 +1097,7 @@ const std::string HueGatewayModule::name()
 
 const std::string HueGatewayModule::version()
 {
-    return "0.3.1";
+    return "0.3.5";
 }
 
 void HueGatewayModule::processInputKo(GroupObject& ko)
@@ -795,6 +1135,25 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
     {
         bool lockRequest = ko.value(Dpt(1, 1));
         setHclLock(lockRequest, "KO");
+        return;
+    }
+    #endif
+
+    #ifdef HUE_KoHUEHCLReleaseTrigger
+    if (koNumber == HUE_KoHUEHCLReleaseTrigger)
+    {
+        if (ko.value(Dpt(1, 1)))
+        {
+            setHclLock(false, "KO release trigger");
+            for (uint8_t manager = 1; manager <= HCL::MasterManager::MAX_MASTERS; manager++)
+            {
+                setHclManagerLock(manager, false, "KO release trigger");
+            }
+            for (uint8_t channel = 0; channel < MAX_LIGHTS; channel++)
+            {
+                setHclChannelLock(channel, false, "KO release trigger");
+            }
+        }
         return;
     }
     #endif
@@ -861,20 +1220,6 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
         return;
     }
 
-    // Forward KO to the corresponding light.
-    // Per-channel structure (11 KOs):
-    // KO 0: Switch (DPT 1.001)
-    // KO 1: Brightness absolute (DPT 5.001)
-    // KO 2: Dimming relative (DPT 3.007)
-    // KO 3: Status Switch (DPT 1.001)
-    // KO 4: Status Brightness (DPT 5.001)
-    // KO 5: ColorTemp (DPT 7.600)
-    // KO 6: Status ColorTemp (DPT 7.600)
-    // KO 7: ColorRGB (DPT 232.600)
-    // KO 8: Status ColorRGB (DPT 232.600)
-    // KO 9: HCL lock channel-specific (DPT 1.001)
-    // KO 10: status HCL lock channel-specific (DPT 1.001)
-    
     int32_t channel = HUE_KoCalcChannel(koNumber);
     if (channel < 0 || channel >= MAX_LIGHTS)
     {
@@ -899,15 +1244,32 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
 
     uint8_t _channelIndex = static_cast<uint8_t>(channel);
     uint8_t syncDir = ParamHUE_CHSyncDir;
-
-    // SyncDir: 0=None, 1=KNX->Hue, 2=Hue->KNX, 3=Bidirectional
-    bool isCommandKo = (koType == 0 || koType == 1 || koType == 2 || koType == 5 || koType == 7);
-    if (isCommandKo && !(syncDir == 1 || syncDir == 3))
+    if (syncDir > 2)
     {
+        syncDir = 2;
+    }
+    bool isCommandKo = (koType == 0 || koType == 1 || koType == 2 || koType == 5 || koType == 7);
+
+    if (isCommandKo)
+    {
+        _diagCounterKoCommands++;
+        _diagLastKoCommandMs[channel] = nowMs;
+        _diagLastKoType[channel] = koType;
+        _diagLastKoBlockReason[channel] = "ok";
+    }
+
+    if (isCommandKo && !(syncDir == 0 || syncDir == 2))
+    {
+        _diagCounterKoBlockedSyncDir++;
+        _diagLastKoBlockReason[channel] = "syncdir";
         Serial.printf("[HueGatewayModule] Channel %d SyncDir=%u blocks KNX->Hue command (KO type %u)\n",
                       channel + 1,
                       static_cast<unsigned>(syncDir),
                       static_cast<unsigned>(koType));
+        appendDiagnosticLog("WARN", "KNX", String("ch=") + String(channel + 1)
+            + " blocked=syncdir"
+            + " sync=" + String(static_cast<unsigned>(syncDir))
+            + " koType=" + String(static_cast<unsigned>(koType)));
         return;
     }
 
@@ -923,67 +1285,168 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
 
         if (_lights[channel] == nullptr)
         {
+            if (isCommandKo)
+            {
+                _diagCounterKoBlockedChannelMissing++;
+                _diagLastKoBlockReason[channel] = "channel-missing";
+            }
+
             static uint32_t lastNotConfiguredLogMs = 0;
             if ((nowMs - lastNotConfiguredLogMs) >= 10000 || nowMs < lastNotConfiguredLogMs)
             {
                 Serial.printf("[HueGatewayModule] Channel %d not configured\n", channel + 1);
                 lastNotConfiguredLogMs = nowMs;
             }
+
+            if (isCommandKo)
+            {
+                appendDiagnosticLog("WARN", "KNX", String("ch=") + String(channel + 1)
+                    + " blocked=channel-missing"
+                    + " koType=" + String(static_cast<unsigned>(koType)));
+            }
             return;
         }
     }
-    
+
+    unsigned long commandStartMs = nowMs;
+    unsigned long beforeHueWriteMs = (_lights[channel] != nullptr) ? _lights[channel]->getLastHueWriteSuccessMs() : 0;
+    String commandValue = "-";
+    HueGatewayClient::DiagnosticsStats statsBefore;
+    if (_client != nullptr)
+    {
+        statsBefore = _client->getDiagnosticsStats();
+    }
+
     switch (koType)
     {
-        case 0:  // Switch KO
+        case 0:
         {
             bool value = ko.value(Dpt(1, 1));
+            commandValue = String(value ? "1" : "0");
             _lights[channel]->processKnxSwitch(value);
             break;
         }
-        case 1:  // Brightness KO (absolute)
+        case 1:
         {
             uint8_t value = ko.value(Dpt(5, 1));
+            commandValue = String(static_cast<unsigned>(value));
             _lights[channel]->processKnxBrightness(value);
             break;
         }
-        case 2:  // Dimming KO (relative)
+        case 2:
         {
             uint8_t controlBit = ko.value(Dpt(3, 7, 0));
             uint8_t stepCode = ko.value(Dpt(3, 7, 1));
             uint8_t value = static_cast<uint8_t>(((controlBit & 0x01) << 3) | (stepCode & 0x07));
+            commandValue = String(static_cast<unsigned>(value));
             _lights[channel]->processKnxDimming(value);
             break;
         }
-        case 3:  // Status Switch KO (read-only, no processing)
+        case 3:
+        case 4:
             break;
-        case 4:  // Status Brightness KO (read-only, no processing)
-            break;
-        case 5:  // ColorTemp KO
+        case 5:
         {
             uint16_t kelvin = ko.value(Dpt(7, 600));
+            commandValue = String(static_cast<unsigned>(kelvin));
             _lights[channel]->processKnxColorTemp(kelvin);
             break;
         }
-        case 6:  // Status ColorTemp KO (read-only, no processing)
+        case 6:
             break;
-        case 7:  // ColorRGB KO
+        case 7:
         {
             uint8_t* rgb = ko.valueRef();
+            commandValue = String(static_cast<unsigned>(rgb[0])) + "," + String(static_cast<unsigned>(rgb[1])) + "," + String(static_cast<unsigned>(rgb[2]));
             _lights[channel]->processKnxColorRGB(rgb[0], rgb[1], rgb[2]);
             break;
         }
-        case 8:  // Status ColorRGB KO (read-only, no processing)
+        case 8:
             break;
-        case 9:  // HCL channel lock KO (already handled above)
+        case 10:
             break;
-        case 10: // Status HCL channel lock KO (read-only)
+        default:
             break;
+    }
+
+    if (isCommandKo)
+    {
+        const unsigned long finishedMs = millis();
+        const unsigned long durationMs = (finishedMs >= commandStartMs) ? (finishedMs - commandStartMs) : 0;
+        _diagLastKoValue[channel] = commandValue;
+        _diagLastWriteTraceMs[channel] = finishedMs;
+        _diagLastWriteTraceDurationMs[channel] = durationMs;
+
+        int httpStatus = 0;
+        String httpMethod = "-";
+        String httpEndpoint = "-";
+        String result = "no-http";
+        uint32_t putDelta = 0;
+
+        if (_client != nullptr)
+        {
+            const HueGatewayClient::DiagnosticsStats& statsAfter = _client->getDiagnosticsStats();
+            if (statsAfter.httpPutCount >= statsBefore.httpPutCount)
+            {
+                putDelta = statsAfter.httpPutCount - statsBefore.httpPutCount;
+            }
+            else
+            {
+                putDelta = (0xFFFFFFFFu - statsBefore.httpPutCount) + statsAfter.httpPutCount + 1u;
+            }
+
+            httpStatus = statsAfter.lastHttpStatusCode;
+            if (statsAfter.lastHttpMethod.length() > 0)
+            {
+                httpMethod = statsAfter.lastHttpMethod;
+            }
+            if (statsAfter.lastHttpEndpoint.length() > 0)
+            {
+                httpEndpoint = statsAfter.lastHttpEndpoint;
+            }
+        }
+
+        const unsigned long afterHueWriteMs = (_lights[channel] != nullptr) ? _lights[channel]->getLastHueWriteSuccessMs() : 0;
+        const bool writeSuccessByTimestamp = (afterHueWriteMs > 0) && (afterHueWriteMs != beforeHueWriteMs) && (afterHueWriteMs >= commandStartMs);
+        const bool writeSuccessByStatus = (putDelta > 0) && (httpStatus >= 200) && (httpStatus < 300);
+        if (writeSuccessByTimestamp || writeSuccessByStatus)
+        {
+            result = "ok";
+        }
+        else if (putDelta > 0)
+        {
+            result = "http-fail";
+        }
+
+        _diagLastWriteTraceHttpStatus[channel] = httpStatus;
+        _diagLastWriteTraceMethod[channel] = httpMethod;
+        _diagLastWriteTraceEndpoint[channel] = httpEndpoint;
+        _diagLastWriteTraceResult[channel] = result;
+
+        String fadeInfo = "";
+        if (koType == 0 && _lights[channel] != nullptr)
+        {
+            bool switchVal = (commandValue == "1");
+            uint8_t fadeSec = switchVal ? _lights[channel]->getSwitchOnTransitionSec() : _lights[channel]->getSwitchOffTransitionSec();
+            fadeInfo = " fadeSec=" + String(static_cast<unsigned>(fadeSec));
+        }
+
+        appendDiagnosticLog(writeSuccessByTimestamp || writeSuccessByStatus ? "INFO" : "WARN",
+            "KNXWRITE",
+            String("ch=") + String(channel + 1)
+            + " koType=" + String(static_cast<unsigned>(koType))
+            + " value=" + commandValue
+            + fadeInfo
+            + " result=" + result
+            + " status=" + String(httpStatus)
+            + " method=" + httpMethod
+            + " endpoint=" + httpEndpoint
+            + " durMs=" + String(durationMs));
     }
 
     if (isCommandKo && _lights[channel] != nullptr)
     {
-        if (syncDir == 2 || syncDir == 3)
+        if (syncDir == 1 || syncDir == 2)
         {
             if (_channelFastTrackCooldownUntilMs[channel] == 0 || nowMs >= _channelFastTrackCooldownUntilMs[channel])
             {
@@ -1003,6 +1466,7 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
         openknx.console.printHelpLine("hue pair", "Start pairing workflow (press bridge button)");
         openknx.console.printHelpLine("hue status", "Show current module status");
         openknx.console.printHelpLine("hue hcl", "Show HCL runtime and advanced master settings");
+        openknx.console.printHelpLine("hue retry", "Force setupDevices retry (reset backoff/circuit)");
         return true;
     }
 
@@ -1016,6 +1480,19 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
         {
             Serial.println("[HueGatewayModule] Pairing command rejected. Check network and bridge configuration.");
         }
+        return true;
+    }
+
+    if (cmd == "hue retry")
+    {
+        _deviceSetupNeedsRetry = true;
+        _deviceSetupRetryBackoffMs = 0;
+        _setupCircuitOpenUntilMs = 0;
+        _setupCircuitTrips = 0;
+        _consecutiveEmptyLightFetches = 0;
+        _lastDeviceSetupRetryMs = 0;
+        Serial.println("[HueGatewayModule] Manual setup retry triggered via console");
+        appendDiagnosticLog("INFO", "CLI", "manual setup retry triggered");
         return true;
     }
     
@@ -1317,11 +1794,15 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
                 const char* curveText = "FixedTime";
                 if (curveTypeValue == 1)
                 {
-                    curveText = "SunPosition";
+                    curveText = "SunWindow";
                 }
                 else if (curveTypeValue == 2)
                 {
                     curveText = "Manual";
+                }
+                else if (curveTypeValue == 3)
+                {
+                    curveText = "Astronomical";
                 }
 
                 Serial.printf("    curve=%s slew=%uK/min manual=%uK sun=%s/%s offset=%d/%d applied=%uK\n",
@@ -1504,11 +1985,15 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
             const char* curveText = "FixedTime";
             if (curveTypeValue == 1)
             {
-                curveText = "SunPosition";
+                curveText = "SunWindow";
             }
             else if (curveTypeValue == 2)
             {
                 curveText = "Manual";
+            }
+            else if (curveTypeValue == 3)
+            {
+                curveText = "Astronomical";
             }
 
             Serial.printf("    curve=%s slew=%uK/min manual=%uK sun=%s/%s offset=%d/%d\n",
@@ -1665,6 +2150,9 @@ void HueGatewayModule::setupBridge()
 
 void HueGatewayModule::setupDevices()
 {
+    _diagCounterSetupRuns++;
+    appendDiagnosticLog("INFO", "SETUP", "setupDevices start");
+
     const unsigned long nowMs = millis();
     if (_setupCircuitOpenUntilMs != 0 && nowMs < _setupCircuitOpenUntilMs)
     {
@@ -1698,8 +2186,6 @@ void HueGatewayModule::setupDevices()
     {
         channelCount = MAX_LIGHTS;
     }
-
-    resetDevices();
     
     if (!_client || !_client->isInitialized())
     {
@@ -1767,24 +2253,66 @@ void HueGatewayModule::setupDevices()
     };
     
     // Retrieve all lights from the bridge for validation/mapping.
-    static HueGatewayLightState allLights[MAX_LIGHTS];
-    int bridgeLightCount = _client->getLights(allLights, MAX_LIGHTS, false);
+    int lightFetchCapacity = kWebScanMaxLights;
+    std::unique_ptr<HueGatewayLightState[]> allLights(new (std::nothrow) HueGatewayLightState[lightFetchCapacity]);
+    if (!allLights)
+    {
+        lightFetchCapacity = MAX_LIGHTS;
+        allLights.reset(new (std::nothrow) HueGatewayLightState[lightFetchCapacity]);
+    }
+
+    if (!allLights)
+    {
+        _deviceSetupNeedsRetry = true;
+        _diagCounterSetupIncomplete++;
+        _deviceSetupRetryBackoffMs = min<unsigned long>(_deviceSetupRetryBackoffMs * 2UL, kDeviceSetupRetryMaxMs);
+        registerSetupFailure("alloc-lights-buffer");
+        Serial.println("[HueGatewayModule] setupDevices aborted: cannot allocate light fetch buffer");
+        appendDiagnosticLog("WARN", "SETUP", "setupDevices incomplete: light fetch buffer alloc failed");
+        finalizeSetupSession("alloc-failed");
+        return;
+    }
+
+    int bridgeLightCount = _client->getLights(allLights.get(), lightFetchCapacity, false);
     if (bridgeLightCount <= 0)
     {
         delay(60);
-        bridgeLightCount = _client->getLights(allLights, MAX_LIGHTS, false);
+        bridgeLightCount = _client->getLights(allLights.get(), lightFetchCapacity, false);
     }
     Serial.printf("[HueGatewayModule] Bridge has %d lights\n", bridgeLightCount);
 
     if (bridgeLightCount <= 0)
     {
+        _consecutiveEmptyLightFetches++;
+        _diagCounterEmptyLightFetches++;
         _deviceSetupNeedsRetry = true;
-        _deviceSetupRetryBackoffMs = min<unsigned long>(_deviceSetupRetryBackoffMs * 2UL, kDeviceSetupRetryMaxMs);
-        registerSetupFailure("no-lights");
-        Serial.println("[HueGatewayModule] Bridge returned 0 lights, deferring device mapping retry");
+
+        if (_consecutiveEmptyLightFetches < kEmptyLightEscalationThreshold)
+        {
+            // Transient empty response: retry quickly without tripping the circuit breaker
+            _deviceSetupRetryBackoffMs = kEmptyLightQuickRetryMs;
+            Serial.printf("[HueGatewayModule] Bridge returned 0 lights (%u/%u before escalation), quick retry in %lu ms\n",
+                          static_cast<unsigned>(_consecutiveEmptyLightFetches),
+                          static_cast<unsigned>(kEmptyLightEscalationThreshold),
+                          static_cast<unsigned long>(kEmptyLightQuickRetryMs));
+            appendDiagnosticLog("WARN", "SETUP", String("empty light list (") + String(_consecutiveEmptyLightFetches) + "/" + String(kEmptyLightEscalationThreshold) + ")");
+        }
+        else
+        {
+            // Persistent empty response: escalate with full backoff and circuit breaker
+            _diagCounterSetupIncomplete++;
+            _deviceSetupRetryBackoffMs = min<unsigned long>(_deviceSetupRetryBackoffMs * 2UL, kDeviceSetupRetryMaxMs);
+            registerSetupFailure("no-lights");
+            Serial.printf("[HueGatewayModule] Bridge returned 0 lights (%u consecutive), escalating with backoff\n",
+                          static_cast<unsigned>(_consecutiveEmptyLightFetches));
+            appendDiagnosticLog("WARN", "SETUP", "setupDevices incomplete: bridge returned no lights (escalated)");
+        }
         finalizeSetupSession("no-lights");
         return;
     }
+
+    _consecutiveEmptyLightFetches = 0;
+    _lastValidLightFetchMs = millis();
 
     bool needRoomTargets = false;
     bool needZoneTargets = false;
@@ -1814,10 +2342,52 @@ void HueGatewayModule::setupDevices()
     }
     #endif
 
-    static HueGatewayTargetInfo roomTargets[kWebScanMaxTargets];
-    static HueGatewayTargetInfo zoneTargets[kWebScanMaxTargets];
-    const int roomTargetCount = needRoomTargets ? _client->getRoomTargets(roomTargets, kWebScanMaxTargets) : 0;
-    const int zoneTargetCount = needZoneTargets ? _client->getZoneTargets(zoneTargets, kWebScanMaxTargets) : 0;
+    std::unique_ptr<HueGatewayTargetInfo[]> roomTargets;
+    std::unique_ptr<HueGatewayTargetInfo[]> zoneTargets;
+    int roomTargetCapacity = needRoomTargets ? kWebScanMaxTargets : 0;
+    int zoneTargetCapacity = needZoneTargets ? kWebScanMaxTargets : 0;
+
+    if (needRoomTargets)
+    {
+        roomTargets.reset(new (std::nothrow) HueGatewayTargetInfo[roomTargetCapacity]);
+        if (!roomTargets)
+        {
+            roomTargetCapacity = MAX_LIGHTS;
+            roomTargets.reset(new (std::nothrow) HueGatewayTargetInfo[roomTargetCapacity]);
+        }
+
+        if (!roomTargets)
+        {
+            roomTargetCapacity = 0;
+            appendDiagnosticLog("WARN", "SETUP", "room target buffer alloc failed, fallback to direct resolve");
+        }
+    }
+
+    if (needZoneTargets)
+    {
+        zoneTargets.reset(new (std::nothrow) HueGatewayTargetInfo[zoneTargetCapacity]);
+        if (!zoneTargets)
+        {
+            zoneTargetCapacity = MAX_LIGHTS;
+            zoneTargets.reset(new (std::nothrow) HueGatewayTargetInfo[zoneTargetCapacity]);
+        }
+
+        if (!zoneTargets)
+        {
+            zoneTargetCapacity = 0;
+            appendDiagnosticLog("WARN", "SETUP", "zone target buffer alloc failed, fallback to direct resolve");
+        }
+    }
+
+    const int roomTargetCount = (needRoomTargets && roomTargets)
+        ? _client->getRoomTargets(roomTargets.get(), roomTargetCapacity)
+        : 0;
+    const int zoneTargetCount = (needZoneTargets && zoneTargets)
+        ? _client->getZoneTargets(zoneTargets.get(), zoneTargetCapacity)
+        : 0;
+    _diagLastBridgeLightCount = bridgeLightCount;
+    _diagLastRoomTargetCount = roomTargetCount;
+    _diagLastZoneTargetCount = zoneTargetCount;
     Serial.printf("[HueGatewayModule] Prefetched grouped targets: rooms=%d zones=%d (needed room=%u zone=%u)\n",
                   roomTargetCount,
                   zoneTargetCount,
@@ -1831,6 +2401,8 @@ void HueGatewayModule::setupDevices()
     {
         maxChannels = MAX_LIGHTS;
     }
+    bool mappedChannels[MAX_LIGHTS] = {false};
+    int mappedCount = 0;
     bool hasIndexMappedChannel = false;
     bool hasUnresolvedGroupTarget = false;
     for (uint8_t ch = 0; ch < maxChannels; ch++)
@@ -1840,6 +2412,15 @@ void HueGatewayModule::setupDevices()
         if (ParamHUE_CHDisabled)
         {
             Serial.printf("[HueGatewayModule] Channel %d: Disabled\n", ch + 1);
+            if (_lights[ch] != nullptr)
+            {
+                delete _lights[ch];
+                _lights[ch] = nullptr;
+            }
+            _channelLastPollMs[ch] = 0;
+            _channelFastTrackNextMs[ch] = 0;
+            _channelFastTrackCooldownUntilMs[ch] = 0;
+            _channelFastTrackRemaining[ch] = 0;
             continue;
         }
 
@@ -2081,6 +2662,15 @@ void HueGatewayModule::setupDevices()
                               static_cast<unsigned>(configuredTargetType),
                               configuredTargetRid.length() > 0 ? 1U : 0U,
                               hasLegacyUuid ? 1U : 0U);
+
+                if (_lights[ch] != nullptr)
+                {
+                    mappedChannels[ch] = true;
+                    mappedCount++;
+                    Serial.printf("[HueGatewayModule] Channel %d: keeping previous mapping (%s)\n",
+                                  ch + 1,
+                                  _lights[ch]->getLightId().c_str());
+                }
                 continue;
             }
         }
@@ -2094,6 +2684,11 @@ void HueGatewayModule::setupDevices()
         if (selectedLight == nullptr || selectedLight->id.isEmpty())
         {
             Serial.printf("[HueGatewayModule] Channel %d: No valid bridge light selected\n", ch + 1);
+            if (_lights[ch] != nullptr)
+            {
+                mappedChannels[ch] = true;
+                mappedCount++;
+            }
             continue;
         }
 
@@ -2106,8 +2701,27 @@ void HueGatewayModule::setupDevices()
         uint16_t koStatusColorTemp = koBase + 6;
         uint16_t koStatusColorRGB = koBase + 8;
         
-        // Create a HueGatewayLight instance for this channel.
-        _lights[ch] = new HueGatewayLight(selectedLight->id, selectedLight->name, _client);
+        const bool needsRecreate = (_lights[ch] == nullptr)
+            || !_lights[ch]->getLightId().equalsIgnoreCase(selectedLight->id)
+            || (_lights[ch]->isGroupedTarget() != targetIsGrouped);
+
+        if (needsRecreate)
+        {
+            if (_lights[ch] != nullptr)
+            {
+                delete _lights[ch];
+            }
+
+            _lights[ch] = new HueGatewayLight(selectedLight->id, selectedLight->name, _client);
+            if (_lights[ch] == nullptr)
+            {
+                Serial.printf("[HueGatewayModule] Channel %d: allocation failed for %s\n",
+                              ch + 1,
+                              selectedLight->id.c_str());
+                continue;
+            }
+        }
+
         _lights[ch]->begin(koSwitch, koBrightness, koDimming, koStatusSwitch, koStatusBrightness, koStatusColorTemp, koStatusColorRGB);
         _lights[ch]->setGroupedTarget(targetIsGrouped);
 
@@ -2170,7 +2784,7 @@ void HueGatewayModule::setupDevices()
         _lights[ch]->setSwitchTransitionDurations(switchOnTransitionSec, switchOffTransitionSec);
         _channelLastPollMs[ch] = 0;
 
-        Serial.printf("[HueGatewayModule] Channel %d: %s (%s)%s, Type:%u Sync:%u Poll:%us MinBri:%u%% HCL:%u -> KO %d/%d/%d/%d/%d\n",
+        Serial.printf("[HueGatewayModule] Channel %d: %s (%s)%s, Type:%u Sync:%u Poll:%us MinBri:%u%% HCL:%u OnFade:%us OffFade:%us -> KO %d/%d/%d/%d/%d\n",
                       ch + 1,
                       selectedLight->name.c_str(),
                       selectedLight->id.c_str(),
@@ -2180,15 +2794,55 @@ void HueGatewayModule::setupDevices()
                       static_cast<unsigned>(ParamHUE_CHPollInterval),
                       static_cast<unsigned>(minBrightness),
                       static_cast<unsigned>(hclMaster),
+                      static_cast<unsigned>(switchOnTransitionSec),
+                      static_cast<unsigned>(switchOffTransitionSec),
                       koSwitch, koBrightness, koDimming, koStatusSwitch, koStatusBrightness);
-        
-        _lightCount++;
+
+        mappedChannels[ch] = true;
+        mappedCount++;
     }
 
+    for (uint8_t ch = maxChannels; ch < MAX_LIGHTS; ch++)
+    {
+        if (_lights[ch] != nullptr)
+        {
+            delete _lights[ch];
+            _lights[ch] = nullptr;
+        }
+        _channelLastPollMs[ch] = 0;
+        _channelFastTrackNextMs[ch] = 0;
+        _channelFastTrackCooldownUntilMs[ch] = 0;
+        _channelFastTrackRemaining[ch] = 0;
+    }
+
+    for (uint8_t ch = 0; ch < maxChannels; ch++)
+    {
+        if (mappedChannels[ch] || _lights[ch] == nullptr)
+        {
+            continue;
+        }
+
+        delete _lights[ch];
+        _lights[ch] = nullptr;
+        _channelLastPollMs[ch] = 0;
+        _channelFastTrackNextMs[ch] = 0;
+        _channelFastTrackCooldownUntilMs[ch] = 0;
+        _channelFastTrackRemaining[ch] = 0;
+    }
+
+    _lightCount = mappedCount;
+
     uint8_t enabledChannels = countEnabledChannels();
+    _diagLastEnabledChannels = enabledChannels;
+    _diagLastHasUnresolvedGroupTarget = hasUnresolvedGroupTarget;
     if (enabledChannels > 0 && (_lightCount == 0 || (bridgeLightCount <= 0 && hasIndexMappedChannel) || hasUnresolvedGroupTarget))
     {
         _deviceSetupNeedsRetry = true;
+        _diagCounterSetupIncomplete++;
+        if (hasUnresolvedGroupTarget)
+        {
+            _diagCounterUnresolvedTargets++;
+        }
         _deviceSetupRetryBackoffMs = min<unsigned long>(_deviceSetupRetryBackoffMs * 2UL, kDeviceSetupRetryMaxMs);
         registerSetupFailure("mapping-incomplete");
         Serial.printf("[HueGatewayModule] setupDevices incomplete (enabled=%u, mapped=%d, bridgeLights=%d, unresolvedGroup=%u), retry scheduled\n",
@@ -2196,6 +2850,7 @@ void HueGatewayModule::setupDevices()
                       _lightCount,
                       bridgeLightCount,
                       hasUnresolvedGroupTarget ? 1 : 0);
+        appendDiagnosticLog("WARN", "MAP", "setupDevices incomplete: mapping unresolved or empty");
     }
     else
     {
@@ -2206,6 +2861,24 @@ void HueGatewayModule::setupDevices()
     }
     
     Serial.printf("[HueGatewayModule] Initialized %d lights\n", _lightCount);
+    {
+        uint8_t onFade = 2;
+        uint8_t offFade = 6;
+        uint8_t hclFade = 0;
+        #ifdef ParamHUE_HUESwitchOnTransitionSec
+        onFade = ParamHUE_HUESwitchOnTransitionSec;
+        #endif
+        #ifdef ParamHUE_HUESwitchOffTransitionSec
+        offFade = ParamHUE_HUESwitchOffTransitionSec;
+        #endif
+        #ifdef ParamHUE_HUEHCLFadeDuration
+        hclFade = ParamHUE_HUEHCLFadeDuration;
+        #endif
+        appendDiagnosticLog("INFO", "SETUP", String("setupDevices done: mapped=") + String(_lightCount)
+            + " onFade=" + String(static_cast<unsigned>(onFade)) + "s"
+            + " offFade=" + String(static_cast<unsigned>(offFade)) + "s"
+            + " hclFade=" + String(static_cast<unsigned>(hclFade)) + "s");
+    }
     _lastChannelSyncOkMs = millis();
     _devicesInitialized = true;
     finalizeSetupSession("ok");
@@ -2242,6 +2915,37 @@ void HueGatewayModule::setupHCL()
     _hclLockFallbackMode = static_cast<uint8_t>(HclLockFallbackMode::None);
     #endif
 
+    #ifdef ParamHUE_HUEHCLFallbackPolicy
+    _hclFallbackPolicy = ParamHUE_HUEHCLFallbackPolicy;
+    if (_hclFallbackPolicy > static_cast<uint8_t>(HclLockFallbackPolicy::ExternalOnly))
+    {
+        _hclFallbackPolicy = static_cast<uint8_t>(HclLockFallbackPolicy::Legacy);
+    }
+    #else
+    _hclFallbackPolicy = static_cast<uint8_t>(HclLockFallbackPolicy::Legacy);
+    #endif
+
+    _hclFallbackDurationMs = 0;
+    {
+        uint32_t fallbackDurationSec = 0;
+        #if defined(HUE_HUEHCLFallbackDurationSec)
+        // TypeTime currently generates an empty Param macro, so read by offset.
+        fallbackDurationSec = static_cast<uint32_t>(knx.paramInt(HUE_HUEHCLFallbackDurationSec));
+        #elif defined(ParamHUE_HUEHCLFallbackDurationSec)
+        fallbackDurationSec = static_cast<uint32_t>(ParamHUE_HUEHCLFallbackDurationSec);
+        #endif
+
+        const uint64_t durationMs = static_cast<uint64_t>(fallbackDurationSec) * 1000ULL;
+        _hclFallbackDurationMs = (durationMs > 0xFFFFFFFFULL) ? 0xFFFFFFFFUL : static_cast<uint32_t>(durationMs);
+    }
+    _hclFallbackReleaseMinuteOfDay = 0xFFFF;
+    #ifdef ParamHUE_HUEHCLFallbackReleaseTime
+    {
+        const String releaseTime = readFixedTimeParam(ParamHUE_HUEHCLFallbackReleaseTime);
+        _hclFallbackReleaseMinuteOfDay = HCL::Setpoint::parseTime(releaseTime.c_str());
+    }
+    #endif
+
     for (uint8_t i = 0; i < HCL::MasterManager::MAX_MASTERS; i++)
     {
         _hclManagerLockFallbackMode[i] = static_cast<uint8_t>(HclLockFallbackMode::None);
@@ -2272,6 +2976,114 @@ void HueGatewayModule::setupHCL()
     _hclManagerLockFallbackMode[7] = ParamHUE_HUEHCLM8LockFallback;
     #endif
 
+    // Per-manager fallback policy, duration, release time
+    for (uint8_t i = 0; i < HCL::MasterManager::MAX_MASTERS; i++)
+    {
+        _hclManagerFallbackPolicy[i] = static_cast<uint8_t>(HclLockFallbackPolicy::Legacy);
+        _hclManagerFallbackDurationMs[i] = 0;
+        _hclManagerFallbackReleaseMinuteOfDay[i] = 0xFFFF;
+    }
+
+    {
+        // Helper lambda to read per-manager fallback policy
+        auto readManagerPolicy = [this](uint8_t idx, uint8_t policyVal) {
+            _hclManagerFallbackPolicy[idx] = policyVal;
+            if (_hclManagerFallbackPolicy[idx] > static_cast<uint8_t>(HclLockFallbackPolicy::ExternalOnly))
+            {
+                _hclManagerFallbackPolicy[idx] = static_cast<uint8_t>(HclLockFallbackPolicy::Legacy);
+            }
+        };
+        #ifdef ParamHUE_HUEHCLM1FallbackPolicy
+        readManagerPolicy(0, ParamHUE_HUEHCLM1FallbackPolicy);
+        #endif
+        #ifdef ParamHUE_HUEHCLM2FallbackPolicy
+        readManagerPolicy(1, ParamHUE_HUEHCLM2FallbackPolicy);
+        #endif
+        #ifdef ParamHUE_HUEHCLM3FallbackPolicy
+        readManagerPolicy(2, ParamHUE_HUEHCLM3FallbackPolicy);
+        #endif
+        #ifdef ParamHUE_HUEHCLM4FallbackPolicy
+        readManagerPolicy(3, ParamHUE_HUEHCLM4FallbackPolicy);
+        #endif
+        #ifdef ParamHUE_HUEHCLM5FallbackPolicy
+        readManagerPolicy(4, ParamHUE_HUEHCLM5FallbackPolicy);
+        #endif
+        #ifdef ParamHUE_HUEHCLM6FallbackPolicy
+        readManagerPolicy(5, ParamHUE_HUEHCLM6FallbackPolicy);
+        #endif
+        #ifdef ParamHUE_HUEHCLM7FallbackPolicy
+        readManagerPolicy(6, ParamHUE_HUEHCLM7FallbackPolicy);
+        #endif
+        #ifdef ParamHUE_HUEHCLM8FallbackPolicy
+        readManagerPolicy(7, ParamHUE_HUEHCLM8FallbackPolicy);
+        #endif
+    }
+
+    {
+        // Helper to read per-manager fallback duration
+        auto readManagerDuration = [this](uint8_t idx, uint16_t offsetDefine) {
+            const uint32_t sec = static_cast<uint32_t>(knx.paramInt(offsetDefine));
+            const uint64_t ms = static_cast<uint64_t>(sec) * 1000ULL;
+            _hclManagerFallbackDurationMs[idx] = (ms > 0xFFFFFFFFULL) ? 0xFFFFFFFFUL : static_cast<uint32_t>(ms);
+        };
+        #if defined(HUE_HUEHCLM1FallbackDurationSec)
+        readManagerDuration(0, HUE_HUEHCLM1FallbackDurationSec);
+        #endif
+        #if defined(HUE_HUEHCLM2FallbackDurationSec)
+        readManagerDuration(1, HUE_HUEHCLM2FallbackDurationSec);
+        #endif
+        #if defined(HUE_HUEHCLM3FallbackDurationSec)
+        readManagerDuration(2, HUE_HUEHCLM3FallbackDurationSec);
+        #endif
+        #if defined(HUE_HUEHCLM4FallbackDurationSec)
+        readManagerDuration(3, HUE_HUEHCLM4FallbackDurationSec);
+        #endif
+        #if defined(HUE_HUEHCLM5FallbackDurationSec)
+        readManagerDuration(4, HUE_HUEHCLM5FallbackDurationSec);
+        #endif
+        #if defined(HUE_HUEHCLM6FallbackDurationSec)
+        readManagerDuration(5, HUE_HUEHCLM6FallbackDurationSec);
+        #endif
+        #if defined(HUE_HUEHCLM7FallbackDurationSec)
+        readManagerDuration(6, HUE_HUEHCLM7FallbackDurationSec);
+        #endif
+        #if defined(HUE_HUEHCLM8FallbackDurationSec)
+        readManagerDuration(7, HUE_HUEHCLM8FallbackDurationSec);
+        #endif
+    }
+
+    {
+        // Helper to read per-manager fallback release time
+        auto readManagerReleaseTime = [this](uint8_t idx, uint16_t offsetDefine) {
+            const String releaseTime = readFixedTimeParam(knx.paramData(offsetDefine));
+            _hclManagerFallbackReleaseMinuteOfDay[idx] = HCL::Setpoint::parseTime(releaseTime.c_str());
+        };
+        #if defined(HUE_HUEHCLM1FallbackReleaseTime)
+        readManagerReleaseTime(0, HUE_HUEHCLM1FallbackReleaseTime);
+        #endif
+        #if defined(HUE_HUEHCLM2FallbackReleaseTime)
+        readManagerReleaseTime(1, HUE_HUEHCLM2FallbackReleaseTime);
+        #endif
+        #if defined(HUE_HUEHCLM3FallbackReleaseTime)
+        readManagerReleaseTime(2, HUE_HUEHCLM3FallbackReleaseTime);
+        #endif
+        #if defined(HUE_HUEHCLM4FallbackReleaseTime)
+        readManagerReleaseTime(3, HUE_HUEHCLM4FallbackReleaseTime);
+        #endif
+        #if defined(HUE_HUEHCLM5FallbackReleaseTime)
+        readManagerReleaseTime(4, HUE_HUEHCLM5FallbackReleaseTime);
+        #endif
+        #if defined(HUE_HUEHCLM6FallbackReleaseTime)
+        readManagerReleaseTime(5, HUE_HUEHCLM6FallbackReleaseTime);
+        #endif
+        #if defined(HUE_HUEHCLM7FallbackReleaseTime)
+        readManagerReleaseTime(6, HUE_HUEHCLM7FallbackReleaseTime);
+        #endif
+        #if defined(HUE_HUEHCLM8FallbackReleaseTime)
+        readManagerReleaseTime(7, HUE_HUEHCLM8FallbackReleaseTime);
+        #endif
+    }
+
     // Read HCL configuration from ETS
     #ifdef ParamHUE_HUEHCLUpdateInterval
     uint16_t updateInterval = ParamHUE_HUEHCLUpdateInterval;
@@ -2285,10 +3097,47 @@ void HueGatewayModule::setupHCL()
     Serial.printf("[HueGatewayModule] HCL fade duration: %d seconds\n", fadeDuration);
     #endif
 
+    const auto decodeBaseTimezoneOffsetMinutes = [](uint8_t timezoneRaw) -> int16_t {
+        if (timezoneRaw == 31)
+        {
+            return 60; // custom TZ string, use CET fallback
+        }
+        if (timezoneRaw >= 17 && timezoneRaw <= 27)
+        {
+            return static_cast<int16_t>((static_cast<int16_t>(timezoneRaw) - 28) * 60);
+        }
+        if (timezoneRaw == 28)
+        {
+            return 60;
+        }
+        if (timezoneRaw <= 12)
+        {
+            return static_cast<int16_t>(timezoneRaw * 60);
+        }
+        return 60;
+    };
+
+    float hclLatitude = 50.115377f;
+    float hclLongitude = 8.684170f;
+    int16_t hclTimezoneOffsetMinutes = 60;
+
+    #ifdef ParamBASE_Latitude
+    hclLatitude = ParamBASE_Latitude;
+    #endif
+
+    #ifdef ParamBASE_Longitude
+    hclLongitude = ParamBASE_Longitude;
+    #endif
+
+    #ifdef ParamBASE_Timezone
+    hclTimezoneOffsetMinutes = decodeBaseTimezoneOffsetMinutes(static_cast<uint8_t>(ParamBASE_Timezone));
+    #endif
+
     auto loadMasterSetpoints = [](uint8_t masterNumber,
                                   const char* const (&times)[10],
                                   const uint16_t (&kelvins)[10],
-                                  const uint8_t (&brightnesses)[10]) {
+                                  const uint8_t (&brightnesses)[10],
+                                  uint8_t setpointCount) {
         HCL::Master* master = HCL::masterManager.getMaster(masterNumber);
         if (!master)
         {
@@ -2296,9 +3145,26 @@ void HueGatewayModule::setupHCL()
             return;
         }
 
-        Serial.printf("[HueGatewayModule] Loading HCL Master %u setpoints...\n", masterNumber);
+        if (setpointCount < 1)
+        {
+            setpointCount = 1;
+        }
+        if (setpointCount > 10)
+        {
+            setpointCount = 10;
+        }
 
+        // Reset all slots so lowering the configured count disables trailing setpoints.
         for (int i = 0; i < 10; i++)
+        {
+            master->setSetpoint(i, HCL::Setpoint(0xFFFF, 4000, 100));
+        }
+
+        Serial.printf("[HueGatewayModule] Loading HCL Master %u setpoints (max %u)...\n",
+                      masterNumber,
+                      static_cast<unsigned>(setpointCount));
+
+        for (int i = 0; i < setpointCount; i++)
         {
             uint16_t minutes = HCL::Setpoint::parseTime(times[i]);
             if (minutes == 0xFFFF)
@@ -2324,14 +3190,21 @@ void HueGatewayModule::setupHCL()
                                   const String& sunriseTime,
                                   const String& sunsetTime,
                                   int16_t sunriseOffset,
-                                  int16_t sunsetOffset) {
+                                  int16_t sunsetOffset,
+                                  float latitude,
+                                  float longitude,
+                                  int16_t timezoneOffsetMinutes,
+                                  uint16_t astroMinKelvin,
+                                  uint16_t astroMaxKelvin,
+                                  uint8_t astroMinBrightness,
+                                  uint8_t astroMaxBrightness) {
         HCL::Master* master = HCL::masterManager.getMaster(masterNumber);
         if (!master)
         {
             return;
         }
 
-        if (curveType > static_cast<uint8_t>(HCL::CurveType::Manual))
+        if (curveType > static_cast<uint8_t>(HCL::CurveType::Astronomical))
         {
             curveType = static_cast<uint8_t>(HCL::CurveType::FixedTime);
         }
@@ -2339,6 +3212,9 @@ void HueGatewayModule::setupHCL()
         master->setCurveType(static_cast<HCL::CurveType>(curveType));
         master->setSlewRateKelvinPerMinute(slewRateKelvinPerMinute);
         master->setManualKelvin(manualKelvin);
+        master->setLocation(latitude, longitude);
+        master->setTimezoneOffsetMinutes(timezoneOffsetMinutes);
+        master->setAstronomicalProfile(astroMinKelvin, astroMaxKelvin, astroMinBrightness, astroMaxBrightness);
 
         uint16_t sunriseMinutes = HCL::Setpoint::parseTime(sunriseTime.c_str());
         uint16_t sunsetMinutes = HCL::Setpoint::parseTime(sunsetTime.c_str());
@@ -2353,7 +3229,7 @@ void HueGatewayModule::setupHCL()
 
         master->setSunOffsets(sunriseOffset, sunsetOffset);
 
-        Serial.printf("[HueGatewayModule] HCL Master %u advanced: curve=%u slew=%uK/min manual=%uK sunrise=%s sunset=%s offsets=%d/%d\n",
+        Serial.printf("[HueGatewayModule] HCL Master %u advanced: curve=%u slew=%uK/min manual=%uK sunrise=%s sunset=%s offsets=%d/%d astro=%u-%uK/%u-%u%%\n",
                       masterNumber,
                       static_cast<unsigned>(curveType),
                       static_cast<unsigned>(slewRateKelvinPerMinute),
@@ -2361,7 +3237,207 @@ void HueGatewayModule::setupHCL()
                       sunriseTime.c_str(),
                       sunsetTime.c_str(),
                       static_cast<int>(sunriseOffset),
-                      static_cast<int>(sunsetOffset));
+                  static_cast<int>(sunsetOffset),
+                  static_cast<unsigned>(astroMinKelvin),
+                  static_cast<unsigned>(astroMaxKelvin),
+                  static_cast<unsigned>(astroMinBrightness),
+                  static_cast<unsigned>(astroMaxBrightness));
+    };
+
+    auto getAstroMinKelvin = [](uint8_t masterNumber) -> uint16_t {
+        switch (masterNumber)
+        {
+            case 1:
+                #ifdef ParamHUE_HCLM1AstroMinKelvin
+                return ParamHUE_HCLM1AstroMinKelvin;
+                #endif
+                break;
+            case 2:
+                #ifdef ParamHUE_HCLM2AstroMinKelvin
+                return ParamHUE_HCLM2AstroMinKelvin;
+                #endif
+                break;
+            case 3:
+                #ifdef ParamHUE_HCLM3AstroMinKelvin
+                return ParamHUE_HCLM3AstroMinKelvin;
+                #endif
+                break;
+            case 4:
+                #ifdef ParamHUE_HCLM4AstroMinKelvin
+                return ParamHUE_HCLM4AstroMinKelvin;
+                #endif
+                break;
+            case 5:
+                #ifdef ParamHUE_HCLM5AstroMinKelvin
+                return ParamHUE_HCLM5AstroMinKelvin;
+                #endif
+                break;
+            case 6:
+                #ifdef ParamHUE_HCLM6AstroMinKelvin
+                return ParamHUE_HCLM6AstroMinKelvin;
+                #endif
+                break;
+            case 7:
+                #ifdef ParamHUE_HCLM7AstroMinKelvin
+                return ParamHUE_HCLM7AstroMinKelvin;
+                #endif
+                break;
+            case 8:
+                #ifdef ParamHUE_HCLM8AstroMinKelvin
+                return ParamHUE_HCLM8AstroMinKelvin;
+                #endif
+                break;
+            default:
+                break;
+        }
+        return 2400;
+    };
+
+    auto getAstroMaxKelvin = [](uint8_t masterNumber) -> uint16_t {
+        switch (masterNumber)
+        {
+            case 1:
+                #ifdef ParamHUE_HCLM1AstroMaxKelvin
+                return ParamHUE_HCLM1AstroMaxKelvin;
+                #endif
+                break;
+            case 2:
+                #ifdef ParamHUE_HCLM2AstroMaxKelvin
+                return ParamHUE_HCLM2AstroMaxKelvin;
+                #endif
+                break;
+            case 3:
+                #ifdef ParamHUE_HCLM3AstroMaxKelvin
+                return ParamHUE_HCLM3AstroMaxKelvin;
+                #endif
+                break;
+            case 4:
+                #ifdef ParamHUE_HCLM4AstroMaxKelvin
+                return ParamHUE_HCLM4AstroMaxKelvin;
+                #endif
+                break;
+            case 5:
+                #ifdef ParamHUE_HCLM5AstroMaxKelvin
+                return ParamHUE_HCLM5AstroMaxKelvin;
+                #endif
+                break;
+            case 6:
+                #ifdef ParamHUE_HCLM6AstroMaxKelvin
+                return ParamHUE_HCLM6AstroMaxKelvin;
+                #endif
+                break;
+            case 7:
+                #ifdef ParamHUE_HCLM7AstroMaxKelvin
+                return ParamHUE_HCLM7AstroMaxKelvin;
+                #endif
+                break;
+            case 8:
+                #ifdef ParamHUE_HCLM8AstroMaxKelvin
+                return ParamHUE_HCLM8AstroMaxKelvin;
+                #endif
+                break;
+            default:
+                break;
+        }
+        return 5000;
+    };
+
+    auto getAstroMinBrightness = [](uint8_t masterNumber) -> uint8_t {
+        switch (masterNumber)
+        {
+            case 1:
+                #ifdef ParamHUE_HCLM1AstroMinBrightness
+                return ParamHUE_HCLM1AstroMinBrightness;
+                #endif
+                break;
+            case 2:
+                #ifdef ParamHUE_HCLM2AstroMinBrightness
+                return ParamHUE_HCLM2AstroMinBrightness;
+                #endif
+                break;
+            case 3:
+                #ifdef ParamHUE_HCLM3AstroMinBrightness
+                return ParamHUE_HCLM3AstroMinBrightness;
+                #endif
+                break;
+            case 4:
+                #ifdef ParamHUE_HCLM4AstroMinBrightness
+                return ParamHUE_HCLM4AstroMinBrightness;
+                #endif
+                break;
+            case 5:
+                #ifdef ParamHUE_HCLM5AstroMinBrightness
+                return ParamHUE_HCLM5AstroMinBrightness;
+                #endif
+                break;
+            case 6:
+                #ifdef ParamHUE_HCLM6AstroMinBrightness
+                return ParamHUE_HCLM6AstroMinBrightness;
+                #endif
+                break;
+            case 7:
+                #ifdef ParamHUE_HCLM7AstroMinBrightness
+                return ParamHUE_HCLM7AstroMinBrightness;
+                #endif
+                break;
+            case 8:
+                #ifdef ParamHUE_HCLM8AstroMinBrightness
+                return ParamHUE_HCLM8AstroMinBrightness;
+                #endif
+                break;
+            default:
+                break;
+        }
+        return 10;
+    };
+
+    auto getAstroMaxBrightness = [](uint8_t masterNumber) -> uint8_t {
+        switch (masterNumber)
+        {
+            case 1:
+                #ifdef ParamHUE_HCLM1AstroMaxBrightness
+                return ParamHUE_HCLM1AstroMaxBrightness;
+                #endif
+                break;
+            case 2:
+                #ifdef ParamHUE_HCLM2AstroMaxBrightness
+                return ParamHUE_HCLM2AstroMaxBrightness;
+                #endif
+                break;
+            case 3:
+                #ifdef ParamHUE_HCLM3AstroMaxBrightness
+                return ParamHUE_HCLM3AstroMaxBrightness;
+                #endif
+                break;
+            case 4:
+                #ifdef ParamHUE_HCLM4AstroMaxBrightness
+                return ParamHUE_HCLM4AstroMaxBrightness;
+                #endif
+                break;
+            case 5:
+                #ifdef ParamHUE_HCLM5AstroMaxBrightness
+                return ParamHUE_HCLM5AstroMaxBrightness;
+                #endif
+                break;
+            case 6:
+                #ifdef ParamHUE_HCLM6AstroMaxBrightness
+                return ParamHUE_HCLM6AstroMaxBrightness;
+                #endif
+                break;
+            case 7:
+                #ifdef ParamHUE_HCLM7AstroMaxBrightness
+                return ParamHUE_HCLM7AstroMaxBrightness;
+                #endif
+                break;
+            case 8:
+                #ifdef ParamHUE_HCLM8AstroMaxBrightness
+                return ParamHUE_HCLM8AstroMaxBrightness;
+                #endif
+                break;
+            default:
+                break;
+        }
+        return 80;
     };
 
     #ifdef ParamHUE_HCLM1SP0Time
@@ -2388,7 +3464,11 @@ void HueGatewayModule::setupHCL()
             ParamHUE_HCLM1SP3Brightness, ParamHUE_HCLM1SP4Brightness, ParamHUE_HCLM1SP5Brightness,
             ParamHUE_HCLM1SP6Brightness, ParamHUE_HCLM1SP7Brightness, ParamHUE_HCLM1SP8Brightness, ParamHUE_HCLM1SP9Brightness
         };
-        loadMasterSetpoints(1, times, kelvins, brightnesses);
+        uint8_t setpointCount = 10;
+        #ifdef ParamHUE_HCLM1SetpointCount
+        setpointCount = ParamHUE_HCLM1SetpointCount;
+        #endif
+        loadMasterSetpoints(1, times, kelvins, brightnesses, setpointCount);
 
         #ifdef ParamHUE_HCLM1CurveType
         applyMasterAdvanced(
@@ -2399,7 +3479,14 @@ void HueGatewayModule::setupHCL()
             readFixedTimeParam(ParamHUE_HCLM1Sunrise),
             readFixedTimeParam(ParamHUE_HCLM1Sunset),
             static_cast<int16_t>(ParamHUE_HCLM1SunriseOffset),
-            static_cast<int16_t>(ParamHUE_HCLM1SunsetOffset));
+            static_cast<int16_t>(ParamHUE_HCLM1SunsetOffset),
+            hclLatitude,
+            hclLongitude,
+            hclTimezoneOffsetMinutes,
+            getAstroMinKelvin(1),
+            getAstroMaxKelvin(1),
+            getAstroMinBrightness(1),
+            getAstroMaxBrightness(1));
         #endif
     }
     #endif
@@ -2428,7 +3515,11 @@ void HueGatewayModule::setupHCL()
             ParamHUE_HCLM2SP3Brightness, ParamHUE_HCLM2SP4Brightness, ParamHUE_HCLM2SP5Brightness,
             ParamHUE_HCLM2SP6Brightness, ParamHUE_HCLM2SP7Brightness, ParamHUE_HCLM2SP8Brightness, ParamHUE_HCLM2SP9Brightness
         };
-        loadMasterSetpoints(2, times, kelvins, brightnesses);
+        uint8_t setpointCount = 10;
+        #ifdef ParamHUE_HCLM2SetpointCount
+        setpointCount = ParamHUE_HCLM2SetpointCount;
+        #endif
+        loadMasterSetpoints(2, times, kelvins, brightnesses, setpointCount);
 
         #ifdef ParamHUE_HCLM2CurveType
         applyMasterAdvanced(
@@ -2439,7 +3530,14 @@ void HueGatewayModule::setupHCL()
             readFixedTimeParam(ParamHUE_HCLM2Sunrise),
             readFixedTimeParam(ParamHUE_HCLM2Sunset),
             static_cast<int16_t>(ParamHUE_HCLM2SunriseOffset),
-            static_cast<int16_t>(ParamHUE_HCLM2SunsetOffset));
+            static_cast<int16_t>(ParamHUE_HCLM2SunsetOffset),
+            hclLatitude,
+            hclLongitude,
+            hclTimezoneOffsetMinutes,
+            getAstroMinKelvin(2),
+            getAstroMaxKelvin(2),
+            getAstroMinBrightness(2),
+            getAstroMaxBrightness(2));
         #endif
     }
     #endif
@@ -2468,7 +3566,11 @@ void HueGatewayModule::setupHCL()
             ParamHUE_HCLM3SP3Brightness, ParamHUE_HCLM3SP4Brightness, ParamHUE_HCLM3SP5Brightness,
             ParamHUE_HCLM3SP6Brightness, ParamHUE_HCLM3SP7Brightness, ParamHUE_HCLM3SP8Brightness, ParamHUE_HCLM3SP9Brightness
         };
-        loadMasterSetpoints(3, times, kelvins, brightnesses);
+        uint8_t setpointCount = 10;
+        #ifdef ParamHUE_HCLM3SetpointCount
+        setpointCount = ParamHUE_HCLM3SetpointCount;
+        #endif
+        loadMasterSetpoints(3, times, kelvins, brightnesses, setpointCount);
 
         #ifdef ParamHUE_HCLM3CurveType
         applyMasterAdvanced(
@@ -2479,7 +3581,14 @@ void HueGatewayModule::setupHCL()
             readFixedTimeParam(ParamHUE_HCLM3Sunrise),
             readFixedTimeParam(ParamHUE_HCLM3Sunset),
             static_cast<int16_t>(ParamHUE_HCLM3SunriseOffset),
-            static_cast<int16_t>(ParamHUE_HCLM3SunsetOffset));
+            static_cast<int16_t>(ParamHUE_HCLM3SunsetOffset),
+            hclLatitude,
+            hclLongitude,
+            hclTimezoneOffsetMinutes,
+            getAstroMinKelvin(3),
+            getAstroMaxKelvin(3),
+            getAstroMinBrightness(3),
+            getAstroMaxBrightness(3));
         #endif
     }
     #endif
@@ -2508,7 +3617,11 @@ void HueGatewayModule::setupHCL()
             ParamHUE_HCLM4SP3Brightness, ParamHUE_HCLM4SP4Brightness, ParamHUE_HCLM4SP5Brightness,
             ParamHUE_HCLM4SP6Brightness, ParamHUE_HCLM4SP7Brightness, ParamHUE_HCLM4SP8Brightness, ParamHUE_HCLM4SP9Brightness
         };
-        loadMasterSetpoints(4, times, kelvins, brightnesses);
+        uint8_t setpointCount = 10;
+        #ifdef ParamHUE_HCLM4SetpointCount
+        setpointCount = ParamHUE_HCLM4SetpointCount;
+        #endif
+        loadMasterSetpoints(4, times, kelvins, brightnesses, setpointCount);
 
         #ifdef ParamHUE_HCLM4CurveType
         applyMasterAdvanced(
@@ -2519,7 +3632,218 @@ void HueGatewayModule::setupHCL()
             readFixedTimeParam(ParamHUE_HCLM4Sunrise),
             readFixedTimeParam(ParamHUE_HCLM4Sunset),
             static_cast<int16_t>(ParamHUE_HCLM4SunriseOffset),
-            static_cast<int16_t>(ParamHUE_HCLM4SunsetOffset));
+            static_cast<int16_t>(ParamHUE_HCLM4SunsetOffset),
+            hclLatitude,
+            hclLongitude,
+            hclTimezoneOffsetMinutes,
+            getAstroMinKelvin(4),
+            getAstroMaxKelvin(4),
+            getAstroMinBrightness(4),
+            getAstroMaxBrightness(4));
+        #endif
+    }
+    #endif
+
+    #ifdef ParamHUE_HCLM5SP0Time
+    {
+        const char* const times[10] = {
+            reinterpret_cast<const char*>(ParamHUE_HCLM5SP0Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM5SP1Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM5SP2Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM5SP3Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM5SP4Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM5SP5Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM5SP6Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM5SP7Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM5SP8Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM5SP9Time)
+        };
+        const uint16_t kelvins[10] = {
+            ParamHUE_HCLM5SP0Kelvin, ParamHUE_HCLM5SP1Kelvin, ParamHUE_HCLM5SP2Kelvin,
+            ParamHUE_HCLM5SP3Kelvin, ParamHUE_HCLM5SP4Kelvin, ParamHUE_HCLM5SP5Kelvin,
+            ParamHUE_HCLM5SP6Kelvin, ParamHUE_HCLM5SP7Kelvin, ParamHUE_HCLM5SP8Kelvin, ParamHUE_HCLM5SP9Kelvin
+        };
+        const uint8_t brightnesses[10] = {
+            ParamHUE_HCLM5SP0Brightness, ParamHUE_HCLM5SP1Brightness, ParamHUE_HCLM5SP2Brightness,
+            ParamHUE_HCLM5SP3Brightness, ParamHUE_HCLM5SP4Brightness, ParamHUE_HCLM5SP5Brightness,
+            ParamHUE_HCLM5SP6Brightness, ParamHUE_HCLM5SP7Brightness, ParamHUE_HCLM5SP8Brightness, ParamHUE_HCLM5SP9Brightness
+        };
+        uint8_t setpointCount = 10;
+        #ifdef ParamHUE_HCLM5SetpointCount
+        setpointCount = ParamHUE_HCLM5SetpointCount;
+        #endif
+        loadMasterSetpoints(5, times, kelvins, brightnesses, setpointCount);
+
+        #ifdef ParamHUE_HCLM5CurveType
+        applyMasterAdvanced(
+            5,
+            ParamHUE_HCLM5CurveType,
+            ParamHUE_HCLM5SlewRate,
+            ParamHUE_HCLM5ManualKelvin,
+            readFixedTimeParam(ParamHUE_HCLM5Sunrise),
+            readFixedTimeParam(ParamHUE_HCLM5Sunset),
+            static_cast<int16_t>(ParamHUE_HCLM5SunriseOffset),
+            static_cast<int16_t>(ParamHUE_HCLM5SunsetOffset),
+            hclLatitude,
+            hclLongitude,
+            hclTimezoneOffsetMinutes,
+            getAstroMinKelvin(5),
+            getAstroMaxKelvin(5),
+            getAstroMinBrightness(5),
+            getAstroMaxBrightness(5));
+        #endif
+    }
+    #endif
+
+    #ifdef ParamHUE_HCLM6SP0Time
+    {
+        const char* const times[10] = {
+            reinterpret_cast<const char*>(ParamHUE_HCLM6SP0Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM6SP1Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM6SP2Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM6SP3Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM6SP4Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM6SP5Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM6SP6Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM6SP7Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM6SP8Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM6SP9Time)
+        };
+        const uint16_t kelvins[10] = {
+            ParamHUE_HCLM6SP0Kelvin, ParamHUE_HCLM6SP1Kelvin, ParamHUE_HCLM6SP2Kelvin,
+            ParamHUE_HCLM6SP3Kelvin, ParamHUE_HCLM6SP4Kelvin, ParamHUE_HCLM6SP5Kelvin,
+            ParamHUE_HCLM6SP6Kelvin, ParamHUE_HCLM6SP7Kelvin, ParamHUE_HCLM6SP8Kelvin, ParamHUE_HCLM6SP9Kelvin
+        };
+        const uint8_t brightnesses[10] = {
+            ParamHUE_HCLM6SP0Brightness, ParamHUE_HCLM6SP1Brightness, ParamHUE_HCLM6SP2Brightness,
+            ParamHUE_HCLM6SP3Brightness, ParamHUE_HCLM6SP4Brightness, ParamHUE_HCLM6SP5Brightness,
+            ParamHUE_HCLM6SP6Brightness, ParamHUE_HCLM6SP7Brightness, ParamHUE_HCLM6SP8Brightness, ParamHUE_HCLM6SP9Brightness
+        };
+        uint8_t setpointCount = 10;
+        #ifdef ParamHUE_HCLM6SetpointCount
+        setpointCount = ParamHUE_HCLM6SetpointCount;
+        #endif
+        loadMasterSetpoints(6, times, kelvins, brightnesses, setpointCount);
+
+        #ifdef ParamHUE_HCLM6CurveType
+        applyMasterAdvanced(
+            6,
+            ParamHUE_HCLM6CurveType,
+            ParamHUE_HCLM6SlewRate,
+            ParamHUE_HCLM6ManualKelvin,
+            readFixedTimeParam(ParamHUE_HCLM6Sunrise),
+            readFixedTimeParam(ParamHUE_HCLM6Sunset),
+            static_cast<int16_t>(ParamHUE_HCLM6SunriseOffset),
+            static_cast<int16_t>(ParamHUE_HCLM6SunsetOffset),
+            hclLatitude,
+            hclLongitude,
+            hclTimezoneOffsetMinutes,
+            getAstroMinKelvin(6),
+            getAstroMaxKelvin(6),
+            getAstroMinBrightness(6),
+            getAstroMaxBrightness(6));
+        #endif
+    }
+    #endif
+
+    #ifdef ParamHUE_HCLM7SP0Time
+    {
+        const char* const times[10] = {
+            reinterpret_cast<const char*>(ParamHUE_HCLM7SP0Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM7SP1Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM7SP2Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM7SP3Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM7SP4Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM7SP5Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM7SP6Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM7SP7Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM7SP8Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM7SP9Time)
+        };
+        const uint16_t kelvins[10] = {
+            ParamHUE_HCLM7SP0Kelvin, ParamHUE_HCLM7SP1Kelvin, ParamHUE_HCLM7SP2Kelvin,
+            ParamHUE_HCLM7SP3Kelvin, ParamHUE_HCLM7SP4Kelvin, ParamHUE_HCLM7SP5Kelvin,
+            ParamHUE_HCLM7SP6Kelvin, ParamHUE_HCLM7SP7Kelvin, ParamHUE_HCLM7SP8Kelvin, ParamHUE_HCLM7SP9Kelvin
+        };
+        const uint8_t brightnesses[10] = {
+            ParamHUE_HCLM7SP0Brightness, ParamHUE_HCLM7SP1Brightness, ParamHUE_HCLM7SP2Brightness,
+            ParamHUE_HCLM7SP3Brightness, ParamHUE_HCLM7SP4Brightness, ParamHUE_HCLM7SP5Brightness,
+            ParamHUE_HCLM7SP6Brightness, ParamHUE_HCLM7SP7Brightness, ParamHUE_HCLM7SP8Brightness, ParamHUE_HCLM7SP9Brightness
+        };
+        uint8_t setpointCount = 10;
+        #ifdef ParamHUE_HCLM7SetpointCount
+        setpointCount = ParamHUE_HCLM7SetpointCount;
+        #endif
+        loadMasterSetpoints(7, times, kelvins, brightnesses, setpointCount);
+
+        #ifdef ParamHUE_HCLM7CurveType
+        applyMasterAdvanced(
+            7,
+            ParamHUE_HCLM7CurveType,
+            ParamHUE_HCLM7SlewRate,
+            ParamHUE_HCLM7ManualKelvin,
+            readFixedTimeParam(ParamHUE_HCLM7Sunrise),
+            readFixedTimeParam(ParamHUE_HCLM7Sunset),
+            static_cast<int16_t>(ParamHUE_HCLM7SunriseOffset),
+            static_cast<int16_t>(ParamHUE_HCLM7SunsetOffset),
+            hclLatitude,
+            hclLongitude,
+            hclTimezoneOffsetMinutes,
+            getAstroMinKelvin(7),
+            getAstroMaxKelvin(7),
+            getAstroMinBrightness(7),
+            getAstroMaxBrightness(7));
+        #endif
+    }
+    #endif
+
+    #ifdef ParamHUE_HCLM8SP0Time
+    {
+        const char* const times[10] = {
+            reinterpret_cast<const char*>(ParamHUE_HCLM8SP0Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM8SP1Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM8SP2Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM8SP3Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM8SP4Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM8SP5Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM8SP6Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM8SP7Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM8SP8Time),
+            reinterpret_cast<const char*>(ParamHUE_HCLM8SP9Time)
+        };
+        const uint16_t kelvins[10] = {
+            ParamHUE_HCLM8SP0Kelvin, ParamHUE_HCLM8SP1Kelvin, ParamHUE_HCLM8SP2Kelvin,
+            ParamHUE_HCLM8SP3Kelvin, ParamHUE_HCLM8SP4Kelvin, ParamHUE_HCLM8SP5Kelvin,
+            ParamHUE_HCLM8SP6Kelvin, ParamHUE_HCLM8SP7Kelvin, ParamHUE_HCLM8SP8Kelvin, ParamHUE_HCLM8SP9Kelvin
+        };
+        const uint8_t brightnesses[10] = {
+            ParamHUE_HCLM8SP0Brightness, ParamHUE_HCLM8SP1Brightness, ParamHUE_HCLM8SP2Brightness,
+            ParamHUE_HCLM8SP3Brightness, ParamHUE_HCLM8SP4Brightness, ParamHUE_HCLM8SP5Brightness,
+            ParamHUE_HCLM8SP6Brightness, ParamHUE_HCLM8SP7Brightness, ParamHUE_HCLM8SP8Brightness, ParamHUE_HCLM8SP9Brightness
+        };
+        uint8_t setpointCount = 10;
+        #ifdef ParamHUE_HCLM8SetpointCount
+        setpointCount = ParamHUE_HCLM8SetpointCount;
+        #endif
+        loadMasterSetpoints(8, times, kelvins, brightnesses, setpointCount);
+
+        #ifdef ParamHUE_HCLM8CurveType
+        applyMasterAdvanced(
+            8,
+            ParamHUE_HCLM8CurveType,
+            ParamHUE_HCLM8SlewRate,
+            ParamHUE_HCLM8ManualKelvin,
+            readFixedTimeParam(ParamHUE_HCLM8Sunrise),
+            readFixedTimeParam(ParamHUE_HCLM8Sunset),
+            static_cast<int16_t>(ParamHUE_HCLM8SunriseOffset),
+            static_cast<int16_t>(ParamHUE_HCLM8SunsetOffset),
+            hclLatitude,
+            hclLongitude,
+            hclTimezoneOffsetMinutes,
+            getAstroMinKelvin(8),
+            getAstroMaxKelvin(8),
+            getAstroMinBrightness(8),
+            getAstroMaxBrightness(8));
         #endif
     }
     #endif
@@ -2727,7 +4051,11 @@ void HueGatewayModule::refreshLightStatus()
 
         uint8_t _channelIndex = static_cast<uint8_t>(i);
         uint8_t syncDir = ParamHUE_CHSyncDir;
-        if (!(syncDir == 2 || syncDir == 3))
+        if (syncDir > 2)
+        {
+            syncDir = 2;
+        }
+        if (!(syncDir == 1 || syncDir == 2))
         {
             continue;
         }
@@ -2936,7 +4264,11 @@ void HueGatewayModule::refreshLightStatus()
 
         uint8_t _channelIndex = static_cast<uint8_t>(i);
         uint8_t syncDir = ParamHUE_CHSyncDir;
-        if (!(syncDir == 2 || syncDir == 3))
+        if (syncDir > 2)
+        {
+            syncDir = 2;
+        }
+        if (!(syncDir == 1 || syncDir == 2))
         {
             continue;
         }
@@ -3090,6 +4422,52 @@ const char* HueGatewayModule::hclFallbackModeToText(HclLockFallbackMode mode)
     }
 }
 
+const char* HueGatewayModule::hclFallbackPolicyToText(HclLockFallbackPolicy policy)
+{
+    switch (policy)
+    {
+        case HclLockFallbackPolicy::Legacy: return "legacy";
+        case HclLockFallbackPolicy::Duration: return "dauer";
+        case HclLockFallbackPolicy::TimeOfDay: return "uhrzeit";
+        case HclLockFallbackPolicy::DurationOrTime: return "dauer-oder-uhrzeit";
+        case HclLockFallbackPolicy::ExternalOnly: return "extern";
+        default: return "unbekannt";
+    }
+}
+
+bool HueGatewayModule::shouldReleaseByPolicyTime(int16_t activationDayOfYear, int16_t activationMinuteOfDay, uint16_t releaseMinuteOfDay, const tm* timeinfo, bool hasTime) const
+{
+    if (!hasTime || timeinfo == nullptr || releaseMinuteOfDay == 0xFFFF)
+    {
+        return false;
+    }
+
+    const int16_t currentDay = static_cast<int16_t>(timeinfo->tm_yday);
+    const int16_t currentMinute = static_cast<int16_t>((timeinfo->tm_hour * 60) + timeinfo->tm_min);
+
+    if (activationDayOfYear < 0 || activationMinuteOfDay < 0)
+    {
+        return false;
+    }
+
+    if (currentDay < activationDayOfYear)
+    {
+        return false;
+    }
+
+    if (currentDay == activationDayOfYear)
+    {
+        // If lock was activated after release time, release at next day's release time.
+        if (releaseMinuteOfDay <= static_cast<uint16_t>(activationMinuteOfDay))
+        {
+            return false;
+        }
+        return currentMinute >= static_cast<int16_t>(releaseMinuteOfDay);
+    }
+
+    return currentMinute >= static_cast<int16_t>(releaseMinuteOfDay);
+}
+
 uint32_t HueGatewayModule::getHclFallbackDurationMs(HclLockFallbackMode mode) const
 {
     switch (mode)
@@ -3177,25 +4555,40 @@ void HueGatewayModule::setHclLock(bool active, const char* reason)
         _hclLockActivatedMs = millis();
         _hclLockAutoReleaseMs = 0;
         _hclLockActivationDayOfYear = -1;
+        _hclLockActivationMinuteOfDay = -1;
 
-        const HclLockFallbackMode fallbackMode = static_cast<HclLockFallbackMode>(_hclLockFallbackMode);
-        const uint32_t durationMs = getHclFallbackDurationMs(fallbackMode);
-        if (durationMs > 0)
+        const HclLockFallbackPolicy fallbackPolicy = static_cast<HclLockFallbackPolicy>(_hclFallbackPolicy);
+
+        if (fallbackPolicy == HclLockFallbackPolicy::Legacy)
         {
-            _hclLockAutoReleaseMs = _hclLockActivatedMs + durationMs;
+            const HclLockFallbackMode fallbackMode = static_cast<HclLockFallbackMode>(_hclLockFallbackMode);
+            const uint32_t durationMs = getHclFallbackDurationMs(fallbackMode);
+            if (durationMs > 0)
+            {
+                _hclLockAutoReleaseMs = _hclLockActivatedMs + durationMs;
+            }
+        }
+        else if (fallbackPolicy == HclLockFallbackPolicy::Duration || fallbackPolicy == HclLockFallbackPolicy::DurationOrTime)
+        {
+            if (_hclFallbackDurationMs > 0)
+            {
+                _hclLockAutoReleaseMs = _hclLockActivatedMs + _hclFallbackDurationMs;
+            }
         }
 
         struct tm timeinfo;
         if (getLocalTime(&timeinfo, 0))
         {
             _hclLockActivationDayOfYear = static_cast<int16_t>(timeinfo.tm_yday);
+            _hclLockActivationMinuteOfDay = static_cast<int16_t>((timeinfo.tm_hour * 60) + timeinfo.tm_min);
         }
 
         if (changed)
         {
-            Serial.printf("[HueGatewayModule] HCL lock enabled (%s), fallback=%s\n",
+            Serial.printf("[HueGatewayModule] HCL lock enabled (%s), fallback=%s, policy=%s\n",
                           reason ? reason : "n/a",
-                          hclFallbackModeToText(fallbackMode));
+                          hclFallbackModeToText(static_cast<HclLockFallbackMode>(_hclLockFallbackMode)),
+                          hclFallbackPolicyToText(fallbackPolicy));
         }
     }
     else
@@ -3203,6 +4596,7 @@ void HueGatewayModule::setHclLock(bool active, const char* reason)
         _hclLockActivatedMs = 0;
         _hclLockAutoReleaseMs = 0;
         _hclLockActivationDayOfYear = -1;
+        _hclLockActivationMinuteOfDay = -1;
         if (changed)
         {
             Serial.printf("[HueGatewayModule] HCL lock disabled (%s)\n", reason ? reason : "n/a");
@@ -3230,26 +4624,41 @@ void HueGatewayModule::setHclManagerLock(uint8_t managerNumber, bool active, con
         _hclManagerLockActivatedMs[idx] = millis();
         _hclManagerLockAutoReleaseMs[idx] = 0;
         _hclManagerLockActivationDayOfYear[idx] = -1;
+        _hclManagerLockActivationMinuteOfDay[idx] = -1;
 
-        const HclLockFallbackMode fallbackMode = static_cast<HclLockFallbackMode>(_hclManagerLockFallbackMode[idx]);
-        const uint32_t durationMs = getHclFallbackDurationMs(fallbackMode);
-        if (durationMs > 0)
+        const HclLockFallbackPolicy fallbackPolicy = static_cast<HclLockFallbackPolicy>(_hclManagerFallbackPolicy[idx]);
+
+        if (fallbackPolicy == HclLockFallbackPolicy::Legacy)
         {
-            _hclManagerLockAutoReleaseMs[idx] = _hclManagerLockActivatedMs[idx] + durationMs;
+            const HclLockFallbackMode fallbackMode = static_cast<HclLockFallbackMode>(_hclManagerLockFallbackMode[idx]);
+            const uint32_t durationMs = getHclFallbackDurationMs(fallbackMode);
+            if (durationMs > 0)
+            {
+                _hclManagerLockAutoReleaseMs[idx] = _hclManagerLockActivatedMs[idx] + durationMs;
+            }
+        }
+        else if (fallbackPolicy == HclLockFallbackPolicy::Duration || fallbackPolicy == HclLockFallbackPolicy::DurationOrTime)
+        {
+            if (_hclManagerFallbackDurationMs[idx] > 0)
+            {
+                _hclManagerLockAutoReleaseMs[idx] = _hclManagerLockActivatedMs[idx] + _hclManagerFallbackDurationMs[idx];
+            }
         }
 
         struct tm timeinfo;
         if (getLocalTime(&timeinfo, 0))
         {
             _hclManagerLockActivationDayOfYear[idx] = static_cast<int16_t>(timeinfo.tm_yday);
+            _hclManagerLockActivationMinuteOfDay[idx] = static_cast<int16_t>((timeinfo.tm_hour * 60) + timeinfo.tm_min);
         }
 
         if (changed)
         {
-            Serial.printf("[HueGatewayModule] HCL manager %u lock enabled (%s), fallback=%s\n",
+            Serial.printf("[HueGatewayModule] HCL manager %u lock enabled (%s), fallback=%s, policy=%s\n",
                           static_cast<unsigned>(managerNumber),
                           reason ? reason : "n/a",
-                          hclFallbackModeToText(fallbackMode));
+                          hclFallbackModeToText(static_cast<HclLockFallbackMode>(_hclManagerLockFallbackMode[idx])),
+                          hclFallbackPolicyToText(fallbackPolicy));
         }
     }
     else
@@ -3257,6 +4666,7 @@ void HueGatewayModule::setHclManagerLock(uint8_t managerNumber, bool active, con
         _hclManagerLockActivatedMs[idx] = 0;
         _hclManagerLockAutoReleaseMs[idx] = 0;
         _hclManagerLockActivationDayOfYear[idx] = -1;
+        _hclManagerLockActivationMinuteOfDay[idx] = -1;
         if (changed)
         {
             Serial.printf("[HueGatewayModule] HCL manager %u lock disabled (%s)\n",
@@ -3288,26 +4698,41 @@ void HueGatewayModule::setHclChannelLock(uint8_t channelIndex, bool active, cons
         _hclChannelLockActivatedMs[channelIndex] = millis();
         _hclChannelLockAutoReleaseMs[channelIndex] = 0;
         _hclChannelLockActivationDayOfYear[channelIndex] = -1;
+        _hclChannelLockActivationMinuteOfDay[channelIndex] = -1;
 
-        const HclLockFallbackMode fallbackMode = static_cast<HclLockFallbackMode>(_hclChannelLockFallbackMode[channelIndex]);
-        const uint32_t durationMs = getHclFallbackDurationMs(fallbackMode);
-        if (durationMs > 0)
+        const HclLockFallbackPolicy fallbackPolicy = static_cast<HclLockFallbackPolicy>(_hclFallbackPolicy);
+
+        if (fallbackPolicy == HclLockFallbackPolicy::Legacy)
         {
-            _hclChannelLockAutoReleaseMs[channelIndex] = _hclChannelLockActivatedMs[channelIndex] + durationMs;
+            const HclLockFallbackMode fallbackMode = static_cast<HclLockFallbackMode>(_hclChannelLockFallbackMode[channelIndex]);
+            const uint32_t durationMs = getHclFallbackDurationMs(fallbackMode);
+            if (durationMs > 0)
+            {
+                _hclChannelLockAutoReleaseMs[channelIndex] = _hclChannelLockActivatedMs[channelIndex] + durationMs;
+            }
+        }
+        else if (fallbackPolicy == HclLockFallbackPolicy::Duration || fallbackPolicy == HclLockFallbackPolicy::DurationOrTime)
+        {
+            if (_hclFallbackDurationMs > 0)
+            {
+                _hclChannelLockAutoReleaseMs[channelIndex] = _hclChannelLockActivatedMs[channelIndex] + _hclFallbackDurationMs;
+            }
         }
 
         struct tm timeinfo;
         if (getLocalTime(&timeinfo, 0))
         {
             _hclChannelLockActivationDayOfYear[channelIndex] = static_cast<int16_t>(timeinfo.tm_yday);
+            _hclChannelLockActivationMinuteOfDay[channelIndex] = static_cast<int16_t>((timeinfo.tm_hour * 60) + timeinfo.tm_min);
         }
 
         if (changed)
         {
-            Serial.printf("[HueGatewayModule] HCL channel %u lock enabled (%s), fallback=%s\n",
+            Serial.printf("[HueGatewayModule] HCL channel %u lock enabled (%s), fallback=%s, policy=%s\n",
                           static_cast<unsigned>(channelIndex + 1),
                           reason ? reason : "n/a",
-                          hclFallbackModeToText(fallbackMode));
+                          hclFallbackModeToText(static_cast<HclLockFallbackMode>(_hclChannelLockFallbackMode[channelIndex])),
+                          hclFallbackPolicyToText(fallbackPolicy));
         }
     }
     else
@@ -3315,6 +4740,7 @@ void HueGatewayModule::setHclChannelLock(uint8_t channelIndex, bool active, cons
         _hclChannelLockActivatedMs[channelIndex] = 0;
         _hclChannelLockAutoReleaseMs[channelIndex] = 0;
         _hclChannelLockActivationDayOfYear[channelIndex] = -1;
+        _hclChannelLockActivationMinuteOfDay[channelIndex] = -1;
         if (changed)
         {
             Serial.printf("[HueGatewayModule] HCL channel %u lock disabled (%s)\n",
@@ -3330,6 +4756,26 @@ void HueGatewayModule::evaluateHclLockFallback(const tm* timeinfo, bool hasTime)
 {
     if (!_hclLockActive)
     {
+        return;
+    }
+
+    const HclLockFallbackPolicy fallbackPolicy = static_cast<HclLockFallbackPolicy>(_hclFallbackPolicy);
+    if (fallbackPolicy == HclLockFallbackPolicy::ExternalOnly)
+    {
+        return;
+    }
+
+    if (fallbackPolicy != HclLockFallbackPolicy::Legacy)
+    {
+        const bool releaseByDuration = (_hclLockAutoReleaseMs != 0)
+            && (static_cast<long>(millis() - _hclLockAutoReleaseMs) >= 0);
+        const bool releaseByTime = (fallbackPolicy == HclLockFallbackPolicy::TimeOfDay || fallbackPolicy == HclLockFallbackPolicy::DurationOrTime)
+            && shouldReleaseByPolicyTime(_hclLockActivationDayOfYear, _hclLockActivationMinuteOfDay, _hclFallbackReleaseMinuteOfDay, timeinfo, hasTime);
+
+        if (releaseByDuration || releaseByTime)
+        {
+            setHclLock(false, releaseByTime ? "fallback release time" : "fallback duration elapsed");
+        }
         return;
     }
 
@@ -3368,6 +4814,27 @@ void HueGatewayModule::evaluateHclManagerLockFallback(const tm* timeinfo, bool h
             continue;
         }
 
+        const HclLockFallbackPolicy fallbackPolicy = static_cast<HclLockFallbackPolicy>(_hclManagerFallbackPolicy[idx]);
+
+        if (fallbackPolicy == HclLockFallbackPolicy::ExternalOnly)
+        {
+            continue;
+        }
+
+        if (fallbackPolicy != HclLockFallbackPolicy::Legacy)
+        {
+            const bool releaseByDuration = (_hclManagerLockAutoReleaseMs[idx] != 0)
+                && (static_cast<long>(millis() - _hclManagerLockAutoReleaseMs[idx]) >= 0);
+            const bool releaseByTime = (fallbackPolicy == HclLockFallbackPolicy::TimeOfDay || fallbackPolicy == HclLockFallbackPolicy::DurationOrTime)
+                && shouldReleaseByPolicyTime(_hclManagerLockActivationDayOfYear[idx], _hclManagerLockActivationMinuteOfDay[idx], _hclManagerFallbackReleaseMinuteOfDay[idx], timeinfo, hasTime);
+
+            if (releaseByDuration || releaseByTime)
+            {
+                setHclManagerLock(managerNumber, false, releaseByTime ? "fallback release time" : "fallback duration elapsed");
+            }
+            continue;
+        }
+
         const HclLockFallbackMode fallbackMode = static_cast<HclLockFallbackMode>(_hclManagerLockFallbackMode[idx]);
         if (fallbackMode == HclLockFallbackMode::None)
         {
@@ -3397,10 +4864,31 @@ void HueGatewayModule::evaluateHclManagerLockFallback(const tm* timeinfo, bool h
 
 void HueGatewayModule::evaluateHclChannelLockFallback(const tm* timeinfo, bool hasTime)
 {
+    const HclLockFallbackPolicy fallbackPolicy = static_cast<HclLockFallbackPolicy>(_hclFallbackPolicy);
+
     for (uint8_t channelIndex = 0; channelIndex < MAX_LIGHTS; channelIndex++)
     {
         if (!_hclChannelLockActive[channelIndex])
         {
+            continue;
+        }
+
+        if (fallbackPolicy == HclLockFallbackPolicy::ExternalOnly)
+        {
+            continue;
+        }
+
+        if (fallbackPolicy != HclLockFallbackPolicy::Legacy)
+        {
+            const bool releaseByDuration = (_hclChannelLockAutoReleaseMs[channelIndex] != 0)
+                && (static_cast<long>(millis() - _hclChannelLockAutoReleaseMs[channelIndex]) >= 0);
+            const bool releaseByTime = (fallbackPolicy == HclLockFallbackPolicy::TimeOfDay || fallbackPolicy == HclLockFallbackPolicy::DurationOrTime)
+                && shouldReleaseByPolicyTime(_hclChannelLockActivationDayOfYear[channelIndex], _hclChannelLockActivationMinuteOfDay[channelIndex], _hclFallbackReleaseMinuteOfDay, timeinfo, hasTime);
+
+            if (releaseByDuration || releaseByTime)
+            {
+                setHclChannelLock(channelIndex, false, releaseByTime ? "fallback release time" : "fallback duration elapsed");
+            }
             continue;
         }
 
@@ -3557,7 +5045,12 @@ String HueGatewayModule::getBridgeIP()
     else
     {
         // Manual IP
-        std::string ipStr = ParamHUE_HUEBridgeIPStr;
+#if defined(HUE_HUEBridgeIPLength)
+        const std::string ipStr = ParamHUE_HUEBridgeIPStr;
+#else
+        const IPAddress manualIp(htonl(ParamHUE_HUEBridgeIP));
+        const String ipStr = manualIp.toString();
+#endif
         Serial.printf("[HueGatewayModule] Using manual IP: %s\n", ipStr.c_str());
         return String(ipStr.c_str());
     }
@@ -3669,6 +5162,7 @@ void HueGatewayModule::updateStatus(BridgeStatus status)
     
     sendStatusKO(status == BridgeStatus::CONNECTED);
     Serial.printf("[HueGatewayModule] Status: %s\n", statusText);
+    appendDiagnosticLog("INFO", "STATE", String("status=") + String(statusText));
 }
 
 void HueGatewayModule::sendStatusKO(bool connected)
@@ -3696,6 +5190,7 @@ void HueGatewayModule::pollAuthentication()
         updateStatus(BridgeStatus::CONNECTION_LOST);
         Serial.printf("[HueGatewayModule] Authentication timeout after %lu ms - button not pressed\n",
                       static_cast<unsigned long>(now - _authStartTime));
+        appendDiagnosticLog("WARN", "AUTH", "pairing timeout (button not pressed)");
         return;
     }
 
@@ -3716,6 +5211,7 @@ void HueGatewayModule::pollAuthentication()
     {
         _authPending = false;
         Serial.println("[HueGatewayModule] Authentication successful");
+        appendDiagnosticLog("INFO", "AUTH", "pairing successful");
         updateStatus(BridgeStatus::AUTHENTICATING);
 
         if (initClientWithAppKey())
@@ -3840,7 +5336,11 @@ void HueGatewayModule::applyEventStreamUpdates(const HueGatewayEventLightUpdate*
 
             uint8_t _channelIndex = static_cast<uint8_t>(i);
             uint8_t syncDir = ParamHUE_CHSyncDir;
-            if (!(syncDir == 2 || syncDir == 3))
+            if (syncDir > 2)
+            {
+                syncDir = 2;
+            }
+            if (!(syncDir == 1 || syncDir == 2))
             {
                 Serial.printf("[HueGatewayModule] EventStream update ignored by SyncDir on channel %d (SyncDir=%u)\n",
                               i + 1,
@@ -4120,6 +5620,98 @@ static String maskKey(const String& key)
     return String("***") + key.substring(key.length() - 6);
 }
 
+static size_t parseDiagnosticDepth(const String& value)
+{
+    long parsed = value.toInt();
+    if (parsed <= 0)
+    {
+        return kDiagDefaultDepth;
+    }
+
+    if (parsed > static_cast<long>(kDiagLogCapacity))
+    {
+        return kDiagLogCapacity;
+    }
+
+    return static_cast<size_t>(parsed);
+}
+
+static String urlEncode(const String& input)
+{
+    const char* hex = "0123456789ABCDEF";
+    String encoded;
+    encoded.reserve(input.length() * 3);
+
+    for (size_t i = 0; i < input.length(); i++)
+    {
+        const uint8_t c = static_cast<uint8_t>(input[i]);
+        const bool unreserved = (c >= 'a' && c <= 'z')
+            || (c >= 'A' && c <= 'Z')
+            || (c >= '0' && c <= '9')
+            || c == '-' || c == '_' || c == '.' || c == '~';
+
+        if (unreserved)
+        {
+            encoded += static_cast<char>(c);
+        }
+        else if (c == ' ')
+        {
+            encoded += '+';
+        }
+        else
+        {
+            encoded += '%';
+            encoded += hex[(c >> 4) & 0x0F];
+            encoded += hex[c & 0x0F];
+        }
+    }
+
+    return encoded;
+}
+
+static void readDiagnoseQuery(httpd_req_t* req, size_t& depth, String& note, bool& viewMode, bool& includeNetworkDetails)
+{
+    depth = kDiagDefaultDepth;
+    note = "";
+    viewMode = false;
+    includeNetworkDetails = false;
+
+    if (req == nullptr)
+    {
+        return;
+    }
+
+    char query[640] = {0};
+    if (httpd_req_get_url_query_str(req, query, sizeof(query)) != ESP_OK)
+    {
+        return;
+    }
+
+    char depthValue[16] = {0};
+    if (httpd_query_key_value(query, "depth", depthValue, sizeof(depthValue)) == ESP_OK)
+    {
+        depth = parseDiagnosticDepth(String(depthValue));
+    }
+
+    char noteValue[384] = {0};
+    if (httpd_query_key_value(query, "note", noteValue, sizeof(noteValue)) == ESP_OK)
+    {
+        note = String(noteValue);
+    }
+
+    char viewValue[8] = {0};
+    if (httpd_query_key_value(query, "view", viewValue, sizeof(viewValue)) == ESP_OK)
+    {
+        viewMode = (strcmp(viewValue, "1") == 0);
+    }
+
+    char netValue[8] = {0};
+    if (httpd_query_key_value(query, "net", netValue, sizeof(netValue)) == ESP_OK)
+    {
+        includeNetworkDetails = (strcmp(netValue, "1") == 0);
+    }
+}
+
 void HueGatewayModule::setupWebUI()
 {
     WebHandler scanTextHandler;
@@ -4133,6 +5725,18 @@ void HueGatewayModule::setupWebUI()
         .user_ctx = this
     };
     openknxWebUI.addHandler(scanTextHandler);
+
+    WebHandler diagnoseTextHandler;
+    diagnoseTextHandler.name = "Hue Diagnose (Text)";
+    diagnoseTextHandler.uri = "/hue/diagnose.txt";
+    diagnoseTextHandler.isVisible = false;
+    diagnoseTextHandler.httpd = {
+        .uri = "/hue/diagnose.txt",
+        .method = HTTP_GET,
+        .handler = HueGatewayModule::handleWebDiagnoseText,
+        .user_ctx = this
+    };
+    openknxWebUI.addHandler(diagnoseTextHandler);
 
     WebPage scanPage;
     scanPage.uri = "/hue/scan";
@@ -4154,6 +5758,27 @@ void HueGatewayModule::setupWebUI()
     pairPage.handler = HueGatewayModule::pageWebPair;
     pairPage.arg = this;
     openknxWebUI.addPage(pairPage);
+
+    WebPage resetAuthPage;
+    resetAuthPage.uri = "/hue/reset-auth";
+    resetAuthPage.name = "Hue-Auth zurücksetzen";
+    resetAuthPage.handler = HueGatewayModule::pageWebResetAuth;
+    resetAuthPage.arg = this;
+    openknxWebUI.addPage(resetAuthPage);
+
+    WebPage diagnosePage;
+    diagnosePage.uri = "/hue/diagnose";
+    diagnosePage.name = "Hue-Diagnose";
+    diagnosePage.handler = HueGatewayModule::pageWebDiagnose;
+    diagnosePage.arg = this;
+    openknxWebUI.addPage(diagnosePage);
+
+    WebPage retrySetupPage;
+    retrySetupPage.uri = "/hue/retry-setup";
+    retrySetupPage.name = "Setup-Retry";
+    retrySetupPage.handler = HueGatewayModule::pageWebRetrySetup;
+    retrySetupPage.arg = this;
+    openknxWebUI.addPage(retrySetupPage);
 
     WebPage rootPage;
     rootPage.uri = "/hue";
@@ -4184,8 +5809,11 @@ esp_err_t HueGatewayModule::handleWebRoot(httpd_req_t* req)
     html += "<h1>🏠 Open KNX Hue Gateway</h1>";
     html += "<div class='card'><h2>Funktionen</h2>";
     html += "<a href='" + hueBaseUri + "/pair'>🔗 Pairing starten</a>";
+    html += "<a href='" + hueBaseUri + "/reset-auth'>🗑️ Auth zurücksetzen</a>";
     html += "<a href='" + hueBaseUri + "/scan'>🔍 Hue-Geräte laden</a>";
     html += "<a href='" + hueBaseUri + "/status'>📊 Status</a>";
+    html += "<a href='" + hueBaseUri + "/diagnose'>🧰 Diagnose</a>";
+    html += "<a href='" + hueBaseUri + "/retry-setup'>🔄 Setup-Retry</a>";
     html += "</div>";
     html += "<div class='card'><h3>Info</h3>";
     html += "<p><strong>Geräte-IP:</strong> " + getRequestLocalIpString(req) + "</p>";
@@ -4237,8 +5865,10 @@ esp_err_t HueGatewayModule::handleWebScan(httpd_req_t* req)
         {
             self->_webScanInProgress = false;
             self->_webScanRequested = false;
+            self->_diagCounterWebScanTimeouts++;
             self->_lastWebScanDurationMs = elapsedMs;
             self->_lastWebScanError = "Web-Scan Timeout nach " + String(elapsedMs / 1000UL) + " Sekunden";
+            self->appendDiagnosticLog("WARN", "WEBSCAN", String("timeout after ") + String(elapsedMs) + " ms");
 
             String html;
             html.reserve(1024);
@@ -4541,14 +6171,18 @@ esp_err_t HueGatewayModule::handleWebStatus(httpd_req_t* req)
                     break;
             }
 
-            String curveText = "Fixzeit";
+            String curveText = "Stützpunkte";
             if (curveTypeValue == 1)
             {
-                curveText = "Sonnenstand";
+                curveText = "Sonnenfenster";
             }
             else if (curveTypeValue == 2)
             {
                 curveText = "Manuell";
+            }
+            else if (curveTypeValue == 3)
+            {
+                curveText = "Astronomisch";
             }
 
             html += "<tr><td>HCL M" + String(masterNumber) + " Kurve</td><td>" + curveText + "</td></tr>";
@@ -4586,7 +6220,11 @@ esp_err_t HueGatewayModule::handleWebStatus(httpd_req_t* req)
     }
 
     html += "</table>";
-    html += "<br><a href='" + hueBaseUri + "'>← Zurück</a></body></html>";
+    html += "<br><a href='" + hueBaseUri + "/pair'>🔗 Pairing starten</a> ";
+    html += "<a href='" + hueBaseUri + "/reset-auth'>🗑️ Auth zurücksetzen</a> ";
+    html += "<a href='" + hueBaseUri + "/diagnose'>🧰 Diagnose erstellen</a> ";
+    html += "<a href='" + hueBaseUri + "/retry-setup'>🔄 Setup-Retry</a> ";
+    html += "<a href='" + hueBaseUri + "'>← Zurück</a></body></html>";
 
     return send_html(req, html, 200);
 }
@@ -4627,6 +6265,154 @@ esp_err_t HueGatewayModule::handleWebPair(httpd_req_t* req)
     html += "<a href='" + hueBaseUri + "'>Zurück</a></div></body></html>";
 
     return send_html(req, html, 200);
+}
+
+esp_err_t HueGatewayModule::handleWebResetAuth(httpd_req_t* req)
+{
+    HueGatewayModule* self = static_cast<HueGatewayModule*>(req->user_ctx);
+    if (self == nullptr)
+        return httpd_resp_send_500(req);
+
+    self->resetDevices();
+    if (self->_client)
+    {
+        delete self->_client;
+        self->_client = nullptr;
+    }
+
+    self->_auth.clearAppKey();
+    self->_authPending = false;
+    self->_manualPairingRequired = true;
+    self->_authStartTime = 0;
+    self->_authLastTry = 0;
+    self->_lastReconnectTryMs = 0;
+    self->updateStatus(BridgeStatus::BRIDGE_UNREACHABLE);
+    self->appendDiagnosticLog("INFO", "AUTH", "auth reset via WebUI");
+    Serial.println("[HueGatewayModule] Authentication reset via WebUI route");
+
+    const String hueBaseUri = String(openknxWebUI.getBaseUri()) + "/hue";
+
+    String html;
+    html.reserve(1024);
+    html = "<!DOCTYPE html><html><head><meta charset='UTF-8'>";
+    html += "<title>Hue-Authentifizierung zurückgesetzt</title>";
+    html += "<style>body{font-family:Arial,sans-serif;margin:40px;background:#f5f5f5;}";
+    html += ".card{background:white;padding:20px;border-radius:5px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}a{display:inline-block;padding:10px 16px;margin:5px;background:#007bff;color:#fff;text-decoration:none;border-radius:3px;}</style></head><body>";
+    html += "<div class='card'><h1>🗑️ Auth-Daten verworfen</h1>";
+    html += "<p>Gespeicherter App-Key und Client-Key wurden gelöscht.</p>";
+    html += "<p>Für den weiteren Betrieb bitte jetzt Pairing neu starten.</p>";
+    html += "<a href='" + hueBaseUri + "/pair'>🔗 Pairing starten</a>";
+    html += "<a href='" + hueBaseUri + "/status'>📊 Status</a>";
+    html += "<a href='" + hueBaseUri + "'>← Zurück</a></div></body></html>";
+
+    return send_html(req, html, 200);
+}
+
+esp_err_t HueGatewayModule::handleWebDiagnose(httpd_req_t* req)
+{
+    HueGatewayModule* self = static_cast<HueGatewayModule*>(req->user_ctx);
+    if (self == nullptr)
+        return httpd_resp_send_500(req);
+
+    const String hueBaseUri = String(openknxWebUI.getBaseUri()) + "/hue";
+
+    size_t depth = kDiagDefaultDepth;
+    String note;
+    bool viewMode = false;
+    bool includeNetworkDetails = false;
+    readDiagnoseQuery(req, depth, note, viewMode, includeNetworkDetails);
+
+    String html;
+    html.reserve(24000);
+    html = "<!DOCTYPE html><html><head><meta charset='UTF-8'>";
+    html += "<title>Hue-Diagnose</title>";
+    html += "<style>body{font-family:Arial,sans-serif;margin:40px;background:#f5f5f5;}";
+    html += ".card{background:#fff;padding:16px;margin:10px 0;border-radius:5px;box-shadow:0 2px 5px rgba(0,0,0,0.08);}";
+    html += "label{display:block;margin:8px 0 4px 0;}select,input,textarea{width:100%;padding:8px;box-sizing:border-box;}";
+    html += "button,a.btn{display:inline-block;padding:10px 14px;margin:6px 6px 6px 0;background:#007bff;color:#fff;text-decoration:none;border:none;border-radius:3px;cursor:pointer;}";
+    html += "pre{white-space:pre-wrap;background:#111;color:#ddd;padding:12px;border-radius:4px;max-height:420px;overflow:auto;}";
+    html += "</style></head><body>";
+    html += "<h1>🧰 Hue-Diagnose</h1>";
+
+    html += "<div class='card'><form id='diagForm' method='GET' action='" + hueBaseUri + "/diagnose'>";
+    html += "<input type='hidden' name='view' value='1'>";
+    html += "<label>Logtiefe</label>";
+    html += "<select name='depth'>";
+    html += "<option value='120'" + String(depth == 120 ? " selected" : "") + ">120 (Vorschau)</option>";
+    html += "<option value='500'" + String(depth == 500 ? " selected" : "") + ">500 (Maximum)</option>";
+    html += "</select>";
+    html += "<label>Tester-Notiz</label>";
+    html += "<textarea name='note' rows='3' placeholder='Was wurde getestet? Welche Gruppenadresse? Erwartet/Passiert?'>" + escape_html(note) + "</textarea>";
+    html += "<label><input type='checkbox' name='net' value='1' style='width:auto;margin-right:8px;'" + String(includeNetworkDetails ? " checked" : "") + ">Vollständige Netzwerkdetails (Device-/Bridge-IP) einfügen</label>";
+    html += "<button type='submit'>Diagnose erstellen</button>";
+    html += "</form></div>";
+
+    String querySuffix = "?depth=" + String(static_cast<unsigned long>(depth));
+    if (note.length() > 0)
+    {
+        querySuffix += "&note=" + urlEncode(note);
+    }
+    if (includeNetworkDetails)
+    {
+        querySuffix += "&net=1";
+    }
+
+    html += "<div class='card'>";
+    html += "<a class='btn' id='diagDownload' href='" + hueBaseUri + "/diagnose.txt" + querySuffix + "' onclick='return downloadDiag(event)'>Diagnose herunterladen</a>";
+    html += "<button type='button' onclick='copyDiag()'>Diagnose in Zwischenablage</button>";
+    html += "<a class='btn' href='" + hueBaseUri + "'>Zurück</a>";
+    html += "</div>";
+
+    if (viewMode)
+    {
+        const size_t previewDepth = min<size_t>(depth, static_cast<size_t>(120));
+        String report = self->buildDiagnosticReport(previewDepth, note, includeNetworkDetails);
+        html += "<div class='card'><h3>Vorschau</h3><pre id='diagText'>" + escape_html(report) + "</pre></div>";
+        if (depth > previewDepth)
+        {
+            html += "<div class='card'><p>Hinweis: Vorschau zeigt die letzten " + String(static_cast<unsigned long>(previewDepth)) + " Einträge. Vollständiger Export über \"Diagnose herunterladen\".</p></div>";
+        }
+    }
+    else
+    {
+        html += "<div class='card'><p>Diagnose wird beim Klick auf \"Diagnose erstellen\" oder \"Diagnose herunterladen\" erzeugt.</p><pre id='diagText' style='display:none'></pre></div>";
+    }
+
+    html += "<script>";
+    html += "function diagUrl(){const dl=document.getElementById('diagDownload');if(!dl||!dl.href){throw new Error('Download-Link fehlt');}const u=new URL(dl.href,window.location.href);u.searchParams.set('_ts',Date.now().toString());return u.toString();}";
+    html += "function diagViewUrl(){const form=document.getElementById('diagForm');if(!form||!form.action){throw new Error('Diagnose-Formular fehlt');}const fd=new FormData(form);const u=new URL(form.action,window.location.href);u.searchParams.set('view','1');const depth=fd.get('depth');if(depth){u.searchParams.set('depth',depth.toString());}const note=fd.get('note');if(note){u.searchParams.set('note',note.toString());}if(fd.get('net')==='1'){u.searchParams.set('net','1');}u.searchParams.set('_ts',Date.now().toString());return u.toString();}";
+    html += "function looksLikeHtml(text){if(!text){return false;}const head=text.slice(0,300).toLowerCase();return head.includes('<!doctype html')||head.includes('<html')||head.includes('<head')||head.includes('<body');}";
+    html += "function extractDiagFromHtml(html){const parser=new DOMParser();const doc=parser.parseFromString(html,'text/html');const pre=doc.getElementById('diagText');if(!pre){return '';}const txt=pre.textContent||'';return txt.trim();}";
+    html += "async function loadDiagText(){const r=await fetch(diagUrl(),{cache:'no-store'});if(!r.ok){throw new Error('HTTP '+r.status);}const primary=await r.text();if(!looksLikeHtml(primary)){return primary;}const inline=extractDiagFromHtml(primary);if(inline.length>0){return inline;}const rf=await fetch(diagViewUrl(),{cache:'no-store'});if(!rf.ok){throw new Error('Fallback HTTP '+rf.status);}const html=await rf.text();const extracted=extractDiagFromHtml(html);if(extracted.length===0){throw new Error('Diagnose-Text konnte nicht aus HTML extrahiert werden');}return extracted;}";
+    html += "async function downloadDiag(ev){if(ev){ev.preventDefault();}try{const txt=await loadDiagText();const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='hue-diagnose-'+Date.now()+'.txt';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);return false;}catch(e){alert('Download fehlgeschlagen: '+(e&&e.message?e.message:'unbekannter Fehler'));return false;}}";
+    html += "async function copyDiag(){try{const t=await loadDiagText();const target=document.getElementById('diagText');if(target){target.textContent=t;}if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(t);alert('Diagnose in Zwischenablage kopiert');return;}const ta=document.createElement('textarea');ta.value=t;ta.setAttribute('readonly','readonly');ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.focus();ta.select();const ok=document.execCommand('copy');ta.remove();if(!ok){throw new Error('Browser blockiert Kopieren');}alert('Diagnose in Zwischenablage kopiert');}catch(e){alert('Kopieren fehlgeschlagen: '+(e&&e.message?e.message:'unbekannter Fehler')+'\\nBitte Diagnose herunterladen verwenden.');}}";
+    html += "</script>";
+
+    html += "</body></html>";
+    return send_html(req, html, 200);
+}
+
+esp_err_t HueGatewayModule::handleWebDiagnoseText(httpd_req_t* req)
+{
+    HueGatewayModule* self = static_cast<HueGatewayModule*>(req->user_ctx);
+    if (self == nullptr)
+        return httpd_resp_send_500(req);
+
+    size_t depth = kDiagDefaultDepth;
+    String note;
+    bool viewMode = false;
+    bool includeNetworkDetails = false;
+    readDiagnoseQuery(req, depth, note, viewMode, includeNetworkDetails);
+
+    self->appendDiagnosticLog("INFO", "DIAG", String("diagnose export depth=") + String(static_cast<unsigned long>(depth)) + String(" net=") + String(includeNetworkDetails ? "1" : "0"));
+
+    const String report = self->buildDiagnosticReport(depth, note, includeNetworkDetails);
+    String fileName = "hue-diagnose-" + String(millis()) + ".txt";
+
+    httpd_resp_set_type(req, "text/plain; charset=UTF-8");
+    String contentDisposition = "attachment; filename=\"" + fileName + "\"";
+    httpd_resp_set_hdr(req, "Content-Disposition", contentDisposition.c_str());
+    return httpd_resp_send(req, report.c_str(), HTTPD_RESP_USE_STRLEN);
 }
 
 esp_err_t HueGatewayModule::pageWebRoot(const char* uri, httpd_req_t* req, void* arg)
@@ -4673,6 +6459,71 @@ esp_err_t HueGatewayModule::pageWebPair(const char* uri, httpd_req_t* req, void*
     return HueGatewayModule::handleWebPair(req);
 }
 
+esp_err_t HueGatewayModule::pageWebResetAuth(const char* uri, httpd_req_t* req, void* arg)
+{
+    (void)uri;
+    HueGatewayModule* self = static_cast<HueGatewayModule*>(arg);
+    if (self == nullptr)
+        return httpd_resp_send_500(req);
+
+    req->user_ctx = self;
+    return HueGatewayModule::handleWebResetAuth(req);
+}
+
+esp_err_t HueGatewayModule::pageWebDiagnose(const char* uri, httpd_req_t* req, void* arg)
+{
+    (void)uri;
+    HueGatewayModule* self = static_cast<HueGatewayModule*>(arg);
+    if (self == nullptr)
+        return httpd_resp_send_500(req);
+
+    req->user_ctx = self;
+    return HueGatewayModule::handleWebDiagnose(req);
+}
+
+esp_err_t HueGatewayModule::handleWebRetrySetup(httpd_req_t* req)
+{
+    HueGatewayModule* self = static_cast<HueGatewayModule*>(req->user_ctx);
+    if (self == nullptr)
+        return httpd_resp_send_500(req);
+
+    const String hueBaseUri = String(openknxWebUI.getBaseUri()) + "/hue";
+
+    self->_deviceSetupNeedsRetry = true;
+    self->_deviceSetupRetryBackoffMs = 0;
+    self->_setupCircuitOpenUntilMs = 0;
+    self->_setupCircuitTrips = 0;
+    self->_consecutiveEmptyLightFetches = 0;
+    self->_lastDeviceSetupRetryMs = 0;
+    Serial.println("[HueGatewayModule] Manual setup retry triggered via WebUI");
+    self->appendDiagnosticLog("INFO", "WEBUI", "manual setup retry triggered");
+
+    String html;
+    html.reserve(512);
+    html = "<!DOCTYPE html><html><head><meta charset='UTF-8'>";
+    html += "<meta http-equiv='refresh' content='5;url=" + hueBaseUri + "/status'>";
+    html += "<title>Setup-Retry</title>";
+    html += "<style>body{font-family:Arial,sans-serif;margin:40px;background:#f5f5f5;}";
+    html += "a{display:inline-block;padding:10px 16px;margin:5px;background:#007bff;color:#fff;text-decoration:none;border-radius:3px;}</style></head><body>";
+    html += "<h1>\xF0\x9F\x94\x84 Setup-Retry ausgelöst</h1>";
+    html += "<p>Die Geräte-Zuordnung wird beim nächsten Loop-Durchlauf wiederholt.</p>";
+    html += "<p>Weiterleitung auf Statusseite in 5 Sekunden...</p>";
+    html += "<a href='" + hueBaseUri + "/status'>\xF0\x9F\x93\x8A Status</a> ";
+    html += "<a href='" + hueBaseUri + "'>\xE2\x86\x90 Zurück</a></body></html>";
+    return send_html(req, html, 200);
+}
+
+esp_err_t HueGatewayModule::pageWebRetrySetup(const char* uri, httpd_req_t* req, void* arg)
+{
+    (void)uri;
+    HueGatewayModule* self = static_cast<HueGatewayModule*>(arg);
+    if (self == nullptr)
+        return httpd_resp_send_500(req);
+
+    req->user_ctx = self;
+    return HueGatewayModule::handleWebRetrySetup(req);
+}
+
 String HueGatewayModule::getBridgeScanHTML()
 {
     return _lastWebScanHtml;
@@ -4685,6 +6536,8 @@ String HueGatewayModule::getBridgeScanText()
 
 void HueGatewayModule::updateWebScanCache()
 {
+    _diagCounterWebScanRuns++;
+    appendDiagnosticLog("INFO", "WEBSCAN", "scan start");
     _lastWebScanError = "";
 
     if (!_client || !_initialized || !_client->isInitialized())
@@ -4732,6 +6585,7 @@ void HueGatewayModule::updateWebScanCache()
             _lastWebScanText = previousText;
             _lastWebScanError = "Scan lieferte 0 Leuchten, vorheriges Ergebnis beibehalten";
             Serial.println("[HueGatewayModule] Web scan returned 0 lights, keeping previous successful result");
+            appendDiagnosticLog("WARN", "WEBSCAN", "scan returned 0 lights, previous result kept");
             delete[] lights;
             return;
         }
@@ -4756,6 +6610,7 @@ void HueGatewayModule::updateWebScanCache()
         _lastWebScanLightCount = 0;
         _lastWebScanHtml = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Hue-Geräte laden</title></head><body><h1>⚠️ Hue-Geräte laden</h1><p>Keine Leuchten gefunden.</p></body></html>";
         _lastWebScanText = text;
+        appendDiagnosticLog("WARN", "WEBSCAN", String("scan returned no lights, error=") + _lastWebScanError);
         delete[] lights;
         return;
     }
@@ -4826,6 +6681,7 @@ void HueGatewayModule::updateWebScanCache()
     _lastWebScanError = "";
     _lastWebScanHtml = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Hue-Geräte geladen</title></head><body><h1>Hue-Geräte geladen</h1><p>Daten im Stream-Renderer bereit.</p></body></html>";
     _lastWebScanText = text;
+    appendDiagnosticLog("INFO", "WEBSCAN", String("scan done, lights=") + String(count));
     delete[] lights;
 }
 

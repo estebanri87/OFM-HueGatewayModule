@@ -4,6 +4,7 @@
 #include <WiFi.h>
 #include <ESPmDNS.h>
 #include <ArduinoJson.h>
+#include <vector>
 #include "OpenKNX.h"
 #include "knxprod.h"
 #include "HueGatewayAuth.h"
@@ -22,8 +23,8 @@ struct HueGatewayEventLightUpdate;
  * It communicates with the Hue Bridge via Hue API v2 and exposes device
  * functions through KNX communication objects.
  * 
- * @version 0.3.1
- * @date 2026-02-28
+ * @version 0.3.5
+ * @date 2026-03-16
  */
 
 class HueGatewayModule : public OpenKNX::Module
@@ -55,8 +56,23 @@ public:
         Hour12 = 11,
         NextDay = 12
     };
+
+    enum class HclLockFallbackPolicy : uint8_t {
+        Legacy = 0,
+        Duration = 1,
+        TimeOfDay = 2,
+        DurationOrTime = 3,
+        ExternalOnly = 4
+    };
     
 private:
+    struct DiagnosticLogEntry {
+        unsigned long uptimeMs;
+        String level;
+        String category;
+        String message;
+    };
+
     bool _initialized;
     unsigned long _lastConnectionCheckMs;
     unsigned long _bootStartMs;
@@ -118,6 +134,9 @@ private:
     unsigned long _lastPairingTriggerMs;
     bool _devicesInitialized;
     bool _deviceSetupNeedsRetry;
+    uint8_t _consecutiveEmptyLightFetches;
+    uint32_t _diagCounterEmptyLightFetches;
+    unsigned long _lastValidLightFetchMs;
     bool _webScanRequested;
     bool _webScanInProgress;
     bool _networkConnectedLast;
@@ -131,22 +150,62 @@ private:
     String _lastWebScanError;
     bool _hclLockActive;
     uint8_t _hclLockFallbackMode;
+    uint8_t _hclFallbackPolicy;
+    uint32_t _hclFallbackDurationMs;
+    uint16_t _hclFallbackReleaseMinuteOfDay;
     unsigned long _hclLockActivatedMs;
     unsigned long _hclLockAutoReleaseMs;
     int16_t _hclLockActivationDayOfYear;
+    int16_t _hclLockActivationMinuteOfDay;
     bool _hclManagerLockActive[HCL::MasterManager::MAX_MASTERS];
     uint8_t _hclManagerLockFallbackMode[HCL::MasterManager::MAX_MASTERS];
+    uint8_t _hclManagerFallbackPolicy[HCL::MasterManager::MAX_MASTERS];
+    uint32_t _hclManagerFallbackDurationMs[HCL::MasterManager::MAX_MASTERS];
+    uint16_t _hclManagerFallbackReleaseMinuteOfDay[HCL::MasterManager::MAX_MASTERS];
     unsigned long _hclManagerLockActivatedMs[HCL::MasterManager::MAX_MASTERS];
     unsigned long _hclManagerLockAutoReleaseMs[HCL::MasterManager::MAX_MASTERS];
     int16_t _hclManagerLockActivationDayOfYear[HCL::MasterManager::MAX_MASTERS];
+    int16_t _hclManagerLockActivationMinuteOfDay[HCL::MasterManager::MAX_MASTERS];
     bool _hclChannelLockActive[MAX_LIGHTS];
     uint8_t _hclChannelLockFallbackMode[MAX_LIGHTS];
     unsigned long _hclChannelLockActivatedMs[MAX_LIGHTS];
     unsigned long _hclChannelLockAutoReleaseMs[MAX_LIGHTS];
     int16_t _hclChannelLockActivationDayOfYear[MAX_LIGHTS];
+    int16_t _hclChannelLockActivationMinuteOfDay[MAX_LIGHTS];
     uint16_t _hclLastPublishedKelvin[HCL::MasterManager::MAX_MASTERS];
     uint8_t _hclLastPublishedBrightness[HCL::MasterManager::MAX_MASTERS];
     bool _hclMasterValuesPublished[HCL::MasterManager::MAX_MASTERS];
+
+    // In-memory diagnostics (for WebUI support package export).
+    std::vector<DiagnosticLogEntry> _diagLogRing;
+    size_t _diagLogRingHead;
+    size_t _diagLogRingCount;
+    uint32_t _diagLogDropped;
+    uint32_t _diagCounterSetupRuns;
+    uint32_t _diagCounterSetupIncomplete;
+    uint32_t _diagCounterUnresolvedTargets;
+    uint32_t _diagCounterKoCommands;
+    uint32_t _diagCounterKoBlockedSyncDir;
+    uint32_t _diagCounterKoBlockedChannelMissing;
+    uint32_t _diagCounterWebScanRuns;
+    uint32_t _diagCounterWebScanTimeouts;
+    unsigned long _diagLastKoCommandMs[MAX_LIGHTS];
+    uint8_t _diagLastKoType[MAX_LIGHTS];
+    String _diagLastKoValue[MAX_LIGHTS];
+    String _diagLastKoBlockReason[MAX_LIGHTS];
+    unsigned long _diagLastWriteTraceMs[MAX_LIGHTS];
+    unsigned long _diagLastWriteTraceDurationMs[MAX_LIGHTS];
+    int _diagLastWriteTraceHttpStatus[MAX_LIGHTS];
+    String _diagLastWriteTraceResult[MAX_LIGHTS];
+    String _diagLastWriteTraceMethod[MAX_LIGHTS];
+    String _diagLastWriteTraceEndpoint[MAX_LIGHTS];
+
+    // Last setup snapshot for diagnostics.
+    uint8_t _diagLastEnabledChannels;
+    int _diagLastBridgeLightCount;
+    int _diagLastRoomTargetCount;
+    int _diagLastZoneTargetCount;
+    bool _diagLastHasUnresolvedGroupTarget;
     
     void setupBridge();
     void setupDevices();
@@ -167,18 +226,27 @@ private:
     static esp_err_t handleWebScanText(httpd_req_t* req);
     static esp_err_t handleWebStatus(httpd_req_t* req);
     static esp_err_t handleWebPair(httpd_req_t* req);
+    static esp_err_t handleWebResetAuth(httpd_req_t* req);
+    static esp_err_t handleWebDiagnose(httpd_req_t* req);
+    static esp_err_t handleWebDiagnoseText(httpd_req_t* req);
+    static esp_err_t handleWebRetrySetup(httpd_req_t* req);
     
     // Web UI pages (under WEBUI_BASE_URI)
     static esp_err_t pageWebRoot(const char* uri, httpd_req_t* req, void* arg);
     static esp_err_t pageWebScan(const char* uri, httpd_req_t* req, void* arg);
     static esp_err_t pageWebStatus(const char* uri, httpd_req_t* req, void* arg);
     static esp_err_t pageWebPair(const char* uri, httpd_req_t* req, void* arg);
+    static esp_err_t pageWebResetAuth(const char* uri, httpd_req_t* req, void* arg);
+    static esp_err_t pageWebDiagnose(const char* uri, httpd_req_t* req, void* arg);
+    static esp_err_t pageWebRetrySetup(const char* uri, httpd_req_t* req, void* arg);
     
     // Scan functions
     void performBridgeScan();
     void updateWebScanCache();
     String getBridgeScanHTML();
     String getBridgeScanText();
+    String buildDiagnosticReport(size_t requestedDepth, const String& testerNote, bool includeNetworkDetails);
+    void appendDiagnosticLog(const char* level, const char* category, const String& message);
     void resetDevices();
     
     // Helper Methods
@@ -196,7 +264,9 @@ private:
     void evaluateHclManagerLockFallback(const tm* timeinfo, bool hasTime);
     void evaluateHclChannelLockFallback(const tm* timeinfo, bool hasTime);
     uint32_t getHclFallbackDurationMs(HclLockFallbackMode mode) const;
+    bool shouldReleaseByPolicyTime(int16_t activationDayOfYear, int16_t activationMinuteOfDay, uint16_t releaseMinuteOfDay, const tm* timeinfo, bool hasTime) const;
     static const char* hclFallbackModeToText(HclLockFallbackMode mode);
+    static const char* hclFallbackPolicyToText(HclLockFallbackPolicy policy);
     
     // Status Methods
     void updateStatus(BridgeStatus status);

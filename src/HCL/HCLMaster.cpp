@@ -1,5 +1,6 @@
 #include "HCLMaster.h"
 #include <algorithm>
+#include <cmath>
 
 namespace HCL {
 
@@ -20,6 +21,13 @@ Master::Master() {
     _sunTimesValid = false;
     _sunriseOffsetMin = 0;
     _sunsetOffsetMin = 0;
+    _latitudeDeg = 50.0f;
+    _longitudeDeg = 8.0f;
+    _timezoneOffsetMin = 60;
+    _astroMinKelvin = 2400;
+    _astroMaxKelvin = 5000;
+    _astroMinBrightness = 10;
+    _astroMaxBrightness = 80;
 }
 
 void Master::setSunTimes(uint16_t sunriseMinutes, uint16_t sunsetMinutes) {
@@ -246,6 +254,71 @@ InterpolatedValue Master::calculateManualValue(uint16_t currentTimeMinutes) cons
     return result;
 }
 
+InterpolatedValue Master::calculateAstronomicalValue(uint16_t currentTimeMinutes, int16_t dayOfYear) const {
+    if (dayOfYear < 1 || dayOfYear > 366) {
+        dayOfYear = 1;
+    }
+
+    InterpolatedValue result;
+
+    constexpr float pi = 3.14159265358979323846f;
+    const float fractionalHour = static_cast<float>(currentTimeMinutes) / 60.0f;
+    const float gamma = (2.0f * pi / 365.0f) *
+        (static_cast<float>(dayOfYear) - 1.0f + ((fractionalHour - 12.0f) / 24.0f));
+
+    const float eqTime = 229.18f * (
+        0.000075f
+        + 0.001868f * cosf(gamma)
+        - 0.032077f * sinf(gamma)
+        - 0.014615f * cosf(2.0f * gamma)
+        - 0.040849f * sinf(2.0f * gamma));
+
+    const float decl =
+        0.006918f
+        - 0.399912f * cosf(gamma)
+        + 0.070257f * sinf(gamma)
+        - 0.006758f * cosf(2.0f * gamma)
+        + 0.000907f * sinf(2.0f * gamma)
+        - 0.002697f * cosf(3.0f * gamma)
+        + 0.001480f * sinf(3.0f * gamma);
+
+    const float timeOffset = eqTime + (4.0f * _longitudeDeg) - static_cast<float>(_timezoneOffsetMin);
+    float trueSolarTime = static_cast<float>(currentTimeMinutes) + timeOffset;
+    while (trueSolarTime < 0.0f) {
+        trueSolarTime += 1440.0f;
+    }
+    while (trueSolarTime >= 1440.0f) {
+        trueSolarTime -= 1440.0f;
+    }
+
+    const float hourAngleDeg = (trueSolarTime / 4.0f) - 180.0f;
+    const float hourAngle = hourAngleDeg * (pi / 180.0f);
+    const float latRad = _latitudeDeg * (pi / 180.0f);
+
+    float cosZenith =
+        sinf(latRad) * sinf(decl)
+        + cosf(latRad) * cosf(decl) * cosf(hourAngle);
+    cosZenith = constrain(cosZenith, -1.0f, 1.0f);
+
+    const float zenith = acosf(cosZenith);
+    const float elevationDeg = 90.0f - (zenith * (180.0f / pi));
+
+    // Map solar elevation to a smooth day profile: -6°..60° => 0..1
+    float t = (elevationDeg + 6.0f) / 66.0f;
+    t = constrain(t, 0.0f, 1.0f);
+    const float smooth = t * t * (3.0f - 2.0f * t);
+
+    const uint16_t kelvinRange = _astroMaxKelvin - _astroMinKelvin;
+    const uint8_t brightnessRange = _astroMaxBrightness - _astroMinBrightness;
+
+    result.kelvin = _astroMinKelvin + static_cast<uint16_t>(static_cast<float>(kelvinRange) * smooth);
+    result.brightness = _astroMinBrightness + static_cast<uint8_t>(static_cast<float>(brightnessRange) * smooth);
+
+    result.kelvin = constrain(result.kelvin, 2000, 6500);
+    result.brightness = constrain(result.brightness, 0, 100);
+    return result;
+}
+
 void Master::applySlew(uint16_t targetKelvin, uint32_t currentTimeMs) {
     if (_appliedKelvin < 2000 || _appliedKelvin > 6500) {
         _appliedKelvin = constrain(targetKelvin, 2000, 6500);
@@ -290,12 +363,15 @@ void Master::applySlew(uint16_t targetKelvin, uint32_t currentTimeMs) {
     _appliedKelvin = constrain(_appliedKelvin, 2000, 6500);
 }
 
-InterpolatedValue Master::calculateValue(uint16_t currentTimeMinutes, uint32_t currentTimeMs) {
+InterpolatedValue Master::calculateValue(uint16_t currentTimeMinutes, uint32_t currentTimeMs, int16_t dayOfYear) {
     InterpolatedValue target;
 
     switch (_curveType) {
         case CurveType::SunPosition:
             target = calculateSunPositionValue(currentTimeMinutes);
+            break;
+        case CurveType::Astronomical:
+            target = calculateAstronomicalValue(currentTimeMinutes, dayOfYear);
             break;
         case CurveType::Manual:
             target = calculateManualValue(currentTimeMinutes);
