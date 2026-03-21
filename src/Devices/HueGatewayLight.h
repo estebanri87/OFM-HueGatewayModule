@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include "HueGatewayDevice.h"
 
 // Forward Declaration
 class HueGatewayClient;
@@ -17,7 +18,7 @@ class HueGatewayClient;
  * Hue → KNX: updateFromHue()
  */
 
-class HueGatewayLight
+class HueGatewayLight : public HueGatewayDevice
 {
 public:
     /**
@@ -27,7 +28,10 @@ public:
     * @param client Pointer to HueGatewayClient
      */
     HueGatewayLight(const String& lightId, const String& name, HueGatewayClient* client);
-    ~HueGatewayLight();
+    ~HueGatewayLight() override;
+
+    /** Device type: 0 = Licht */
+    uint8_t deviceType() const override { return 0; }
     
     /**
     * @brief Initializes KO mapping for this light channel.
@@ -71,6 +75,21 @@ public:
     * @brief Processes KNX RGB color command.
      */
     void processKnxColorRGB(uint8_t red, uint8_t green, uint8_t blue);
+
+    /**
+     * @brief Executes an ETS scene preset on this light channel.
+     * Called from HueGatewayModule when a matching scene slot is found.
+     * @param on Target on/off state
+     * @param brightnessPercent Target brightness 0-100%
+     * @param kelvin Color temperature in Kelvin (2000-6500; 0 = no color-temp change)
+     * @param red   RGB red component (0-255)
+     * @param green RGB green component (0-255)
+     * @param blue  RGB blue component (0-255)
+     */
+    void processKnxSceneRecall(bool on,
+                               bool applyBrightness, uint8_t brightnessPercent,
+                               bool applyCT, uint16_t kelvin,
+                               bool applyColor, uint8_t red, uint8_t green, uint8_t blue);
     
     /**
     * @brief Updates local state from Hue Bridge data.
@@ -83,30 +102,31 @@ public:
     /**
     * @brief Sends current state feedback to KNX status KOs.
      */
-    void sendStatusToKnx();
+    void sendStatusToKnx() override;
     
     /**
     * @brief Loop handler for continuous HCL updates.
     * Periodically checks interpolated HCL values and applies deltas.
      */
-    void loop();
+    void loop() override;
     
     /**
     * @brief Returns the Hue light resource ID.
      */
     String getLightId() const { return _lightId; }
+    String getResourceId() const override { return _lightId; }
     
     /**
     * @brief Returns the user-visible light name.
      */
-    String getName() const { return _name; }
+    String getName() const override { return _name; }
     
     /**
     * @brief State accessors.
      */
-    bool isOn() const { return _on; }
-    uint8_t getBrightness() const { return _brightness; }
-    bool isReachable() const { return _reachable; }
+    bool isOn() const override { return _on; }
+    uint8_t getBrightness() const override { return _brightness; }
+    bool isReachable() const override { return _reachable; }
     uint16_t getColorTempKelvin() const { return _currentKelvin; }
     uint8_t getRed() const { return _currentRed; }
     uint8_t getGreen() const { return _currentGreen; }
@@ -115,15 +135,15 @@ public:
     /**
     * @brief Assigns HCL master (0 = none, 1-8 = master number).
      */
-    void setHCLMaster(uint8_t masterNum) { _hclMasterNum = masterNum; }
+    void setHCLMaster(uint8_t masterNum) override { _hclMasterNum = masterNum; }
     
     /**
     * @brief Returns assigned HCL master number.
      */
-    uint8_t getHCLMaster() const { return _hclMasterNum; }
+    uint8_t getHCLMaster() const override { return _hclMasterNum; }
 
-    void setHCLChannelLock(bool lockActive) { _hclChannelLockActive = lockActive; }
-    bool isHCLChannelLocked() const { return _hclChannelLockActive; }
+    void setHCLChannelLock(bool lockActive) override { _hclChannelLockActive = lockActive; }
+    bool isHCLChannelLocked() const override { return _hclChannelLockActive; }
 
     /**
     * @brief Sets ETS light type (0=switch,1=dimm,2=ct,3=rgb).
@@ -133,15 +153,15 @@ public:
     /**
     * @brief Sets minimum allowed brightness in percent (0-100).
      */
-    void setMinBrightness(uint8_t minBrightness);
+    void setMinBrightness(uint8_t minBrightness) override;
 
-    void setSwitchTransitionDurations(uint8_t onTransitionSec, uint8_t offTransitionSec);
-    uint8_t getSwitchOnTransitionSec() const { return _switchOnTransitionSec; }
-    uint8_t getSwitchOffTransitionSec() const { return _switchOffTransitionSec; }
+    void setSwitchTransitionDurations(uint8_t onTransitionSec, uint8_t offTransitionSec) override;
+    uint8_t getSwitchOnTransitionSec() const override { return _switchOnTransitionSec; }
+    uint8_t getSwitchOffTransitionSec() const override { return _switchOffTransitionSec; }
 
-    void setGroupedTarget(bool groupedTarget) { _isGroupedTarget = groupedTarget; }
-    bool isGroupedTarget() const { return _isGroupedTarget; }
-    unsigned long getLastHueWriteSuccessMs() const { return _lastHueWriteSuccessMs; }
+    void setGroupedTarget(bool groupedTarget) override { _isGroupedTarget = groupedTarget; }
+    bool isGroupedTarget() const override { return _isGroupedTarget; }
+    unsigned long getLastHueWriteSuccessMs() const override { return _lastHueWriteSuccessMs; }
 
 private:
     String _lightId;
