@@ -10,11 +10,14 @@
 #include "HueGatewayAuth.h"
 #include "HCL/HCLMasterManager.h"
 #include "WebUI.h"
+#include "Devices/HueGatewayDevice.h"
 
 // Forward Declarations
 class HueGatewayClient;
 class HueGatewayLight;
+class HueGatewayPlug;
 struct HueGatewayEventLightUpdate;
+struct HueGatewayEventSensorUpdate;
 
 /**
  * @brief OpenKNX Hue Bridge Module - Philips Hue Integration
@@ -23,8 +26,8 @@ struct HueGatewayEventLightUpdate;
  * It communicates with the Hue Bridge via Hue API v2 and exposes device
  * functions through KNX communication objects.
  * 
- * @version 0.3.5
- * @date 2026-03-16
+ * @version 0.3.7
+ * @date 2026-03-21
  */
 
 class HueGatewayModule : public OpenKNX::Module
@@ -40,6 +43,9 @@ public:
     void loop() override;
     void processInputKo(GroupObject& ko) override;
     bool processCommand(const std::string cmd, bool diagnoseKo) override;
+    uint16_t flashSize() override;
+    void writeFlash() override;
+    void readFlash(const uint8_t* data, const uint16_t size) override;
 
     enum class HclLockFallbackMode : uint8_t {
         None = 0,
@@ -87,12 +93,18 @@ private:
     
     
     // Device Management
-    static const int MAX_LIGHTS = 24;
-    HueGatewayLight* _lights[MAX_LIGHTS];
-    unsigned long _channelLastPollMs[MAX_LIGHTS];
-    unsigned long _channelFastTrackNextMs[MAX_LIGHTS];
-    unsigned long _channelFastTrackCooldownUntilMs[MAX_LIGHTS];
-    uint8_t _channelFastTrackRemaining[MAX_LIGHTS];
+    static const int MAX_CHANNELS = 32;  ///< Max configurable channels (was MAX_LIGHTS=24)
+    static const int MAX_LIGHTS = MAX_CHANNELS;  ///< Backward-compat alias
+    HueGatewayDevice* _devices[MAX_CHANNELS];  ///< Polymorphic device array
+    /// Helper: returns the channel as HueGatewayLight* or nullptr if not a light.
+    HueGatewayLight* lightAt(int ch) const;
+
+    /// Helper: returns the channel as HueGatewayPlug* or nullptr if not a plug.
+    HueGatewayPlug* plugAt(int ch) const;
+    unsigned long _channelLastPollMs[MAX_CHANNELS];
+    unsigned long _channelFastTrackNextMs[MAX_CHANNELS];
+    unsigned long _channelFastTrackCooldownUntilMs[MAX_CHANNELS];
+    uint8_t _channelFastTrackRemaining[MAX_CHANNELS];
     unsigned long _pollBackoffUntilMs;
     unsigned long _pollBackoffMs;
     uint8_t _pollFailureCount;
@@ -145,6 +157,7 @@ private:
     unsigned long _lastWebScanDurationMs;
     unsigned long _lastWebScanMs;
     int _lastWebScanLightCount;
+    int _lastWebScanAccessoryCount;
     String _lastWebScanHtml;
     String _lastWebScanText;
     String _lastWebScanError;
@@ -154,6 +167,22 @@ private:
     uint32_t _hclFallbackDurationMs;
     uint16_t _hclFallbackReleaseMinuteOfDay;
     unsigned long _hclLockActivatedMs;
+
+    // Scene Store: per-channel stored scene data (persisted to flash)
+    struct SceneStoreData {
+        uint8_t valid;       // 0x01 = valid, 0xFF = empty
+        uint8_t onOff;       // 0 or 1
+        uint8_t brightness;  // 0-100 %
+        uint16_t colorTemp;  // Kelvin (2000-6500)
+        uint8_t red;
+        uint8_t green;
+        uint8_t blue;
+    };
+    static const uint8_t SCENE_STORE_VALID = 0x01;
+    static const uint8_t SCENE_STORE_EMPTY = 0xFF;
+    static const uint8_t SCENE_STORE_VERSION = 2;
+    static const int SCENE_SLOTS = 8;
+    SceneStoreData _sceneStore[MAX_CHANNELS][SCENE_SLOTS];
     unsigned long _hclLockAutoReleaseMs;
     int16_t _hclLockActivationDayOfYear;
     int16_t _hclLockActivationMinuteOfDay;
@@ -166,12 +195,12 @@ private:
     unsigned long _hclManagerLockAutoReleaseMs[HCL::MasterManager::MAX_MASTERS];
     int16_t _hclManagerLockActivationDayOfYear[HCL::MasterManager::MAX_MASTERS];
     int16_t _hclManagerLockActivationMinuteOfDay[HCL::MasterManager::MAX_MASTERS];
-    bool _hclChannelLockActive[MAX_LIGHTS];
-    uint8_t _hclChannelLockFallbackMode[MAX_LIGHTS];
-    unsigned long _hclChannelLockActivatedMs[MAX_LIGHTS];
-    unsigned long _hclChannelLockAutoReleaseMs[MAX_LIGHTS];
-    int16_t _hclChannelLockActivationDayOfYear[MAX_LIGHTS];
-    int16_t _hclChannelLockActivationMinuteOfDay[MAX_LIGHTS];
+    bool _hclChannelLockActive[MAX_CHANNELS];
+    uint8_t _hclChannelLockFallbackMode[MAX_CHANNELS];
+    unsigned long _hclChannelLockActivatedMs[MAX_CHANNELS];
+    unsigned long _hclChannelLockAutoReleaseMs[MAX_CHANNELS];
+    int16_t _hclChannelLockActivationDayOfYear[MAX_CHANNELS];
+    int16_t _hclChannelLockActivationMinuteOfDay[MAX_CHANNELS];
     uint16_t _hclLastPublishedKelvin[HCL::MasterManager::MAX_MASTERS];
     uint8_t _hclLastPublishedBrightness[HCL::MasterManager::MAX_MASTERS];
     bool _hclMasterValuesPublished[HCL::MasterManager::MAX_MASTERS];
@@ -189,16 +218,16 @@ private:
     uint32_t _diagCounterKoBlockedChannelMissing;
     uint32_t _diagCounterWebScanRuns;
     uint32_t _diagCounterWebScanTimeouts;
-    unsigned long _diagLastKoCommandMs[MAX_LIGHTS];
-    uint8_t _diagLastKoType[MAX_LIGHTS];
-    String _diagLastKoValue[MAX_LIGHTS];
-    String _diagLastKoBlockReason[MAX_LIGHTS];
-    unsigned long _diagLastWriteTraceMs[MAX_LIGHTS];
-    unsigned long _diagLastWriteTraceDurationMs[MAX_LIGHTS];
-    int _diagLastWriteTraceHttpStatus[MAX_LIGHTS];
-    String _diagLastWriteTraceResult[MAX_LIGHTS];
-    String _diagLastWriteTraceMethod[MAX_LIGHTS];
-    String _diagLastWriteTraceEndpoint[MAX_LIGHTS];
+    unsigned long _diagLastKoCommandMs[MAX_CHANNELS];
+    uint8_t _diagLastKoType[MAX_CHANNELS];
+    String _diagLastKoValue[MAX_CHANNELS];
+    String _diagLastKoBlockReason[MAX_CHANNELS];
+    unsigned long _diagLastWriteTraceMs[MAX_CHANNELS];
+    unsigned long _diagLastWriteTraceDurationMs[MAX_CHANNELS];
+    int _diagLastWriteTraceHttpStatus[MAX_CHANNELS];
+    String _diagLastWriteTraceResult[MAX_CHANNELS];
+    String _diagLastWriteTraceMethod[MAX_CHANNELS];
+    String _diagLastWriteTraceEndpoint[MAX_CHANNELS];
 
     // Last setup snapshot for diagnostics.
     uint8_t _diagLastEnabledChannels;
@@ -213,6 +242,7 @@ private:
     void checkConnection();
     void refreshLightStatus();
     void applyEventStreamUpdates(const HueGatewayEventLightUpdate* updates, int updateCount);
+    void applyEventStreamDeviceUpdates(const HueGatewayEventSensorUpdate* updates, int updateCount);
     void setupWebUI();
     void setupMDNS();
     void refreshNetworkServices();
