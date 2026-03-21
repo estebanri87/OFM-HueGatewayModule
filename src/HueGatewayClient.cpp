@@ -473,6 +473,104 @@ int HueGatewayClient::getGroupedLights(HueGatewayLightState* groupedLights, int 
     return count;
 }
 
+int HueGatewayClient::getAccessoryDevices(HueGatewayAccessoryDevice* devices, int maxDevices)
+{
+    if (!_initialized || devices == nullptr || maxDevices <= 0)
+        return 0;
+
+    DynamicJsonDocument doc(32768);
+    DynamicJsonDocument filterDoc(640);
+    filterDoc.clear();
+    JsonObject filterRoot = filterDoc.to<JsonObject>();
+    JsonObject filterData = filterRoot["data"][0].to<JsonObject>();
+    filterData["id"] = true;
+    filterData["metadata"]["name"] = true;
+    filterData["metadata"]["archetype"] = true;
+    filterData["services"][0]["rid"] = true;
+    filterData["services"][0]["rtype"] = true;
+    doc.clear();
+    int statusCode = httpGet("/clip/v2/resource/device", doc, &filterDoc);
+    if (!isHttpSuccessStatus(statusCode))
+        return 0;
+
+    JsonArrayConst data = doc["data"].as<JsonArrayConst>();
+    int count = 0;
+
+    for (JsonObjectConst device : data)
+    {
+        if (count >= maxDevices)
+            break;
+
+        bool hasLight = false;
+        String lightRid;
+        String typeStr;
+        const char* archetype = device["metadata"]["archetype"] | "";
+
+        JsonArrayConst services = device["services"].as<JsonArrayConst>();
+        for (JsonObjectConst svc : services)
+        {
+            const char* rtype = svc["rtype"] | "";
+            if (strcmp(rtype, "light") == 0)
+            {
+                hasLight = true;
+                const char* rid = svc["rid"] | "";
+                if (rid[0] != '\0') lightRid = String(rid);
+                continue;
+            }
+            if (strcmp(rtype, "zigbee_connectivity") == 0)  continue;
+            if (strcmp(rtype, "device_software_update") == 0) continue;
+            if (strcmp(rtype, "device_power") == 0)         continue;
+            if (strcmp(rtype, "tamper") == 0)               continue;
+            if (strcmp(rtype, "entertainment") == 0)        continue;
+
+            const char* label = rtype;
+            if      (strcmp(rtype, "button") == 0)          label = "Taster";
+            else if (strcmp(rtype, "relative_rotary") == 0) label = "Drehelement";
+            else if (strcmp(rtype, "motion") == 0)          label = "Bewegungsmelder";
+            else if (strcmp(rtype, "contact_sensor") == 0)  label = "Kontaktsensor";
+            else if (strcmp(rtype, "temperature") == 0)     label = "Temperatursensor";
+            else if (strcmp(rtype, "light_level") == 0)     label = "Helligkeitssensor";
+
+            if (typeStr.length() > 0) typeStr += ", ";
+            typeStr += label;
+        }
+
+        // Smart Plugs: appear as light resources in the Hue API, detected via archetype
+        if (hasLight)
+        {
+            const bool isPlug = (strstr(archetype, "plug") != nullptr
+                                 || strstr(archetype, "socket") != nullptr
+                                 || strstr(archetype, "outlet") != nullptr);
+            if (!isPlug)
+                continue;  // regular light, skip
+
+            // Use the light resource ID so it can be copied directly into ETS config
+            const char* id   = lightRid.length() > 0 ? lightRid.c_str() : (device["id"] | "");
+            const char* name = device["metadata"]["name"] | "";
+            if (id[0] == '\0') continue;
+            devices[count].id   = String(id);
+            devices[count].name = String(name);
+            devices[count].type = "Steckdose";
+            count++;
+            continue;
+        }
+
+        if (typeStr.length() == 0) continue;
+
+        const char* id   = device["id"] | "";
+        const char* name = device["metadata"]["name"] | "";
+        if (id[0] == '\0') continue;
+
+        devices[count].id   = String(id);
+        devices[count].name = String(name);
+        devices[count].type = typeStr;
+        count++;
+    }
+
+    Serial.printf("[HueGatewayClient] Found accessory devices: %d\n", count);
+    return count;
+}
+
 void HueGatewayClient::appendDeviceLightLinksFromDoc(std::vector<DeviceLightLink>& links, const JsonDocument& doc)
 {
     JsonArrayConst data = doc["data"].as<JsonArrayConst>();
@@ -1418,6 +1516,31 @@ bool HueGatewayClient::setGroupedLightColor(const String& groupedLightId, float 
     return false;
 }
 
+bool HueGatewayClient::recallHueScene(const String& sceneRID)
+{
+    if (!_initialized || sceneRID.length() == 0)
+        return false;
+
+    String endpoint = "/clip/v2/resource/scene/" + sceneRID;
+
+    DynamicJsonDocument doc(128);
+    doc["recall"]["action"] = "active";
+
+    String payload;
+    serializeJson(doc, payload);
+
+    int statusCode = httpPut(endpoint, payload);
+
+    if (isHttpSuccessStatus(statusCode))
+    {
+        Serial.printf("[HueGatewayClient] Scene %s recalled\n", sceneRID.c_str());
+        return true;
+    }
+
+    Serial.printf("[HueGatewayClient] ERROR: Scene recall failed - HTTP %d\n", statusCode);
+    return false;
+}
+
 bool HueGatewayClient::pingBridgeApiV2()
 {
     if (!_initialized)
@@ -2073,5 +2196,406 @@ void HueGatewayClient::xyToRgb(float x, float y, uint8_t& red, uint8_t& green, u
     red = static_cast<uint8_t>(r * 255.0f);
     green = static_cast<uint8_t>(g * 255.0f);
     blue = static_cast<uint8_t>(b * 255.0f);
+}
+
+// ===== Sensoren: Bewegungsmelder, Kontakt, Taster =====
+
+bool HueGatewayClient::getMotionState(const String& motionRid, HueGatewayMotionState& state)
+{
+    if (!_initialized)
+        return false;
+
+    DynamicJsonDocument doc(1024);
+    const String endpoint = "/clip/v2/resource/motion/" + motionRid;
+    const int statusCode = httpGet(endpoint, doc);
+    if (!isHttpSuccessStatus(statusCode))
+    {
+        Serial.printf("[HueGatewayClient] getMotionState failed HTTP %d\n", statusCode);
+        return false;
+    }
+
+    JsonArrayConst data = doc["data"].as<JsonArrayConst>();
+    if (data.size() == 0)
+        return false;
+
+    JsonObjectConst item = data[0].as<JsonObjectConst>();
+    state.id = motionRid;
+    state.motionDetected = item["motion"]["motion"] | false;
+
+    // Besitzer-RID für optionale Zusatzdaten ermitteln
+    state.reachable = true;
+    String ownerRid;
+    if (item["owner"]["rtype"].as<String>() == "device")
+        ownerRid = item["owner"]["rid"].as<String>();
+
+    if (ownerRid.length() > 0)
+    {
+        fetchZigbeeReachableByOwner(ownerRid, state.reachable);
+        fetchTemperatureByOwner(ownerRid, state.temperature);
+        fetchLightLevelByOwner(ownerRid, state.lightLevelLux);
+        fetchBatteryByOwner(ownerRid, state.batteryPercent);
+    }
+    return true;
+}
+
+bool HueGatewayClient::getContactState(const String& contactRid, HueGatewayContactState& state)
+{
+    if (!_initialized)
+        return false;
+
+    DynamicJsonDocument doc(1024);
+    const String endpoint = "/clip/v2/resource/contact_sensor/" + contactRid;
+    const int statusCode = httpGet(endpoint, doc);
+    if (!isHttpSuccessStatus(statusCode))
+    {
+        Serial.printf("[HueGatewayClient] getContactState failed HTTP %d\n", statusCode);
+        return false;
+    }
+
+    JsonArrayConst data = doc["data"].as<JsonArrayConst>();
+    if (data.size() == 0)
+        return false;
+
+    JsonObjectConst item = data[0].as<JsonObjectConst>();
+    state.id = contactRid;
+    // "contact" = geschlossen, "no_contact" = geöffnet
+    const char* reportState = item["contact_report"]["state"] | "contact";
+    state.contactOpen = (strcmp(reportState, "no_contact") == 0);
+
+    // Besitzer-RID für optionale Zusatzdaten
+    state.reachable = true;
+    String ownerRid;
+    if (item["owner"]["rtype"].as<String>() == "device")
+        ownerRid = item["owner"]["rid"].as<String>();
+
+    if (ownerRid.length() > 0)
+    {
+        fetchZigbeeReachableByOwner(ownerRid, state.reachable);
+        fetchTamperByOwner(ownerRid, state.tampered);
+        fetchTemperatureByOwner(ownerRid, state.temperature);
+        fetchBatteryByOwner(ownerRid, state.batteryPercent);
+    }
+    return true;
+}
+
+// ===== Optionale Sensor-Zusatzdaten =====
+
+bool HueGatewayClient::getOwnerRidFromResource(const String& resourceType, const String& resourceId, String& ownerRid)
+{
+    if (!_initialized) return false;
+    DynamicJsonDocument doc(512);
+    const int sc = httpGet("/clip/v2/resource/" + resourceType + "/" + resourceId, doc);
+    if (!isHttpSuccessStatus(sc)) return false;
+    JsonArrayConst data = doc["data"].as<JsonArrayConst>();
+    if (data.size() == 0) return false;
+    const String rtype = data[0]["owner"]["rtype"].as<String>();
+    if (rtype != "device") return false;
+    ownerRid = data[0]["owner"]["rid"].as<String>();
+    return ownerRid.length() > 0;
+}
+
+bool HueGatewayClient::fetchTemperatureByOwner(const String& ownerRid, float& celsius)
+{
+    if (!_initialized) return false;
+    DynamicJsonDocument doc(2048);
+    const int sc = httpGet("/clip/v2/resource/temperature", doc);
+    if (!isHttpSuccessStatus(sc)) return false;
+    for (JsonObjectConst item : doc["data"].as<JsonArrayConst>())
+    {
+        if (item["owner"]["rid"].as<String>() == ownerRid)
+        {
+            celsius = item["temperature"]["temperature"] | NAN;
+            return !isnan(celsius);
+        }
+    }
+    return false;
+}
+
+bool HueGatewayClient::fetchLightLevelByOwner(const String& ownerRid, float& lux)
+{
+    if (!_initialized) return false;
+    DynamicJsonDocument doc(2048);
+    const int sc = httpGet("/clip/v2/resource/light_level", doc);
+    if (!isHttpSuccessStatus(sc)) return false;
+    for (JsonObjectConst item : doc["data"].as<JsonArrayConst>())
+    {
+        if (item["owner"]["rid"].as<String>() == ownerRid)
+        {
+            // Hue light_level: 10000 * log10(lux) + 1 → Rückrechnung
+            const int32_t hueLux = item["light"]["light_level"] | 0;
+            lux = (hueLux > 1) ? powf(10.0f, (hueLux - 1) / 10000.0f) : 0.0f;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool HueGatewayClient::fetchBatteryByOwner(const String& ownerRid, uint8_t& percent)
+{
+    if (!_initialized) return false;
+    DynamicJsonDocument doc(2048);
+    const int sc = httpGet("/clip/v2/resource/device_power", doc);
+    if (!isHttpSuccessStatus(sc)) return false;
+    for (JsonObjectConst item : doc["data"].as<JsonArrayConst>())
+    {
+        if (item["owner"]["rid"].as<String>() == ownerRid)
+        {
+            const int pct = item["power_state"]["battery_level"] | -1;
+            if (pct >= 0)
+            {
+                percent = static_cast<uint8_t>(min(pct, 100));
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool HueGatewayClient::fetchTamperByOwner(const String& ownerRid, bool& tampered)
+{
+    if (!_initialized) return false;
+    DynamicJsonDocument doc(2048);
+    const int sc = httpGet("/clip/v2/resource/tamper", doc);
+    if (!isHttpSuccessStatus(sc)) return false;
+    for (JsonObjectConst item : doc["data"].as<JsonArrayConst>())
+    {
+        if (item["owner"]["rid"].as<String>() == ownerRid)
+        {
+            for (JsonObjectConst report : item["tamper_reports"].as<JsonArrayConst>())
+            {
+                tampered = (report["state"].as<String>() == "tampered");
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool HueGatewayClient::fetchZigbeeReachableByOwner(const String& ownerRid, bool& reachable)
+{
+    if (!_initialized) return false;
+    DynamicJsonDocument doc(2048);
+    const int sc = httpGet("/clip/v2/resource/zigbee_connectivity", doc);
+    if (!isHttpSuccessStatus(sc)) return false;
+    for (JsonObjectConst item : doc["data"].as<JsonArrayConst>())
+    {
+        if (item["owner"]["rid"].as<String>() == ownerRid)
+        {
+            const String status = item["status"].as<String>();
+            reachable = (status == "connected");
+            return true;
+        }
+    }
+    return false;
+}
+
+bool HueGatewayClient::getButtonState(const String& buttonRid, HueGatewayButtonState& state)
+{
+    if (!_initialized)
+        return false;
+
+    DynamicJsonDocument doc(1024);
+    const String endpoint = "/clip/v2/resource/button/" + buttonRid;
+    const int statusCode = httpGet(endpoint, doc);
+    if (!isHttpSuccessStatus(statusCode))
+    {
+        Serial.printf("[HueGatewayClient] getButtonState failed HTTP %d\n", statusCode);
+        return false;
+    }
+
+    JsonArrayConst data = doc["data"].as<JsonArrayConst>();
+    if (data.size() == 0)
+        return false;
+
+    JsonObjectConst item = data[0].as<JsonObjectConst>();
+    state.id = buttonRid;
+    state.buttonIndex = item["metadata"]["control_id"] | 0;
+    state.lastEventType = item["button"]["last_event"] | "none";
+    return true;
+}
+
+// ===== Erweiterter Eventstream mit Sensorereignissen =====
+
+int HueGatewayClient::parseEventPayloadFull(const String& payload,
+                                             HueGatewayEventLightUpdate* lightUpdates, int maxLightUpdates,
+                                             HueGatewayEventSensorUpdate* sensorUpdates, int maxSensorUpdates,
+                                             int& sensorCount)
+{
+    sensorCount = 0;
+
+    // Licht-Events mit der existierenden Methode auslesen
+    int lightCount = 0;
+    if (lightUpdates != nullptr && maxLightUpdates > 0)
+        lightCount = parseEventPayload(payload, lightUpdates, maxLightUpdates);
+
+    if (sensorUpdates == nullptr || maxSensorUpdates <= 0 || payload.length() == 0)
+        return lightCount;
+
+    static DynamicJsonDocument sensorDoc(4096);
+    sensorDoc.clear();
+    if (deserializeJson(sensorDoc, payload) != DeserializationError::Ok)
+        return lightCount;
+
+    JsonArrayConst events = sensorDoc.as<JsonArrayConst>();
+    for (JsonObjectConst eventObj : events)
+    {
+        JsonArrayConst data = eventObj["data"].as<JsonArrayConst>();
+        for (JsonObjectConst item : data)
+        {
+            if (sensorCount >= maxSensorUpdates)
+                break;
+
+            const char* type = item["type"] | "";
+            const char* id = item["id"] | "";
+            if (id[0] == '\0')
+                continue;
+
+            if (strcmp(type, "motion") == 0)
+            {
+                JsonVariantConst motionVar = item["motion"]["motion"];
+                if (!motionVar.isNull())
+                {
+                    HueGatewayEventSensorUpdate& su = sensorUpdates[sensorCount++];
+                    su.type = HueGatewayEventSensorUpdate::Type::Motion;
+                    su.resourceId = String(id);
+                    su.motionDetected = motionVar.as<bool>();
+                }
+            }
+            else if (strcmp(type, "contact_sensor") == 0)
+            {
+                const char* s = item["contact_report"]["state"] | "";
+                if (s[0] != '\0')
+                {
+                    HueGatewayEventSensorUpdate& su = sensorUpdates[sensorCount++];
+                    su.type = HueGatewayEventSensorUpdate::Type::Contact;
+                    su.resourceId = String(id);
+                    su.contactOpen = (strcmp(s, "no_contact") == 0);
+                }
+            }
+            else if (strcmp(type, "button") == 0)
+            {
+                const char* lastEvent = item["button"]["last_event"] | "";
+                if (lastEvent[0] != '\0')
+                {
+                    HueGatewayEventSensorUpdate& su = sensorUpdates[sensorCount++];
+                    su.type = HueGatewayEventSensorUpdate::Type::Button;
+                    su.resourceId = String(id);
+                    su.buttonIndex = item["metadata"]["control_id"] | 0;
+                    su.buttonEventType = String(lastEvent);
+                }
+            }
+        }
+    }
+
+    return lightCount;
+}
+
+int HueGatewayClient::pollEventStreamFull(HueGatewayEventLightUpdate* lightUpdates, int maxLightUpdates,
+                                           HueGatewayEventSensorUpdate* sensorUpdates, int maxSensorUpdates,
+                                           int& sensorCount)
+{
+    // Eventstream-Handshake und Verbindungsaufbau über die bestehende Infrastruktur
+    // Die Sensor-Ereignisse werden zusätzlich zum normalen Light-Polling ausgelesen.
+    // pollEventStreamFull nutzt denselben _eventDataBuffer-Mechanismus wie pollEventStream,
+    // ruft aber parseEventPayloadFull auf, um beide Ereignistypen zu verarbeiten.
+
+    sensorCount = 0;
+    int lightCount = 0;
+
+    if (!_eventStreamConnected && !_eventHandshakePending)
+        return 0;
+
+    // Handshake-Timeout prüfen
+    if (_eventHandshakePending && (millis() - _eventHandshakeStartMs) > 10000UL)
+    {
+        Serial.println("[HueGatewayClient] EventStream handshake timeout");
+        _diagStats.eventHandshakeTimeoutCount++;
+        stopEventStream();
+        return 0;
+    }
+
+    while (_eventClient.available())
+    {
+        char c = static_cast<char>(_eventClient.read());
+        _eventLastDataMs = millis();
+
+        // Handshake-Zeilenende erkennen
+        if (_eventHandshakePending)
+        {
+            if (c == '\n')
+            {
+                _eventLineBuffer.trim();
+                if (_eventLineBuffer.length() == 0 && !_eventStreamConnected)
+                {
+                    int statusLine = _eventLineBuffer.toInt();
+                    (void)statusLine;
+                    _eventStreamConnected = true;
+                    _eventHandshakePending = false;
+                    _diagStats.eventConnectOk++;
+                    Serial.println("[HueGatewayClient] EventStream handshake complete");
+                }
+                _eventLineBuffer = "";
+            }
+            else if (c != '\r')
+            {
+                if (_eventLineBuffer.length() < kMaxEventLineChars)
+                    _eventLineBuffer += c;
+            }
+            continue;
+        }
+
+        if (c == '\n')
+        {
+            if (_eventLineBuffer.length() == 0)
+            {
+                if (_eventDataBuffer.length() > 0)
+                {
+                    int sc = 0;
+                    int lc = parseEventPayloadFull(_eventDataBuffer,
+                                                    lightUpdates + lightCount,
+                                                    maxLightUpdates - lightCount,
+                                                    sensorUpdates != nullptr ? sensorUpdates + sensorCount : nullptr,
+                                                    maxSensorUpdates - sensorCount,
+                                                    sc);
+                    if (lc < 0)
+                    {
+                        _eventDropCount++;
+                    }
+                    else
+                    {
+                        lightCount += lc;
+                        sensorCount += sc;
+                    }
+                    _eventDataBuffer = "";
+                }
+            }
+            else if (_eventLineBuffer.startsWith("data:"))
+            {
+                String dataPart = _eventLineBuffer.substring(5);
+                dataPart.trim();
+                _eventDataBuffer += dataPart;
+                if (_eventDataBuffer.length() > kMaxEventPayloadChars)
+                {
+                    _eventDropCount++;
+                    _eventDataBuffer = "";
+                }
+            }
+            _eventLineBuffer = "";
+        }
+        else if (c != '\r')
+        {
+            if (_eventLineBuffer.length() < kMaxEventLineChars)
+                _eventLineBuffer += c;
+        }
+    }
+
+    if (!_eventClient.connected())
+    {
+        _diagStats.eventDisconnectCount++;
+        Serial.println("[HueGatewayClient] EventStream disconnected (full poll)");
+        stopEventStream();
+    }
+
+    return lightCount;
 }
 
