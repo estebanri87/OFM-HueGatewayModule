@@ -230,6 +230,19 @@ Ermittlung über:
 Wichtig: Die UUID muss je Kanal exakt zur gewünschten Leuchte passen.
 
 <!-- DOC -->
+### Gerätetyp
+
+Legt fest, welche Art von Hue-Gerät der Kanal steuert. Je nach Gerätetyp werden unterschiedliche Parameter und KOs sichtbar:
+
+| Gerätetyp | Beschreibung | Verfügbare Funktionen |
+|---|---|---|
+| **Licht** | Hue-Leuchte (On/Off, Dimmbar, CT, RGB) | Schalten, Dimmen, CT, RGB, Szenen, HCL |
+| **Steckdose** | Smart Plug | Schalten, Szenen (nur Ein/Aus) |
+| **Taster/Schalter** | Hue-Schalter mit Tasten | KOs je Taste (Kurz/Lang) |
+| **Bewegungsmelder** | Hue-Bewegungssensor | Präsenz-KO, optional Lux/Temperatur |
+| **Kontaktsensor** | Hue-Tür-/Fensterkontakt | Kontakt-KO |
+
+<!-- DOC -->
 ### Lampentyp
 
 Der Lampentyp bestimmt, welche KOs sichtbar/aktiv sind:
@@ -237,6 +250,8 @@ Der Lampentyp bestimmt, welche KOs sichtbar/aktiv sind:
 - **Dimmbar**: zusätzlich Helligkeit/Dimmen + Status Helligkeit
 - **Farbtemperatur**: zusätzlich Farbtemperatur + Status Farbtemperatur
 - **Farbe RGB**: zusätzlich RGB + Status RGB
+
+Hinweis: Sichtbar nur bei Gerätetyp **Licht**.
 
 Hinweise:
 - Für Zieltyp **Raum/Zone** sind Schalten, Dimmen, Farbtemperatur und RGB grundsätzlich nutzbar.
@@ -291,6 +306,64 @@ Mindestwert für Helligkeit >0, um Flackern bei niedrigen Dimmwerten zu vermeide
 Beispiel: `5 %` für kritische Leuchten.
 
 <!-- DOC -->
+### Szenensteuerung
+
+Ermöglicht die Zuordnung von KNX-Szenen (DPT 18.001) zu Hue-Aktionen. Bis zu **8 Szenen-Slots** je Kanal stehen zur Verfügung.
+
+#### Szenensteuerung aktivieren
+
+Aktiviert die Szenensteuerung für den Kanal und blendet das Szenen-KO sowie die Szenen-Konfigurationsseite ein.
+
+#### Szene speichern
+
+Legt fest, ob das Szenen-KO auch Speicherbefehle (DPT 18.001, Bit 7 = 1) auswertet.
+
+- **Deaktiviert**: Nur Abruf (DPT 17.001-kompatibel, Bit 7 wird ignoriert)
+- **Aktiviert**: Abruf und Speichern (DPT 18.001); ein Speicherbefehl sichert den aktuellen Istzustand in den jeweiligen Slot
+
+#### Szene 1..8 (Slots)
+
+Jeder Slot kann unabhängig parametriert werden. Ist die **Szenennummer** auf `0` (inaktiv) gesetzt, wird der Slot ignoriert.
+
+**Szenennummer**: KNX-Szenennummer 1..64 (entspricht Bit 0..5 im DPT, also KNX-intern 0..63)
+
+**Aktion**: Legt fest, was beim Abruf dieser Szene passiert. Die verfügbaren Optionen hängen vom **Lampentyp** des Kanals ab:
+
+| Aktion | Beschreibung | Lampentyp |
+|---|---|---|
+| Ausschalten | Licht aus | alle |
+| Einschalten | Licht ein (letzte Helligkeit) | alle |
+| Helligkeit setzen | Ein + Helligkeitswert | Dimmbar, CT, RGB |
+| Farbtemperatur setzen | Ein + CT-Wert | CT, RGB |
+| Helligkeit + Farbtemperatur | Ein + Helligkeit + CT | CT, RGB |
+| Farbe (RGB) setzen | Ein + RGB-Wert | RGB |
+| Helligkeit + Farbe (RGB) | Ein + Helligkeit + RGB | RGB |
+| Hue Szene abrufen | Ruft eine Hue-Szene per RID ab | alle (außer Steckdose) |
+
+**Helligkeit**: Prozentwert 0..100 % (wird bei Aktionen mit Helligkeit verwendet)
+
+**Farbtemperatur**: Kelvin-Wert 2000..6500 K (wird bei Aktionen mit CT verwendet)
+
+**Rot / Grün / Blau**: RGB-Werte 0..255 (werden bei Aktionen mit Farbe verwendet)
+
+**Hue-Szene**: Referenz auf eine der 8 global konfigurierten Hue-Szenen (→ Abschnitt [Hue Szenen (global)](#hue-szenen-global)). Sichtbar nur bei Aktion „Hue Szene abrufen".
+
+#### Lichtmanager-Sperre bei Szenen
+
+Wenn einem Kanal ein Lichtmanager zugeordnet ist, **sperrt ein erfolgreicher Szenen-Abruf automatisch die HCL-Kanalausgabe** für diesen Kanal. Damit behält das Licht nach dem Szenen-Abruf seinen Szenen-Wert, ohne dass der Lichtmanager ihn überschreibt.
+
+Die Sperre wird aufgehoben durch:
+- **Aus-Befehl** per KNX-Schalten-KO → Sperre wird sofort zurückgesetzt
+- Ablauf der konfigurierten Rückfallzeit (→ Abschnitt [Sperre (kanal-spezifisch)](#sperre-kanal-spezifisch))
+- Globales Entsperren per KO
+
+#### Szene speichern (Laufzeit)
+
+Wenn **Szene speichern** aktiviert ist und ein Speicherbefehl (DPT 18.001, Bit 7 = 1) empfangen wird, wird der aktuelle Istzustand des Kanals (Schaltzustand, Helligkeit, CT, RGB) persistent gespeichert. Beim nächsten Abruf dieser Szenennummer wird der gespeicherte Wert anstelle des ETS-Preset verwendet.
+
+Hinweis: Gespeicherte Szenen werden im Flash des Geräts abgelegt und überleben einen Neustart.
+
+<!-- DOC -->
 ### Lichtmanager Zuordnung
 
 Ordnet den Kanal einem Lichtmanager (1..8) zu.
@@ -311,6 +384,11 @@ Option je Kanal:
 - **Rückfallzeit nach Sperre** (inkl. Tageswechsel, `kein Rückfall` möglich)
 - **Rückfallstrategie nach Sperre**: zentrale Vorgabe, siehe Abschnitt [Rückfallstrategie nach Sperre](#rückfallstrategie-nach-sperre)
 
+**Automatische Sperre durch Szenen-Abruf**: Wenn ein Kanal einem Lichtmanager zugeordnet ist und eine Szene abgerufen wird, wird die HCL-Kanalsperre automatisch aktiviert. Die Sperre wird aufgehoben durch:
+- Einen **Aus-Befehl** (KNX-Schalten-KO, Wert 0) → sofortiges Aufheben
+- Ablauf der konfigurierten **Rückfallzeit**
+- Globales Entsperren per KO `Entsperren Trigger`
+
 KOs je Kanal:
 - `Sperre` (Eingang)
 - `Status Sperre` (Ausgang)
@@ -322,6 +400,19 @@ Praxisbeispiel:
 
 <!-- DOC -->
 ## Lichtmanager
+
+<!-- DOC -->
+### Hue Szenen (global)
+
+Bis zu **8 Hue-Szenen** können global (auf Modulebene) als RID-Referenz hinterlegt werden. Diese werden in der Szenensteuerung der Kanäle bei Aktion **"Hue Szene abrufen"** ausgewählt.
+
+- **Hue Szene 1..8 (RID)**: Ressourcen-ID der Szene aus dem Hue-System
+
+Ermittlung der Scene-RID:
+- Hue App → Szenen-Details (nicht immer direkt zugänglich)
+- Hue API v2: `GET /clip/v2/resource/scene`
+
+Hinweis: Eine Hue-Szene wird direkt über die Bridge aktiviert und kann beliebig viele Leuchten umfassen. Sie eignet sich für komplexe Beleuchtungseffekte, die nicht per ETS-Preset abgebildet werden können.
 
 <!-- DOC -->
 ### Human Centric Lighting
@@ -365,7 +456,7 @@ Verfügbare Strategien:
 1. **Definierte Rückfallzeit**: verwendet ausschließlich die gewählte Rückfallzeit aus der Dropdown-Liste.
 2. **Freie Dauer**: verwendet den Parameter **Freie Rückfalldauer** in Sekunden.
 3. **Freie Uhrzeit**: verwendet den Parameter **Rückfall-Uhrzeit (HH:MM)**.
-4. **Dauer ODER Uhrzeit**: hebt die Sperre auf, sobald entweder die freie Dauer abgelaufen ist oder die Rückfall-Uhrzeit erreicht wird.
+4. **Dauer oder Uhrzeit**: hebt die Sperre auf, sobald entweder die freie Dauer abgelaufen ist oder die Rückfall-Uhrzeit erreicht wird.
 5. **Nur externes Entsperren**: es erfolgt keine automatische Freigabe; die Sperre muss über ein KO aufgehoben werden.
 
 Ergänzende Parameter:
@@ -538,6 +629,16 @@ Hinweise:
 - Sichtbar nur bei aktivem Lichtmanager am Kanal und geeignetem Lampentyp.
 
 <!-- DOC -->
+#### Szenen
+
+1-Byte KO (DPT 18.001) zum Abrufen und optionalen Speichern von Szenen.
+
+- **Bit 7 = 0 (Abruf)**: Bits 0..5 = Szenennummer 0..63 (entspricht ETS-Szene 1..64)
+- **Bit 7 = 1 (Speichern)**: Bits 0..5 = Szenennummer; nur wenn **Szene speichern** aktiviert ist
+
+Sichtbar nur wenn **Szenensteuerung aktivieren** am Kanal gesetzt ist.
+
+<!-- DOC -->
 ## Projektierungsbeispiele
 
 ### Beispiel 1: Schalten ohne Rückmeldung
@@ -606,10 +707,12 @@ Hinweise:
 
 - Bridge gefunden und authentifiziert
 - Zieltyp und Hue Ziel pro Kanal geprüft
-- Lampentyp passend zur realen Leuchte
+- Gerätetyp und Lampentyp passend zur realen Hardware
 - Sync/Polling passend zur Anwendung
 - Benötigte Status-KOs mit GAs verbunden
 - Lichtmanager-Funktion inkl. Sperren (global/spezifisch) getestet
+- Szenensteuerung: Szenennummern, Aktionen und Preset-Werte geprüft
+- Bei Szene + Lichtmanager: Verhalten nach Aus-Befehl verifiziert (Sperre wird aufgehoben)
 
 <!-- DOC -->
 ## Lizenz und Haftung
