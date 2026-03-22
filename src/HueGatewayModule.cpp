@@ -2801,6 +2801,17 @@ void HueGatewayModule::setupDevices()
                         false, koBase + 3, false, koBase + 5, false, koBase + 6, false, koBase + 4
                         #endif
                     );
+                    // Resolve service RIDs so SSE events are matched correctly
+                    {
+                        static constexpr int kMaxSvc = 16;
+                        HueGatewayServiceRid svc[kMaxSvc];
+                        const int n = _client->getDeviceServiceRids(resourceId, svc, kMaxSvc);
+                        for (int s = 0; s < n; s++)
+                        {
+                            if (svc[s].rtype.equalsIgnoreCase("motion"))
+                                static_cast<HueGatewaySensor*>(_devices[ch])->setMotionServiceRid(svc[s].rid);
+                        }
+                    }
                     _channelLastPollMs[ch] = 0;
                     mappedChannels[ch] = true;
                     mappedCount++;
@@ -2824,11 +2835,22 @@ void HueGatewayModule::setupDevices()
                         _devices[ch] = new (std::nothrow) HueGatewayButton(resourceId, resourceId, btnCount);
                         if (!_devices[ch]) continue;
                     }
-                    static_cast<HueGatewayButton*>(_devices[ch])->begin(
-                        koBase + 0,
-                        koBase + 3,
-                        koBase + 9,
-                        koBase + 10);
+                    auto* btn = static_cast<HueGatewayButton*>(_devices[ch]);
+                    btn->begin(koBase);
+                    // Resolve service RIDs so SSE button/rotary events are matched correctly
+                    {
+                        static constexpr int kMaxSvc = 16;
+                        HueGatewayServiceRid svc[kMaxSvc];
+                        const int n = _client->getDeviceServiceRids(resourceId, svc, kMaxSvc);
+                        uint8_t btnRidIdx = 0;
+                        for (int s = 0; s < n; s++)
+                        {
+                            if (svc[s].rtype.equalsIgnoreCase("button") && btnRidIdx < HueGatewayButton::MAX_BUTTONS)
+                                btn->setButtonServiceRid(btnRidIdx++, svc[s].rid);
+                            else if (svc[s].rtype.equalsIgnoreCase("relative_rotary"))
+                                btn->setRotaryServiceRid(svc[s].rid);
+                        }
+                    }
                     _channelLastPollMs[ch] = 0;
                     mappedChannels[ch] = true;
                     mappedCount++;
@@ -2857,6 +2879,17 @@ void HueGatewayModule::setupDevices()
                         false, koBase + 3, false, koBase + 4, false, koBase + 9
                         #endif
                     );
+                    // Resolve service RIDs so SSE events are matched correctly
+                    {
+                        static constexpr int kMaxSvc = 16;
+                        HueGatewayServiceRid svc[kMaxSvc];
+                        const int n = _client->getDeviceServiceRids(resourceId, svc, kMaxSvc);
+                        for (int s = 0; s < n; s++)
+                        {
+                            if (svc[s].rtype.equalsIgnoreCase("contact_sensor"))
+                                static_cast<HueGatewayContact*>(_devices[ch])->setContactServiceRid(svc[s].rid);
+                        }
+                    }
                     _channelLastPollMs[ch] = 0;
                     mappedChannels[ch] = true;
                     mappedCount++;
@@ -5946,7 +5979,7 @@ void HueGatewayModule::applyEventStreamDeviceUpdates(const HueGatewayEventSensor
         for (int i = 0; i < MAX_LIGHTS; i++)
         {
             if (_devices[i] == nullptr) continue;
-            if (!_devices[i]->getResourceId().equalsIgnoreCase(upd.resourceId)) continue;
+            if (!_devices[i]->matchesEventRid(upd.resourceId)) continue;
 
             uint8_t _channelIndex = static_cast<uint8_t>(i);
             #ifdef ParamHUE_CHSyncDir
@@ -5976,14 +6009,19 @@ void HueGatewayModule::applyEventStreamDeviceUpdates(const HueGatewayEventSensor
                 case Type::Button:
                     if (_devices[i]->deviceType() == 2)
                     {
-                        bool pressed = (upd.buttonEventType == "initial_press"
-                                        || upd.buttonEventType == "repeat"
-                                        || upd.buttonEventType == "short_release"
-                                        || upd.buttonEventType == "long_release");
-                        static_cast<HueGatewayButton*>(_devices[i])->triggerButton(
-                            static_cast<uint8_t>(upd.buttonIndex), pressed);
-                        Serial.printf("[HueGatewayModule] EventStream Button -> ch%d btn=%d event=%s\n",
+                        static_cast<HueGatewayButton*>(_devices[i])->handleButtonEvent(
+                            upd.buttonIndex, upd.buttonEventType);
+                        Serial.printf("[HueGatewayModule] EventStream Button -> ch%d ctrl=%d event=%s\n",
                                       i + 1, upd.buttonIndex, upd.buttonEventType.c_str());
+                    }
+                    break;
+                case Type::Rotary:
+                    if (_devices[i]->deviceType() == 2)
+                    {
+                        static_cast<HueGatewayButton*>(_devices[i])->handleRotaryEvent(
+                            upd.rotaryClockwise, upd.rotarySteps);
+                        Serial.printf("[HueGatewayModule] EventStream Rotary -> ch%d %s steps=%d\n",
+                                      i + 1, upd.rotaryClockwise ? "CW" : "CCW", upd.rotarySteps);
                     }
                     break;
                 default:

@@ -109,10 +109,17 @@ struct HueGatewayAccessoryDevice
     String type;  // z.B. "Taster", "Bewegungsmelder", "Kontaktsensor"
 };
 
-/** Sensorereignis aus dem SSE-Eventstream (Bewegungsmelder, Kontakt, Taster) */
+/** Einzelner Service-Eintrag eines Hue-Geräts (z.B. button, motion, relative_rotary) */
+struct HueGatewayServiceRid
+{
+    String rtype;  // z.B. "button", "motion", "contact_sensor", "relative_rotary"
+    String rid;    // Service Resource ID (UUID)
+};
+
+/** Sensorereignis aus dem SSE-Eventstream (Bewegungsmelder, Kontakt, Taster, Drehregler) */
 struct HueGatewayEventSensorUpdate
 {
-    enum class Type { Unknown, Motion, Contact, Button };
+    enum class Type { Unknown, Motion, Contact, Button, Rotary };
     Type type;
     String resourceId;
     // Motion
@@ -122,6 +129,10 @@ struct HueGatewayEventSensorUpdate
     // Button
     int buttonIndex;
     String buttonEventType;
+    // Rotary
+    bool rotaryClockwise;
+    int rotarySteps;
+    int rotaryDurationMs;
 };
 
 class HueGatewayClient
@@ -354,6 +365,18 @@ public:
      * @return true bei Erfolg
      */
     bool recallHueScene(const String& sceneRID);
+
+    // ---- Geräte-Service-RIDs ----
+
+    /**
+     * @brief Liest alle Service-RIDs (button, motion, contact_sensor, relative_rotary …)
+     *        eines Hue-Geräts aus der Bridge.
+     * @param deviceId Device Resource ID (UUID, ohne Typ-Präfix)
+     * @param out       Array der Ausgabe-Einträge
+     * @param maxCount  Maximale Anzahl Einträge (Array-Größe)
+     * @return Anzahl gefundener Service-RIDs (0 bei Fehler)
+     */
+    int getDeviceServiceRids(const String& deviceId, HueGatewayServiceRid* out, int maxCount);
 
 private:
     bool _initialized;

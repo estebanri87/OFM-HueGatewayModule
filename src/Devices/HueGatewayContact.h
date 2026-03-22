@@ -57,6 +57,19 @@ public:
         _initialized  = true;
     }
 
+    /** Sets the contact service RID (for SSE event matching). */
+    void setContactServiceRid(const String& rid) { _contactServiceRid = rid; }
+
+    /** Returns true if the given SSE resource ID matches this sensor. */
+    bool matchesServiceRid(const String& rid) const
+    {
+        if (_contactServiceRid.length() > 0)
+            return _contactServiceRid.equalsIgnoreCase(rid);
+        return _resourceId.equalsIgnoreCase(rid);
+    }
+
+    bool matchesEventRid(const String& rid) const override { return matchesServiceRid(rid); }
+
     /**
      * @brief Lightweight update from SSE event (contact only, no optional KO data).
      */
@@ -96,6 +109,7 @@ public:
 private:
     String _resourceId;
     String _name;
+    String _contactServiceRid;  // contact_sensor service RID for SSE matching
     bool _contactOpen;
     bool _reachable;
     bool _tampered;

@@ -1541,6 +1541,48 @@ bool HueGatewayClient::recallHueScene(const String& sceneRID)
     return false;
 }
 
+int HueGatewayClient::getDeviceServiceRids(const String& deviceId, HueGatewayServiceRid* out, int maxCount)
+{
+    if (!_initialized || deviceId.length() == 0 || out == nullptr || maxCount <= 0)
+        return 0;
+
+    String endpoint = "/clip/v2/resource/device/" + deviceId;
+    DynamicJsonDocument doc(2048);
+    int statusCode = httpGet(endpoint, doc);
+    if (!isHttpSuccessStatus(statusCode))
+    {
+        Serial.printf("[HueGatewayClient] getDeviceServiceRids: HTTP %d for device %s\n",
+                      statusCode, deviceId.c_str());
+        return 0;
+    }
+
+    int count = 0;
+    JsonArrayConst dataArr = doc["data"].as<JsonArrayConst>();
+    for (JsonObjectConst device : dataArr)
+    {
+        JsonArrayConst services = device["services"].as<JsonArrayConst>();
+        for (JsonObjectConst svc : services)
+        {
+            if (count >= maxCount)
+                break;
+            const char* rtype = svc["rtype"] | "";
+            const char* rid   = svc["rid"]   | "";
+            if (rtype[0] != '\0' && rid[0] != '\0')
+            {
+                out[count].rtype = String(rtype);
+                out[count].rid   = String(rid);
+                count++;
+            }
+        }
+        if (count >= maxCount)
+            break;
+    }
+
+    Serial.printf("[HueGatewayClient] getDeviceServiceRids: device %s -> %d services\n",
+                  deviceId.c_str(), count);
+    return count;
+}
+
 bool HueGatewayClient::pingBridgeApiV2()
 {
     if (!_initialized)
@@ -2482,6 +2524,25 @@ int HueGatewayClient::parseEventPayloadFull(const String& payload,
                     su.resourceId = String(id);
                     su.buttonIndex = item["metadata"]["control_id"] | 0;
                     su.buttonEventType = String(lastEvent);
+                }
+            }
+            else if (strcmp(type, "relative_rotary") == 0)
+            {
+                JsonObjectConst rotation = item["relative_rotary"]["last_event"]["rotation"];
+                if (!rotation.isNull())
+                {
+                    const char* direction = rotation["direction"] | "";
+                    int steps    = rotation["steps"]    | 0;
+                    int duration = rotation["duration"] | 0;
+                    if (direction[0] != '\0' && steps != 0)
+                    {
+                        HueGatewayEventSensorUpdate& su = sensorUpdates[sensorCount++];
+                        su.type = HueGatewayEventSensorUpdate::Type::Rotary;
+                        su.resourceId = String(id);
+                        su.rotaryClockwise  = (strcmp(direction, "clock_wise") == 0);
+                        su.rotarySteps      = steps;
+                        su.rotaryDurationMs = duration;
+                    }
                 }
             }
         }

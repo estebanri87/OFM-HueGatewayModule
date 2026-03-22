@@ -56,6 +56,19 @@ public:
         _initialized    = true;
     }
 
+    /** Sets the motion service RID (for SSE event matching). */
+    void setMotionServiceRid(const String& rid) { _motionServiceRid = rid; }
+
+    /** Returns true if the given SSE resource ID matches this sensor. */
+    bool matchesServiceRid(const String& rid) const
+    {
+        if (_motionServiceRid.length() > 0)
+            return _motionServiceRid.equalsIgnoreCase(rid);
+        return _resourceId.equalsIgnoreCase(rid);
+    }
+
+    bool matchesEventRid(const String& rid) const override { return matchesServiceRid(rid); }
+
     /**
      * @brief Lightweight update from SSE event (motion only, no optional KO data).
      */
@@ -98,6 +111,7 @@ public:
 private:
     String _resourceId;
     String _name;
+    String _motionServiceRid;   // motion service RID for SSE matching
     bool _motion;
     bool _reachable;
     float _temperature;
