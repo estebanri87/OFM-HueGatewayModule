@@ -402,10 +402,7 @@
 
               <!-- Invertiert-Flag pro Taste (kehrt Richtung bei Dimmen/Jalousie um) -->
               <ParameterType Id="%AID%_PT-HUEButtonInvert" Name="HUEButtonInvert">
-                <TypeRestriction Base="Value" SizeInBit="1" UIHint="DropDown">
-                  <Enumeration Text="Normal"    Value="0" Id="%ENID%" />
-                  <Enumeration Text="Invertiert" Value="1" Id="%ENID%" />
-                </TypeRestriction>
+                <TypeNumber SizeInBit="1" Type="unsignedInt" minInclusive="0" maxInclusive="1" UIHint="CheckBox" />
               </ParameterType>
 
               <!-- Szenen-Nummer (1-64) -->
