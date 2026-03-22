@@ -8,7 +8,15 @@ namespace
 {
 static constexpr unsigned long kGlobalHclWriteSpacingMs = 220UL;
 static unsigned long sGlobalHclWriteNextAllowedMs = 0UL;
-static constexpr unsigned long kRelativeDimRepeatMs = 120UL;
+
+static unsigned long relativeDimRepeatMs()
+{
+#ifdef ParamHUE_HUERelDimRepeatMs
+    return (unsigned long)ParamHUE_HUERelDimRepeatMs;
+#else
+    return 120UL;
+#endif
+}
 
 uint16_t stablePhaseOffsetMs(const String& id)
 {
@@ -271,7 +279,7 @@ void HueGatewayLight::processKnxDimming(uint8_t control)
     _relativeDimHoldActive = true;
     _relativeDimHoldBrighter = brighter;
     _relativeDimHoldSteps = steps;
-    _relativeDimNextMs = nowMs + kRelativeDimRepeatMs;
+    _relativeDimNextMs = nowMs + relativeDimRepeatMs();
 
     // Use relative delta API when healthy, otherwise fallback to stable legacy path.
     if (_relativeDimCooldownUntilMs == 0 || nowMs >= _relativeDimCooldownUntilMs)
@@ -792,7 +800,7 @@ void HueGatewayLight::loop()
                 commandOk = true;
             }
 
-            _relativeDimNextMs = nowMs + (commandOk ? kRelativeDimRepeatMs : 120UL);
+            _relativeDimNextMs = nowMs + relativeDimRepeatMs();
         }
     }
 

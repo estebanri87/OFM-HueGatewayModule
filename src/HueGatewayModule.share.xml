@@ -75,6 +75,11 @@
               <ParameterType Id="%AID%_PT-HUESwitchTransitionSec" Name="HUESwitchTransitionSec">
                 <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="30" />
               </ParameterType>
+
+              <!-- Relative Dimmwiederholzeit (Millisekunden, 20-500 ms) -->
+              <ParameterType Id="%AID%_PT-HUERelDimRepeatMs" Name="HUERelDimRepeatMs">
+                <TypeNumber SizeInBit="16" Type="unsignedInt" minInclusive="20" maxInclusive="500" />
+              </ParameterType>
               
               <!-- Helligkeit -->
               <ParameterType Id="%AID%_PT-HUEBrightness" Name="HUEBrightness">
@@ -1114,6 +1119,11 @@
               <Parameter Id="%AID%_P-%TT%00077" Name="HUEScenesEnable" ParameterType="%AID%_PT-CheckBox" Text="Hue Szenen aktivieren" Value="0">
                 <Memory CodeSegment="%MID%" Offset="1713" BitOffset="0" />
               </Parameter>
+
+              <!-- Relative Dimmwiederholzeit (ms) -->
+              <Parameter Id="%AID%_P-%TT%00078" Name="HUERelDimRepeatMs" ParameterType="%AID%_PT-HUERelDimRepeatMs" Text="Dimmwiederholzeit" Value="120" SuffixText=" ms">
+                <Memory CodeSegment="%MID%" Offset="1714" BitOffset="0" />
+              </Parameter>
             </Parameters>
             
             <ParameterRefs>
@@ -1182,6 +1192,7 @@
               <ParameterRef Id="%AID%_P-%TT%00075_R-%TT%0007501" RefId="%AID%_P-%TT%00075" />
               <ParameterRef Id="%AID%_P-%TT%00076_R-%TT%0007601" RefId="%AID%_P-%TT%00076" />
               <ParameterRef Id="%AID%_P-%TT%00077_R-%TT%0007701" RefId="%AID%_P-%TT%00077" />
+              <ParameterRef Id="%AID%_P-%TT%00078_R-%TT%0007801" RefId="%AID%_P-%TT%00078" />
 
               <ParameterRef Id="%AID%_P-%TT%10100_R-%TT%1010001" RefId="%AID%_P-%TT%10100" />
               <ParameterRef Id="%AID%_P-%TT%20100_R-%TT%2010001" RefId="%AID%_P-%TT%20100" />
@@ -1682,6 +1693,11 @@
                 <ParameterRefRef RefId="%AID%_P-%TT%00040_R-%TT%0004001" HelpContext="HUE-Einstellungen" />
                 <ParameterRefRef RefId="%AID%_P-%TT%00041_R-%TT%0004101" HelpContext="HUE-Einstellungen" />
                 <ParameterSeparator Id="%AID%_PS-HUESwitchTransitionInfo" Text="Hinweis: Hue-Leuchten haben je nach Modell/Firmware ein eigenes Übergangsverhalten. Die eingestellten Zeiten wirken zusätzlich darauf, daher kann die reale Schaltzeit leicht abweichen." UIHint="Information" HelpContext="HUE-Bridge-Konfiguration" />
+
+                <ParameterSeparator Id="%AID%_PS-HUERelDimLine" Text="" UIHint="HorizontalRuler" />
+                <ParameterSeparator Id="%AID%_PS-HUERelDim" Text="Relatives Dimmen" UIHint="Headline" HelpContext="HUE-Bridge-Konfiguration" />
+                <ParameterRefRef RefId="%AID%_P-%TT%00078_R-%TT%0007801" HelpContext="HUE-Einstellungen" />
+                <ParameterSeparator Id="%AID%_PS-HUERelDimInfo" Text="Wiederholintervall für KNX-Dimmbefehle (DPT 3.007). Kleinere Werte = schnellere Dimmreaktion, größere Werte = weniger API-Last." UIHint="Information" HelpContext="HUE-Bridge-Konfiguration" />
                 
                 <!-- Status-KO nur anzeigen wenn aktiviert -->
                 <choose ParamRefId="%AID%_P-%TT%00006_R-%TT%0000601">
