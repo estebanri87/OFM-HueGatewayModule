@@ -281,7 +281,6 @@ private:
     {
         using BF = ButtonFunction;
         const uint16_t ko0 = _koBtn[idx][0];
-        const uint16_t ko1 = _koBtn[idx][1];
         const bool inv = _btnInvert[idx];
 
         switch (_btnFunction[idx])

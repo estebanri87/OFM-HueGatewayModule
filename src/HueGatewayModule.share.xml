@@ -383,6 +383,55 @@
                 <TypeText SizeInBit="320" />
               </ParameterType>
 
+              <!-- ---- Taster-Erweitert: Tastenfunktion pro Taste ---- -->
+              <ParameterType Id="%AID%_PT-HUEButtonFunction" Name="HUEButtonFunction">
+                <TypeRestriction Base="Value" SizeInBit="3" UIHint="DropDown">
+                  <Enumeration Text="Schalten"          Value="0" Id="%ENID%" />
+                  <Enumeration Text="Dimmen"            Value="1" Id="%ENID%" />
+                  <Enumeration Text="Jalousie"          Value="2" Id="%ENID%" />
+                  <Enumeration Text="Mediensteuerung"   Value="3" Id="%ENID%" />
+                  <Enumeration Text="Szene"             Value="4" Id="%ENID%" />
+                  <Enumeration Text="Zwei Objekte"      Value="5" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+
+              <!-- Invertiert-Flag pro Taste (kehrt Richtung bei Dimmen/Jalousie um) -->
+              <ParameterType Id="%AID%_PT-HUEButtonInvert" Name="HUEButtonInvert">
+                <TypeRestriction Base="Value" SizeInBit="1" UIHint="CheckBox">
+                  <Enumeration Text="Normal"    Value="0" Id="%ENID%" />
+                  <Enumeration Text="Invertiert" Value="1" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+
+              <!-- Szenen-Nummer (1-64) -->
+              <ParameterType Id="%AID%_PT-HUESceneNrButton" Name="HUESceneNrButton">
+                <TypeNumber SizeInBit="6" Type="unsignedInt" minInclusive="1" maxInclusive="64" />
+              </ParameterType>
+
+              <!-- Hat Drehregler? -->
+              <ParameterType Id="%AID%_PT-HUEHasRotary" Name="HUEHasRotary">
+                <TypeRestriction Base="Value" SizeInBit="1" UIHint="CheckBox">
+                  <Enumeration Text="Kein Drehregler" Value="0" Id="%ENID%" />
+                  <Enumeration Text="Drehregler vorhanden" Value="1" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+
+              <!-- Drehregler-Funktion -->
+              <ParameterType Id="%AID%_PT-HUERotaryFunction" Name="HUERotaryFunction">
+                <TypeRestriction Base="Value" SizeInBit="3" UIHint="DropDown">
+                  <Enumeration Text="Dimmen"             Value="0" Id="%ENID%" />
+                  <Enumeration Text="Wertgeber"          Value="1" Id="%ENID%" />
+                  <Enumeration Text="Lautstärke"         Value="2" Id="%ENID%" />
+                  <Enumeration Text="Farbtemperatur"     Value="3" Id="%ENID%" />
+                  <Enumeration Text="Jalousie-Lamelle"   Value="4" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+
+              <!-- Drehregler-Schrittweite (1-25 % pro Schritt) -->
+              <ParameterType Id="%AID%_PT-HUERotaryStepPercent" Name="HUERotaryStepPercent">
+                <TypeNumber SizeInBit="5" Type="unsignedInt" minInclusive="1" maxInclusive="25" />
+              </ParameterType>
+
             </ParameterTypes>
             
             <Parameters>

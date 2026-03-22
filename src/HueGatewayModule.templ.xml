@@ -214,7 +214,38 @@
               <Parameter Id="%AID%_P-%TT%5%CC%097" Name="CH%C%Scene8Red" ParameterType="%AID%_PT-HUESceneRGB" Text="Rot" Value="0"><Memory CodeSegment="%MID%" Offset="158" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-%TT%5%CC%098" Name="CH%C%Scene8Green" ParameterType="%AID%_PT-HUESceneRGB" Text="Grün" Value="0"><Memory CodeSegment="%MID%" Offset="159" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-%TT%5%CC%099" Name="CH%C%Scene8Blue" ParameterType="%AID%_PT-HUESceneRGB" Text="Blau" Value="0"><Memory CodeSegment="%MID%" Offset="160" BitOffset="0" /></Parameter>
-              
+
+              <!-- ===== Tasterkanal: Taste 1 + Taste 2 Funktion/Invertiert (Offset 161) ===== -->
+              <Union Id="%AID%_U-%TT%5%CC%130" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="161" BitOffset="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%130" Name="CH%C%Btn1Function" ParameterType="%AID%_PT-HUEButtonFunction" Offset="0" BitOffset="0" Text="Taste 1 Funktion" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%131" Name="CH%C%Btn1Invert" ParameterType="%AID%_PT-HUEButtonInvert" Offset="0" BitOffset="3" Text="Taste 1 invertieren" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%132" Name="CH%C%Btn2Function" ParameterType="%AID%_PT-HUEButtonFunction" Offset="0" BitOffset="4" Text="Taste 2 Funktion" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%133" Name="CH%C%Btn2Invert" ParameterType="%AID%_PT-HUEButtonInvert" Offset="0" BitOffset="7" Text="Taste 2 invertieren" Value="0" />
+              </Union>
+
+              <!-- ===== Tasterkanal: Taste 3 + Taste 4 Funktion/Invertiert (Offset 162) ===== -->
+              <Union Id="%AID%_U-%TT%5%CC%131" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="162" BitOffset="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%134" Name="CH%C%Btn3Function" ParameterType="%AID%_PT-HUEButtonFunction" Offset="0" BitOffset="0" Text="Taste 3 Funktion" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%135" Name="CH%C%Btn3Invert" ParameterType="%AID%_PT-HUEButtonInvert" Offset="0" BitOffset="3" Text="Taste 3 invertieren" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%136" Name="CH%C%Btn4Function" ParameterType="%AID%_PT-HUEButtonFunction" Offset="0" BitOffset="4" Text="Taste 4 Funktion" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%137" Name="CH%C%Btn4Invert" ParameterType="%AID%_PT-HUEButtonInvert" Offset="0" BitOffset="7" Text="Taste 4 invertieren" Value="0" />
+              </Union>
+
+              <!-- ===== Tasterkanal: Szenen-Nr je Taste (Offsets 163-166) ===== -->
+              <Parameter Id="%AID%_P-%TT%5%CC%123" Name="CH%C%Btn1SceneNr" ParameterType="%AID%_PT-HUESceneNrButton" Text="Taste 1 Szenennummer" Value="1"><Memory CodeSegment="%MID%" Offset="163" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%5%CC%124" Name="CH%C%Btn2SceneNr" ParameterType="%AID%_PT-HUESceneNrButton" Text="Taste 2 Szenennummer" Value="1"><Memory CodeSegment="%MID%" Offset="164" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%5%CC%125" Name="CH%C%Btn3SceneNr" ParameterType="%AID%_PT-HUESceneNrButton" Text="Taste 3 Szenennummer" Value="1"><Memory CodeSegment="%MID%" Offset="165" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%5%CC%126" Name="CH%C%Btn4SceneNr" ParameterType="%AID%_PT-HUESceneNrButton" Text="Taste 4 Szenennummer" Value="1"><Memory CodeSegment="%MID%" Offset="166" BitOffset="0" /></Parameter>
+
+              <!-- ===== Tasterkanal: Drehregler Aktivierung + Funktion (Offset 167) ===== -->
+              <Union Id="%AID%_U-%TT%5%CC%132" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="167" BitOffset="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%138" Name="CH%C%HasRotary" ParameterType="%AID%_PT-HUEHasRotary" Offset="0" BitOffset="0" Text="Drehregler vorhanden" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%139" Name="CH%C%RotaryFunction" ParameterType="%AID%_PT-HUERotaryFunction" Offset="0" BitOffset="1" Text="Drehregler Funktion" Value="0" />
+              </Union>
+
+              <!-- ===== Tasterkanal: Drehregler Schrittweite (Offset 168) ===== -->
+              <Parameter Id="%AID%_P-%TT%5%CC%127" Name="CH%C%RotaryStepPercent" ParameterType="%AID%_PT-HUERotaryStepPercent" Text="Schrittweite (%)" Value="5"><Memory CodeSegment="%MID%" Offset="168" BitOffset="0" /></Parameter>
+
             </Parameters>
 
             <ParameterRefs>
@@ -346,6 +377,23 @@
               <ParameterRef Id="%AID%_UP-%TT%5%CC%122_R-%TT%5%CC%12201" RefId="%AID%_UP-%TT%5%CC%122" />
               <!-- SceneStoreNumber -->
               <ParameterRef Id="%AID%_UP-%TT%5%CC%200_R-%TT%5%CC%20001" RefId="%AID%_UP-%TT%5%CC%200" />
+
+              <!-- Tasterkanal: neue Button-Funktion / Rotary ParameterRefs -->
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%130_R-%TT%5%CC%13001" RefId="%AID%_UP-%TT%5%CC%130" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%131_R-%TT%5%CC%13101" RefId="%AID%_UP-%TT%5%CC%131" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%132_R-%TT%5%CC%13201" RefId="%AID%_UP-%TT%5%CC%132" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%133_R-%TT%5%CC%13301" RefId="%AID%_UP-%TT%5%CC%133" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%134_R-%TT%5%CC%13401" RefId="%AID%_UP-%TT%5%CC%134" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%135_R-%TT%5%CC%13501" RefId="%AID%_UP-%TT%5%CC%135" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%136_R-%TT%5%CC%13601" RefId="%AID%_UP-%TT%5%CC%136" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%137_R-%TT%5%CC%13701" RefId="%AID%_UP-%TT%5%CC%137" />
+              <ParameterRef Id="%AID%_P-%TT%5%CC%123_R-%TT%5%CC%12301" RefId="%AID%_P-%TT%5%CC%123" />
+              <ParameterRef Id="%AID%_P-%TT%5%CC%124_R-%TT%5%CC%12401" RefId="%AID%_P-%TT%5%CC%124" />
+              <ParameterRef Id="%AID%_P-%TT%5%CC%125_R-%TT%5%CC%12501" RefId="%AID%_P-%TT%5%CC%125" />
+              <ParameterRef Id="%AID%_P-%TT%5%CC%126_R-%TT%5%CC%12601" RefId="%AID%_P-%TT%5%CC%126" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%138_R-%TT%5%CC%13801" RefId="%AID%_UP-%TT%5%CC%138" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%139_R-%TT%5%CC%13901" RefId="%AID%_UP-%TT%5%CC%139" />
+              <ParameterRef Id="%AID%_P-%TT%5%CC%127_R-%TT%5%CC%12701" RefId="%AID%_P-%TT%5%CC%127" />
             </ParameterRefs>
             
             <ComObjectTable>
@@ -408,6 +456,24 @@
               <ComObjectRef Id="%AID%_O-%TT%5%CC%011_R-%TT%5%CC%01101" RefId="%AID%_O-%TT%5%CC%011" Text="{{0:Hue %C%}}: Szene" FunctionText="Szene abrufen/speichern (DPT 18.001)" DatapointType="DPST-18-1" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Szene (KO-Slot 11, DPST-17-1, Speichern nicht aktiv) -->
               <ComObjectRef Id="%AID%_O-%TT%5%CC%011_R-%TT%5%CC%01102" RefId="%AID%_O-%TT%5%CC%011" Text="{{0:Hue %C%}}: Szene" FunctionText="Szene abrufen (DPT 17.001)" DatapointType="DPST-17-1" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+
+              <!-- ===== Taster: neue KO-Slots für Button-Paarung ===== -->
+              <!-- Taste 1 – Langdruck / Zweites Objekt (KO-Slot 1, DPT-3-7) -->
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00103" RefId="%AID%_O-%TT%5%CC%001" Text="{{0:Hue %C%}}: Taste 1 – Langdruck" FunctionText="Taste 1 – Langdruck / Zweites Objekt" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <!-- Taste 2 – Kurzdruck (KO-Slot 2, DPT-1-1) -->
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00202" RefId="%AID%_O-%TT%5%CC%002" Text="{{0:Hue %C%}}: Taste 2" FunctionText="Taste 2 – Kurzdruck" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <!-- Taste 2 – Langdruck / Zweites Objekt (KO-Slot 3, DPT-3-7) -->
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00307" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Taste 2 – Langdruck" FunctionText="Taste 2 – Langdruck / Zweites Objekt" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <!-- Taste 3 – Kurzdruck (KO-Slot 4, DPT-1-1) -->
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00403" RefId="%AID%_O-%TT%5%CC%004" Text="{{0:Hue %C%}}: Taste 3" FunctionText="Taste 3 – Kurzdruck" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <!-- Taste 3 – Langdruck / Zweites Objekt (KO-Slot 5, DPT-3-7) -->
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00503" RefId="%AID%_O-%TT%5%CC%005" Text="{{0:Hue %C%}}: Taste 3 – Langdruck" FunctionText="Taste 3 – Langdruck / Zweites Objekt" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <!-- Taste 4 – Kurzdruck (KO-Slot 6, DPT-1-1) -->
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00603" RefId="%AID%_O-%TT%5%CC%006" Text="{{0:Hue %C%}}: Taste 4" FunctionText="Taste 4 – Kurzdruck" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <!-- Taste 4 – Langdruck / Zweites Objekt (KO-Slot 7, DPT-3-7) -->
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00703" RefId="%AID%_O-%TT%5%CC%007" Text="{{0:Hue %C%}}: Taste 4 – Langdruck" FunctionText="Taste 4 – Langdruck / Zweites Objekt" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <!-- Drehregler – Absolutwert (KO-Slot 8, DPT-5-1) -->
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00803" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Drehregler" FunctionText="Drehregler – Absolutwert" DatapointType="DPST-5-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
             </ComObjectRefs>
             
           </Static>
@@ -1124,6 +1190,71 @@
                           <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" />
                           <!-- Anzahl Tasten -->
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301" />
+
+                          <!-- === Taste 1 === -->
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Btn1Hdr" Text="Taste 1" UIHint="Headline" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%130_R-%TT%5%CC%13001" />
+                          <choose ParamRefId="%AID%_UP-%TT%5%CC%130_R-%TT%5%CC%13001">
+                            <when test="4">
+                              <ParameterRefRef RefId="%AID%_P-%TT%5%CC%123_R-%TT%5%CC%12301" IndentLevel="1" />
+                            </when>
+                          </choose>
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%131_R-%TT%5%CC%13101" />
+
+                          <!-- === Taste 2 (ab 2 Tasten) === -->
+                          <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
+                            <when test=">=2">
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Btn2Hdr" Text="Taste 2" UIHint="Headline" />
+                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%132_R-%TT%5%CC%13201" />
+                              <choose ParamRefId="%AID%_UP-%TT%5%CC%132_R-%TT%5%CC%13201">
+                                <when test="4">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%5%CC%124_R-%TT%5%CC%12401" IndentLevel="1" />
+                                </when>
+                              </choose>
+                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%133_R-%TT%5%CC%13301" />
+                            </when>
+                          </choose>
+
+                          <!-- === Taste 3 (ab 3 Tasten) === -->
+                          <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
+                            <when test=">=3">
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Btn3Hdr" Text="Taste 3" UIHint="Headline" />
+                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%134_R-%TT%5%CC%13401" />
+                              <choose ParamRefId="%AID%_UP-%TT%5%CC%134_R-%TT%5%CC%13401">
+                                <when test="4">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%5%CC%125_R-%TT%5%CC%12501" IndentLevel="1" />
+                                </when>
+                              </choose>
+                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%135_R-%TT%5%CC%13501" />
+                            </when>
+                          </choose>
+
+                          <!-- === Taste 4 (ab 4 Tasten) === -->
+                          <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
+                            <when test=">=4">
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Btn4Hdr" Text="Taste 4" UIHint="Headline" />
+                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%136_R-%TT%5%CC%13601" />
+                              <choose ParamRefId="%AID%_UP-%TT%5%CC%136_R-%TT%5%CC%13601">
+                                <when test="4">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%5%CC%126_R-%TT%5%CC%12601" IndentLevel="1" />
+                                </when>
+                              </choose>
+                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%137_R-%TT%5%CC%13701" />
+                            </when>
+                          </choose>
+
+                          <!-- === Drehregler === -->
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_RotaryLine" Text="" UIHint="HorizontalRuler" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_RotaryHdr" Text="Drehregler" UIHint="Headline" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%138_R-%TT%5%CC%13801" />
+                          <choose ParamRefId="%AID%_UP-%TT%5%CC%138_R-%TT%5%CC%13801">
+                            <when test="1">
+                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%139_R-%TT%5%CC%13901" IndentLevel="1" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%5%CC%127_R-%TT%5%CC%12701" IndentLevel="1" />
+                            </when>
+                          </choose>
+
+                          <!-- Polling-Intervall -->
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_BtnSyncLine" Text="" UIHint="HorizontalRuler" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_BtnSyncHdr" Text="Abfrage" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%005_R-%TT%5%CC%00501" />
@@ -1355,22 +1486,36 @@
                         </choose>
                       </when>
 
-                      <!-- DeviceType 2: Taster – bis zu 4 Tasten (je nach ButtonCount) -->
+                      <!-- DeviceType 2: Taster – bis zu 4 Tasten (je nach ButtonCount) + opt. Drehregler -->
                       <when test="2">
+                        <!-- Taste 1: Kurzdruck (KO0) + Langdruck (KO1) -->
                         <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00005" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                        <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00103" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                        <!-- Taste 2 (ab 2 Tasten): Kurzdruck (KO2) + Langdruck (KO3) -->
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
                           <when test=">=2">
-                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00303" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00202" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00307" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                           </when>
                         </choose>
+                        <!-- Taste 3 (ab 3 Tasten): Kurzdruck (KO4) + Langdruck (KO5) -->
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
                           <when test=">=3">
-                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%009_R-%TT%5%CC%00902" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00403" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00503" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                           </when>
                         </choose>
+                        <!-- Taste 4 (ab 4 Tasten): Kurzdruck (KO6) + Langdruck (KO7) -->
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
                           <when test=">=4">
-                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%010_R-%TT%5%CC%01002" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00603" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00703" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                          </when>
+                        </choose>
+                        <!-- Drehregler (KO8) – nur wenn HasRotary=1 -->
+                        <choose ParamRefId="%AID%_UP-%TT%5%CC%138_R-%TT%5%CC%13801">
+                          <when test="1">
+                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00803" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                           </when>
                         </choose>
                       </when>

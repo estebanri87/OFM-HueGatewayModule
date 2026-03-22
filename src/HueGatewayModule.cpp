@@ -2837,6 +2837,45 @@ void HueGatewayModule::setupDevices()
                     }
                     auto* btn = static_cast<HueGatewayButton*>(_devices[ch]);
                     btn->begin(koBase);
+                    // Apply per-button function settings from ETS parameters (generated after OpenKNXproducer run)
+                    #ifdef ParamHUE_CHBtn1Function
+                    {
+                        using BF = HueGatewayButton::ButtonFunction;
+                        using RF = HueGatewayButton::RotaryFunction;
+                        // Taste 1
+                        auto fn1 = static_cast<BF>(ParamHUE_CHBtn1Function);
+                        btn->setButtonFunction(0, fn1);
+                        btn->setButtonInvert(0, ParamHUE_CHBtn1Invert != 0);
+                        if (fn1 == BF::Szene) btn->setButtonSceneNr(0, ParamHUE_CHBtn1SceneNr);
+                        // Taste 2
+                        if (btnCount >= 2) {
+                            auto fn2 = static_cast<BF>(ParamHUE_CHBtn2Function);
+                            btn->setButtonFunction(1, fn2);
+                            btn->setButtonInvert(1, ParamHUE_CHBtn2Invert != 0);
+                            if (fn2 == BF::Szene) btn->setButtonSceneNr(1, ParamHUE_CHBtn2SceneNr);
+                        }
+                        // Taste 3
+                        if (btnCount >= 3) {
+                            auto fn3 = static_cast<BF>(ParamHUE_CHBtn3Function);
+                            btn->setButtonFunction(2, fn3);
+                            btn->setButtonInvert(2, ParamHUE_CHBtn3Invert != 0);
+                            if (fn3 == BF::Szene) btn->setButtonSceneNr(2, ParamHUE_CHBtn3SceneNr);
+                        }
+                        // Taste 4
+                        if (btnCount >= 4) {
+                            auto fn4 = static_cast<BF>(ParamHUE_CHBtn4Function);
+                            btn->setButtonFunction(3, fn4);
+                            btn->setButtonInvert(3, ParamHUE_CHBtn4Invert != 0);
+                            if (fn4 == BF::Szene) btn->setButtonSceneNr(3, ParamHUE_CHBtn4SceneNr);
+                        }
+                        // Drehregler
+                        btn->setHasRotary(ParamHUE_CHHasRotary != 0);
+                        if (ParamHUE_CHHasRotary != 0) {
+                            btn->setRotaryFunction(static_cast<RF>(ParamHUE_CHRotaryFunction));
+                            btn->setRotaryStepPercent(ParamHUE_CHRotaryStepPercent);
+                        }
+                    }
+                    #endif
                     // Resolve service RIDs so SSE button/rotary events are matched correctly
                     {
                         static constexpr int kMaxSvc = 16;
