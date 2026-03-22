@@ -1583,6 +1583,83 @@ int HueGatewayClient::getDeviceServiceRids(const String& deviceId, HueGatewaySer
     return count;
 }
 
+int HueGatewayClient::getBehaviorInstances(const String& deviceId, String* instanceIds, int maxCount)
+{
+    if (!_initialized || deviceId.length() == 0 || instanceIds == nullptr || maxCount <= 0)
+        return 0;
+
+    DynamicJsonDocument filterDoc(512);
+    JsonObject fr = filterDoc.to<JsonObject>();
+    fr["data"][0]["id"] = true;
+    fr["data"][0]["dependees"][0]["target"]["rtype"] = true;
+    fr["data"][0]["dependees"][0]["target"]["rid"] = true;
+
+    DynamicJsonDocument doc(8192);
+    int statusCode = httpGet("/clip/v2/resource/behavior_instance", doc, &filterDoc);
+    if (!isHttpSuccessStatus(statusCode))
+    {
+        Serial.printf("[HueGatewayClient] getBehaviorInstances: HTTP %d\n", statusCode);
+        return 0;
+    }
+
+    int count = 0;
+    JsonArrayConst data = doc["data"].as<JsonArrayConst>();
+    for (JsonObjectConst inst : data)
+    {
+        if (count >= maxCount)
+            break;
+
+        bool matchesDevice = false;
+        JsonArrayConst dependees = inst["dependees"].as<JsonArrayConst>();
+        for (JsonObjectConst dep : dependees)
+        {
+            const char* rtype = dep["target"]["rtype"] | "";
+            const char* rid   = dep["target"]["rid"]   | "";
+            if (strcmp(rtype, "device") == 0 && strcmp(rid, deviceId.c_str()) == 0)
+            {
+                matchesDevice = true;
+                break;
+            }
+        }
+        if (!matchesDevice)
+            continue;
+
+        const char* id = inst["id"] | "";
+        if (id[0] != '\0')
+            instanceIds[count++] = String(id);
+    }
+
+    Serial.printf("[HueGatewayClient] getBehaviorInstances: device %s -> %d instances\n",
+                  deviceId.c_str(), count);
+    return count;
+}
+
+bool HueGatewayClient::setBehaviorInstanceEnabled(const String& instanceId, bool enabled)
+{
+    if (!_initialized || instanceId.length() == 0)
+        return false;
+
+    String endpoint = "/clip/v2/resource/behavior_instance/" + instanceId;
+
+    DynamicJsonDocument doc(64);
+    doc["enabled"] = enabled;
+
+    String payload;
+    serializeJson(doc, payload);
+
+    int statusCode = httpPut(endpoint, payload);
+
+    if (isHttpSuccessStatus(statusCode))
+    {
+        Serial.printf("[HueGatewayClient] behavior_instance %s -> enabled=%d\n",
+                      instanceId.c_str(), (int)enabled);
+        return true;
+    }
+
+    Serial.printf("[HueGatewayClient] ERROR: behavior_instance set failed - HTTP %d\n", statusCode);
+    return false;
+}
+
 bool HueGatewayClient::pingBridgeApiV2()
 {
     if (!_initialized)

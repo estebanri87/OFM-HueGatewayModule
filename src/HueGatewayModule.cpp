@@ -2890,6 +2890,17 @@ void HueGatewayModule::setupDevices()
                                 btn->setRotaryServiceRid(svc[s].rid);
                         }
                     }
+                    // Native Hue Aktion: behavior_instances deaktivieren falls gewünscht
+                    #ifdef ParamHUE_CHNativeHueAction
+                    if (ParamHUE_CHNativeHueAction == 1)  // Deaktivieren
+                    {
+                        static constexpr int kMaxInst = 8;
+                        String instanceIds[kMaxInst];
+                        const int nInst = _client->getBehaviorInstances(resourceId, instanceIds, kMaxInst);
+                        for (int i = 0; i < nInst; i++)
+                            _client->setBehaviorInstanceEnabled(instanceIds[i], false);
+                    }
+                    #endif
                     _channelLastPollMs[ch] = 0;
                     mappedChannels[ch] = true;
                     mappedCount++;

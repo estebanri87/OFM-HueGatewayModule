@@ -246,6 +246,11 @@
               <!-- ===== Tasterkanal: Drehregler Schrittweite (Offset 168) ===== -->
               <Parameter Id="%AID%_P-%TT%5%CC%127" Name="CH%C%RotaryStepPercent" ParameterType="%AID%_PT-HUERotaryStepPercent" Text="Schrittweite (%)" Value="5"><Memory CodeSegment="%MID%" Offset="168" BitOffset="0" /></Parameter>
 
+              <!-- ===== Tasterkanal: Native Hue Aktion (Offset 169) ===== -->
+              <Union Id="%AID%_U-%TT%5%CC%133" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="169" BitOffset="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%140" Name="CH%C%NativeHueAction" ParameterType="%AID%_PT-HUENativeHueAction" Offset="0" BitOffset="0" Text="Native Hue Aktion" Value="0" />
+              </Union>
+
             </Parameters>
 
             <ParameterRefs>
@@ -394,6 +399,7 @@
               <ParameterRef Id="%AID%_UP-%TT%5%CC%138_R-%TT%5%CC%13801" RefId="%AID%_UP-%TT%5%CC%138" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%139_R-%TT%5%CC%13901" RefId="%AID%_UP-%TT%5%CC%139" />
               <ParameterRef Id="%AID%_P-%TT%5%CC%127_R-%TT%5%CC%12701" RefId="%AID%_P-%TT%5%CC%127" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%140_R-%TT%5%CC%14001" RefId="%AID%_UP-%TT%5%CC%140" />
             </ParameterRefs>
             
             <ComObjectTable>
@@ -1190,6 +1196,8 @@
                           <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" />
                           <!-- Anzahl Tasten -->
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301" />
+                          <!-- Native Hue Aktion -->
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%140_R-%TT%5%CC%14001" />
 
                           <!-- === Taste 1 === -->
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Btn1Hdr" Text="Taste 1" UIHint="Headline" />

@@ -76,7 +76,7 @@
                 <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="30" />
               </ParameterType>
 
-              <!-- Relative Dimmwiederholzeit (Millisekunden, 20-500 ms) -->
+              <!-- Relative DDimmgeschwindigkeit (Millisekunden, 20-500 ms) -->
               <ParameterType Id="%AID%_PT-HUERelDimRepeatMs" Name="HUERelDimRepeatMs">
                 <TypeNumber SizeInBit="16" Type="unsignedInt" minInclusive="20" maxInclusive="500" />
               </ParameterType>
@@ -435,6 +435,14 @@
               <!-- Drehregler-Schrittweite (1-25 % pro Schritt) -->
               <ParameterType Id="%AID%_PT-HUERotaryStepPercent" Name="HUERotaryStepPercent">
                 <TypeNumber SizeInBit="5" Type="unsignedInt" minInclusive="1" maxInclusive="25" />
+              </ParameterType>
+
+              <!-- Native Hue Aktion (deaktivieren oder beibehalten) -->
+              <ParameterType Id="%AID%_PT-HUENativeHueAction" Name="HUENativeHueAction">
+                <TypeRestriction Base="Value" SizeInBit="1" UIHint="DropDown">
+                  <Enumeration Text="Beibehalten"   Value="0" Id="%ENID%" />
+                  <Enumeration Text="Deaktivieren"  Value="1" Id="%ENID%" />
+                </TypeRestriction>
               </ParameterType>
 
             </ParameterTypes>
@@ -1120,8 +1128,8 @@
                 <Memory CodeSegment="%MID%" Offset="1713" BitOffset="0" />
               </Parameter>
 
-              <!-- Relative Dimmwiederholzeit (ms) -->
-              <Parameter Id="%AID%_P-%TT%00078" Name="HUERelDimRepeatMs" ParameterType="%AID%_PT-HUERelDimRepeatMs" Text="Dimmwiederholzeit" Value="120" SuffixText=" ms">
+              <!-- Relative Dimmgeschwindigkeit (ms) -->
+              <Parameter Id="%AID%_P-%TT%00078" Name="HUERelDimRepeatMs" ParameterType="%AID%_PT-HUERelDimRepeatMs" Text="Dimmgeschwindigkeit" Value="120" SuffixText=" ms">
                 <Memory CodeSegment="%MID%" Offset="1714" BitOffset="0" />
               </Parameter>
             </Parameters>
@@ -1697,7 +1705,6 @@
                 <ParameterSeparator Id="%AID%_PS-HUERelDimLine" Text="" UIHint="HorizontalRuler" />
                 <ParameterSeparator Id="%AID%_PS-HUERelDim" Text="Relatives Dimmen" UIHint="Headline" HelpContext="HUE-Bridge-Konfiguration" />
                 <ParameterRefRef RefId="%AID%_P-%TT%00078_R-%TT%0007801" HelpContext="HUE-Einstellungen" />
-                <ParameterSeparator Id="%AID%_PS-HUERelDimInfo" Text="Wiederholintervall für KNX-Dimmbefehle (DPT 3.007). Kleinere Werte = schnellere Dimmreaktion, größere Werte = weniger API-Last." UIHint="Information" HelpContext="HUE-Bridge-Konfiguration" />
                 
                 <!-- Status-KO nur anzeigen wenn aktiviert -->
                 <choose ParamRefId="%AID%_P-%TT%00006_R-%TT%0000601">

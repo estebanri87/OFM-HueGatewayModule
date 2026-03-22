@@ -378,6 +378,23 @@ public:
      */
     int getDeviceServiceRids(const String& deviceId, HueGatewayServiceRid* out, int maxCount);
 
+    /**
+     * @brief Returns the IDs of all behavior_instances associated with a device.
+     * @param deviceId     Hue Device Resource ID
+     * @param instanceIds  Array for output IDs
+     * @param maxCount     Maximum number of entries (array size)
+     * @return Number of found behavior_instance IDs (0 on error or none)
+     */
+    int getBehaviorInstances(const String& deviceId, String* instanceIds, int maxCount);
+
+    /**
+     * @brief Enables or disables a single behavior_instance.
+     * @param instanceId  ID of the behavior_instance
+     * @param enabled     true = enable, false = disable
+     * @return true on success
+     */
+    bool setBehaviorInstanceEnabled(const String& instanceId, bool enabled);
+
 private:
     bool _initialized;
     String _bridgeIP;
