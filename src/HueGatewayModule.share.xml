@@ -383,7 +383,7 @@
                 <TypeText SizeInBit="320" />
               </ParameterType>
 
-              <!-- ---- Taster-Erweitert: Tastenfunktion pro Taste ---- -->
+              <!-- Taster-Erweitert: Tastenfunktion pro Taste -->
               <ParameterType Id="%AID%_PT-HUEButtonFunction" Name="HUEButtonFunction">
                 <TypeRestriction Base="Value" SizeInBit="3" UIHint="DropDown">
                   <Enumeration Text="Schalten"          Value="0" Id="%ENID%" />
