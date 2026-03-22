@@ -1,8 +1,13 @@
 #include "HueGatewayModule.h"
+#include "versions.h"
 #include "HueGatewayDiscovery.h"
 #include "HueGatewayAuth.h"
 #include "HueGatewayClient.h"
 #include "Devices/HueGatewayLight.h"
+#include "Devices/HueGatewaySensor.h"
+#include "Devices/HueGatewayButton.h"
+#include "Devices/HueGatewayContact.h"
+#include "Devices/HueGatewayPlug.h"
 #include "OpenKNX/Led/RGB.h"
 #include <ETH.h>
 #include <esp_heap_caps.h>
@@ -514,12 +519,12 @@ String HueGatewayModule::buildDiagnosticReport(size_t requestedDepth, const Stri
         String mappedId = "-";
         String grouped = "-";
         String lastWriteMs = "-";
-        if (_lights[ch] != nullptr)
+        if (_devices[ch] != nullptr)
         {
-            mappedName = _lights[ch]->getName();
-            mappedId = _lights[ch]->getLightId();
-            grouped = _lights[ch]->isGroupedTarget() ? "1" : "0";
-            lastWriteMs = String(_lights[ch]->getLastHueWriteSuccessMs());
+            mappedName = _devices[ch]->getName();
+            mappedId = _devices[ch]->getResourceId();
+            grouped = _devices[ch]->isGroupedTarget() ? "1" : "0";
+            lastWriteMs = String(_devices[ch]->getLastHueWriteSuccessMs());
         }
 
         report += "ch=" + String(ch + 1)
@@ -544,6 +549,62 @@ String HueGatewayModule::buildDiagnosticReport(size_t requestedDepth, const Stri
                 + " traceHttpMethod=" + (_diagLastWriteTraceMethod[ch].length() > 0 ? _diagLastWriteTraceMethod[ch] : String("-"))
                 + " traceHttpEndpoint=" + (_diagLastWriteTraceEndpoint[ch].length() > 0 ? _diagLastWriteTraceEndpoint[ch] : String("-"))
             + "\n";
+    }
+    report += "\n";
+
+    report += "[SceneConfig]\n";
+    for (uint8_t ch = 0; ch < configuredChannels; ch++)
+    {
+        uint8_t _channelIndex = ch;
+        bool sceneEnabled = ParamHUE_CHSceneEnabled;
+        bool sceneStore   = ParamHUE_CHSceneStoreActive;
+
+        report += "ch=" + String(ch + 1)
+            + " sceneEnabled=" + String(sceneEnabled ? "1" : "0")
+            + " sceneStore=" + String(sceneStore ? "1" : "0")
+            + "\n";
+
+        if (!sceneEnabled) continue;
+
+        static const char* kActionNames[] = {"Aus", "Ein", "Helligkeit", "CT", "Helli+CT", "RGB", "Helli+RGB", "HueSzene"};
+        for (uint8_t s = 0; s < 8; s++)
+        {
+            const uint16_t base     = 89 + static_cast<uint16_t>(s) * 9;
+            const uint8_t  sceneNum = knx.paramByte(HUE_ParamCalcIndex(base + 0));
+            if (sceneNum == 0) continue;  // Slot nicht konfiguriert
+
+            const uint8_t  action = knx.paramByte(HUE_ParamCalcIndex(base + 1));
+            const uint8_t  bri    = knx.paramByte(HUE_ParamCalcIndex(base + 3));
+            const uint16_t ct     = knx.paramWord(HUE_ParamCalcIndex(base + 4));
+            const uint8_t  red    = knx.paramByte(HUE_ParamCalcIndex(base + 6));
+            const uint8_t  green  = knx.paramByte(HUE_ParamCalcIndex(base + 7));
+            const uint8_t  blue   = knx.paramByte(HUE_ParamCalcIndex(base + 8));
+
+            const char* actionName = (action <= 7) ? kActionNames[action] : "?";
+            report += "  slot=" + String(s + 1)
+                + " sceneNr=" + String(sceneNum)
+                + " action=" + String(action) + "(" + String(actionName) + ")"
+                + " bri=" + String(bri) + "%"
+                + " ct=" + String(ct) + "K"
+                + " rgb=(" + String(red) + "," + String(green) + "," + String(blue) + ")";
+
+            if (sceneStore)
+            {
+                const SceneStoreData& sd = _sceneStore[ch][s];
+                if (sd.valid == SCENE_STORE_VALID)
+                {
+                    report += " stored={on=" + String(sd.onOff)
+                        + " bri=" + String(sd.brightness) + "%"
+                        + " ct=" + String(sd.colorTemp) + "K"
+                        + " rgb=(" + String(sd.red) + "," + String(sd.green) + "," + String(sd.blue) + ")}";
+                }
+                else
+                {
+                    report += " stored=none";
+                }
+            }
+            report += "\n";
+        }
     }
     report += "\n";
 
@@ -644,6 +705,7 @@ HueGatewayModule::HueGatewayModule()
     , _lastWebScanDurationMs(0)
     , _lastWebScanMs(0)
     , _lastWebScanLightCount(-1)
+    , _lastWebScanAccessoryCount(0)
     , _hclLockActive(false)
     , _hclLockFallbackMode(static_cast<uint8_t>(HueGatewayModule::HclLockFallbackMode::None))
     , _hclFallbackPolicy(static_cast<uint8_t>(HueGatewayModule::HclLockFallbackPolicy::Legacy))
@@ -671,9 +733,9 @@ HueGatewayModule::HueGatewayModule()
     , _diagLastHasUnresolvedGroupTarget(false)
 {
     // Light-Array initialisieren
-    for (int i = 0; i < MAX_LIGHTS; i++)
+    for (int i = 0; i < MAX_CHANNELS; i++)
     {
-        _lights[i] = nullptr;
+        _devices[i] = nullptr;
         _channelLastPollMs[i] = 0;
         _channelFastTrackNextMs[i] = 0;
         _channelFastTrackCooldownUntilMs[i] = 0;
@@ -694,6 +756,8 @@ HueGatewayModule::HueGatewayModule()
         _diagLastWriteTraceResult[i] = "-";
         _diagLastWriteTraceMethod[i] = "-";
         _diagLastWriteTraceEndpoint[i] = "-";
+        for (int s = 0; s < SCENE_SLOTS; s++)
+            _sceneStore[i][s] = { SCENE_STORE_EMPTY, 0, 0, 0, 0, 0, 0 };
     }
 
     for (uint8_t i = 0; i < HCL::MasterManager::MAX_MASTERS; i++)
@@ -789,12 +853,12 @@ void HueGatewayModule::loop()
     evaluateHclChannelLockFallback(hasTime ? &timeinfo : nullptr, hasTime);
     publishHclMasterValues();
     
-    // Update all lights with HCL loop
-    for (int i = 0; i < MAX_LIGHTS; i++)
+    // Call loop on all active device channels
+    for (int i = 0; i < MAX_CHANNELS; i++)
     {
-        if (_lights[i] != nullptr)
+        if (_devices[i] != nullptr)
         {
-            _lights[i]->loop();
+            _devices[i]->loop();
         }
     }
     
@@ -903,13 +967,23 @@ void HueGatewayModule::loop()
                 }
             }
 
-            HueGatewayEventLightUpdate updates[MAX_LIGHTS];
-            int updateCount = _client->pollEventStream(updates, MAX_LIGHTS);
-            if (updateCount > 0)
             {
-                _lastChannelSyncOkMs = now;
-                Serial.printf("[HueGatewayModule] EventStream updates received: %d\n", updateCount);
-                applyEventStreamUpdates(updates, updateCount);
+                HueGatewayEventLightUpdate updates[MAX_LIGHTS];
+                HueGatewayEventSensorUpdate sensorUpdates[MAX_LIGHTS];
+                int sensorCount = 0;
+                int updateCount = _client->pollEventStreamFull(updates, MAX_LIGHTS, sensorUpdates, MAX_LIGHTS, sensorCount);
+                if (updateCount > 0)
+                {
+                    _lastChannelSyncOkMs = now;
+                    Serial.printf("[HueGatewayModule] EventStream light updates received: %d\n", updateCount);
+                    applyEventStreamUpdates(updates, updateCount);
+                }
+                if (sensorCount > 0)
+                {
+                    _lastChannelSyncOkMs = now;
+                    Serial.printf("[HueGatewayModule] EventStream sensor updates received: %d\n", sensorCount);
+                    applyEventStreamDeviceUpdates(sensorUpdates, sensorCount);
+                }
             }
         }
         else
@@ -924,13 +998,23 @@ void HueGatewayModule::loop()
                 fallbackActiveLogged = false;
             }
 
-            HueGatewayEventLightUpdate updates[MAX_LIGHTS];
-            int updateCount = _client->pollEventStream(updates, MAX_LIGHTS);
-            if (updateCount > 0)
             {
-                _lastChannelSyncOkMs = now;
-                Serial.printf("[HueGatewayModule] EventStream updates received: %d\n", updateCount);
-                applyEventStreamUpdates(updates, updateCount);
+                HueGatewayEventLightUpdate updates[MAX_LIGHTS];
+                HueGatewayEventSensorUpdate sensorUpdates[MAX_LIGHTS];
+                int sensorCount = 0;
+                int updateCount = _client->pollEventStreamFull(updates, MAX_LIGHTS, sensorUpdates, MAX_LIGHTS, sensorCount);
+                if (updateCount > 0)
+                {
+                    _lastChannelSyncOkMs = now;
+                    Serial.printf("[HueGatewayModule] EventStream light updates received: %d\n", updateCount);
+                    applyEventStreamUpdates(updates, updateCount);
+                }
+                if (sensorCount > 0)
+                {
+                    _lastChannelSyncOkMs = now;
+                    Serial.printf("[HueGatewayModule] EventStream sensor updates received: %d\n", sensorCount);
+                    applyEventStreamDeviceUpdates(sensorUpdates, sensorCount);
+                }
             }
         }
     }
@@ -1097,7 +1181,31 @@ const std::string HueGatewayModule::name()
 
 const std::string HueGatewayModule::version()
 {
-    return "0.3.5";
+    std::string v = MODULE_HueGatewayModule_Version;
+    auto pos = v.find('+');
+    if (pos != std::string::npos)
+        v = v.substr(0, pos);
+    return v;
+}
+
+HueGatewayLight* HueGatewayModule::lightAt(int ch) const
+{
+    if (ch < 0 || ch >= MAX_CHANNELS)
+        return nullptr;
+    HueGatewayDevice* d = _devices[ch];
+    if (d == nullptr || d->deviceType() != 0)
+        return nullptr;
+    return static_cast<HueGatewayLight*>(d);
+}
+
+HueGatewayPlug* HueGatewayModule::plugAt(int ch) const
+{
+    if (ch < 0 || ch >= MAX_CHANNELS)
+        return nullptr;
+    HueGatewayDevice* d = _devices[ch];
+    if (d == nullptr || d->deviceType() != 4)
+        return nullptr;
+    return static_cast<HueGatewayPlug*>(d);
 }
 
 void HueGatewayModule::processInputKo(GroupObject& ko)
@@ -1248,7 +1356,7 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
     {
         syncDir = 2;
     }
-    bool isCommandKo = (koType == 0 || koType == 1 || koType == 2 || koType == 5 || koType == 7);
+    bool isCommandKo = (koType == 0 || koType == 1 || koType == 2 || koType == 5 || koType == 7 || koType == 11);
 
     if (isCommandKo)
     {
@@ -1273,7 +1381,7 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
         return;
     }
 
-    if (_lights[channel] == nullptr)
+    if (_devices[channel] == nullptr)
     {
         static uint32_t lastRecoverTryMs = 0;
         if (_client && _client->isInitialized() && ((nowMs - lastRecoverTryMs) >= 5000 || nowMs < lastRecoverTryMs))
@@ -1283,7 +1391,7 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
             setupDevices();
         }
 
-        if (_lights[channel] == nullptr)
+        if (_devices[channel] == nullptr)
         {
             if (isCommandKo)
             {
@@ -1309,7 +1417,7 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
     }
 
     unsigned long commandStartMs = nowMs;
-    unsigned long beforeHueWriteMs = (_lights[channel] != nullptr) ? _lights[channel]->getLastHueWriteSuccessMs() : 0;
+    unsigned long beforeHueWriteMs = (_devices[channel] != nullptr) ? _devices[channel]->getLastHueWriteSuccessMs() : 0;
     String commandValue = "-";
     HueGatewayClient::DiagnosticsStats statsBefore;
     if (_client != nullptr)
@@ -1323,14 +1431,17 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
         {
             bool value = ko.value(Dpt(1, 1));
             commandValue = String(value ? "1" : "0");
-            _lights[channel]->processKnxSwitch(value);
+            if (auto* light = lightAt(channel))
+                light->processKnxSwitch(value);
+            else if (_devices[channel] != nullptr)
+                _devices[channel]->processKoInput(0, ko);
             break;
         }
         case 1:
         {
             uint8_t value = ko.value(Dpt(5, 1));
             commandValue = String(static_cast<unsigned>(value));
-            _lights[channel]->processKnxBrightness(value);
+            if (auto* light = lightAt(channel)) light->processKnxBrightness(value);
             break;
         }
         case 2:
@@ -1339,7 +1450,7 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
             uint8_t stepCode = ko.value(Dpt(3, 7, 1));
             uint8_t value = static_cast<uint8_t>(((controlBit & 0x01) << 3) | (stepCode & 0x07));
             commandValue = String(static_cast<unsigned>(value));
-            _lights[channel]->processKnxDimming(value);
+            if (auto* light = lightAt(channel)) light->processKnxDimming(value);
             break;
         }
         case 3:
@@ -1349,7 +1460,7 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
         {
             uint16_t kelvin = ko.value(Dpt(7, 600));
             commandValue = String(static_cast<unsigned>(kelvin));
-            _lights[channel]->processKnxColorTemp(kelvin);
+            if (auto* light = lightAt(channel)) light->processKnxColorTemp(kelvin);
             break;
         }
         case 6:
@@ -1358,13 +1469,163 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
         {
             uint8_t* rgb = ko.valueRef();
             commandValue = String(static_cast<unsigned>(rgb[0])) + "," + String(static_cast<unsigned>(rgb[1])) + "," + String(static_cast<unsigned>(rgb[2]));
-            _lights[channel]->processKnxColorRGB(rgb[0], rgb[1], rgb[2]);
+            if (auto* light = lightAt(channel)) light->processKnxColorRGB(rgb[0], rgb[1], rgb[2]);
             break;
         }
         case 8:
             break;
         case 10:
             break;
+        case 11:
+        {
+            // Check SceneEnabled flag (byte 88, bit 7 = ETS BitOffset 0).
+            bool sceneEnabled = ParamHUE_CHSceneEnabled;
+            if (!sceneEnabled)
+                break;
+
+            bool storeActive = ParamHUE_CHSceneStoreActive;
+
+            // Read KO value: DPT 18.001 if storeActive, DPT 17.001 otherwise
+            uint8_t raw;
+            bool isSave = false;
+            uint8_t sceneNumber;
+            if (storeActive)
+            {
+                raw = static_cast<uint8_t>(ko.value(Dpt(18, 1)));
+                isSave = (raw & 0x80) != 0;
+                sceneNumber = raw & 0x3F;
+            }
+            else
+            {
+                raw = static_cast<uint8_t>(ko.value(Dpt(17, 1)));
+                sceneNumber = raw & 0x3F;
+            }
+
+            if (isSave)
+            {
+                // --- Scene Store (DPT 18.001, Bit 7 = 1) ---
+
+                // Find which ETS slot has this scene number
+                int8_t storeSlot = -1;
+                for (uint8_t s = 0; s < 8; s++)
+                {
+                    const uint16_t base = 89 + static_cast<uint16_t>(s) * 9;
+                    const uint8_t paramNumber = knx.paramByte(HUE_ParamCalcIndex(base + 0));
+                    if (paramNumber != 0 && paramNumber == static_cast<uint8_t>(sceneNumber + 1))
+                    {
+                        storeSlot = static_cast<int8_t>(s);
+                        break;
+                    }
+                }
+                if (storeSlot < 0)
+                    break;  // No matching slot configured
+
+                SceneStoreData& sd = _sceneStore[channel][storeSlot];
+                if (auto* light = lightAt(channel))
+                {
+                    sd.onOff = light->isOn() ? 1 : 0;
+                    // getBrightness() returns Hue range 0-254, convert to 0-100%.
+                    sd.brightness = static_cast<uint8_t>((static_cast<uint16_t>(light->getBrightness()) * 100U + 127U) / 254U);
+                    sd.colorTemp = light->getColorTempKelvin();
+                    sd.red = light->getRed();
+                    sd.green = light->getGreen();
+                    sd.blue = light->getBlue();
+                    sd.valid = SCENE_STORE_VALID;
+                }
+                else if (auto* plug = plugAt(channel))
+                {
+                    sd.onOff = plug->isOn() ? 1 : 0;
+                    sd.brightness = 0;
+                    sd.colorTemp = 0;
+                    sd.red = 0;
+                    sd.green = 0;
+                    sd.blue = 0;
+                    sd.valid = SCENE_STORE_VALID;
+                }
+                openknx.flash.save();
+                commandValue = String("store:") + String(static_cast<unsigned>(sceneNumber));
+                break;
+            }
+
+            // --- Scene Recall (DPT 18.001, Bit 7 = 0) ---
+
+            // Scan ETS slots 1-8
+            for (uint8_t s = 0; s < 8; s++)
+            {
+                const uint16_t base = 89 + static_cast<uint16_t>(s) * 9;
+                const uint8_t paramNumber = knx.paramByte(HUE_ParamCalcIndex(base + 0));
+                if (paramNumber == 0)
+                    continue;  // nicht aktiv
+                if (paramNumber != static_cast<uint8_t>(sceneNumber + 1))
+                    continue;  // wrong scene number
+
+                // Check if this slot has a stored scene (overrides ETS preset)
+                bool storeActive = ParamHUE_CHSceneStoreActive;
+                if (storeActive)
+                {
+                    const SceneStoreData& sd = _sceneStore[channel][s];
+                    if (sd.valid == SCENE_STORE_VALID)
+                    {
+                        bool onOff = sd.onOff != 0;
+                        if (auto* light = lightAt(channel))
+                            light->processKnxSceneRecall(onOff, true, sd.brightness, true, sd.colorTemp, true, sd.red, sd.green, sd.blue);
+                        else if (auto* plug = plugAt(channel))
+                            plug->processKnxSceneRecall(onOff);
+                        commandValue = String("store-recall:") + String(static_cast<unsigned>(sceneNumber));
+                        break;
+                    }
+                }
+
+                const uint8_t action = knx.paramByte(HUE_ParamCalcIndex(base + 1));
+                commandValue = String(static_cast<unsigned>(sceneNumber));
+
+                if (action == 7)
+                {
+                    // Hue-Scene recall: look up RID from module-level params.
+                    const uint8_t hueSceneRef = knx.paramByte(HUE_ParamCalcIndex(base + 2));
+                    String        rid;
+                    switch (hueSceneRef)
+                    {
+                        case 1: rid = String(ParamHUE_HUEHueScene1RIDStr.c_str()); break;
+                        case 2: rid = String(ParamHUE_HUEHueScene2RIDStr.c_str()); break;
+                        case 3: rid = String(ParamHUE_HUEHueScene3RIDStr.c_str()); break;
+                        case 4: rid = String(ParamHUE_HUEHueScene4RIDStr.c_str()); break;
+                        case 5: rid = String(ParamHUE_HUEHueScene5RIDStr.c_str()); break;
+                        case 6: rid = String(ParamHUE_HUEHueScene6RIDStr.c_str()); break;
+                        case 7: rid = String(ParamHUE_HUEHueScene7RIDStr.c_str()); break;
+                        case 8: rid = String(ParamHUE_HUEHueScene8RIDStr.c_str()); break;
+                        default: break;
+                    }
+                    if (rid.length() > 0 && _client != nullptr)
+                    {
+                        _client->recallHueScene(String(rid));
+                        if (_devices[channel] != nullptr && _devices[channel]->getHCLMaster() > 0)
+                            _devices[channel]->setHCLChannelLock(true);
+                    }
+                }
+                else
+                {
+                    // ETS-Preset action
+                    bool onOff      = (action >= 1);  // 0=Aus, else Ein
+                    bool applyBri   = (action == 2 || action == 4 || action == 6);
+                    bool applyCT    = (action == 3 || action == 4);
+                    bool applyColor = (action == 5 || action == 6);
+
+                    const uint8_t  bri   = knx.paramByte(HUE_ParamCalcIndex(base + 3));
+                    const uint16_t ct    = knx.paramWord(HUE_ParamCalcIndex(base + 4));
+                    const uint8_t  red   = knx.paramByte(HUE_ParamCalcIndex(base + 6));
+                    const uint8_t  green = knx.paramByte(HUE_ParamCalcIndex(base + 7));
+                    const uint8_t  blue  = knx.paramByte(HUE_ParamCalcIndex(base + 8));
+
+                    if (auto* light = lightAt(channel))
+                        light->processKnxSceneRecall(onOff, applyBri, bri, applyCT, ct, applyColor, red, green, blue);
+                    else if (auto* plug = plugAt(channel))
+                        plug->processKnxSceneRecall(onOff);
+                }
+                break;  // First matching slot wins.
+            }
+            break;
+        }
         default:
             break;
     }
@@ -1406,7 +1667,7 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
             }
         }
 
-        const unsigned long afterHueWriteMs = (_lights[channel] != nullptr) ? _lights[channel]->getLastHueWriteSuccessMs() : 0;
+        const unsigned long afterHueWriteMs = (_devices[channel] != nullptr) ? _devices[channel]->getLastHueWriteSuccessMs() : 0;
         const bool writeSuccessByTimestamp = (afterHueWriteMs > 0) && (afterHueWriteMs != beforeHueWriteMs) && (afterHueWriteMs >= commandStartMs);
         const bool writeSuccessByStatus = (putDelta > 0) && (httpStatus >= 200) && (httpStatus < 300);
         if (writeSuccessByTimestamp || writeSuccessByStatus)
@@ -1424,10 +1685,10 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
         _diagLastWriteTraceResult[channel] = result;
 
         String fadeInfo = "";
-        if (koType == 0 && _lights[channel] != nullptr)
+        if (koType == 0 && _devices[channel] != nullptr)
         {
             bool switchVal = (commandValue == "1");
-            uint8_t fadeSec = switchVal ? _lights[channel]->getSwitchOnTransitionSec() : _lights[channel]->getSwitchOffTransitionSec();
+            uint8_t fadeSec = switchVal ? _devices[channel]->getSwitchOnTransitionSec() : _devices[channel]->getSwitchOffTransitionSec();
             fadeInfo = " fadeSec=" + String(static_cast<unsigned>(fadeSec));
         }
 
@@ -1444,7 +1705,7 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
             + " durMs=" + String(durationMs));
     }
 
-    if (isCommandKo && _lights[channel] != nullptr)
+    if (isCommandKo && _devices[channel] != nullptr)
     {
         if (syncDir == 1 || syncDir == 2)
         {
@@ -1454,6 +1715,63 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
                 _channelFastTrackNextMs[channel] = nowMs + kFastTrackFirstDelayMs;
                 _channelFastTrackCooldownUntilMs[channel] = nowMs + kFastTrackCooldownMs;
             }
+        }
+    }
+}
+
+uint16_t HueGatewayModule::flashSize()
+{
+    // Version (1 byte) + per-channel per-slot scene store data (8 bytes each, 8 slots)
+    return 1 + MAX_CHANNELS * SCENE_SLOTS * 8;
+}
+
+void HueGatewayModule::writeFlash()
+{
+    openknx.flash.writeByte(SCENE_STORE_VERSION);
+    for (int ch = 0; ch < MAX_CHANNELS; ch++)
+    {
+        for (int s = 0; s < SCENE_SLOTS; s++)
+        {
+            const SceneStoreData& sd = _sceneStore[ch][s];
+            openknx.flash.writeByte(sd.valid);
+            openknx.flash.writeByte(sd.onOff);
+            openknx.flash.writeByte(sd.brightness);
+            openknx.flash.writeByte(static_cast<uint8_t>(sd.colorTemp >> 8));
+            openknx.flash.writeByte(static_cast<uint8_t>(sd.colorTemp & 0xFF));
+            openknx.flash.writeByte(sd.red);
+            openknx.flash.writeByte(sd.green);
+            openknx.flash.writeByte(sd.blue);
+        }
+    }
+}
+
+void HueGatewayModule::readFlash(const uint8_t* data, const uint16_t size)
+{
+    if (size == 0)
+        return;  // First boot, no data
+
+    uint8_t version = openknx.flash.readByte();
+    if (version != SCENE_STORE_VERSION)
+        return;
+
+    uint16_t maxSlots = static_cast<uint16_t>((size - 1) / 8);
+    for (int ch = 0; ch < MAX_CHANNELS; ch++)
+    {
+        for (int s = 0; s < SCENE_SLOTS; s++)
+        {
+            uint16_t slotIdx = static_cast<uint16_t>(ch) * SCENE_SLOTS + s;
+            if (slotIdx >= maxSlots)
+                return;
+            SceneStoreData& sd = _sceneStore[ch][s];
+            sd.valid      = openknx.flash.readByte();
+            sd.onOff      = openknx.flash.readByte();
+            sd.brightness = openknx.flash.readByte();
+            uint8_t ctHi  = openknx.flash.readByte();
+            uint8_t ctLo  = openknx.flash.readByte();
+            sd.colorTemp  = (static_cast<uint16_t>(ctHi) << 8) | ctLo;
+            sd.red        = openknx.flash.readByte();
+            sd.green      = openknx.flash.readByte();
+            sd.blue       = openknx.flash.readByte();
         }
     }
 }
@@ -1601,7 +1919,7 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
 
         Serial.println("To use in ETS (new parameters):");
         Serial.println("1. Set 'Zieltyp' = Licht/Raum/Zone");
-        Serial.println("2. Fill 'Hue Ziel (Light-/Room-/Zone-ID oder Name)' with matching target ID or name");
+        Serial.println("2. Fill 'Hue Ziel-ID' with matching target ID or name");
         Serial.println("3. Set channel to active");
         Serial.println("Legacy fallback still works: 'Hue Lampen-ID (UUID)' or prefixes room:/zone:");
         Serial.println("=================================");
@@ -1632,14 +1950,14 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
         
         for (int i = 0; i < MAX_LIGHTS; i++)
         {
-            if (_lights[i] == nullptr)
+            if (_devices[i] == nullptr)
                 continue;
             Serial.printf("%2d: %-25s %s\n", i, 
-                          _lights[i]->getName().c_str(),
-                          _lights[i]->getLightId().c_str());
+                          _devices[i]->getName().c_str(),
+                          _devices[i]->getResourceId().c_str());
             Serial.printf("    Status: %s, Brightness: %d\n",
-                          _lights[i]->isOn() ? "ON " : "OFF",
-                          _lights[i]->getBrightness());
+                          _devices[i]->isOn() ? "ON " : "OFF",
+                          _devices[i]->getBrightness());
         }
 
         Serial.println("\nHCL Status:");
@@ -2412,10 +2730,10 @@ void HueGatewayModule::setupDevices()
         if (ParamHUE_CHDisabled)
         {
             Serial.printf("[HueGatewayModule] Channel %d: Disabled\n", ch + 1);
-            if (_lights[ch] != nullptr)
+            if (_devices[ch] != nullptr)
             {
-                delete _lights[ch];
-                _lights[ch] = nullptr;
+                delete _devices[ch];
+                _devices[ch] = nullptr;
             }
             _channelLastPollMs[ch] = 0;
             _channelFastTrackNextMs[ch] = 0;
@@ -2449,6 +2767,106 @@ void HueGatewayModule::setupDevices()
         {
             hasIndexMappedChannel = true;
         }
+
+        // ---- Non-light device types (1-3): bypass bridge resolution ----
+        #ifdef ParamHUE_CHDeviceType
+        {
+            const uint8_t devType = ParamHUE_CHDeviceType;
+            if (devType >= 1 && devType <= 3)
+            {
+                const String resourceId = configuredTargetRid.length() > 0
+                    ? configuredTargetRid
+                    : configuredUuid;
+                const uint16_t koBase = static_cast<uint16_t>(HUE_KoBlockOffset + ch * HUE_KoBlockSize);
+
+                if (devType == 1)  // Bewegungsmelder
+                {
+                    const bool needsRecreate = (_devices[ch] == nullptr)
+                        || _devices[ch]->deviceType() != 1
+                        || !_devices[ch]->getResourceId().equalsIgnoreCase(resourceId);
+                    if (needsRecreate)
+                    {
+                        delete _devices[ch];
+                        _devices[ch] = new (std::nothrow) HueGatewaySensor(resourceId, resourceId);
+                        if (!_devices[ch]) continue;
+                    }
+                    static_cast<HueGatewaySensor*>(_devices[ch])->begin(
+                        koBase + 0,
+                        #ifdef ParamHUE_CHOptReachable
+                        ParamHUE_CHOptReachable != 0, koBase + 3,
+                        ParamHUE_CHOptTemperature != 0, koBase + 5,
+                        ParamHUE_CHOptLux != 0, koBase + 6,
+                        ParamHUE_CHOptBattery != 0, koBase + 4
+                        #else
+                        false, koBase + 3, false, koBase + 5, false, koBase + 6, false, koBase + 4
+                        #endif
+                    );
+                    _channelLastPollMs[ch] = 0;
+                    mappedChannels[ch] = true;
+                    mappedCount++;
+                    Serial.printf("[HueGatewayModule] Channel %d: Bewegungsmelder %s -> KO%d\n",
+                                  ch + 1, resourceId.c_str(), koBase + 0);
+                    continue;
+                }
+                else if (devType == 2)  // Taster
+                {
+                    #ifdef ParamHUE_CHButtonCount
+                    const uint8_t btnCount = ParamHUE_CHButtonCount;
+                    #else
+                    const uint8_t btnCount = 1;
+                    #endif
+                    const bool needsRecreate = (_devices[ch] == nullptr)
+                        || _devices[ch]->deviceType() != 2
+                        || !_devices[ch]->getResourceId().equalsIgnoreCase(resourceId);
+                    if (needsRecreate)
+                    {
+                        delete _devices[ch];
+                        _devices[ch] = new (std::nothrow) HueGatewayButton(resourceId, resourceId, btnCount);
+                        if (!_devices[ch]) continue;
+                    }
+                    static_cast<HueGatewayButton*>(_devices[ch])->begin(
+                        koBase + 0,
+                        koBase + 3,
+                        koBase + 9,
+                        koBase + 10);
+                    _channelLastPollMs[ch] = 0;
+                    mappedChannels[ch] = true;
+                    mappedCount++;
+                    Serial.printf("[HueGatewayModule] Channel %d: Taster %s (%u Tasten)\n",
+                                  ch + 1, resourceId.c_str(), static_cast<unsigned>(btnCount));
+                    continue;
+                }
+                else  // devType == 3: Kontaktsensor
+                {
+                    const bool needsRecreate = (_devices[ch] == nullptr)
+                        || _devices[ch]->deviceType() != 3
+                        || !_devices[ch]->getResourceId().equalsIgnoreCase(resourceId);
+                    if (needsRecreate)
+                    {
+                        delete _devices[ch];
+                        _devices[ch] = new (std::nothrow) HueGatewayContact(resourceId, resourceId);
+                        if (!_devices[ch]) continue;
+                    }
+                    static_cast<HueGatewayContact*>(_devices[ch])->begin(
+                        koBase + 0,
+                        #ifdef ParamHUE_CHOptTamper
+                        ParamHUE_CHOptTamper != 0, koBase + 3,
+                        ParamHUE_CHOptBattery != 0, koBase + 4,
+                        ParamHUE_CHOptReachable != 0, koBase + 9
+                        #else
+                        false, koBase + 3, false, koBase + 4, false, koBase + 9
+                        #endif
+                    );
+                    _channelLastPollMs[ch] = 0;
+                    mappedChannels[ch] = true;
+                    mappedCount++;
+                    Serial.printf("[HueGatewayModule] Channel %d: Kontaktsensor %s -> KO%d\n",
+                                  ch + 1, resourceId.c_str(), koBase + 0);
+                    continue;
+                }
+            }
+        }
+        #endif
 
         const HueGatewayLightState* selectedLight = nullptr;
         HueGatewayLightState fallbackLight;
@@ -2663,13 +3081,13 @@ void HueGatewayModule::setupDevices()
                               configuredTargetRid.length() > 0 ? 1U : 0U,
                               hasLegacyUuid ? 1U : 0U);
 
-                if (_lights[ch] != nullptr)
+                if (_devices[ch] != nullptr)
                 {
                     mappedChannels[ch] = true;
                     mappedCount++;
                     Serial.printf("[HueGatewayModule] Channel %d: keeping previous mapping (%s)\n",
                                   ch + 1,
-                                  _lights[ch]->getLightId().c_str());
+                                  _devices[ch]->getResourceId().c_str());
                 }
                 continue;
             }
@@ -2684,7 +3102,7 @@ void HueGatewayModule::setupDevices()
         if (selectedLight == nullptr || selectedLight->id.isEmpty())
         {
             Serial.printf("[HueGatewayModule] Channel %d: No valid bridge light selected\n", ch + 1);
-            if (_lights[ch] != nullptr)
+            if (_devices[ch] != nullptr)
             {
                 mappedChannels[ch] = true;
                 mappedCount++;
@@ -2701,29 +3119,75 @@ void HueGatewayModule::setupDevices()
         uint16_t koStatusColorTemp = koBase + 6;
         uint16_t koStatusColorRGB = koBase + 8;
         
-        const bool needsRecreate = (_lights[ch] == nullptr)
-            || !_lights[ch]->getLightId().equalsIgnoreCase(selectedLight->id)
-            || (_lights[ch]->isGroupedTarget() != targetIsGrouped);
+        #ifdef ParamHUE_CHDeviceType
+        const uint8_t chDevType = ParamHUE_CHDeviceType;
+        #else
+        const uint8_t chDevType = 0;
+        #endif
+
+        const bool needsRecreate = (_devices[ch] == nullptr)
+            || !_devices[ch]->getResourceId().equalsIgnoreCase(selectedLight->id)
+            || (_devices[ch]->isGroupedTarget() != targetIsGrouped)
+            || (_devices[ch]->deviceType() != chDevType);
 
         if (needsRecreate)
         {
-            if (_lights[ch] != nullptr)
+            if (_devices[ch] != nullptr)
             {
-                delete _lights[ch];
+                delete _devices[ch];
+                _devices[ch] = nullptr;
             }
 
-            _lights[ch] = new HueGatewayLight(selectedLight->id, selectedLight->name, _client);
-            if (_lights[ch] == nullptr)
+            if (chDevType == 4)  // Steckdose
             {
-                Serial.printf("[HueGatewayModule] Channel %d: allocation failed for %s\n",
-                              ch + 1,
-                              selectedLight->id.c_str());
-                continue;
+                HueGatewayPlug* newPlug = new (std::nothrow) HueGatewayPlug(selectedLight->id, selectedLight->name, _client);
+                if (newPlug == nullptr)
+                {
+                    Serial.printf("[HueGatewayModule] Channel %d: allocation failed (Plug) for %s\n",
+                                  ch + 1, selectedLight->id.c_str());
+                    continue;
+                }
+                _devices[ch] = newPlug;
+            }
+            else
+            {
+                HueGatewayLight* newLight = new (std::nothrow) HueGatewayLight(selectedLight->id, selectedLight->name, _client);
+                if (newLight == nullptr)
+                {
+                    Serial.printf("[HueGatewayModule] Channel %d: allocation failed for %s\n",
+                                  ch + 1, selectedLight->id.c_str());
+                    continue;
+                }
+                _devices[ch] = newLight;
             }
         }
 
-        _lights[ch]->begin(koSwitch, koBrightness, koDimming, koStatusSwitch, koStatusBrightness, koStatusColorTemp, koStatusColorRGB);
-        _lights[ch]->setGroupedTarget(targetIsGrouped);
+        // ---- Steckdose: eigene Initialisierung und weiter ----
+        if (chDevType == 4)
+        {
+            auto* setupPlug = static_cast<HueGatewayPlug*>(_devices[ch]);
+            setupPlug->begin(koSwitch, koStatusSwitch,
+                #ifdef ParamHUE_CHOptReachable
+                ParamHUE_CHOptReachable != 0, koBase + 9
+                #else
+                false, koBase + 9
+                #endif
+            );
+            mappedChannels[ch] = true;
+            mappedCount++;
+            Serial.printf("[HueGatewayModule] Channel %d: Steckdose %s -> KO%d/KO%d\n",
+                          ch + 1, selectedLight->id.c_str(), koSwitch, koStatusSwitch);
+            continue;
+        }
+
+        HueGatewayLight* setupLight = lightAt(ch);
+        if (setupLight == nullptr)
+        {
+            continue;
+        }
+
+        setupLight->begin(koSwitch, koBrightness, koDimming, koStatusSwitch, koStatusBrightness, koStatusColorTemp, koStatusColorRGB);
+        setupLight->setGroupedTarget(targetIsGrouped);
 
         uint8_t lightType = ParamHUE_CHLightType;
         uint8_t effectiveLightType = lightType;
@@ -2754,25 +3218,25 @@ void HueGatewayModule::setupDevices()
                           static_cast<unsigned>(effectiveLightType));
         }
 
-        _lights[ch]->setLightType(effectiveLightType);
+        setupLight->setLightType(effectiveLightType);
 
         uint8_t hclMaster = ParamHUE_CHHCLMaster;
         if (hclMaster > 8)
         {
             hclMaster = 0;
         }
-        _lights[ch]->setHCLMaster(hclMaster);
+        _devices[ch]->setHCLMaster(hclMaster);
 
         _hclChannelLockFallbackMode[ch] = static_cast<uint8_t>(HclLockFallbackMode::None);
         #ifdef ParamHUE_CHHCLLockFallback
         _hclChannelLockFallbackMode[ch] = ParamHUE_CHHCLLockFallback;
         #endif
 
-        _lights[ch]->setHCLChannelLock(_hclChannelLockActive[ch]);
+        _devices[ch]->setHCLChannelLock(_hclChannelLockActive[ch]);
         publishHclChannelLockStatus(ch);
 
         uint8_t minBrightness = ParamHUE_CHMinBrightness;
-        _lights[ch]->setMinBrightness(minBrightness);
+        _devices[ch]->setMinBrightness(minBrightness);
         uint8_t switchOnTransitionSec = 2;
         uint8_t switchOffTransitionSec = 6;
         #ifdef ParamHUE_HUESwitchOnTransitionSec
@@ -2781,7 +3245,7 @@ void HueGatewayModule::setupDevices()
         #ifdef ParamHUE_HUESwitchOffTransitionSec
         switchOffTransitionSec = ParamHUE_HUESwitchOffTransitionSec;
         #endif
-        _lights[ch]->setSwitchTransitionDurations(switchOnTransitionSec, switchOffTransitionSec);
+        _devices[ch]->setSwitchTransitionDurations(switchOnTransitionSec, switchOffTransitionSec);
         _channelLastPollMs[ch] = 0;
 
         Serial.printf("[HueGatewayModule] Channel %d: %s (%s)%s, Type:%u Sync:%u Poll:%us MinBri:%u%% HCL:%u OnFade:%us OffFade:%us -> KO %d/%d/%d/%d/%d\n",
@@ -2804,10 +3268,10 @@ void HueGatewayModule::setupDevices()
 
     for (uint8_t ch = maxChannels; ch < MAX_LIGHTS; ch++)
     {
-        if (_lights[ch] != nullptr)
+        if (_devices[ch] != nullptr)
         {
-            delete _lights[ch];
-            _lights[ch] = nullptr;
+            delete _devices[ch];
+            _devices[ch] = nullptr;
         }
         _channelLastPollMs[ch] = 0;
         _channelFastTrackNextMs[ch] = 0;
@@ -2817,13 +3281,13 @@ void HueGatewayModule::setupDevices()
 
     for (uint8_t ch = 0; ch < maxChannels; ch++)
     {
-        if (mappedChannels[ch] || _lights[ch] == nullptr)
+        if (mappedChannels[ch] || _devices[ch] == nullptr)
         {
             continue;
         }
 
-        delete _lights[ch];
-        _lights[ch] = nullptr;
+        delete _devices[ch];
+        _devices[ch] = nullptr;
         _channelLastPollMs[ch] = 0;
         _channelFastTrackNextMs[ch] = 0;
         _channelFastTrackCooldownUntilMs[ch] = 0;
@@ -4034,7 +4498,7 @@ void HueGatewayModule::refreshLightStatus()
     int dueChannels = 0;
     for (int i = 0; i < MAX_LIGHTS; i++)
     {
-        if (_lights[i] == nullptr)
+        if (_devices[i] == nullptr)
         {
             continue;
         }
@@ -4083,12 +4547,12 @@ void HueGatewayModule::refreshLightStatus()
     int dueLightChannels = 0;
     for (int i = 0; i < MAX_LIGHTS; i++)
     {
-        if (!dueFlags[i] || _lights[i] == nullptr)
+        if (!dueFlags[i] || _devices[i] == nullptr)
         {
             continue;
         }
 
-        if (_lights[i]->isGroupedTarget())
+        if (_devices[i]->isGroupedTarget())
         {
             dueGroupedChannels++;
         }
@@ -4248,7 +4712,7 @@ void HueGatewayModule::refreshLightStatus()
     {
         int i = (_pollCursor + offset) % MAX_LIGHTS;
 
-        if (_lights[i] == nullptr)
+        if (_devices[i] == nullptr)
         {
             continue;
         }
@@ -4296,14 +4760,15 @@ void HueGatewayModule::refreshLightStatus()
         processedThisTick++;
         lastProcessedIndex = static_cast<uint8_t>(i);
 
-        HueGatewayLightState* channelSnapshot = _lights[i]->isGroupedTarget() ? groupedSnapshot : lightSnapshot;
-        int channelSnapshotCount = _lights[i]->isGroupedTarget() ? groupedCount : count;
+        HueGatewayLightState* channelSnapshot = _devices[i]->isGroupedTarget() ? groupedSnapshot : lightSnapshot;
+        int channelSnapshotCount = _devices[i]->isGroupedTarget() ? groupedCount : count;
 
         for (int j = 0; j < channelSnapshotCount; j++)
         {
-            if (channelSnapshot[j].id == _lights[i]->getLightId())
+            HueGatewayLight* lightI = lightAt(i);
+            if (lightI != nullptr && channelSnapshot[j].id == lightI->getLightId())
             {
-                _lights[i]->updateFromHue(
+                lightI->updateFromHue(
                     channelSnapshot[j].on,
                     channelSnapshot[j].brightness,
                     channelSnapshot[j].colorTempKelvin,
@@ -4332,6 +4797,45 @@ void HueGatewayModule::refreshLightStatus()
                 break;
             }
         }
+
+        // ---- Sensor-/Steckdosen-Polling (kein Licht-Snapshot) ----
+        #ifdef ParamHUE_CHDeviceType
+        if (_devices[i] != nullptr && lightAt(i) == nullptr)
+        {
+            const uint8_t devType = ParamHUE_CHDeviceType;
+            if (devType == 1)  // Bewegungsmelder
+            {
+                HueGatewayMotionState ms;
+                if (_client->getMotionState(_devices[i]->getResourceId(), ms))
+                {
+                    static_cast<HueGatewaySensor*>(_devices[i])->updateFromState(ms);
+                    _lastChannelSyncOkMs = now;
+                }
+            }
+            else if (devType == 3)  // Kontaktsensor
+            {
+                HueGatewayContactState cs;
+                if (_client->getContactState(_devices[i]->getResourceId(), cs))
+                {
+                    static_cast<HueGatewayContact*>(_devices[i])->updateFromState(cs);
+                    _lastChannelSyncOkMs = now;
+                }
+            }
+            else if (devType == 4)  // Steckdose via Licht-Snapshot
+            {
+                for (int j = 0; j < count; j++)
+                {
+                    if (lightSnapshot[j].id == _devices[i]->getResourceId())
+                    {
+                        static_cast<HueGatewayPlug*>(_devices[i])->updateFromHue(lightSnapshot[j].on, lightSnapshot[j].reachable);
+                        _lastChannelSyncOkMs = now;
+                        break;
+                    }
+                }
+            }
+        }
+        #endif
+
     }
 
     _pollCursor = static_cast<uint8_t>((lastProcessedIndex + 1) % MAX_LIGHTS);
@@ -4688,9 +5192,9 @@ void HueGatewayModule::setHclChannelLock(uint8_t channelIndex, bool active, cons
     const bool changed = (_hclChannelLockActive[channelIndex] != active);
     _hclChannelLockActive[channelIndex] = active;
 
-    if (_lights[channelIndex] != nullptr)
+    if (_devices[channelIndex] != nullptr)
     {
-        _lights[channelIndex]->setHCLChannelLock(active);
+        _devices[channelIndex]->setHCLChannelLock(active);
     }
 
     if (active)
@@ -5060,10 +5564,10 @@ void HueGatewayModule::resetDevices()
 {
     for (int i = 0; i < MAX_LIGHTS; i++)
     {
-        if (_lights[i])
+        if (_devices[i])
         {
-            delete _lights[i];
-            _lights[i] = nullptr;
+            delete _devices[i];
+            _devices[i] = nullptr;
         }
         _channelLastPollMs[i] = 0;
         _channelFastTrackNextMs[i] = 0;
@@ -5319,17 +5823,18 @@ void HueGatewayModule::applyEventStreamUpdates(const HueGatewayEventLightUpdate*
         bool applied = false;
         for (int i = 0; i < MAX_LIGHTS; i++)
         {
-            if (_lights[i] == nullptr)
+            HueGatewayLight* light = lightAt(i);
+            if (light == nullptr)
             {
                 continue;
             }
 
-            if (_lights[i]->isGroupedTarget() != updates[u].isGroupedResource)
+            if (light->isGroupedTarget() != updates[u].isGroupedResource)
             {
                 continue;
             }
 
-            if (_lights[i]->getLightId() != updates[u].lightId)
+            if (light->getLightId() != updates[u].lightId)
             {
                 continue;
             }
@@ -5348,14 +5853,14 @@ void HueGatewayModule::applyEventStreamUpdates(const HueGatewayEventLightUpdate*
                 break;
             }
 
-            bool on = updates[u].hasOn ? updates[u].on : _lights[i]->isOn();
-            uint8_t brightness = updates[u].hasBrightness ? updates[u].brightness : _lights[i]->getBrightness();
-            uint16_t colorTempKelvin = updates[u].hasColorTemp ? updates[u].colorTempKelvin : _lights[i]->getColorTempKelvin();
-            uint8_t red = updates[u].hasColorRgb ? updates[u].red : _lights[i]->getRed();
-            uint8_t green = updates[u].hasColorRgb ? updates[u].green : _lights[i]->getGreen();
-            uint8_t blue = updates[u].hasColorRgb ? updates[u].blue : _lights[i]->getBlue();
+            bool on = updates[u].hasOn ? updates[u].on : light->isOn();
+            uint8_t brightness = updates[u].hasBrightness ? updates[u].brightness : light->getBrightness();
+            uint16_t colorTempKelvin = updates[u].hasColorTemp ? updates[u].colorTempKelvin : light->getColorTempKelvin();
+            uint8_t red = updates[u].hasColorRgb ? updates[u].red : light->getRed();
+            uint8_t green = updates[u].hasColorRgb ? updates[u].green : light->getGreen();
+            uint8_t blue = updates[u].hasColorRgb ? updates[u].blue : light->getBlue();
 
-            _lights[i]->updateFromHue(on, brightness, colorTempKelvin, red, green, blue);
+            light->updateFromHue(on, brightness, colorTempKelvin, red, green, blue);
             Serial.printf("[HueGatewayModule] Event applied -> channel %d id=%s on=%d bri=%u ct=%u rgb=(%u,%u,%u)\n",
                           i + 1,
                           updates[u].lightId.c_str(),
@@ -5427,6 +5932,64 @@ void HueGatewayModule::applyEventStreamUpdates(const HueGatewayEventLightUpdate*
             pendingIgnoredLightSampleId = "";
             pendingIgnoredGroupedSampleId = "";
             lastIgnoredSummaryMs = nowMs;
+        }
+    }
+}
+
+void HueGatewayModule::applyEventStreamDeviceUpdates(const HueGatewayEventSensorUpdate* updates, int updateCount)
+{
+    if (updates == nullptr || updateCount <= 0) return;
+
+    for (int u = 0; u < updateCount; u++)
+    {
+        const HueGatewayEventSensorUpdate& upd = updates[u];
+        for (int i = 0; i < MAX_LIGHTS; i++)
+        {
+            if (_devices[i] == nullptr) continue;
+            if (!_devices[i]->getResourceId().equalsIgnoreCase(upd.resourceId)) continue;
+
+            uint8_t _channelIndex = static_cast<uint8_t>(i);
+            #ifdef ParamHUE_CHSyncDir
+            uint8_t syncDir = ParamHUE_CHSyncDir;
+            if (!(syncDir == 1 || syncDir == 2)) break;
+            #endif
+
+            using Type = HueGatewayEventSensorUpdate::Type;
+            switch (upd.type)
+            {
+                case Type::Motion:
+                    if (_devices[i]->deviceType() == 1)
+                    {
+                        static_cast<HueGatewaySensor*>(_devices[i])->updateMotionOnly(upd.motionDetected);
+                        Serial.printf("[HueGatewayModule] EventStream Motion -> ch%d motion=%d\n",
+                                      i + 1, upd.motionDetected ? 1 : 0);
+                    }
+                    break;
+                case Type::Contact:
+                    if (_devices[i]->deviceType() == 3)
+                    {
+                        static_cast<HueGatewayContact*>(_devices[i])->updateContactOnly(upd.contactOpen);
+                        Serial.printf("[HueGatewayModule] EventStream Contact -> ch%d open=%d\n",
+                                      i + 1, upd.contactOpen ? 1 : 0);
+                    }
+                    break;
+                case Type::Button:
+                    if (_devices[i]->deviceType() == 2)
+                    {
+                        bool pressed = (upd.buttonEventType == "initial_press"
+                                        || upd.buttonEventType == "repeat"
+                                        || upd.buttonEventType == "short_release"
+                                        || upd.buttonEventType == "long_release");
+                        static_cast<HueGatewayButton*>(_devices[i])->triggerButton(
+                            static_cast<uint8_t>(upd.buttonIndex), pressed);
+                        Serial.printf("[HueGatewayModule] EventStream Button -> ch%d btn=%d event=%s\n",
+                                      i + 1, upd.buttonIndex, upd.buttonEventType.c_str());
+                    }
+                    break;
+                default:
+                    break;
+            }
+            break;
         }
     }
 }
@@ -5949,7 +6512,15 @@ esp_err_t HueGatewayModule::handleWebScan(httpd_req_t* req)
     }
     else
     {
-        chunk += "<p>Es wurden <strong>" + String(self->_lastWebScanLightCount) + "</strong> Leuchten gefunden:</p>";
+        {
+            String summary = "Es wurden <strong>" + String(self->_lastWebScanLightCount) + "</strong> Leuchte" + String(self->_lastWebScanLightCount == 1 ? "" : "n");
+            if (self->_lastWebScanAccessoryCount > 0)
+            {
+                summary += " und <strong>" + String(self->_lastWebScanAccessoryCount) + "</strong> Schalter/Sensor" + String(self->_lastWebScanAccessoryCount == 1 ? "" : "en");
+            }
+            summary += " gefunden:";
+            chunk += "<p>" + summary + "</p>";
+        }
         if (self->_lastWebScanDurationMs > 0)
         {
             chunk += "<p>Scan-Dauer: " + String(self->_lastWebScanDurationMs / 1000UL) + " Sekunden</p>";
@@ -6670,6 +7241,31 @@ void HueGatewayModule::updateWebScanCache()
             text += ")";
         }
         text += "\n";
+    }
+
+    // Zubehör (Schalter, Sensoren)
+    const int kMaxAccessories = 24;
+    HueGatewayAccessoryDevice* accessories = new (std::nothrow) HueGatewayAccessoryDevice[kMaxAccessories];
+    if (accessories != nullptr)
+    {
+        int accCount = _client->getAccessoryDevices(accessories, kMaxAccessories);
+        _lastWebScanAccessoryCount = (accCount > 0) ? accCount : 0;
+        if (accCount > 0)
+        {
+            text += "\nSchalter & Sensoren:\n";
+            text += "---------------------------------\n";
+            for (int i = 0; i < accCount; i++)
+            {
+                text += String(i + 1) + ") " + accessories[i].name + "\n";
+                text += "    ID: " + accessories[i].id + "\n";
+                text += "    Typ: " + accessories[i].type + "\n";
+            }
+        }
+        delete[] accessories;
+    }
+    else
+    {
+        _lastWebScanAccessoryCount = 0;
     }
 
     if (scanDurationMs > 0)

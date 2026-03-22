@@ -12,6 +12,11 @@ Option je Kanal:
 - **Rückfallzeit nach Sperre** (inkl. Tageswechsel, `kein Rückfall` möglich)
 - **Rückfallstrategie nach Sperre**: zentrale Vorgabe, siehe Abschnitt Rückfallstrategie nach Sperre
 
+**Automatische Sperre durch Szenen-Abruf**: Wenn ein Kanal einem Lichtmanager zugeordnet ist und eine Szene abgerufen wird, wird die HCL-Kanalsperre automatisch aktiviert. Die Sperre wird aufgehoben durch:
+- Einen **Aus-Befehl** (KNX-Schalten-KO, Wert 0) → sofortiges Aufheben
+- Ablauf der konfigurierten **Rückfallzeit**
+- Globales Entsperren per KO `Entsperren Trigger`
+
 KOs je Kanal:
 - `Sperre` (Eingang)
 - `Status Sperre` (Ausgang)

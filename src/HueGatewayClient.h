@@ -62,6 +62,68 @@ struct HueGatewayTargetInfo
     String groupedLightId;
 };
 
+// ---- Sensor-Zustände für Nicht-Licht-Gerätetypen ----
+
+struct HueGatewayMotionState
+{
+    String id;
+    bool motionDetected;
+    bool reachable;
+    // Optionale Zusatzdaten (NaN / 255 wenn nicht verfügbar)
+    float temperature;       // °C, NAN wenn nicht verfügbar
+    float lightLevelLux;     // Lux, 0 wenn nicht verfügbar
+    uint8_t batteryPercent;  // 0-100, 255 wenn nicht verfügbar
+
+    HueGatewayMotionState()
+        : motionDetected(false), reachable(true)
+        , temperature(NAN), lightLevelLux(0.0f), batteryPercent(255) {}
+};
+
+struct HueGatewayContactState
+{
+    String id;
+    bool contactOpen;        // true = geöffnet (no_contact), false = geschlossen (contact)
+    bool reachable;
+    // Optionale Zusatzdaten
+    bool tampered;           // Sabotagekontakt ausgelöst
+    float temperature;       // °C, NAN wenn nicht verfügbar
+    uint8_t batteryPercent;  // 0-100, 255 wenn nicht verfügbar
+
+    HueGatewayContactState()
+        : contactOpen(false), reachable(true)
+        , tampered(false), temperature(NAN), batteryPercent(255) {}
+};
+
+struct HueGatewayButtonState
+{
+    String id;
+    int buttonIndex;        // 0-basierter Index der gedrückten Taste
+    String lastEventType;   // "short_release", "long_release", "repeat", "initial_press"
+};
+
+/** Nicht-Leuchten-Gerät von der Bridge (Schalter, Bewegungsmelder, Kontaktsensor etc.) */
+struct HueGatewayAccessoryDevice
+{
+    String id;    // Device Resource ID
+    String name;  // Gerätename
+    String type;  // z.B. "Taster", "Bewegungsmelder", "Kontaktsensor"
+};
+
+/** Sensorereignis aus dem SSE-Eventstream (Bewegungsmelder, Kontakt, Taster) */
+struct HueGatewayEventSensorUpdate
+{
+    enum class Type { Unknown, Motion, Contact, Button };
+    Type type;
+    String resourceId;
+    // Motion
+    bool motionDetected;
+    // Contact
+    bool contactOpen;
+    // Button
+    int buttonIndex;
+    String buttonEventType;
+};
+
 class HueGatewayClient
 {
 public:
@@ -102,6 +164,7 @@ public:
      */
     int getLights(HueGatewayLightState* lights, int maxLights, bool includeLocations = true);
     int getGroupedLights(HueGatewayLightState* groupedLights, int maxLights);
+    int getAccessoryDevices(HueGatewayAccessoryDevice* devices, int maxDevices);
     
     /**
     * @brief Switches a light on or off.
@@ -231,6 +294,67 @@ public:
     int getRoomTargets(HueGatewayTargetInfo* targets, int maxTargets);
     int getZoneTargets(HueGatewayTargetInfo* targets, int maxTargets);
 
+    // ---- Sensoren und Taster (Gerätetypen 1-3) ----
+
+    /**
+     * @brief Liest den aktuellen Zustand eines Bewegungsmelders.
+     * @param motionRid Hue Resource ID des Motion-Sensors (/clip/v2/resource/motion)
+     * @param state Ausgabe-Struktur
+     * @return true bei Erfolg
+     */
+    bool getMotionState(const String& motionRid, HueGatewayMotionState& state);
+
+    /**
+     * @brief Liest den aktuellen Zustand eines Kontaktsensors.
+     * @param contactRid Hue Resource ID des Contact-Sensors (/clip/v2/resource/contact_sensor)
+     * @param state Ausgabe-Struktur
+     * @return true bei Erfolg
+     */
+    bool getContactState(const String& contactRid, HueGatewayContactState& state);
+
+    /**
+     * @brief Liest den letzten Tastenzustand eines Taster-Geräts.
+     * @param buttonRid Hue Resource ID des Tasters (/clip/v2/resource/button)
+     * @param state Ausgabe-Struktur
+     * @return true bei Erfolg
+     */
+    bool getButtonState(const String& buttonRid, HueGatewayButtonState& state);
+
+    /**
+     * @brief Wie pollEventStream, liefert aber zusätzlich Sensor-Ereignisse zurück.
+     * @param lightUpdates Array für Licht-Ereignisse
+     * @param maxLightUpdates Maximale Anzahl Licht-Ereignisse
+     * @param sensorUpdates Array für Sensor-Ereignisse
+     * @param maxSensorUpdates Maximale Anzahl Sensor-Ereignisse
+     * @return Anzahl Licht-Ereignisse (sensorCount per Referenz)
+     */
+    int pollEventStreamFull(HueGatewayEventLightUpdate* lightUpdates, int maxLightUpdates,
+                            HueGatewayEventSensorUpdate* sensorUpdates, int maxSensorUpdates,
+                            int& sensorCount);
+
+    // ---- Optionale Sensor-Zusatzdaten ----
+    /** Liest Temperatur eines Geräts (über Besitzer-RID). Gibt NAN zurück falls nicht gefunden. */
+    bool fetchTemperatureByOwner(const String& ownerRid, float& celsius);
+    /** Liest Lux-Wert eines Geräts (über Besitzer-RID). */
+    bool fetchLightLevelByOwner(const String& ownerRid, float& lux);
+    /** Liest Batteriestand eines Geräts (über Besitzer-RID), 0-100%. */
+    bool fetchBatteryByOwner(const String& ownerRid, uint8_t& percent);
+    /** Liest Sabotage-Status eines Geräts (über Besitzer-RID). */
+    bool fetchTamperByOwner(const String& ownerRid, bool& tampered);
+    /** Liest Zigbee-Erreichbarkeit (über Besitzer-RID). */
+    bool fetchZigbeeReachableByOwner(const String& ownerRid, bool& reachable);
+    /** Ermittelt die Besitzer-RID (Device) aus einer beliebigen Resource-Response. */
+    bool getOwnerRidFromResource(const String& resourceType, const String& resourceId, String& ownerRid);
+
+    // ---- Szenensteuerung ----
+
+    /**
+     * @brief Ruft eine Hue-Szene auf der Bridge auf.
+     * @param sceneRID Hue Scene Resource ID
+     * @return true bei Erfolg
+     */
+    bool recallHueScene(const String& sceneRID);
+
 private:
     bool _initialized;
     String _bridgeIP;
@@ -288,6 +412,10 @@ private:
     String buildUrl(const String& endpoint);
     static void xyToRgb(float x, float y, uint8_t& red, uint8_t& green, uint8_t& blue);
     int parseEventPayload(const String& payload, HueGatewayEventLightUpdate* updates, int maxUpdates);
+    int parseEventPayloadFull(const String& payload,
+                              HueGatewayEventLightUpdate* lightUpdates, int maxLightUpdates,
+                              HueGatewayEventSensorUpdate* sensorUpdates, int maxSensorUpdates,
+                              int& sensorCount);
 
     void appendDeviceLightLinksFromDoc(std::vector<DeviceLightLink>& links, const JsonDocument& doc);
     void appendLocationsFromDoc(std::vector<LightLocation>& locations,

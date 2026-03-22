@@ -35,7 +35,7 @@
               
               <!-- Kanalanzahl -->
               <ParameterType Id="%AID%_PT-HUEChannelCount" Name="HUEChannelCount">
-                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="24" />
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="32" />
               </ParameterType>
               
               <!-- Lampentyp -->
@@ -51,9 +51,9 @@
               <!-- Kanal-Zieltyp -->
               <ParameterType Id="%AID%_PT-HUETargetType" Name="HUETargetType">
                 <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
-                  <Enumeration Text="Licht" Value="0" Id="%ENID%" />
-                  <Enumeration Text="Raum" Value="1" Id="%ENID%" />
-                  <Enumeration Text="Zone" Value="2" Id="%ENID%" />
+                  <Enumeration Text="Licht-ID" Value="0" Id="%ENID%" />
+                  <Enumeration Text="Raum-ID" Value="1" Id="%ENID%" />
+                  <Enumeration Text="Zone-ID" Value="2" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
               
@@ -79,6 +79,27 @@
               <!-- Helligkeit -->
               <ParameterType Id="%AID%_PT-HUEBrightness" Name="HUEBrightness">
                 <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="1" maxInclusive="100" />
+              </ParameterType>
+              
+              <!-- Gerätetyp pro Kanal -->
+              <ParameterType Id="%AID%_PT-HUEDeviceType" Name="HUEDeviceType">
+                <TypeRestriction Base="Value" SizeInBit="3" UIHint="DropDown">
+                  <Enumeration Text="Licht" Value="0" Id="%ENID%" />
+                  <Enumeration Text="Bewegungsmelder" Value="1" Id="%ENID%" />
+                  <Enumeration Text="Taster/Schalter" Value="2" Id="%ENID%" />
+                  <Enumeration Text="Kontaktsensor" Value="3" Id="%ENID%" />
+                  <Enumeration Text="Steckdose" Value="4" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+
+              <!-- Anzahl Tasten (Taster-Kanal) -->
+              <ParameterType Id="%AID%_PT-HUEButtonCount" Name="HUEButtonCount">
+                <TypeRestriction Base="Value" SizeInBit="3" UIHint="DropDown">
+                  <Enumeration Text="1 Taste" Value="1" Id="%ENID%" />
+                  <Enumeration Text="2 Tasten" Value="2" Id="%ENID%" />
+                  <Enumeration Text="3 Tasten" Value="3" Id="%ENID%" />
+                  <Enumeration Text="4 Tasten" Value="4" Id="%ENID%" />
+                </TypeRestriction>
               </ParameterType>
               
               <!-- Lichtmanager aktivieren -->
@@ -168,7 +189,7 @@
                   <Enumeration Text="Definierte Rückfallzeit" Value="0" Id="%ENID%" />
                   <Enumeration Text="Freie Dauer" Value="1" Id="%ENID%" />
                   <Enumeration Text="Freie Uhrzeit" Value="2" Id="%ENID%" />
-                  <Enumeration Text="Dauer ODER Uhrzeit" Value="3" Id="%ENID%" />
+                  <Enumeration Text="Dauer oder Uhrzeit" Value="3" Id="%ENID%" />
                   <Enumeration Text="Nur externes Entsperren" Value="4" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
@@ -217,7 +238,151 @@
                   <Enumeration Text="Lichtmanager 8" Value="8" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
-              
+
+              <!-- Szenen-Konfiguration -->
+              <ParameterType Id="%AID%_PT-HUESceneNumber" Name="HUESceneNumber">
+                <TypeRestriction Base="Value" SizeInBit="8" UIHint="DropDown">
+                  <Enumeration Text="nicht aktiv" Value="0" Id="%ENID%" />
+                  <Enumeration Text="1" Value="1" Id="%ENID%" />
+                  <Enumeration Text="2" Value="2" Id="%ENID%" />
+                  <Enumeration Text="3" Value="3" Id="%ENID%" />
+                  <Enumeration Text="4" Value="4" Id="%ENID%" />
+                  <Enumeration Text="5" Value="5" Id="%ENID%" />
+                  <Enumeration Text="6" Value="6" Id="%ENID%" />
+                  <Enumeration Text="7" Value="7" Id="%ENID%" />
+                  <Enumeration Text="8" Value="8" Id="%ENID%" />
+                  <Enumeration Text="9" Value="9" Id="%ENID%" />
+                  <Enumeration Text="10" Value="10" Id="%ENID%" />
+                  <Enumeration Text="11" Value="11" Id="%ENID%" />
+                  <Enumeration Text="12" Value="12" Id="%ENID%" />
+                  <Enumeration Text="13" Value="13" Id="%ENID%" />
+                  <Enumeration Text="14" Value="14" Id="%ENID%" />
+                  <Enumeration Text="15" Value="15" Id="%ENID%" />
+                  <Enumeration Text="16" Value="16" Id="%ENID%" />
+                  <Enumeration Text="17" Value="17" Id="%ENID%" />
+                  <Enumeration Text="18" Value="18" Id="%ENID%" />
+                  <Enumeration Text="19" Value="19" Id="%ENID%" />
+                  <Enumeration Text="20" Value="20" Id="%ENID%" />
+                  <Enumeration Text="21" Value="21" Id="%ENID%" />
+                  <Enumeration Text="22" Value="22" Id="%ENID%" />
+                  <Enumeration Text="23" Value="23" Id="%ENID%" />
+                  <Enumeration Text="24" Value="24" Id="%ENID%" />
+                  <Enumeration Text="25" Value="25" Id="%ENID%" />
+                  <Enumeration Text="26" Value="26" Id="%ENID%" />
+                  <Enumeration Text="27" Value="27" Id="%ENID%" />
+                  <Enumeration Text="28" Value="28" Id="%ENID%" />
+                  <Enumeration Text="29" Value="29" Id="%ENID%" />
+                  <Enumeration Text="30" Value="30" Id="%ENID%" />
+                  <Enumeration Text="31" Value="31" Id="%ENID%" />
+                  <Enumeration Text="32" Value="32" Id="%ENID%" />
+                  <Enumeration Text="33" Value="33" Id="%ENID%" />
+                  <Enumeration Text="34" Value="34" Id="%ENID%" />
+                  <Enumeration Text="35" Value="35" Id="%ENID%" />
+                  <Enumeration Text="36" Value="36" Id="%ENID%" />
+                  <Enumeration Text="37" Value="37" Id="%ENID%" />
+                  <Enumeration Text="38" Value="38" Id="%ENID%" />
+                  <Enumeration Text="39" Value="39" Id="%ENID%" />
+                  <Enumeration Text="40" Value="40" Id="%ENID%" />
+                  <Enumeration Text="41" Value="41" Id="%ENID%" />
+                  <Enumeration Text="42" Value="42" Id="%ENID%" />
+                  <Enumeration Text="43" Value="43" Id="%ENID%" />
+                  <Enumeration Text="44" Value="44" Id="%ENID%" />
+                  <Enumeration Text="45" Value="45" Id="%ENID%" />
+                  <Enumeration Text="46" Value="46" Id="%ENID%" />
+                  <Enumeration Text="47" Value="47" Id="%ENID%" />
+                  <Enumeration Text="48" Value="48" Id="%ENID%" />
+                  <Enumeration Text="49" Value="49" Id="%ENID%" />
+                  <Enumeration Text="50" Value="50" Id="%ENID%" />
+                  <Enumeration Text="51" Value="51" Id="%ENID%" />
+                  <Enumeration Text="52" Value="52" Id="%ENID%" />
+                  <Enumeration Text="53" Value="53" Id="%ENID%" />
+                  <Enumeration Text="54" Value="54" Id="%ENID%" />
+                  <Enumeration Text="55" Value="55" Id="%ENID%" />
+                  <Enumeration Text="56" Value="56" Id="%ENID%" />
+                  <Enumeration Text="57" Value="57" Id="%ENID%" />
+                  <Enumeration Text="58" Value="58" Id="%ENID%" />
+                  <Enumeration Text="59" Value="59" Id="%ENID%" />
+                  <Enumeration Text="60" Value="60" Id="%ENID%" />
+                  <Enumeration Text="61" Value="61" Id="%ENID%" />
+                  <Enumeration Text="62" Value="62" Id="%ENID%" />
+                  <Enumeration Text="63" Value="63" Id="%ENID%" />
+                  <Enumeration Text="64" Value="64" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+              <!-- Szene speichern: aktiv/nicht aktiv (Bit 1 von Byte 88) -->
+              <ParameterType Id="%AID%_PT-HUESceneStoreActive" Name="HUESceneStoreActive">
+                <TypeRestriction Base="Value" SizeInBit="1" UIHint="DropDown">
+                  <Enumeration Text="nicht aktiv" Value="0" Id="%ENID%" />
+                  <Enumeration Text="aktiv" Value="1" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+              <!-- Szenen-Aktion: nur schalten (Lampentyp 0) -->
+              <ParameterType Id="%AID%_PT-HUESceneActionOnOff" Name="HUESceneActionOnOff">
+                <TypeRestriction Base="Value" SizeInBit="8" UIHint="DropDown">
+                  <Enumeration Text="Ausschalten" Value="0" Id="%ENID%" />
+                  <Enumeration Text="Einschalten" Value="1" Id="%ENID%" />
+                  <Enumeration Text="Hue Szene abrufen" Value="7" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+              <!-- Szenen-Aktion: dimmbar (Lampentyp 1) -->
+              <ParameterType Id="%AID%_PT-HUESceneActionDim" Name="HUESceneActionDim">
+                <TypeRestriction Base="Value" SizeInBit="8" UIHint="DropDown">
+                  <Enumeration Text="Ausschalten" Value="0" Id="%ENID%" />
+                  <Enumeration Text="Einschalten" Value="1" Id="%ENID%" />
+                  <Enumeration Text="Helligkeit setzen" Value="2" Id="%ENID%" />
+                  <Enumeration Text="Hue Szene abrufen" Value="7" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+              <!-- Szenen-Aktion: Farbtemperatur (Lampentyp 2) -->
+              <ParameterType Id="%AID%_PT-HUESceneActionCT" Name="HUESceneActionCT">
+                <TypeRestriction Base="Value" SizeInBit="8" UIHint="DropDown">
+                  <Enumeration Text="Ausschalten" Value="0" Id="%ENID%" />
+                  <Enumeration Text="Einschalten" Value="1" Id="%ENID%" />
+                  <Enumeration Text="Helligkeit setzen" Value="2" Id="%ENID%" />
+                  <Enumeration Text="Farbtemperatur setzen" Value="3" Id="%ENID%" />
+                  <Enumeration Text="Helligkeit + Farbtemperatur" Value="4" Id="%ENID%" />
+                  <Enumeration Text="Hue Szene abrufen" Value="7" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+              <!-- Szenen-Aktion: Vollfarbe RGB (Lampentyp 3) -->
+              <ParameterType Id="%AID%_PT-HUESceneActionColor" Name="HUESceneActionColor">
+                <TypeRestriction Base="Value" SizeInBit="8" UIHint="DropDown">
+                  <Enumeration Text="Ausschalten" Value="0" Id="%ENID%" />
+                  <Enumeration Text="Einschalten" Value="1" Id="%ENID%" />
+                  <Enumeration Text="Helligkeit setzen" Value="2" Id="%ENID%" />
+                  <Enumeration Text="Farbtemperatur setzen" Value="3" Id="%ENID%" />
+                  <Enumeration Text="Helligkeit + Farbtemperatur" Value="4" Id="%ENID%" />
+                  <Enumeration Text="Farbe (RGB) setzen" Value="5" Id="%ENID%" />
+                  <Enumeration Text="Helligkeit + Farbe (RGB)" Value="6" Id="%ENID%" />
+                  <Enumeration Text="Hue Szene abrufen" Value="7" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+              <!-- Szenen-Aktion: Steckdose -->
+              <ParameterType Id="%AID%_PT-HUESceneActionPlug" Name="HUESceneActionPlug">
+                <TypeRestriction Base="Value" SizeInBit="8" UIHint="DropDown">
+                  <Enumeration Text="Ausschalten" Value="0" Id="%ENID%" />
+                  <Enumeration Text="Einschalten" Value="1" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+              <ParameterType Id="%AID%_PT-HUEHueSceneRef" Name="HUEHueSceneRef">
+                <TypeRestriction Base="Value" SizeInBit="8" UIHint="DropDown">
+                  <Enumeration Text="Hue Szene 1" Value="1" Id="%ENID%" />
+                  <Enumeration Text="Hue Szene 2" Value="2" Id="%ENID%" />
+                  <Enumeration Text="Hue Szene 3" Value="3" Id="%ENID%" />
+                  <Enumeration Text="Hue Szene 4" Value="4" Id="%ENID%" />
+                  <Enumeration Text="Hue Szene 5" Value="5" Id="%ENID%" />
+                  <Enumeration Text="Hue Szene 6" Value="6" Id="%ENID%" />
+                  <Enumeration Text="Hue Szene 7" Value="7" Id="%ENID%" />
+                  <Enumeration Text="Hue Szene 8" Value="8" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+              <ParameterType Id="%AID%_PT-HUESceneRGB" Name="HUESceneRGB">
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="255" />
+              </ParameterType>
+              <ParameterType Id="%AID%_PT-HUEHueSceneRID" Name="HUEHueSceneRID">
+                <TypeText SizeInBit="320" />
+              </ParameterType>
+
             </ParameterTypes>
             
             <Parameters>
@@ -249,7 +414,7 @@
                 <Memory CodeSegment="%MID%" Offset="1037" BitOffset="0" />
               </Parameter>
               
-              <Parameter Id="%AID%_P-%TT%00005" Name="HUEChannelCount" ParameterType="%AID%_PT-HUEChannelCount" Text="Anzahl aktiver Kanäle" Value="4" SuffixText=" von 24">
+              <Parameter Id="%AID%_P-%TT%00005" Name="HUEChannelCount" ParameterType="%AID%_PT-HUEChannelCount" Text="Anzahl aktiver Kanäle" Value="4" SuffixText=" von 32">
                 <Memory CodeSegment="%MID%" Offset="29" BitOffset="0" />
               </Parameter>
               
@@ -869,6 +1034,37 @@
               <Parameter Id="%AID%_P-%TT%60212" Name="HCLM6SetpointCount" ParameterType="%AID%_PT-HUEHCLSetpointCount" Text="Anzahl Stützpunkte" Value="10" SuffixText=" von 10"><Memory CodeSegment="%MID%" Offset="1101" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-%TT%70212" Name="HCLM7SetpointCount" ParameterType="%AID%_PT-HUEHCLSetpointCount" Text="Anzahl Stützpunkte" Value="10" SuffixText=" von 10"><Memory CodeSegment="%MID%" Offset="1102" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-%TT%80212" Name="HCLM8SetpointCount" ParameterType="%AID%_PT-HUEHCLSetpointCount" Text="Anzahl Stützpunkte" Value="10" SuffixText=" von 10"><Memory CodeSegment="%MID%" Offset="1103" BitOffset="0" /></Parameter>
+
+              <!-- Hue Szenen-RID Zuordnung -->
+              <Parameter Id="%AID%_P-%TT%00069" Name="HUEHueScene1RID" ParameterType="%AID%_PT-HUEHueSceneRID" Text="Hue Szene 1 RID" Value="">
+                <Memory CodeSegment="%MID%" Offset="1393" BitOffset="0" />
+              </Parameter>
+              <Parameter Id="%AID%_P-%TT%00070" Name="HUEHueScene2RID" ParameterType="%AID%_PT-HUEHueSceneRID" Text="Hue Szene 2 RID" Value="">
+                <Memory CodeSegment="%MID%" Offset="1433" BitOffset="0" />
+              </Parameter>
+              <Parameter Id="%AID%_P-%TT%00071" Name="HUEHueScene3RID" ParameterType="%AID%_PT-HUEHueSceneRID" Text="Hue Szene 3 RID" Value="">
+                <Memory CodeSegment="%MID%" Offset="1473" BitOffset="0" />
+              </Parameter>
+              <Parameter Id="%AID%_P-%TT%00072" Name="HUEHueScene4RID" ParameterType="%AID%_PT-HUEHueSceneRID" Text="Hue Szene 4 RID" Value="">
+                <Memory CodeSegment="%MID%" Offset="1513" BitOffset="0" />
+              </Parameter>
+              <Parameter Id="%AID%_P-%TT%00073" Name="HUEHueScene5RID" ParameterType="%AID%_PT-HUEHueSceneRID" Text="Hue Szene 5 RID" Value="">
+                <Memory CodeSegment="%MID%" Offset="1553" BitOffset="0" />
+              </Parameter>
+              <Parameter Id="%AID%_P-%TT%00074" Name="HUEHueScene6RID" ParameterType="%AID%_PT-HUEHueSceneRID" Text="Hue Szene 6 RID" Value="">
+                <Memory CodeSegment="%MID%" Offset="1593" BitOffset="0" />
+              </Parameter>
+              <Parameter Id="%AID%_P-%TT%00075" Name="HUEHueScene7RID" ParameterType="%AID%_PT-HUEHueSceneRID" Text="Hue Szene 7 RID" Value="">
+                <Memory CodeSegment="%MID%" Offset="1633" BitOffset="0" />
+              </Parameter>
+              <Parameter Id="%AID%_P-%TT%00076" Name="HUEHueScene8RID" ParameterType="%AID%_PT-HUEHueSceneRID" Text="Hue Szene 8 RID" Value="">
+                <Memory CodeSegment="%MID%" Offset="1673" BitOffset="0" />
+              </Parameter>
+              
+              <!-- Hue Szenen aktivieren (Modul-Ebene) -->
+              <Parameter Id="%AID%_P-%TT%00077" Name="HUEScenesEnable" ParameterType="%AID%_PT-CheckBox" Text="Hue Szenen aktivieren" Value="0">
+                <Memory CodeSegment="%MID%" Offset="1713" BitOffset="0" />
+              </Parameter>
             </Parameters>
             
             <ParameterRefs>
@@ -928,6 +1124,15 @@
               <ParameterRef Id="%AID%_P-%TT%00066_R-%TT%0006601" RefId="%AID%_P-%TT%00066" />
               <ParameterRef Id="%AID%_P-%TT%00067_R-%TT%0006701" RefId="%AID%_P-%TT%00067" />
               <ParameterRef Id="%AID%_P-%TT%00068_R-%TT%0006801" RefId="%AID%_P-%TT%00068" />
+              <ParameterRef Id="%AID%_P-%TT%00069_R-%TT%0006901" RefId="%AID%_P-%TT%00069" />
+              <ParameterRef Id="%AID%_P-%TT%00070_R-%TT%0007001" RefId="%AID%_P-%TT%00070" />
+              <ParameterRef Id="%AID%_P-%TT%00071_R-%TT%0007101" RefId="%AID%_P-%TT%00071" />
+              <ParameterRef Id="%AID%_P-%TT%00072_R-%TT%0007201" RefId="%AID%_P-%TT%00072" />
+              <ParameterRef Id="%AID%_P-%TT%00073_R-%TT%0007301" RefId="%AID%_P-%TT%00073" />
+              <ParameterRef Id="%AID%_P-%TT%00074_R-%TT%0007401" RefId="%AID%_P-%TT%00074" />
+              <ParameterRef Id="%AID%_P-%TT%00075_R-%TT%0007501" RefId="%AID%_P-%TT%00075" />
+              <ParameterRef Id="%AID%_P-%TT%00076_R-%TT%0007601" RefId="%AID%_P-%TT%00076" />
+              <ParameterRef Id="%AID%_P-%TT%00077_R-%TT%0007701" RefId="%AID%_P-%TT%00077" />
 
               <ParameterRef Id="%AID%_P-%TT%10100_R-%TT%1010001" RefId="%AID%_P-%TT%10100" />
               <ParameterRef Id="%AID%_P-%TT%20100_R-%TT%2010001" RefId="%AID%_P-%TT%20100" />
@@ -1435,7 +1640,27 @@
                   </when>
                 </choose>
 
+                <ParameterSeparator Id="%AID%_PS-HUEScenesEnableLine" Text="" UIHint="HorizontalRuler" />
+                <ParameterRefRef RefId="%AID%_P-%TT%00077_R-%TT%0007701" HelpContext="HUE-Szenensteuerung" />
+
               </ParameterBlock>
+              
+              <choose ParamRefId="%AID%_P-%TT%00077_R-%TT%0007701">
+                <when test="1">
+              <ParameterBlock Id="%AID%_PB-HUEScenes" Name="HueScenes" Text="Hue Szenen" Icon="format-list-text" HelpContext="HUE-Szenensteuerung">
+                <ParameterSeparator Id="%AID%_PS-HUEScenes" Text="Hue Szenen-Zuordnung" UIHint="Headline" HelpContext="HUE-Szenensteuerung" />
+                <ParameterSeparator Id="%AID%_PS-HUEScenesInfo" Text="Weisen Sie den 8 Hue-Szene-Slots die RID der gewünschten Philips Hue Szene zu. Die RID ist die interne Hue-API-Kennung der Szene (abrufbar über die Hue REST API v2)." UIHint="Information" />
+                <ParameterRefRef RefId="%AID%_P-%TT%00069_R-%TT%0006901" />
+                <ParameterRefRef RefId="%AID%_P-%TT%00070_R-%TT%0007001" />
+                <ParameterRefRef RefId="%AID%_P-%TT%00071_R-%TT%0007101" />
+                <ParameterRefRef RefId="%AID%_P-%TT%00072_R-%TT%0007201" />
+                <ParameterRefRef RefId="%AID%_P-%TT%00073_R-%TT%0007301" />
+                <ParameterRefRef RefId="%AID%_P-%TT%00074_R-%TT%0007401" />
+                <ParameterRefRef RefId="%AID%_P-%TT%00075_R-%TT%0007501" />
+                <ParameterRefRef RefId="%AID%_P-%TT%00076_R-%TT%0007601" />
+              </ParameterBlock>
+                </when>
+              </choose>
               
               <ParameterBlock Id="%AID%_PB-HUEHCL" Name="HueHCL" Text="Lichtmanager" Icon="table-clock" HelpContext="HUE-Lichtmanager">
                 <ParameterSeparator Id="%AID%_PS-HUEHCL" Text="Lichtmanager" UIHint="Headline" HelpContext="HUE-Lichtmanager" />

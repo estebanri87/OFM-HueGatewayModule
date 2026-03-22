@@ -109,7 +109,13 @@ void HueGatewayLight::processKnxSwitch(bool value)
         _fadingActive = false;
         Serial.printf("[HueGatewayLight] %s - Fade aborted by switch off\n", _name.c_str());
     }
-    
+
+    // Aus-Befehl hebt HCL-Kanalsperre auf, damit beim nächsten Ein der HCL-Wert wieder greift.
+    if (!value && _hclChannelLockActive && _hclMasterNum > 0) {
+        _hclChannelLockActive = false;
+        Serial.printf("[HueGatewayLight] %s - HCL channel lock released by switch-off\n", _name.c_str());
+    }
+
     _on = value;
     uint8_t switchTransitionSec = value ? _switchOnTransitionSec : _switchOffTransitionSec;
 
@@ -654,6 +660,99 @@ void HueGatewayLight::sendToHueWithColorTemp(uint16_t kelvin, uint8_t fadeDurati
     else
     {
         Serial.printf("[HueGatewayLight] %s - ERROR: Failed to send color-temp state to Hue\n", _name.c_str());
+    }
+}
+
+void HueGatewayLight::processKnxSceneRecall(bool on,
+                                             bool applyBrightness, uint8_t brightnessPercent,
+                                             bool applyCT, uint16_t kelvin,
+                                             bool applyColor, uint8_t red, uint8_t green, uint8_t blue)
+{
+    if (!_initialized || !_client)
+        return;
+
+    // Convert percent (0-100) to Hue range (0-254).
+    uint8_t hueBrightness = static_cast<uint8_t>(
+        (static_cast<uint16_t>(brightnessPercent) * 254U) / 100U);
+
+    if (applyBrightness && on && _minBrightnessHue > 0 && hueBrightness < _minBrightnessHue)
+        hueBrightness = _minBrightnessHue;
+
+    _on = on;
+    if (applyBrightness)
+    {
+        _brightness = hueBrightness;
+        if (on && hueBrightness > 0)
+            _lastNonZeroBrightnessHue = hueBrightness;
+    }
+
+    const uint8_t fadeDuration = on ? _switchOnTransitionSec : _switchOffTransitionSec;
+
+    const bool doColor = applyColor && (_lightType >= 3) && (red != 0 || green != 0 || blue != 0);
+    const bool doCT    = applyCT && !doColor && (_lightType >= 2) && (kelvin >= 2000 && kelvin <= 6500);
+
+    bool success = false;
+
+    if (doColor)
+    {
+        float x = 0.0f, y = 0.0f;
+        rgbToXy(red, green, blue, x, y);
+        _currentRed   = red;
+        _currentGreen = green;
+        _currentBlue  = blue;
+
+        // Two-step: set on+brightness first, then apply colour.
+        success = _isGroupedTarget
+            ? _client->setGroupedLightState(_lightId, _on, _brightness, fadeDuration)
+            : _client->setLightState(_lightId, _on, _brightness, fadeDuration);
+
+        if (success)
+        {
+            _isGroupedTarget
+                ? _client->setGroupedLightColor(_lightId, x, y)
+                : _client->setLightColor(_lightId, x, y);
+        }
+    }
+    else if (doCT)
+    {
+        uint16_t mirek = kelvinToMirek(kelvin);
+        _currentKelvin = kelvin;
+
+        success = _isGroupedTarget
+            ? _client->setGroupedLightStateWithColorTemp(_lightId, _on, _brightness, mirek, fadeDuration)
+            : _client->setLightStateWithColorTemp(_lightId, _on, _brightness, mirek, fadeDuration);
+
+        if (!success && _isGroupedTarget)
+            success = _client->setGroupedLightState(_lightId, _on, _brightness, fadeDuration);
+    }
+    else if (applyBrightness)
+    {
+        success = _isGroupedTarget
+            ? _client->setGroupedLightState(_lightId, _on, _brightness, fadeDuration)
+            : _client->setLightState(_lightId, _on, _brightness, fadeDuration);
+    }
+    else
+    {
+        success = _isGroupedTarget
+            ? _client->setGroupedLightOnOff(_lightId, _on)
+            : _client->setLightOnOff(_lightId, _on);
+    }
+
+    if (success)
+    {
+        _lastUpdate = millis();
+        _lastHueWriteSuccessMs = _lastUpdate;
+        if (_hclMasterNum > 0)
+            _hclChannelLockActive = true;
+        sendStatusToKnx();
+        Serial.printf("[HueGatewayLight] %s - Scene recall: On:%d Bri:%u%% (Hue:%u)\n",
+                      _name.c_str(), static_cast<int>(on),
+                      static_cast<unsigned>(brightnessPercent),
+                      static_cast<unsigned>(hueBrightness));
+    }
+    else
+    {
+        Serial.printf("[HueGatewayLight] %s - ERROR: Scene recall failed\n", _name.c_str());
     }
 }
 
