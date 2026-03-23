@@ -7,15 +7,19 @@
  * @brief Hue switch/button channel (Taster/Schalter).
  *
  * Supports up to 4 buttons per physical switch and an optional rotary encoder.
- * Each button can be assigned one of 6 KNX functions:
- *   0 = Schalten      — 1 KO (DPT 1.001): short press toggles/ON, long press OFF
- *   1 = Dimmen        — 2 KOs: KO+0 DPT 1.001 toggle, KO+1 DPT 3.007 start/stop
- *   2 = Jalousie      — 2 KOs: KO+0 DPT 1.008 step, KO+1 DPT 1.007 move/stop
- *   3 = Medien        — 2 KOs: KO+0 DPT 1.001 play/pause, KO+1 DPT 3.007 volume
- *   4 = Szene         — 1 KO (DPT 18.001): recall scene number
- *   5 = Zwei Objekte  — 2 KOs (DPT 1.001): short=Obj A, long=Obj B
+ * Each button is configured via a 3-tier system: Gewerk → Kurzdruck → Langdruck.
+ * The Gewerk selects a category (Licht/Jalousie/Medien/Generisch), then the
+ * Kurzdruck and Langdruck dropdowns select the specific actions within that category.
  *
- * KO slot layout (per button, 2 slots each):
+ * Mapped ButtonFunction types for internal dispatch:
+ *   Schalten     — 1 KO: short press toggles On/Off
+ *   Dimmen       — 2 KOs: short toggle + long dim brighter/darker
+ *   Jalousie     — 2 KOs: short step + long move (separate invert for each)
+ *   Medien       — 2 KOs: short play/pause + long volume up/down
+ *   Szene        — 1 KO: recall scene number
+ *   ZweiObjekte  — 1-2 KOs: short=Obj A, optional long=Obj B
+ *
+ * KO slot layout (per button, 2 slots each: Kurzdruck + Langdruck):
  *   Button 1: koBase+0, koBase+1
  *   Button 2: koBase+2, koBase+3
  *   Button 3: koBase+4, koBase+5
@@ -67,6 +71,9 @@ public:
             _koBtn[i][1]      = 0;
             _btnFunction[i]   = ButtonFunction::Schalten;
             _btnInvert[i]     = false;
+            _btnInvertLong[i] = false;
+            _btnHasLong[i]    = false;
+            _btnHasShort[i]   = true;
             _btnSceneNr[i]    = 1;
             _btnState[i]      = false;   // current toggle state
             _btnLongActive[i] = false;   // long press in progress
@@ -107,6 +114,18 @@ public:
     void setButtonInvert(uint8_t idx, bool invert)
     {
         if (idx < MAX_BUTTONS) _btnInvert[idx] = invert;
+    }
+    void setButtonInvertLong(uint8_t idx, bool invert)
+    {
+        if (idx < MAX_BUTTONS) _btnInvertLong[idx] = invert;
+    }
+    void setButtonHasLong(uint8_t idx, bool hasLong)
+    {
+        if (idx < MAX_BUTTONS) _btnHasLong[idx] = hasLong;
+    }
+    void setButtonHasShort(uint8_t idx, bool hasShort)
+    {
+        if (idx < MAX_BUTTONS) _btnHasShort[idx] = hasShort;
     }
     void setButtonSceneNr(uint8_t idx, uint8_t sceneNr)
     {
@@ -182,7 +201,7 @@ public:
         }
         else if (eventType == "repeat")
         {
-            if (!_btnLongActive[idx])
+            if (_btnHasLong[idx] && !_btnLongActive[idx])
             {
                 _btnLongActive[idx] = true;
                 sendLongPressStart(static_cast<uint8_t>(idx));
@@ -190,7 +209,7 @@ public:
         }
         else if (eventType == "short_release")
         {
-            if (!_btnLongActive[idx])
+            if (!_btnLongActive[idx] && _btnHasShort[idx])
                 sendShortPress(static_cast<uint8_t>(idx));
             // else: long press was active, stop will come via long_release
         }
@@ -198,6 +217,8 @@ public:
         {
             if (_btnLongActive[idx])
                 sendLongPressStop(static_cast<uint8_t>(idx));
+            else if (_btnHasShort[idx])
+                sendShortPress(static_cast<uint8_t>(idx)); // hasLong=false: treat as short press
             _btnLongActive[idx] = false;
         }
     }
@@ -261,6 +282,9 @@ private:
     uint16_t _koBtn[MAX_BUTTONS][2];     // [btn][0=primary, 1=secondary]
     ButtonFunction _btnFunction[MAX_BUTTONS];
     bool _btnInvert[MAX_BUTTONS];
+    bool _btnInvertLong[MAX_BUTTONS];
+    bool _btnHasLong[MAX_BUTTONS];
+    bool _btnHasShort[MAX_BUTTONS];
     uint8_t _btnSceneNr[MAX_BUTTONS];
     bool _btnState[MAX_BUTTONS];         // toggle state for Schalten/Medien
     bool _btnLongActive[MAX_BUTTONS];    // long press state machine
@@ -302,8 +326,8 @@ private:
                 break;
 
             case BF::Jalousie:
-                // Short press = step (DPT 1.008: 0=up, 1=down)
-                if (ko0) knx.getGroupObject(ko0).value(inv ? false : true, Dpt(1, 8));
+                // Short press = step (DPT 1.007: 0=stepUp, 1=stepDown)
+                if (ko0) knx.getGroupObject(ko0).value(inv ? false : true, Dpt(1, 7));
                 Serial.printf("[HueGatewayButton] %s btn%u Jalousie step\n", _name.c_str(), idx+1);
                 break;
 
@@ -338,7 +362,7 @@ private:
     {
         using BF = ButtonFunction;
         const uint16_t ko1 = _koBtn[idx][1];
-        const bool inv = _btnInvert[idx];
+        const bool inv = _btnInvertLong[idx];
 
         switch (_btnFunction[idx])
         {
@@ -363,8 +387,8 @@ private:
                 break;
 
             case BF::Jalousie:
-                // Long press = move (DPT 1.007: 0=up, 1=down)
-                if (ko1) knx.getGroupObject(ko1).value(inv ? false : true, Dpt(1, 7));
+                // Long press = move (DPT 1.008: 0=up, 1=down)
+                if (ko1) knx.getGroupObject(ko1).value(inv ? false : true, Dpt(1, 8));
                 Serial.printf("[HueGatewayButton] %s btn%u Jalousie move %s\n",
                               _name.c_str(), idx+1, inv ? "up" : "down");
                 break;
@@ -406,8 +430,11 @@ private:
                 break;
 
             case BF::Jalousie:
-                // Stop = DPT 1.007 value 0 (stop)
-                if (ko1) knx.getGroupObject(ko1).value(false, Dpt(1, 7));
+                // Stop = send step telegram on ko0 (Step/Stop); any telegram stops movement
+                {
+                    const uint16_t ko0 = _koBtn[idx][0];
+                    if (ko0) knx.getGroupObject(ko0).value(false, Dpt(1, 7));
+                }
                 Serial.printf("[HueGatewayButton] %s btn%u Jalousie stop\n", _name.c_str(), idx+1);
                 break;
 
