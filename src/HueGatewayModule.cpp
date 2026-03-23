@@ -508,6 +508,11 @@ String HueGatewayModule::buildDiagnosticReport(size_t requestedDepth, const Stri
         targetType = ParamHUE_CHTargetType;
         #endif
 
+        uint8_t devType = 0;
+        #ifdef ParamHUE_CHDeviceType
+        devType = ParamHUE_CHDeviceType;
+        #endif
+
         uint8_t syncDir = ParamHUE_CHSyncDir;
         if (syncDir > 2)
         {
@@ -519,16 +524,21 @@ String HueGatewayModule::buildDiagnosticReport(size_t requestedDepth, const Stri
         String mappedId = "-";
         String grouped = "-";
         String lastWriteMs = "-";
+        uint8_t hclMaster = 0;
+        bool hclLocked = false;
         if (_devices[ch] != nullptr)
         {
             mappedName = _devices[ch]->getName();
             mappedId = _devices[ch]->getResourceId();
             grouped = _devices[ch]->isGroupedTarget() ? "1" : "0";
             lastWriteMs = String(_devices[ch]->getLastHueWriteSuccessMs());
+            hclMaster = _devices[ch]->getHCLMaster();
+            hclLocked = _hclChannelLockActive[ch];
         }
 
         report += "ch=" + String(ch + 1)
             + " disabled=" + String(channelDisabled ? "1" : "0")
+            + " devType=" + String(devType)
             + " sync=" + String(syncDir)
             + " poll=" + String(pollIntervalSec)
             + " targetType=" + String(targetType)
@@ -537,6 +547,8 @@ String HueGatewayModule::buildDiagnosticReport(size_t requestedDepth, const Stri
             + " mappedName=" + mappedName
             + " mappedId=" + mappedId
             + " grouped=" + grouped
+            + " hclMaster=" + String(hclMaster)
+            + " hclLocked=" + String(hclLocked ? "1" : "0")
             + " lastHueWriteMs=" + lastWriteMs
                 + " lastKoMs=" + String(_diagLastKoCommandMs[ch])
                 + " lastKoType=" + String(_diagLastKoType[ch])
@@ -605,6 +617,52 @@ String HueGatewayModule::buildDiagnosticReport(size_t requestedDepth, const Stri
             }
             report += "\n";
         }
+    }
+    report += "\n";
+
+    report += "[HCLLock]\n";
+    report += "GlobalLock=" + String(_hclLockActive ? "1" : "0") + "\n";
+    report += "GlobalPolicy=" + String(hclFallbackPolicyToText(static_cast<HclLockFallbackPolicy>(_hclFallbackPolicy))) + "\n";
+    report += "GlobalFallbackMode=" + String(hclFallbackModeToText(static_cast<HclLockFallbackMode>(_hclLockFallbackMode))) + "\n";
+    report += "GlobalFallbackDurationMs=" + String(_hclFallbackDurationMs) + "\n";
+    report += "GlobalFallbackReleaseMin=" + String(_hclFallbackReleaseMinuteOfDay) + "\n";
+    report += "GlobalActivatedMs=" + String(_hclLockActivatedMs) + "\n";
+    report += "GlobalAutoReleaseMs=" + String(_hclLockAutoReleaseMs) + "\n";
+    report += "HclApplyBlocked=" + String(HCL::masterManager.isApplyBlocked() ? "1" : "0") + "\n";
+    for (uint8_t m = 0; m < HCL::MasterManager::MAX_MASTERS; m++)
+    {
+        report += "M" + String(m + 1) + "Lock=" + String(_hclManagerLockActive[m] ? "1" : "0")
+            + " policy=" + String(hclFallbackPolicyToText(static_cast<HclLockFallbackPolicy>(_hclManagerFallbackPolicy[m])))
+            + " mode=" + String(hclFallbackModeToText(static_cast<HclLockFallbackMode>(_hclManagerLockFallbackMode[m])))
+            + " activatedMs=" + String(_hclManagerLockActivatedMs[m])
+            + " autoReleaseMs=" + String(_hclManagerLockAutoReleaseMs[m])
+            + "\n";
+    }
+    report += "ChannelLockSummary=";
+    {
+        bool any = false;
+        for (uint8_t ch = 0; ch < configuredChannels; ch++)
+        {
+            if (_hclChannelLockActive[ch])
+            {
+                if (any) report += ",";
+                report += String(ch + 1);
+                any = true;
+            }
+        }
+        if (!any) report += "none";
+    }
+    report += "\n";
+    for (uint8_t ch = 0; ch < configuredChannels; ch++)
+    {
+        if (_devices[ch] == nullptr || _devices[ch]->getHCLMaster() == 0) continue;
+        report += "ch=" + String(ch + 1)
+            + " hclMaster=" + String(_devices[ch]->getHCLMaster())
+            + " locked=" + String(_hclChannelLockActive[ch] ? "1" : "0")
+            + " mode=" + String(hclFallbackModeToText(static_cast<HclLockFallbackMode>(_hclChannelLockFallbackMode[ch])))
+            + " activatedMs=" + String(_hclChannelLockActivatedMs[ch])
+            + " autoReleaseMs=" + String(_hclChannelLockAutoReleaseMs[ch])
+            + "\n";
     }
     report += "\n";
 
@@ -859,6 +917,18 @@ void HueGatewayModule::loop()
         if (_devices[i] != nullptr)
         {
             _devices[i]->loop();
+
+            // Sync HCL channel lock status if the device changed it internally
+            // (e.g. auto-release on switch-off or lock-enable on scene recall).
+            if (_devices[i]->getHCLMaster() > 0)
+            {
+                const bool deviceLock = _devices[i]->isHCLChannelLocked();
+                if (deviceLock != _hclChannelLockActive[i])
+                {
+                    _hclChannelLockActive[i] = deviceLock;
+                    publishHclChannelLockStatus(static_cast<uint8_t>(i));
+                }
+            }
         }
     }
     
@@ -1600,7 +1670,7 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
                     {
                         _client->recallHueScene(String(rid));
                         if (_devices[channel] != nullptr && _devices[channel]->getHCLMaster() > 0)
-                            _devices[channel]->setHCLChannelLock(true);
+                            setHclChannelLock(static_cast<uint8_t>(channel), true, "Hue scene recall");
                     }
                 }
                 else
@@ -2772,6 +2842,8 @@ void HueGatewayModule::setupDevices()
         #ifdef ParamHUE_CHDeviceType
         {
             const uint8_t devType = ParamHUE_CHDeviceType;
+            Serial.printf("[HueGatewayModule] Channel %d: DeviceType=%u (0=Licht,1=Sensor,2=Taster,3=Kontakt,4=Steckdose)\n",
+                          ch + 1, static_cast<unsigned>(devType));
             if (devType >= 1 && devType <= 3)
             {
                 const String resourceId = configuredTargetRid.length() > 0
@@ -2837,36 +2909,71 @@ void HueGatewayModule::setupDevices()
                     }
                     auto* btn = static_cast<HueGatewayButton*>(_devices[ch]);
                     btn->begin(koBase);
-                    // Apply per-button function settings from ETS parameters (generated after OpenKNXproducer run)
-                    #ifdef ParamHUE_CHBtn1Function
+                    // Apply per-button Gewerk/Kurz/Lang settings from ETS parameters
+                    #ifdef ParamHUE_CHBtn1Gewerk
                     {
                         using BF = HueGatewayButton::ButtonFunction;
                         using RF = HueGatewayButton::RotaryFunction;
-                        // Taste 1
-                        auto fn1 = static_cast<BF>(ParamHUE_CHBtn1Function);
-                        btn->setButtonFunction(0, fn1);
-                        btn->setButtonInvert(0, ParamHUE_CHBtn1Invert != 0);
-                        if (fn1 == BF::Szene) btn->setButtonSceneNr(0, ParamHUE_CHBtn1SceneNr);
+
+                        // Map Gewerk+Kurz+Lang to ButtonFunction, invertKurz, invertLang, hasLong, hasShort
+                        auto mapButton = [&](uint8_t btnIdx, uint8_t gewerk, uint8_t kurz, uint8_t lang, uint8_t sceneNr) {
+                            BF bf = BF::Schalten;
+                            bool invKurz = false;
+                            bool invLang = false;
+                            bool hasLong = (lang != 0);
+                            bool hasShort = (kurz != 0);
+                            switch (gewerk) {
+                                case 0: // Licht
+                                    if (kurz == 2) { // Szene
+                                        bf = BF::Szene;
+                                        hasLong = false;
+                                    } else if (lang == 0) {
+                                        bf = BF::Schalten;
+                                    } else {
+                                        bf = BF::Dimmen;
+                                        invLang = (lang == 2); // Dunkler
+                                    }
+                                    break;
+                                case 1: // Jalousie
+                                    bf = BF::Jalousie;
+                                    invKurz = (kurz == 1); // LamelleAuf → Up on DPT 1.008
+                                    invLang = (lang == 1); // BehangAuf → Up on DPT 1.007
+                                    break;
+                                case 2: // Medien
+                                    bf = BF::Medien;
+                                    hasShort = true; // Play/Pause always available
+                                    invLang = (lang == 2); // Leiser
+                                    break;
+                                case 3: // Generisch
+                                    bf = BF::ZweiObjekte;
+                                    hasShort = true; // Object A always available
+                                    break;
+                            }
+                            btn->setButtonFunction(btnIdx, bf);
+                            btn->setButtonInvert(btnIdx, invKurz);
+                            btn->setButtonInvertLong(btnIdx, invLang);
+                            btn->setButtonHasLong(btnIdx, hasLong);
+                            btn->setButtonHasShort(btnIdx, hasShort);
+                            if (bf == BF::Szene) btn->setButtonSceneNr(btnIdx, sceneNr);
+                        };
+
+                        // Taste 1 (Gewerk reads same bits for Gewerk/GewerkEinzel Union)
+                        mapButton(0, ParamHUE_CHBtn1Gewerk, ParamHUE_CHBtn1LichtKurz,
+                                  ParamHUE_CHBtn1LichtLang, ParamHUE_CHBtn1SceneNr);
                         // Taste 2
                         if (btnCount >= 2) {
-                            auto fn2 = static_cast<BF>(ParamHUE_CHBtn2Function);
-                            btn->setButtonFunction(1, fn2);
-                            btn->setButtonInvert(1, ParamHUE_CHBtn2Invert != 0);
-                            if (fn2 == BF::Szene) btn->setButtonSceneNr(1, ParamHUE_CHBtn2SceneNr);
+                            mapButton(1, ParamHUE_CHBtn2Gewerk, ParamHUE_CHBtn2LichtKurz,
+                                      ParamHUE_CHBtn2LichtLang, ParamHUE_CHBtn2SceneNr);
                         }
                         // Taste 3
                         if (btnCount >= 3) {
-                            auto fn3 = static_cast<BF>(ParamHUE_CHBtn3Function);
-                            btn->setButtonFunction(2, fn3);
-                            btn->setButtonInvert(2, ParamHUE_CHBtn3Invert != 0);
-                            if (fn3 == BF::Szene) btn->setButtonSceneNr(2, ParamHUE_CHBtn3SceneNr);
+                            mapButton(2, ParamHUE_CHBtn3Gewerk, ParamHUE_CHBtn3LichtKurz,
+                                      ParamHUE_CHBtn3LichtLang, ParamHUE_CHBtn3SceneNr);
                         }
                         // Taste 4
                         if (btnCount >= 4) {
-                            auto fn4 = static_cast<BF>(ParamHUE_CHBtn4Function);
-                            btn->setButtonFunction(3, fn4);
-                            btn->setButtonInvert(3, ParamHUE_CHBtn4Invert != 0);
-                            if (fn4 == BF::Szene) btn->setButtonSceneNr(3, ParamHUE_CHBtn4SceneNr);
+                            mapButton(3, ParamHUE_CHBtn4Gewerk, ParamHUE_CHBtn4LichtKurz,
+                                      ParamHUE_CHBtn4LichtLang, ParamHUE_CHBtn4SceneNr);
                         }
                         // Drehregler
                         btn->setHasRotary(ParamHUE_CHHasRotary != 0);
@@ -2881,30 +2988,72 @@ void HueGatewayModule::setupDevices()
                         static constexpr int kMaxSvc = 16;
                         HueGatewayServiceRid svc[kMaxSvc];
                         const int n = _client->getDeviceServiceRids(resourceId, svc, kMaxSvc);
+                        Serial.printf("[HueGatewayModule] Channel %d: Taster %s has %d services:\n",
+                                      ch + 1, resourceId.c_str(), n);
                         uint8_t btnRidIdx = 0;
+                        String btnRidSummary;
                         for (int s = 0; s < n; s++)
                         {
+                            Serial.printf("  svc[%d] rtype=%s rid=%s\n",
+                                          s, svc[s].rtype.c_str(), svc[s].rid.c_str());
                             if (svc[s].rtype.equalsIgnoreCase("button") && btnRidIdx < HueGatewayButton::MAX_BUTTONS)
+                            {
                                 btn->setButtonServiceRid(btnRidIdx++, svc[s].rid);
+                                if (btnRidSummary.length() > 0) btnRidSummary += ",";
+                                btnRidSummary += svc[s].rid.substring(0, 8);
+                            }
                             else if (svc[s].rtype.equalsIgnoreCase("relative_rotary"))
                                 btn->setRotaryServiceRid(svc[s].rid);
                         }
+                        Serial.printf("[HueGatewayModule] Channel %d: mapped %u button service RIDs\n",
+                                      ch + 1, static_cast<unsigned>(btnRidIdx));
+                        appendDiagnosticLog("INFO", "BTN", String("ch") + String(ch + 1)
+                            + " svc=" + String(n) + " btnRids=" + String(btnRidIdx)
+                            + " [" + btnRidSummary + "]");
                     }
-                    // Native Hue Aktion: behavior_instances deaktivieren falls gewünscht
+                    // Native Hue Aktion: behavior_instances deaktivieren oder reaktivieren
                     #ifdef ParamHUE_CHNativeHueAction
-                    if (ParamHUE_CHNativeHueAction == 1)  // Deaktivieren
                     {
+                        const uint8_t nativeAction = ParamHUE_CHNativeHueAction;
+                        Serial.printf("[HueGatewayModule] Channel %d: NativeHueAction=%u (0=keep, 1=disable)\n",
+                                      ch + 1, static_cast<unsigned>(nativeAction));
                         static constexpr int kMaxInst = 8;
                         String instanceIds[kMaxInst];
-                        const int nInst = _client->getBehaviorInstances(resourceId, instanceIds, kMaxInst);
-                        for (int i = 0; i < nInst; i++)
-                            _client->setBehaviorInstanceEnabled(instanceIds[i], false);
+                        String biDebugInfo;
+                        const int nInst = _client->getBehaviorInstances(resourceId, instanceIds, kMaxInst, &biDebugInfo);
+                        Serial.printf("[HueGatewayModule] Channel %d: found %d behavior_instances for device %s\n",
+                                      ch + 1, nInst, resourceId.c_str());
+                        appendDiagnosticLog("INFO", "BTN", String("ch") + String(ch + 1)
+                            + " nativeAction=" + String(nativeAction)
+                            + " behaviorInst=" + String(nInst));
+                        if (biDebugInfo.length() > 0)
+                        {
+                            appendDiagnosticLog("INFO", "BI_DBG", String("ch") + String(ch + 1) + " " + biDebugInfo);
+                        }
+
+                        if (nInst > 0)
+                        {
+                            const bool disable = (nativeAction == 1);
+                            if (disable)
+                            {
+                                for (int i = 0; i < nInst; i++)
+                                {
+                                    Serial.printf("  behavior_instance[%d]=%s -> DELETE\n",
+                                                  i, instanceIds[i].c_str());
+                                    _client->deleteBehaviorInstance(instanceIds[i]);
+                                }
+                            }
+                            else
+                            {
+                                Serial.printf("  nativeAction=0 (keep), skipping %d behavior_instances\n", nInst);
+                            }
+                        }
                     }
                     #endif
                     _channelLastPollMs[ch] = 0;
                     mappedChannels[ch] = true;
                     mappedCount++;
-                    Serial.printf("[HueGatewayModule] Channel %d: Taster %s (%u Tasten)\n",
+                    Serial.printf("[HueGatewayModule] Channel %d: Taster %s (%u Tasten) setup complete\n",
                                   ch + 1, resourceId.c_str(), static_cast<unsigned>(btnCount));
                     continue;
                 }
@@ -3426,6 +3575,7 @@ void HueGatewayModule::setupDevices()
             + " offFade=" + String(static_cast<unsigned>(offFade)) + "s"
             + " hclFade=" + String(static_cast<unsigned>(hclFade)) + "s");
     }
+
     _lastChannelSyncOkMs = millis();
     _devicesInitialized = true;
     finalizeSetupSession("ok");
@@ -6026,16 +6176,24 @@ void HueGatewayModule::applyEventStreamDeviceUpdates(const HueGatewayEventSensor
     for (int u = 0; u < updateCount; u++)
     {
         const HueGatewayEventSensorUpdate& upd = updates[u];
+        bool matched = false;
         for (int i = 0; i < MAX_LIGHTS; i++)
         {
             if (_devices[i] == nullptr) continue;
             if (!_devices[i]->matchesEventRid(upd.resourceId)) continue;
+            matched = true;
 
             uint8_t _channelIndex = static_cast<uint8_t>(i);
-            #ifdef ParamHUE_CHSyncDir
-            uint8_t syncDir = ParamHUE_CHSyncDir;
-            if (!(syncDir == 1 || syncDir == 2)) break;
-            #endif
+            // SyncDir check only applies to lights (devType 0/4). Sensors, buttons and
+            // contacts are strictly Hue→KNX input devices and must always process events.
+            const uint8_t devTypeForSync = _devices[i]->deviceType();
+            if (devTypeForSync == 0 || devTypeForSync == 4)
+            {
+                #ifdef ParamHUE_CHSyncDir
+                uint8_t syncDir = ParamHUE_CHSyncDir;
+                if (!(syncDir == 1 || syncDir == 2)) break;
+                #endif
+            }
 
             using Type = HueGatewayEventSensorUpdate::Type;
             switch (upd.type)
@@ -6059,10 +6217,19 @@ void HueGatewayModule::applyEventStreamDeviceUpdates(const HueGatewayEventSensor
                 case Type::Button:
                     if (_devices[i]->deviceType() == 2)
                     {
-                        static_cast<HueGatewayButton*>(_devices[i])->handleButtonEvent(
-                            upd.buttonIndex, upd.buttonEventType);
-                        Serial.printf("[HueGatewayModule] EventStream Button -> ch%d ctrl=%d event=%s\n",
-                                      i + 1, upd.buttonIndex, upd.buttonEventType.c_str());
+                        auto* btn = static_cast<HueGatewayButton*>(_devices[i]);
+                        // Resolve button index from service RID (0-based) since SSE events
+                        // do not reliably include metadata.control_id
+                        bool isRotary = false;
+                        int resolvedIdx = btn->matchServiceRid(upd.resourceId, isRotary);
+                        // Convert to 1-based for handleButtonEvent (which subtracts 1 internally)
+                        int effectiveCtrl = (resolvedIdx >= 0) ? (resolvedIdx + 1) : upd.buttonIndex;
+                        btn->handleButtonEvent(effectiveCtrl, upd.buttonEventType);
+                        Serial.printf("[HueGatewayModule] EventStream Button -> ch%d ctrl=%d (resolved=%d, raw=%d) event=%s\n",
+                                      i + 1, effectiveCtrl, resolvedIdx, upd.buttonIndex, upd.buttonEventType.c_str());
+                        appendDiagnosticLog("INFO", "BTNEVT", String("ch") + String(i + 1)
+                            + " ctrl=" + String(effectiveCtrl)
+                            + " evt=" + upd.buttonEventType);
                     }
                     break;
                 case Type::Rotary:
@@ -6078,6 +6245,22 @@ void HueGatewayModule::applyEventStreamDeviceUpdates(const HueGatewayEventSensor
                     break;
             }
             break;
+        }
+        if (!matched)
+        {
+            const char* typeName = "?";
+            using Type = HueGatewayEventSensorUpdate::Type;
+            switch (upd.type) {
+                case Type::Button:  typeName = "Button"; break;
+                case Type::Motion:  typeName = "Motion"; break;
+                case Type::Contact: typeName = "Contact"; break;
+                case Type::Rotary:  typeName = "Rotary"; break;
+                default: break;
+            }
+            Serial.printf("[HueGatewayModule] EventStream %s RID=%s NOT matched to any channel\n",
+                          typeName, upd.resourceId.c_str());
+            appendDiagnosticLog("WARN", "BTNEVT", String(typeName)
+                + " rid=" + upd.resourceId.substring(0, 8) + "... UNMATCHED");
         }
     }
 }
@@ -6876,6 +7059,71 @@ esp_err_t HueGatewayModule::handleWebStatus(httpd_req_t* req)
             }
 
         }
+
+        // HCL lock status — global
+        html += "<tr><th colspan='2'>HCL-Sperre</th></tr>";
+        html += "<tr><td>Globale Sperre</td><td>"
+            + String(self->_hclLockActive ? "🔒 Aktiv" : "🔓 Inaktiv")
+            + " | Richtlinie: " + String(HueGatewayModule::hclFallbackPolicyToText(static_cast<HclLockFallbackPolicy>(self->_hclFallbackPolicy)))
+            + " | Modus: " + String(HueGatewayModule::hclFallbackModeToText(static_cast<HclLockFallbackMode>(self->_hclLockFallbackMode)));
+        if (self->_hclLockActive && self->_hclLockAutoReleaseMs > 0)
+        {
+            const unsigned long nowMs = millis();
+            const long remainMs = static_cast<long>(self->_hclLockAutoReleaseMs) - static_cast<long>(nowMs);
+            html += " | Auto-Freigabe in: " + String(remainMs > 0 ? remainMs / 1000 : 0) + " s";
+        }
+        html += "</td></tr>";
+
+        // HCL lock status — per manager
+        for (uint8_t m = 0; m < HCL::MasterManager::MAX_MASTERS; m++)
+        {
+            if (!self->_hclManagerLockActive[m]) continue;
+            const unsigned long nowMs = millis();
+            String releaseInfo = "";
+            if (self->_hclManagerLockAutoReleaseMs[m] > 0)
+            {
+                const long remainMs = static_cast<long>(self->_hclManagerLockAutoReleaseMs[m]) - static_cast<long>(nowMs);
+                releaseInfo = " | Auto-Freigabe in: " + String(remainMs > 0 ? remainMs / 1000 : 0) + " s";
+            }
+            html += "<tr><td>Manager " + String(m + 1) + " Sperre</td><td>🔒 Aktiv"
+                + " | " + String(HueGatewayModule::hclFallbackPolicyToText(static_cast<HclLockFallbackPolicy>(self->_hclManagerFallbackPolicy[m])))
+                + releaseInfo + "</td></tr>";
+        }
+
+        // HCL lock status — per channel
+        #ifdef ParamHUE_HUEChannelCount
+        {
+            const uint8_t configuredChannels = min(static_cast<uint8_t>(ParamHUE_HUEChannelCount), static_cast<uint8_t>(MAX_LIGHTS));
+            bool anyChannelLock = false;
+            for (uint8_t ch = 0; ch < configuredChannels; ch++)
+            {
+                if (self->_hclChannelLockActive[ch]) { anyChannelLock = true; break; }
+            }
+            if (anyChannelLock)
+            {
+                String lockedList = "";
+                for (uint8_t ch = 0; ch < configuredChannels; ch++)
+                {
+                    if (!self->_hclChannelLockActive[ch]) continue;
+                    if (lockedList.length() > 0) lockedList += ", ";
+                    lockedList += "K" + String(ch + 1);
+                    if (self->_devices[ch] != nullptr)
+                        lockedList += " (" + self->_devices[ch]->getName() + ")";
+                    if (self->_hclChannelLockAutoReleaseMs[ch] > 0)
+                    {
+                        const unsigned long nowMs = millis();
+                        const long remainMs = static_cast<long>(self->_hclChannelLockAutoReleaseMs[ch]) - static_cast<long>(nowMs);
+                        lockedList += " ≤" + String(remainMs > 0 ? remainMs / 1000 : 0) + "s";
+                    }
+                }
+                html += "<tr><td>Kanal-Sperren aktiv</td><td>🔒 " + lockedList + "</td></tr>";
+            }
+            else
+            {
+                html += "<tr><td>Kanal-Sperren</td><td>🔓 Keine</td></tr>";
+            }
+        }
+        #endif
     }
 
     html += "</table>";
@@ -7354,6 +7602,34 @@ void HueGatewayModule::updateWebScanCache()
     else
     {
         _lastWebScanAccessoryCount = 0;
+    }
+
+    // Hue-Szenen
+    const int kMaxScenes = 64;
+    HueGatewayScene* sceneList = new (std::nothrow) HueGatewayScene[kMaxScenes];
+    if (sceneList != nullptr)
+    {
+        int sceneCount = _client->getScenes(sceneList, kMaxScenes);
+        if (sceneCount > 0)
+        {
+            text += "\nHue-Szenen:\n";
+            text += "---------------------------------\n";
+            String lastGroup = "";
+            int sceneIdx = 1;
+            // Output scenes grouped by room/zone (scenes from API are typically delivered per group)
+            for (int i = 0; i < sceneCount; i++)
+            {
+                if (sceneList[i].groupName != lastGroup)
+                {
+                    text += sceneList[i].groupName + ":\n";
+                    lastGroup = sceneList[i].groupName;
+                    sceneIdx = 1;
+                }
+                text += "  " + String(sceneIdx++) + ") " + sceneList[i].name + "\n";
+                text += "     ID: " + sceneList[i].id + "\n";
+            }
+        }
+        delete[] sceneList;
     }
 
     if (scanDurationMs > 0)
