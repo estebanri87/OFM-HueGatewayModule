@@ -571,6 +571,94 @@ int HueGatewayClient::getAccessoryDevices(HueGatewayAccessoryDevice* devices, in
     return count;
 }
 
+int HueGatewayClient::getScenes(HueGatewayScene* scenes, int maxScenes)
+{
+    if (!_initialized || scenes == nullptr || maxScenes <= 0)
+        return 0;
+
+    // Build grouped_light RID → room/zone name mapping
+    static const int kMaxGroups = 32;
+    String groupRids[kMaxGroups];
+    String groupNames[kMaxGroups];
+    int groupCount = 0;
+
+    // Helper: fetch a room or zone endpoint and collect room/zone ID → name pairs
+    // Scene group.rid references the room/zone id directly (not a grouped_light service)
+    auto fetchGroupNames = [&](const char* endpoint, const char* suffix) {
+        DynamicJsonDocument gDoc(32768);
+        DynamicJsonDocument gFilter(128);
+        JsonObject gFRoot = gFilter.to<JsonObject>();
+        JsonObject gFData = gFRoot["data"][0].to<JsonObject>();
+        gFData["id"] = true;
+        gFData["metadata"]["name"] = true;
+        if (isHttpSuccessStatus(httpGet(endpoint, gDoc, &gFilter)))
+        {
+            for (JsonObjectConst group : gDoc["data"].as<JsonArrayConst>())
+            {
+                if (groupCount >= kMaxGroups) break;
+                const char* gId   = group["id"] | "";
+                const char* gName = group["metadata"]["name"] | "";
+                if (gId[0] == '\0' || gName[0] == '\0') continue;
+                groupRids[groupCount] = String(gId);
+                groupNames[groupCount] = String(gName) + suffix;
+                groupCount++;
+            }
+        }
+    };
+
+    fetchGroupNames("/clip/v2/resource/room", "");
+    fetchGroupNames("/clip/v2/resource/zone", " (Zone)");
+    Serial.printf("[HueGatewayClient] Scene group mapping: %d room/zone entries\n", groupCount);
+    for (int g = 0; g < groupCount; g++)
+    {
+        Serial.printf("  room/zone %s -> %s\n", groupRids[g].c_str(), groupNames[g].c_str());
+    }
+
+    // Fetch scenes
+    DynamicJsonDocument doc(32768);
+    DynamicJsonDocument filterDoc(256);
+    filterDoc.clear();
+    JsonObject filterRoot = filterDoc.to<JsonObject>();
+    JsonObject filterData = filterRoot["data"][0].to<JsonObject>();
+    filterData["id"] = true;
+    filterData["metadata"]["name"] = true;
+    filterData["group"]["rid"] = true;
+    filterData["group"]["rtype"] = true;
+    doc.clear();
+    const int statusCode = httpGet("/clip/v2/resource/scene", doc, &filterDoc);
+    if (!isHttpSuccessStatus(statusCode))
+        return 0;
+
+    int count = 0;
+    for (JsonObjectConst scene : doc["data"].as<JsonArrayConst>())
+    {
+        if (count >= maxScenes) break;
+        const char* id   = scene["id"] | "";
+        const char* name = scene["metadata"]["name"] | "";
+        const char* gRid = scene["group"]["rid"] | "";
+        if (id[0] == '\0') continue;
+
+        String resolvedName = "-";
+        for (int g = 0; g < groupCount; g++)
+        {
+            if (groupRids[g] == gRid)
+            {
+                resolvedName = groupNames[g];
+                break;
+            }
+        }
+
+        scenes[count].id        = String(id);
+        scenes[count].name      = String(name);
+        scenes[count].groupRid  = String(gRid);
+        scenes[count].groupName = resolvedName;
+        count++;
+    }
+
+    Serial.printf("[HueGatewayClient] Found scenes: %d\n", count);
+    return count;
+}
+
 void HueGatewayClient::appendDeviceLightLinksFromDoc(std::vector<DeviceLightLink>& links, const JsonDocument& doc)
 {
     JsonArrayConst data = doc["data"].as<JsonArrayConst>();
@@ -1583,33 +1671,59 @@ int HueGatewayClient::getDeviceServiceRids(const String& deviceId, HueGatewaySer
     return count;
 }
 
-int HueGatewayClient::getBehaviorInstances(const String& deviceId, String* instanceIds, int maxCount)
+int HueGatewayClient::getBehaviorInstances(const String& deviceId, String* instanceIds, int maxCount, String* debugInfo)
 {
     if (!_initialized || deviceId.length() == 0 || instanceIds == nullptr || maxCount <= 0)
         return 0;
 
-    DynamicJsonDocument filterDoc(512);
-    JsonObject fr = filterDoc.to<JsonObject>();
-    fr["data"][0]["id"] = true;
-    fr["data"][0]["dependees"][0]["target"]["rtype"] = true;
-    fr["data"][0]["dependees"][0]["target"]["rid"] = true;
+    // First resolve all service RIDs for the device so we can match via owner/dependees
+    static constexpr int kMaxSvc = 16;
+    HueGatewayServiceRid deviceSvcs[kMaxSvc];
+    const int svcCount = getDeviceServiceRids(deviceId, deviceSvcs, kMaxSvc);
 
-    DynamicJsonDocument doc(8192);
-    int statusCode = httpGet("/clip/v2/resource/behavior_instance", doc, &filterDoc);
+    // Use a filter document to only parse the fields we need for matching.
+    // The full behavior_instance response can be very large (>32KB) due to
+    // complex configuration data, so we MUST filter to avoid parse failures.
+    StaticJsonDocument<512> filterDoc;
+    JsonObject filterData = filterDoc["data"][0].to<JsonObject>();
+    filterData["id"] = true;
+    filterData["enabled"] = true;
+    filterData["script_id"] = true;
+    filterData["dependees"][0]["target"]["rid"] = true;
+    filterData["dependees"][0]["target"]["rtype"] = true;
+    filterData["owner"]["rid"] = true;
+    filterData["owner"]["rtype"] = true;
+
+    DynamicJsonDocument doc(16384);
+    // Use 10s timeout — behavior_instance response is large and bridge needs time
+    int statusCode = httpGet("/clip/v2/resource/behavior_instance", doc, &filterDoc, 10000, 50);
     if (!isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] getBehaviorInstances: HTTP %d\n", statusCode);
+        Serial.printf("[HueGatewayClient] getBehaviorInstances: HTTP %d (filtered)\n", statusCode);
+        if (debugInfo)
+            *debugInfo = "httpFail=" + String(statusCode)
+                + " jsonErr=" + _diagStats.lastJsonError
+                + " contentLen=" + String(_diagStats.lastContentLength)
+                + " svc=" + String(svcCount);
         return 0;
     }
 
+    Serial.printf("[HueGatewayClient] getBehaviorInstances: HTTP %d, docOverflow=%d, memUsed=%u/%u\n",
+                  statusCode, doc.overflowed() ? 1 : 0,
+                  (unsigned)doc.memoryUsage(), 16384u);
+
     int count = 0;
+    int totalInstances = 0;
     JsonArrayConst data = doc["data"].as<JsonArrayConst>();
     for (JsonObjectConst inst : data)
     {
+        totalInstances++;
         if (count >= maxCount)
             break;
 
         bool matchesDevice = false;
+
+        // Method 1: dependees[].target.rtype=="device" && target.rid==deviceId
         JsonArrayConst dependees = inst["dependees"].as<JsonArrayConst>();
         for (JsonObjectConst dep : dependees)
         {
@@ -1620,43 +1734,88 @@ int HueGatewayClient::getBehaviorInstances(const String& deviceId, String* insta
                 matchesDevice = true;
                 break;
             }
+            // Also check if dependees reference a service RID of the device
+            for (int s = 0; s < svcCount && !matchesDevice; s++)
+            {
+                if (deviceSvcs[s].rid.equalsIgnoreCase(String(rid)))
+                {
+                    matchesDevice = true;
+                    break;
+                }
+            }
+            if (matchesDevice) break;
         }
+
+        // Method 2: owner.rid == deviceId or owner.rid matches a service of the device
+        if (!matchesDevice)
+        {
+            const char* ownerRid = inst["owner"]["rid"] | "";
+            if (ownerRid[0] != '\0')
+            {
+                if (strcmp(ownerRid, deviceId.c_str()) == 0)
+                {
+                    matchesDevice = true;
+                }
+                else
+                {
+                    for (int s = 0; s < svcCount; s++)
+                    {
+                        if (deviceSvcs[s].rid.equalsIgnoreCase(String(ownerRid)))
+                        {
+                            matchesDevice = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
         if (!matchesDevice)
             continue;
 
         const char* id = inst["id"] | "";
         if (id[0] != '\0')
+        {
             instanceIds[count++] = String(id);
+            Serial.printf("[HueGatewayClient] behavior_instance match: %s for device %s\n",
+                          id, deviceId.c_str());
+        }
     }
 
-    Serial.printf("[HueGatewayClient] getBehaviorInstances: device %s -> %d instances\n",
-                  deviceId.c_str(), count);
+    // --- Debug: log summary ---
+    Serial.printf("[HueGatewayClient] getBehaviorInstances: device %s -> %d/%d instances (svc=%d)\n",
+                  deviceId.c_str(), count, totalInstances, svcCount);
+
+    // Build debugInfo string for caller to put into RingLog
+    if (debugInfo != nullptr)
+    {
+        *debugInfo = "total=" + String(totalInstances) + " matched=" + String(count)
+            + " svc=" + String(svcCount) + " overflow=" + String(doc.overflowed() ? 1 : 0)
+            + " mem=" + String((unsigned)doc.memoryUsage());
+        // Append matched instances
+        for (int i = 0; i < count && i < 3; i++)
+        {
+            *debugInfo += " |" + instanceIds[i].substring(0, 8);
+        }
+    }
     return count;
 }
 
-bool HueGatewayClient::setBehaviorInstanceEnabled(const String& instanceId, bool enabled)
+bool HueGatewayClient::deleteBehaviorInstance(const String& instanceId)
 {
     if (!_initialized || instanceId.length() == 0)
         return false;
 
     String endpoint = "/clip/v2/resource/behavior_instance/" + instanceId;
-
-    DynamicJsonDocument doc(64);
-    doc["enabled"] = enabled;
-
-    String payload;
-    serializeJson(doc, payload);
-
-    int statusCode = httpPut(endpoint, payload);
+    int statusCode = httpDelete(endpoint);
 
     if (isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] behavior_instance %s -> enabled=%d\n",
-                      instanceId.c_str(), (int)enabled);
+        Serial.printf("[HueGatewayClient] behavior_instance %s deleted\n", instanceId.c_str());
         return true;
     }
 
-    Serial.printf("[HueGatewayClient] ERROR: behavior_instance set failed - HTTP %d\n", statusCode);
+    Serial.printf("[HueGatewayClient] ERROR: behavior_instance delete failed - HTTP %d\n", statusCode);
     return false;
 }
 
@@ -2077,7 +2236,7 @@ float HueGatewayClient::relativeDimmingDeltaPercent(uint8_t steps)
 
 // ===== Private Methods =====
 
-int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDocument* filterDoc)
+int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDocument* filterDoc, int timeoutMs, int nestingLimit)
 {
     String url = buildUrl(endpoint);
     Serial.print("[HueGatewayClient] HTTP GET ");
@@ -2085,7 +2244,9 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDoc
     _diagStats.httpGetCount++;
     _diagStats.lastHttpMethod = "GET";
     _diagStats.lastHttpEndpoint = endpoint;
-    _http.setTimeout(2000);
+    _diagStats.lastJsonError = "";
+    _diagStats.lastContentLength = -1;
+    _http.setTimeout(timeoutMs);
     const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected) && _eventClient.connected();
 
     if (eventWasActive && _eventAutoRestartEnabled)
@@ -2119,6 +2280,7 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDoc
         doc.clear();
         Stream& responseStream = _http.getStream();
         const int contentLength = _http.getSize();
+        _diagStats.lastContentLength = contentLength;
 
         DeserializationError error;
         if (contentLength >= 0)
@@ -2127,11 +2289,13 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDoc
             {
                 error = deserializeJson(doc,
                                         responseStream,
-                                        DeserializationOption::Filter(filterDoc->as<JsonVariantConst>()));
+                                        DeserializationOption::Filter(filterDoc->as<JsonVariantConst>()),
+                                        DeserializationOption::NestingLimit(nestingLimit));
             }
             else
             {
-                error = deserializeJson(doc, responseStream);
+                error = deserializeJson(doc, responseStream,
+                                        DeserializationOption::NestingLimit(nestingLimit));
             }
         }
         else
@@ -2141,27 +2305,21 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDoc
             {
                 error = deserializeJson(doc,
                                         response,
-                                        DeserializationOption::Filter(filterDoc->as<JsonVariantConst>()));
+                                        DeserializationOption::Filter(filterDoc->as<JsonVariantConst>()),
+                                        DeserializationOption::NestingLimit(nestingLimit));
             }
             else
             {
-                error = deserializeJson(doc, response);
+                error = deserializeJson(doc, response,
+                                        DeserializationOption::NestingLimit(nestingLimit));
             }
         }
 
         if (error)
         {
-            Serial.print("[HueGatewayClient] JSON parse error: ");
-            Serial.println(error.c_str());
-            Serial.print("[HueGatewayClient] JSON payload length: ");
-            if (contentLength >= 0)
-            {
-                Serial.println(contentLength);
-            }
-            else
-            {
-                Serial.println("unknown");
-            }
+            _diagStats.lastJsonError = error.c_str();
+            Serial.printf("[HueGatewayClient] JSON parse error: %s contentLen=%d docMem=%u\n",
+                          error.c_str(), contentLength, (unsigned)doc.memoryUsage());
             statusCode = -1;
         }
     }
@@ -2252,6 +2410,64 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
         else if (!startEventStream())
         {
             Serial.println("[HueGatewayClient] EventStream restart after HTTP PUT failed");
+        }
+    }
+
+    return statusCode;
+}
+
+int HueGatewayClient::httpDelete(const String& endpoint)
+{
+    String url = buildUrl(endpoint);
+    Serial.printf("[HueGatewayClient] HTTP DELETE %s\n", url.c_str());
+    _diagStats.lastHttpMethod = "DELETE";
+    _diagStats.lastHttpEndpoint = endpoint;
+    _http.setTimeout(2000);
+    const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected) && _eventClient.connected();
+    bool eventPausedForDelete = false;
+
+    if (eventWasActive && _eventAutoRestartEnabled && !hasTlsInternalHeadroom())
+    {
+        Serial.println("[HueGatewayClient] Pausing EventStream for HTTPS DELETE (internal TLS headroom low)");
+        _http.end();
+        stopEventStream();
+        _secureClient.stop();
+        delay(25);
+        eventPausedForDelete = true;
+    }
+
+    _http.begin(_secureClient, url);
+    _http.addHeader("hue-application-key", _appKey);
+
+    int statusCode = _http.sendRequest("DELETE");
+    _diagStats.lastHttpStatusCode = statusCode;
+
+    if (statusCode < 0)
+    {
+        if (statusCode == HTTPC_ERROR_READ_TIMEOUT)
+        {
+            _diagStats.httpTimeoutCount++;
+        }
+        logHeapStats("http-delete-failed");
+    }
+
+    if (!isHttpSuccessStatus(statusCode))
+    {
+        String response = _http.getString();
+        Serial.printf("[HueGatewayClient] HTTP DELETE failed (%d): %s\n", statusCode, response.c_str());
+    }
+
+    _http.end();
+
+    if (eventPausedForDelete)
+    {
+        if (!hasTlsInternalHeadroom())
+        {
+            Serial.println("[HueGatewayClient] EventStream restart deferred after HTTP DELETE (internal TLS headroom)");
+        }
+        else if (!startEventStream())
+        {
+            Serial.println("[HueGatewayClient] EventStream restart after HTTP DELETE failed");
         }
     }
 
@@ -2601,6 +2817,8 @@ int HueGatewayClient::parseEventPayloadFull(const String& payload,
                     su.resourceId = String(id);
                     su.buttonIndex = item["metadata"]["control_id"] | 0;
                     su.buttonEventType = String(lastEvent);
+                    Serial.printf("[HueGatewayClient] SSE btn: rid=%s ctrl=%d event=%s\n",
+                                  id, su.buttonIndex, lastEvent);
                 }
             }
             else if (strcmp(type, "relative_rotary") == 0)

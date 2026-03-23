@@ -109,6 +109,15 @@ struct HueGatewayAccessoryDevice
     String type;  // z.B. "Taster", "Bewegungsmelder", "Kontaktsensor"
 };
 
+/** Hue-Szene von der Bridge */
+struct HueGatewayScene
+{
+    String id;         // Scene Resource UUID (wird in ETS als RID eingetragen)
+    String name;       // metadata.name
+    String groupRid;   // group.rid — grouped_light UUID des zugehörigen Raums/Zone
+    String groupName;  // Aufgelöster Raum-/Zonenname (oder "-")
+};
+
 /** Einzelner Service-Eintrag eines Hue-Geräts (z.B. button, motion, relative_rotary) */
 struct HueGatewayServiceRid
 {
@@ -154,6 +163,8 @@ public:
         int lastHttpStatusCode;
         String lastHttpMethod;
         String lastHttpEndpoint;
+        String lastJsonError;
+        int lastContentLength;
     };
 
     HueGatewayClient();
@@ -176,6 +187,7 @@ public:
     int getLights(HueGatewayLightState* lights, int maxLights, bool includeLocations = true);
     int getGroupedLights(HueGatewayLightState* groupedLights, int maxLights);
     int getAccessoryDevices(HueGatewayAccessoryDevice* devices, int maxDevices);
+    int getScenes(HueGatewayScene* scenes, int maxScenes);
     
     /**
     * @brief Switches a light on or off.
@@ -385,15 +397,15 @@ public:
      * @param maxCount     Maximum number of entries (array size)
      * @return Number of found behavior_instance IDs (0 on error or none)
      */
-    int getBehaviorInstances(const String& deviceId, String* instanceIds, int maxCount);
+    int getBehaviorInstances(const String& deviceId, String* instanceIds, int maxCount, String* debugInfo = nullptr);
 
     /**
-     * @brief Enables or disables a single behavior_instance.
+     * @brief Deletes a behavior_instance from the bridge.
+     * Used for "Hue Accessories" instances that don't support enabled=false.
      * @param instanceId  ID of the behavior_instance
-     * @param enabled     true = enable, false = disable
-     * @return true on success
+     * @return true on success (HTTP 200)
      */
-    bool setBehaviorInstanceEnabled(const String& instanceId, bool enabled);
+    bool deleteBehaviorInstance(const String& instanceId);
 
 private:
     bool _initialized;
@@ -436,7 +448,7 @@ private:
     * @param doc JsonDocument for the response payload
      * @return HTTP Status Code
      */
-    int httpGet(const String& endpoint, JsonDocument& doc, JsonDocument* filterDoc = nullptr);
+    int httpGet(const String& endpoint, JsonDocument& doc, JsonDocument* filterDoc = nullptr, int timeoutMs = 2000, int nestingLimit = 10);
     
     /**
     * @brief Executes an HTTP PUT request.
@@ -445,6 +457,13 @@ private:
      * @return HTTP Status Code
      */
     int httpPut(const String& endpoint, const String& payload);
+
+    /**
+    * @brief Executes an HTTP DELETE request.
+     * @param endpoint API Endpoint
+     * @return HTTP Status Code
+     */
+    int httpDelete(const String& endpoint);
     
     /**
     * @brief Builds the full request URL.
