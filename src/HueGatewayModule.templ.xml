@@ -215,39 +215,68 @@
               <Parameter Id="%AID%_P-%TT%5%CC%098" Name="CH%C%Scene8Green" ParameterType="%AID%_PT-HUESceneRGB" Text="Grün" Value="0"><Memory CodeSegment="%MID%" Offset="159" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-%TT%5%CC%099" Name="CH%C%Scene8Blue" ParameterType="%AID%_PT-HUESceneRGB" Text="Blau" Value="0"><Memory CodeSegment="%MID%" Offset="160" BitOffset="0" /></Parameter>
 
-              <!-- ===== Tasterkanal: Taste 1 + Taste 2 Funktion/Invertiert (Offset 161) ===== -->
+              <!-- ===== Tasterkanal: Taste 1 Gewerk/Kurz/Lang (Offset 161) ===== -->
               <Union Id="%AID%_U-%TT%5%CC%130" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="161" BitOffset="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%130" Name="CH%C%Btn1Function" ParameterType="%AID%_PT-HUEButtonFunction" Offset="0" BitOffset="0" Text="Taste 1 Funktion" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%131" Name="CH%C%Btn1Invert" ParameterType="%AID%_PT-HUEButtonInvert" Offset="0" BitOffset="3" Text="Taste 1 invertieren" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%132" Name="CH%C%Btn2Function" ParameterType="%AID%_PT-HUEButtonFunction" Offset="0" BitOffset="4" Text="Taste 2 Funktion" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%133" Name="CH%C%Btn2Invert" ParameterType="%AID%_PT-HUEButtonInvert" Offset="0" BitOffset="7" Text="Taste 2 invertieren" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%130" Name="CH%C%Btn1Gewerk" ParameterType="%AID%_PT-HUEButtonGewerk" Offset="0" BitOffset="0" Text="Taste 1 Gewerk" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%131" Name="CH%C%Btn1GewerkEinzel" ParameterType="%AID%_PT-HUEButtonGewerkEinzel" Offset="0" BitOffset="0" Text="Taste 1 Gewerk" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%141" Name="CH%C%Btn1LichtKurz" ParameterType="%AID%_PT-HUELichtKurz" Offset="0" BitOffset="2" Text="Taste 1 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%142" Name="CH%C%Btn1JalousieKurz" ParameterType="%AID%_PT-HUEJalousieKurz" Offset="0" BitOffset="2" Text="Taste 1 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%143" Name="CH%C%Btn1LichtLang" ParameterType="%AID%_PT-HUELichtLang" Offset="0" BitOffset="4" Text="Taste 1 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%144" Name="CH%C%Btn1JalousieLang" ParameterType="%AID%_PT-HUEJalousieLang" Offset="0" BitOffset="4" Text="Taste 1 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%145" Name="CH%C%Btn1MedienLang" ParameterType="%AID%_PT-HUEMedienLang" Offset="0" BitOffset="4" Text="Taste 1 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%146" Name="CH%C%Btn1GenerischLang" ParameterType="%AID%_PT-HUEGenerischLang" Offset="0" BitOffset="4" Text="Taste 1 Langdruck" Value="0" />
               </Union>
 
-              <!-- ===== Tasterkanal: Taste 3 + Taste 4 Funktion/Invertiert (Offset 162) ===== -->
+              <!-- ===== Tasterkanal: Taste 2 Gewerk/Kurz/Lang (Offset 162) ===== -->
               <Union Id="%AID%_U-%TT%5%CC%131" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="162" BitOffset="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%134" Name="CH%C%Btn3Function" ParameterType="%AID%_PT-HUEButtonFunction" Offset="0" BitOffset="0" Text="Taste 3 Funktion" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%135" Name="CH%C%Btn3Invert" ParameterType="%AID%_PT-HUEButtonInvert" Offset="0" BitOffset="3" Text="Taste 3 invertieren" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%136" Name="CH%C%Btn4Function" ParameterType="%AID%_PT-HUEButtonFunction" Offset="0" BitOffset="4" Text="Taste 4 Funktion" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%137" Name="CH%C%Btn4Invert" ParameterType="%AID%_PT-HUEButtonInvert" Offset="0" BitOffset="7" Text="Taste 4 invertieren" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%150" Name="CH%C%Btn2Gewerk" ParameterType="%AID%_PT-HUEButtonGewerk" Offset="0" BitOffset="0" Text="Taste 2 Gewerk" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%151" Name="CH%C%Btn2LichtKurz" ParameterType="%AID%_PT-HUELichtKurz" Offset="0" BitOffset="2" Text="Taste 2 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%152" Name="CH%C%Btn2JalousieKurz" ParameterType="%AID%_PT-HUEJalousieKurz" Offset="0" BitOffset="2" Text="Taste 2 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%153" Name="CH%C%Btn2LichtLang" ParameterType="%AID%_PT-HUELichtLang" Offset="0" BitOffset="4" Text="Taste 2 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%154" Name="CH%C%Btn2JalousieLang" ParameterType="%AID%_PT-HUEJalousieLang" Offset="0" BitOffset="4" Text="Taste 2 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%155" Name="CH%C%Btn2MedienLang" ParameterType="%AID%_PT-HUEMedienLang" Offset="0" BitOffset="4" Text="Taste 2 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%156" Name="CH%C%Btn2GenerischLang" ParameterType="%AID%_PT-HUEGenerischLang" Offset="0" BitOffset="4" Text="Taste 2 Langdruck" Value="0" />
               </Union>
 
-              <!-- ===== Tasterkanal: Szenen-Nr je Taste (Offsets 163-166) ===== -->
-              <Parameter Id="%AID%_P-%TT%5%CC%123" Name="CH%C%Btn1SceneNr" ParameterType="%AID%_PT-HUESceneNrButton" Text="Taste 1 Szenennummer" Value="1"><Memory CodeSegment="%MID%" Offset="163" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-%TT%5%CC%124" Name="CH%C%Btn2SceneNr" ParameterType="%AID%_PT-HUESceneNrButton" Text="Taste 2 Szenennummer" Value="1"><Memory CodeSegment="%MID%" Offset="164" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-%TT%5%CC%125" Name="CH%C%Btn3SceneNr" ParameterType="%AID%_PT-HUESceneNrButton" Text="Taste 3 Szenennummer" Value="1"><Memory CodeSegment="%MID%" Offset="165" BitOffset="0" /></Parameter>
-              <Parameter Id="%AID%_P-%TT%5%CC%126" Name="CH%C%Btn4SceneNr" ParameterType="%AID%_PT-HUESceneNrButton" Text="Taste 4 Szenennummer" Value="1"><Memory CodeSegment="%MID%" Offset="166" BitOffset="0" /></Parameter>
+              <!-- ===== Tasterkanal: Taste 3 Gewerk/Kurz/Lang (Offset 163) ===== -->
+              <Union Id="%AID%_U-%TT%5%CC%132" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="163" BitOffset="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%160" Name="CH%C%Btn3Gewerk" ParameterType="%AID%_PT-HUEButtonGewerk" Offset="0" BitOffset="0" Text="Taste 3 Gewerk" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%161" Name="CH%C%Btn3LichtKurz" ParameterType="%AID%_PT-HUELichtKurz" Offset="0" BitOffset="2" Text="Taste 3 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%162" Name="CH%C%Btn3JalousieKurz" ParameterType="%AID%_PT-HUEJalousieKurz" Offset="0" BitOffset="2" Text="Taste 3 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%163" Name="CH%C%Btn3LichtLang" ParameterType="%AID%_PT-HUELichtLang" Offset="0" BitOffset="4" Text="Taste 3 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%164" Name="CH%C%Btn3JalousieLang" ParameterType="%AID%_PT-HUEJalousieLang" Offset="0" BitOffset="4" Text="Taste 3 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%165" Name="CH%C%Btn3MedienLang" ParameterType="%AID%_PT-HUEMedienLang" Offset="0" BitOffset="4" Text="Taste 3 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%166" Name="CH%C%Btn3GenerischLang" ParameterType="%AID%_PT-HUEGenerischLang" Offset="0" BitOffset="4" Text="Taste 3 Langdruck" Value="0" />
+              </Union>
 
-              <!-- ===== Tasterkanal: Drehregler Aktivierung + Funktion (Offset 167) ===== -->
-              <Union Id="%AID%_U-%TT%5%CC%132" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="167" BitOffset="0" />
+              <!-- ===== Tasterkanal: Taste 4 Gewerk/Kurz/Lang (Offset 164) ===== -->
+              <Union Id="%AID%_U-%TT%5%CC%133" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="164" BitOffset="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%170" Name="CH%C%Btn4Gewerk" ParameterType="%AID%_PT-HUEButtonGewerk" Offset="0" BitOffset="0" Text="Taste 4 Gewerk" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%171" Name="CH%C%Btn4LichtKurz" ParameterType="%AID%_PT-HUELichtKurz" Offset="0" BitOffset="2" Text="Taste 4 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%172" Name="CH%C%Btn4JalousieKurz" ParameterType="%AID%_PT-HUEJalousieKurz" Offset="0" BitOffset="2" Text="Taste 4 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%173" Name="CH%C%Btn4LichtLang" ParameterType="%AID%_PT-HUELichtLang" Offset="0" BitOffset="4" Text="Taste 4 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%174" Name="CH%C%Btn4JalousieLang" ParameterType="%AID%_PT-HUEJalousieLang" Offset="0" BitOffset="4" Text="Taste 4 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%175" Name="CH%C%Btn4MedienLang" ParameterType="%AID%_PT-HUEMedienLang" Offset="0" BitOffset="4" Text="Taste 4 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%176" Name="CH%C%Btn4GenerischLang" ParameterType="%AID%_PT-HUEGenerischLang" Offset="0" BitOffset="4" Text="Taste 4 Langdruck" Value="0" />
+              </Union>
+
+              <!-- ===== Tasterkanal: Szenen-Nr je Taste (Offsets 165-168) ===== -->
+              <Parameter Id="%AID%_P-%TT%5%CC%123" Name="CH%C%Btn1SceneNr" ParameterType="%AID%_PT-HUESceneNrButton" Text="Taste 1 Szenennummer" Value="1"><Memory CodeSegment="%MID%" Offset="165" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%5%CC%124" Name="CH%C%Btn2SceneNr" ParameterType="%AID%_PT-HUESceneNrButton" Text="Taste 2 Szenennummer" Value="1"><Memory CodeSegment="%MID%" Offset="166" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%5%CC%125" Name="CH%C%Btn3SceneNr" ParameterType="%AID%_PT-HUESceneNrButton" Text="Taste 3 Szenennummer" Value="1"><Memory CodeSegment="%MID%" Offset="167" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%5%CC%126" Name="CH%C%Btn4SceneNr" ParameterType="%AID%_PT-HUESceneNrButton" Text="Taste 4 Szenennummer" Value="1"><Memory CodeSegment="%MID%" Offset="168" BitOffset="0" /></Parameter>
+
+              <!-- ===== Tasterkanal: Drehregler Aktivierung + Funktion (Offset 169) ===== -->
+              <Union Id="%AID%_U-%TT%5%CC%134" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="169" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%138" Name="CH%C%HasRotary" ParameterType="%AID%_PT-HUEHasRotary" Offset="0" BitOffset="0" Text="Drehregler vorhanden" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%139" Name="CH%C%RotaryFunction" ParameterType="%AID%_PT-HUERotaryFunction" Offset="0" BitOffset="1" Text="Drehregler Funktion" Value="0" />
               </Union>
 
-              <!-- ===== Tasterkanal: Drehregler Schrittweite (Offset 168) ===== -->
-              <Parameter Id="%AID%_P-%TT%5%CC%127" Name="CH%C%RotaryStepPercent" ParameterType="%AID%_PT-HUERotaryStepPercent" Text="Schrittweite (%)" Value="5"><Memory CodeSegment="%MID%" Offset="168" BitOffset="0" /></Parameter>
+              <!-- ===== Tasterkanal: Drehregler Schrittweite (Offset 170) ===== -->
+              <Parameter Id="%AID%_P-%TT%5%CC%127" Name="CH%C%RotaryStepPercent" ParameterType="%AID%_PT-HUERotaryStepPercent" Text="Schrittweite (%)" Value="5"><Memory CodeSegment="%MID%" Offset="170" BitOffset="0" /></Parameter>
 
-              <!-- ===== Tasterkanal: Native Hue Aktion (Offset 169) ===== -->
-              <Union Id="%AID%_U-%TT%5%CC%133" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="169" BitOffset="0" />
+              <!-- ===== Tasterkanal: Native Hue Aktion (Offset 171) ===== -->
+              <Union Id="%AID%_U-%TT%5%CC%135" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="171" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%140" Name="CH%C%NativeHueAction" ParameterType="%AID%_PT-HUENativeHueAction" Offset="0" BitOffset="0" Text="Native Hue Aktion" Value="0" />
               </Union>
 
@@ -383,15 +412,40 @@
               <!-- SceneStoreNumber -->
               <ParameterRef Id="%AID%_UP-%TT%5%CC%200_R-%TT%5%CC%20001" RefId="%AID%_UP-%TT%5%CC%200" />
 
-              <!-- Tasterkanal: neue Button-Funktion / Rotary ParameterRefs -->
+              <!-- Tasterkanal: Gewerk/Kurz/Lang ParameterRefs -->
+              <!-- Taste 1 -->
               <ParameterRef Id="%AID%_UP-%TT%5%CC%130_R-%TT%5%CC%13001" RefId="%AID%_UP-%TT%5%CC%130" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%131_R-%TT%5%CC%13101" RefId="%AID%_UP-%TT%5%CC%131" />
-              <ParameterRef Id="%AID%_UP-%TT%5%CC%132_R-%TT%5%CC%13201" RefId="%AID%_UP-%TT%5%CC%132" />
-              <ParameterRef Id="%AID%_UP-%TT%5%CC%133_R-%TT%5%CC%13301" RefId="%AID%_UP-%TT%5%CC%133" />
-              <ParameterRef Id="%AID%_UP-%TT%5%CC%134_R-%TT%5%CC%13401" RefId="%AID%_UP-%TT%5%CC%134" />
-              <ParameterRef Id="%AID%_UP-%TT%5%CC%135_R-%TT%5%CC%13501" RefId="%AID%_UP-%TT%5%CC%135" />
-              <ParameterRef Id="%AID%_UP-%TT%5%CC%136_R-%TT%5%CC%13601" RefId="%AID%_UP-%TT%5%CC%136" />
-              <ParameterRef Id="%AID%_UP-%TT%5%CC%137_R-%TT%5%CC%13701" RefId="%AID%_UP-%TT%5%CC%137" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%141_R-%TT%5%CC%14101" RefId="%AID%_UP-%TT%5%CC%141" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%142_R-%TT%5%CC%14201" RefId="%AID%_UP-%TT%5%CC%142" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%143_R-%TT%5%CC%14301" RefId="%AID%_UP-%TT%5%CC%143" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%144_R-%TT%5%CC%14401" RefId="%AID%_UP-%TT%5%CC%144" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%145_R-%TT%5%CC%14501" RefId="%AID%_UP-%TT%5%CC%145" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%146_R-%TT%5%CC%14601" RefId="%AID%_UP-%TT%5%CC%146" />
+              <!-- Taste 2 -->
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%150_R-%TT%5%CC%15001" RefId="%AID%_UP-%TT%5%CC%150" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%151_R-%TT%5%CC%15101" RefId="%AID%_UP-%TT%5%CC%151" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%152_R-%TT%5%CC%15201" RefId="%AID%_UP-%TT%5%CC%152" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%153_R-%TT%5%CC%15301" RefId="%AID%_UP-%TT%5%CC%153" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%154_R-%TT%5%CC%15401" RefId="%AID%_UP-%TT%5%CC%154" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%155_R-%TT%5%CC%15501" RefId="%AID%_UP-%TT%5%CC%155" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%156_R-%TT%5%CC%15601" RefId="%AID%_UP-%TT%5%CC%156" />
+              <!-- Taste 3 -->
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%160_R-%TT%5%CC%16001" RefId="%AID%_UP-%TT%5%CC%160" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%161_R-%TT%5%CC%16101" RefId="%AID%_UP-%TT%5%CC%161" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%162_R-%TT%5%CC%16201" RefId="%AID%_UP-%TT%5%CC%162" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%163_R-%TT%5%CC%16301" RefId="%AID%_UP-%TT%5%CC%163" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%164_R-%TT%5%CC%16401" RefId="%AID%_UP-%TT%5%CC%164" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%165_R-%TT%5%CC%16501" RefId="%AID%_UP-%TT%5%CC%165" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%166_R-%TT%5%CC%16601" RefId="%AID%_UP-%TT%5%CC%166" />
+              <!-- Taste 4 -->
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%170_R-%TT%5%CC%17001" RefId="%AID%_UP-%TT%5%CC%170" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%171_R-%TT%5%CC%17101" RefId="%AID%_UP-%TT%5%CC%171" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%172_R-%TT%5%CC%17201" RefId="%AID%_UP-%TT%5%CC%172" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%173_R-%TT%5%CC%17301" RefId="%AID%_UP-%TT%5%CC%173" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%174_R-%TT%5%CC%17401" RefId="%AID%_UP-%TT%5%CC%174" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%175_R-%TT%5%CC%17501" RefId="%AID%_UP-%TT%5%CC%175" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%176_R-%TT%5%CC%17601" RefId="%AID%_UP-%TT%5%CC%176" />
               <ParameterRef Id="%AID%_P-%TT%5%CC%123_R-%TT%5%CC%12301" RefId="%AID%_P-%TT%5%CC%123" />
               <ParameterRef Id="%AID%_P-%TT%5%CC%124_R-%TT%5%CC%12401" RefId="%AID%_P-%TT%5%CC%124" />
               <ParameterRef Id="%AID%_P-%TT%5%CC%125_R-%TT%5%CC%12501" RefId="%AID%_P-%TT%5%CC%125" />
@@ -438,14 +492,6 @@
               <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00004" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Hue %C%}}: Schalten" FunctionText="Steckdose ein/aus" DatapointType="DPST-1-1" ReadFlag="Enabled" WriteFlag="Enabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Steckdose: Status Schalten (KO-Slot 3, DPT-1-1, nur Senden) -->
               <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00302" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Status Schalten" FunctionText="Steckdose Status ein/aus" DatapointType="DPST-1-1" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <!-- Taster: Ereignis Taste 1 (KO-Slot 0, DPT-1-1, nur Senden) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00005" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Hue %C%}}: Taster 1" FunctionText="Taster 1 gedrückt (1=gedrückt)" DatapointType="DPST-1-1" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <!-- Taster: Ereignis Taste 2 (KO-Slot 3, DPT-1-1, nur Senden) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00303" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Taster 2" FunctionText="Taster 2 gedrückt (1=gedrückt)" DatapointType="DPST-1-1" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <!-- Taster: Ereignis Taste 3 (KO-Slot 9, DPT-1-1, nur Senden) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%009_R-%TT%5%CC%00902" RefId="%AID%_O-%TT%5%CC%009" Text="{{0:Hue %C%}}: Taster 3" FunctionText="Taster 3 gedrückt (1=gedrückt)" DatapointType="DPST-1-1" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <!-- Taster: Ereignis Taste 4 (KO-Slot 10, DPT-1-1, nur Senden) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%010_R-%TT%5%CC%01002" RefId="%AID%_O-%TT%5%CC%010" Text="{{0:Hue %C%}}: Taster 4" FunctionText="Taster 4 gedrückt (1=gedrückt)" DatapointType="DPST-1-1" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Bewegungsmelder: Gerät erreichbar (KO-Slot 3, DPST-1-2, nur Senden) -->
               <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00304" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Gerät erreichbar" FunctionText="Gerät erreichbar (1=ja, 0=nein)" DatapointType="DPST-1-2" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Sensor/Kontakt: Batterie (KO-Slot 4, DPST-5-1, nur Senden) -->
@@ -463,23 +509,77 @@
               <!-- Szene (KO-Slot 11, DPST-17-1, Speichern nicht aktiv) -->
               <ComObjectRef Id="%AID%_O-%TT%5%CC%011_R-%TT%5%CC%01102" RefId="%AID%_O-%TT%5%CC%011" Text="{{0:Hue %C%}}: Szene" FunctionText="Szene abrufen (DPT 17.001)" DatapointType="DPST-17-1" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
 
-              <!-- ===== Taster: neue KO-Slots für Button-Paarung ===== -->
-              <!-- Taste 1 – Langdruck / Zweites Objekt (KO-Slot 1, DPT-3-7) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00103" RefId="%AID%_O-%TT%5%CC%001" Text="{{0:Hue %C%}}: Taste 1 – Langdruck" FunctionText="Taste 1 – Langdruck / Zweites Objekt" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <!-- Taste 2 – Kurzdruck (KO-Slot 2, DPT-1-1) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00202" RefId="%AID%_O-%TT%5%CC%002" Text="{{0:Hue %C%}}: Taste 2" FunctionText="Taste 2 – Kurzdruck" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <!-- Taste 2 – Langdruck / Zweites Objekt (KO-Slot 3, DPT-3-7) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00307" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Taste 2 – Langdruck" FunctionText="Taste 2 – Langdruck / Zweites Objekt" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <!-- Taste 3 – Kurzdruck (KO-Slot 4, DPT-1-1) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00403" RefId="%AID%_O-%TT%5%CC%004" Text="{{0:Hue %C%}}: Taste 3" FunctionText="Taste 3 – Kurzdruck" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <!-- Taste 3 – Langdruck / Zweites Objekt (KO-Slot 5, DPT-3-7) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00503" RefId="%AID%_O-%TT%5%CC%005" Text="{{0:Hue %C%}}: Taste 3 – Langdruck" FunctionText="Taste 3 – Langdruck / Zweites Objekt" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <!-- Taste 4 – Kurzdruck (KO-Slot 6, DPT-1-1) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00603" RefId="%AID%_O-%TT%5%CC%006" Text="{{0:Hue %C%}}: Taste 4" FunctionText="Taste 4 – Kurzdruck" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <!-- Taste 4 – Langdruck / Zweites Objekt (KO-Slot 7, DPT-3-7) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00703" RefId="%AID%_O-%TT%5%CC%007" Text="{{0:Hue %C%}}: Taste 4 – Langdruck" FunctionText="Taste 4 – Langdruck / Zweites Objekt" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <!-- Drehregler – Absolutwert (KO-Slot 8, DPT-5-1) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00803" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Drehregler" FunctionText="Drehregler – Absolutwert" DatapointType="DPST-5-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <!-- ===== Taster: funktionsabhängige KOs pro Taste (Gewerk/Kurz/Lang) ===== -->
+              <!-- === Taste 1 Kurzdruck (KO-Slot 0, base O-000) === -->
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00020" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Hue %C%}}: Taste 1: Schalten" FunctionText="Kurzdruck: Ein/Aus" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00021" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Hue %C%}}: Taste 1: Szene" FunctionText="Kurzdruck: Szene abrufen" ObjectSize="1 Byte" DatapointType="DPST-18-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00022" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Hue %C%}}: Taste 1: Lamelle Auf" FunctionText="Kurzdruck: Lamelle Auf" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00023" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Hue %C%}}: Taste 1: Lamelle Ab" FunctionText="Kurzdruck: Lamelle Ab" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00024" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Hue %C%}}: Taste 1: Play/Pause" FunctionText="Kurzdruck: Play/Pause" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00025" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Hue %C%}}: Taste 1: Objekt A" FunctionText="Kurzdruck: Objekt A senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <!-- === Taste 1 Langdruck (KO-Slot 1, base O-001) === -->
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00130" RefId="%AID%_O-%TT%5%CC%001" Text="{{0:Hue %C%}}: Taste 1: Heller dimmen" FunctionText="Langdruck: Heller dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00131" RefId="%AID%_O-%TT%5%CC%001" Text="{{0:Hue %C%}}: Taste 1: Dunkler dimmen" FunctionText="Langdruck: Dunkler dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00132" RefId="%AID%_O-%TT%5%CC%001" Text="{{0:Hue %C%}}: Taste 1: Behang Auf" FunctionText="Langdruck: Behang hochfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00133" RefId="%AID%_O-%TT%5%CC%001" Text="{{0:Hue %C%}}: Taste 1: Behang Ab" FunctionText="Langdruck: Behang herunterfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00134" RefId="%AID%_O-%TT%5%CC%001" Text="{{0:Hue %C%}}: Taste 1: Lauter" FunctionText="Langdruck: Lautstärke erhöhen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00135" RefId="%AID%_O-%TT%5%CC%001" Text="{{0:Hue %C%}}: Taste 1: Leiser" FunctionText="Langdruck: Lautstärke verringern" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00136" RefId="%AID%_O-%TT%5%CC%001" Text="{{0:Hue %C%}}: Taste 1: Objekt B" FunctionText="Langdruck: Objekt B senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+
+              <!-- === Taste 2 Kurzdruck (KO-Slot 2, base O-002) === -->
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00220" RefId="%AID%_O-%TT%5%CC%002" Text="{{0:Hue %C%}}: Taste 2: Schalten" FunctionText="Kurzdruck: Ein/Aus" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00221" RefId="%AID%_O-%TT%5%CC%002" Text="{{0:Hue %C%}}: Taste 2: Szene" FunctionText="Kurzdruck: Szene abrufen" ObjectSize="1 Byte" DatapointType="DPST-18-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00222" RefId="%AID%_O-%TT%5%CC%002" Text="{{0:Hue %C%}}: Taste 2: Lamelle Auf" FunctionText="Kurzdruck: Lamelle Auf" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00223" RefId="%AID%_O-%TT%5%CC%002" Text="{{0:Hue %C%}}: Taste 2: Lamelle Ab" FunctionText="Kurzdruck: Lamelle Ab" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00224" RefId="%AID%_O-%TT%5%CC%002" Text="{{0:Hue %C%}}: Taste 2: Play/Pause" FunctionText="Kurzdruck: Play/Pause" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00225" RefId="%AID%_O-%TT%5%CC%002" Text="{{0:Hue %C%}}: Taste 2: Objekt A" FunctionText="Kurzdruck: Objekt A senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <!-- === Taste 2 Langdruck (KO-Slot 3, base O-003) === -->
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00330" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Taste 2: Heller dimmen" FunctionText="Langdruck: Heller dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00331" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Taste 2: Dunkler dimmen" FunctionText="Langdruck: Dunkler dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00332" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Taste 2: Behang Auf" FunctionText="Langdruck: Behang hochfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00333" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Taste 2: Behang Ab" FunctionText="Langdruck: Behang herunterfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00334" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Taste 2: Lauter" FunctionText="Langdruck: Lautstärke erhöhen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00335" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Taste 2: Leiser" FunctionText="Langdruck: Lautstärke verringern" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00336" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Taste 2: Objekt B" FunctionText="Langdruck: Objekt B senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+
+              <!-- === Taste 3 Kurzdruck (KO-Slot 4, base O-004) === -->
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00420" RefId="%AID%_O-%TT%5%CC%004" Text="{{0:Hue %C%}}: Taste 3: Schalten" FunctionText="Kurzdruck: Ein/Aus" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00421" RefId="%AID%_O-%TT%5%CC%004" Text="{{0:Hue %C%}}: Taste 3: Szene" FunctionText="Kurzdruck: Szene abrufen" ObjectSize="1 Byte" DatapointType="DPST-18-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00422" RefId="%AID%_O-%TT%5%CC%004" Text="{{0:Hue %C%}}: Taste 3: Lamelle Auf" FunctionText="Kurzdruck: Lamelle Auf" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00423" RefId="%AID%_O-%TT%5%CC%004" Text="{{0:Hue %C%}}: Taste 3: Lamelle Ab" FunctionText="Kurzdruck: Lamelle Ab" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00424" RefId="%AID%_O-%TT%5%CC%004" Text="{{0:Hue %C%}}: Taste 3: Play/Pause" FunctionText="Kurzdruck: Play/Pause" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00425" RefId="%AID%_O-%TT%5%CC%004" Text="{{0:Hue %C%}}: Taste 3: Objekt A" FunctionText="Kurzdruck: Objekt A senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <!-- === Taste 3 Langdruck (KO-Slot 5, base O-005) === -->
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00530" RefId="%AID%_O-%TT%5%CC%005" Text="{{0:Hue %C%}}: Taste 3: Heller dimmen" FunctionText="Langdruck: Heller dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00531" RefId="%AID%_O-%TT%5%CC%005" Text="{{0:Hue %C%}}: Taste 3: Dunkler dimmen" FunctionText="Langdruck: Dunkler dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00532" RefId="%AID%_O-%TT%5%CC%005" Text="{{0:Hue %C%}}: Taste 3: Behang Auf" FunctionText="Langdruck: Behang hochfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00533" RefId="%AID%_O-%TT%5%CC%005" Text="{{0:Hue %C%}}: Taste 3: Behang Ab" FunctionText="Langdruck: Behang herunterfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00534" RefId="%AID%_O-%TT%5%CC%005" Text="{{0:Hue %C%}}: Taste 3: Lauter" FunctionText="Langdruck: Lautstärke erhöhen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00535" RefId="%AID%_O-%TT%5%CC%005" Text="{{0:Hue %C%}}: Taste 3: Leiser" FunctionText="Langdruck: Lautstärke verringern" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00536" RefId="%AID%_O-%TT%5%CC%005" Text="{{0:Hue %C%}}: Taste 3: Objekt B" FunctionText="Langdruck: Objekt B senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+
+              <!-- === Taste 4 Kurzdruck (KO-Slot 6, base O-006) === -->
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00620" RefId="%AID%_O-%TT%5%CC%006" Text="{{0:Hue %C%}}: Taste 4: Schalten" FunctionText="Kurzdruck: Ein/Aus" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00621" RefId="%AID%_O-%TT%5%CC%006" Text="{{0:Hue %C%}}: Taste 4: Szene" FunctionText="Kurzdruck: Szene abrufen" ObjectSize="1 Byte" DatapointType="DPST-18-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00622" RefId="%AID%_O-%TT%5%CC%006" Text="{{0:Hue %C%}}: Taste 4: Lamelle Auf" FunctionText="Kurzdruck: Lamelle Auf" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00623" RefId="%AID%_O-%TT%5%CC%006" Text="{{0:Hue %C%}}: Taste 4: Lamelle Ab" FunctionText="Kurzdruck: Lamelle Ab" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00624" RefId="%AID%_O-%TT%5%CC%006" Text="{{0:Hue %C%}}: Taste 4: Play/Pause" FunctionText="Kurzdruck: Play/Pause" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00625" RefId="%AID%_O-%TT%5%CC%006" Text="{{0:Hue %C%}}: Taste 4: Objekt A" FunctionText="Kurzdruck: Objekt A senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <!-- === Taste 4 Langdruck (KO-Slot 7, base O-007) === -->
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00730" RefId="%AID%_O-%TT%5%CC%007" Text="{{0:Hue %C%}}: Taste 4: Heller dimmen" FunctionText="Langdruck: Heller dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00731" RefId="%AID%_O-%TT%5%CC%007" Text="{{0:Hue %C%}}: Taste 4: Dunkler dimmen" FunctionText="Langdruck: Dunkler dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00732" RefId="%AID%_O-%TT%5%CC%007" Text="{{0:Hue %C%}}: Taste 4: Behang Auf" FunctionText="Langdruck: Behang hochfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00733" RefId="%AID%_O-%TT%5%CC%007" Text="{{0:Hue %C%}}: Taste 4: Behang Ab" FunctionText="Langdruck: Behang herunterfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00734" RefId="%AID%_O-%TT%5%CC%007" Text="{{0:Hue %C%}}: Taste 4: Lauter" FunctionText="Langdruck: Lautstärke erhöhen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00735" RefId="%AID%_O-%TT%5%CC%007" Text="{{0:Hue %C%}}: Taste 4: Leiser" FunctionText="Langdruck: Lautstärke verringern" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00736" RefId="%AID%_O-%TT%5%CC%007" Text="{{0:Hue %C%}}: Taste 4: Objekt B" FunctionText="Langdruck: Objekt B senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+
+              <!-- === Drehregler (KO-Slot 8, base O-008, unverändert) === -->
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00820" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Drehregler: Dimmen" FunctionText="Drehregler Absolutwert Dimmen" ObjectSize="1 Byte" DatapointType="DPST-5-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00821" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Drehregler: Wertgeber" FunctionText="Drehregler Absolutwert Wertgeber" ObjectSize="1 Byte" DatapointType="DPST-5-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00822" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Drehregler: Lautstärke" FunctionText="Drehregler Absolutwert Lautstärke" ObjectSize="1 Byte" DatapointType="DPST-5-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00823" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Drehregler: Farbtemperatur" FunctionText="Drehregler Absolutwert Farbtemperatur" ObjectSize="2 Bytes" DatapointType="DPST-7-600" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00824" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Drehregler: Lamelle" FunctionText="Drehregler Absolutwert Lamellenposition" ObjectSize="1 Byte" DatapointType="DPST-5-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
             </ComObjectRefs>
             
           </Static>
@@ -492,9 +592,9 @@
                       <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Title" Text="Hue %C%" UIHint="Headline" />
                       <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Line1" Text="" UIHint="HorizontalRuler" />
                       <!-- Kanalbezeichnung (immer sichtbar) -->
-                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" HelpContext="HUE-Kanalbezeichnung" />
                       <!-- Gerätetyp (immer sichtbar) -->
-                      <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%012_R-%TT%5%CC%01201" />
+                      <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%012_R-%TT%5%CC%01201" HelpContext="HUE-Geraetetyp" />
 
                       <!-- Gerätetyp-abhängige Konfiguration -->
                       <choose ParamRefId="%AID%_UP-%TT%5%CC%012_R-%TT%5%CC%01201">
@@ -502,37 +602,37 @@
                         <!-- ===== DeviceType 0: Licht (bestehend) ===== -->
                         <when test="0">
                           <!-- Zieltyp (Licht/Raum/Zone) -->
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%009_R-%TT%5%CC%00901" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%009_R-%TT%5%CC%00901" HelpContext="HUE-Zieltyp" />
                           <!-- Ziel-RID oder Name -->
-                          <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" />
+                          <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" HelpContext="HUE-Hue-Ziel-Light-Room-Zone-ID-oder-Name" />
                           <!-- Lampentyp -->
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%002_R-%TT%5%CC%00201" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%002_R-%TT%5%CC%00201" HelpContext="HUE-Lampentyp" />
                           <!-- Kanal deaktiviert -->
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%003_R-%TT%5%CC%00301" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%003_R-%TT%5%CC%00301" HelpContext="HUE-Kanal-deaktivieren" />
 
                           <!-- HCL-Master-Zuordnung (nur für Farbtemperatur/RGB) -->
                           <choose ParamRefId="%AID%_UP-%TT%5%CC%002_R-%TT%5%CC%00201">
                             <when test=">=2">
                               <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLLine" Text="" UIHint="HorizontalRuler" />
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLHeader" Text="Lichtmanager" UIHint="Headline" />
-                              <ParameterRefRef RefId="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLHeader" Text="Lichtmanager" UIHint="Headline" HelpContext="HUE-Lichtmanager-Zuordnung" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701" HelpContext="HUE-Lichtmanager-Zuordnung" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701">
                                 <when test=">=1">
-                                  <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLLockHeader" Text="Lichtmanager Sperre (Hue-Kanal)" UIHint="Headline" />
-                                  <ParameterRefRef RefId="%AID%_P-%TT%00042_R-%TT%0004201" />
+                                  <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLLockHeader" Text="Lichtmanager Sperre (Hue-Kanal)" UIHint="Headline" HelpContext="HUE-Sperre-kanal-spezifisch" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%00042_R-%TT%0004201" HelpContext="HUE-Sperre-kanal-spezifisch" />
                                   <choose ParamRefId="%AID%_P-%TT%00042_R-%TT%0004201">
                                     <when test="0">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%011_R-%TT%5%CC%01101" IndentLevel="1" />
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%011_R-%TT%5%CC%01101" IndentLevel="1" HelpContext="HUE-Sperre-kanal-spezifisch" />
                                     </when>
                                     <when test="1">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%00043_R-%TT%0004301" IndentLevel="1" />
+                                      <ParameterRefRef RefId="%AID%_P-%TT%00043_R-%TT%0004301" IndentLevel="1" HelpContext="HUE-Sperre-kanal-spezifisch" />
                                     </when>
                                     <when test="2">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%00044_R-%TT%0004401" IndentLevel="1" />
+                                      <ParameterRefRef RefId="%AID%_P-%TT%00044_R-%TT%0004401" IndentLevel="1" HelpContext="HUE-Sperre-kanal-spezifisch" />
                                     </when>
                                     <when test="3">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%00043_R-%TT%0004301" IndentLevel="1" />
-                                      <ParameterRefRef RefId="%AID%_P-%TT%00044_R-%TT%0004401" IndentLevel="1" />
+                                      <ParameterRefRef RefId="%AID%_P-%TT%00043_R-%TT%0004301" IndentLevel="1" HelpContext="HUE-Sperre-kanal-spezifisch" />
+                                      <ParameterRefRef RefId="%AID%_P-%TT%00044_R-%TT%0004401" IndentLevel="1" HelpContext="HUE-Sperre-kanal-spezifisch" />
                                     </when>
                                   </choose>
                                 </when>
@@ -541,17 +641,17 @@
                           </choose>
 
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_SyncLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_SyncHeader" Text="Synchronisation" UIHint="Headline" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_SyncHeader" Text="Synchronisation" UIHint="Headline" HelpContext="HUE-Synchronisationsrichtung" />
                           <!-- Synchronisationsrichtung -->
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%004_R-%TT%5%CC%00401" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%004_R-%TT%5%CC%00401" HelpContext="HUE-Synchronisationsrichtung" />
                           <!-- Polling-Intervall -->
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%005_R-%TT%5%CC%00501" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%005_R-%TT%5%CC%00501" HelpContext="HUE-Polling-Intervall" />
                           <!-- Mindesthelligkeit -->
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%006_R-%TT%5%CC%00601" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%006_R-%TT%5%CC%00601" HelpContext="HUE-Minimale-Helligkeit" />
                           <!-- Szenensteuerung -->
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_ScnLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_ScnHdr" Text="Szenensteuerung" UIHint="Headline" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%019_R-%TT%5%CC%01901" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_ScnHdr" Text="Szenensteuerung" UIHint="Headline" HelpContext="HUE-Szenensteuerung" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%019_R-%TT%5%CC%01901" HelpContext="HUE-Szenensteuerung" />
                         </when>
 
                       </choose>
@@ -562,12 +662,12 @@
                       <when test="0">
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%019_R-%TT%5%CC%01901">
                           <when test="1">
-                            <ParameterBlock Id="%AID%_PB-%TT%5%CC%02" Name="HUE%C%Scenes" Text="Hue %C%: Szenen" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" Icon="view-list-outline">
+                            <ParameterBlock Id="%AID%_PB-%TT%5%CC%02" Name="HUE%C%Scenes" Text="Hue %C%: Szenen" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" Icon="view-list-outline" HelpContext="HUE-Szenensteuerung">
                               <!-- Szene speichern -->
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_StoreHdr" Text="Szene speichern" UIHint="Headline" />
-                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%200_R-%TT%5%CC%20001" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_StoreHdr" Text="Szene speichern" UIHint="Headline" HelpContext="HUE-Szenensteuerung" />
+                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%200_R-%TT%5%CC%20001" HelpContext="HUE-Szenensteuerung" />
                               <!-- Szene 1 -->
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc1Hdr" Text="Szene 1" UIHint="Headline" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc1Hdr" Text="Szene 1" UIHint="Headline" HelpContext="HUE-Szenen" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%020_R-%TT%5%CC%02001" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%020_R-%TT%5%CC%02001">
                                 <when test=">=1">
@@ -642,7 +742,7 @@
                                 </when>
                               </choose>
                               <!-- Szene 2 -->
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc2Hdr" Text="Szene 2" UIHint="Headline" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc2Hdr" Text="Szene 2" UIHint="Headline" HelpContext="HUE-Szenen" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%030_R-%TT%5%CC%03001" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%030_R-%TT%5%CC%03001">
                                 <when test=">=1">
@@ -717,7 +817,7 @@
                                 </when>
                               </choose>
                               <!-- Szene 3 -->
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc3Hdr" Text="Szene 3" UIHint="Headline" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc3Hdr" Text="Szene 3" UIHint="Headline" HelpContext="HUE-Szenen" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%040_R-%TT%5%CC%04001" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%040_R-%TT%5%CC%04001">
                                 <when test=">=1">
@@ -792,7 +892,7 @@
                                 </when>
                               </choose>
                               <!-- Szene 4 -->
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc4Hdr" Text="Szene 4" UIHint="Headline" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc4Hdr" Text="Szene 4" UIHint="Headline" HelpContext="HUE-Szenen" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%050_R-%TT%5%CC%05001" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%050_R-%TT%5%CC%05001">
                                 <when test=">=1">
@@ -867,7 +967,7 @@
                                 </when>
                               </choose>
                               <!-- Szene 5 -->
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc5Hdr" Text="Szene 5" UIHint="Headline" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc5Hdr" Text="Szene 5" UIHint="Headline" HelpContext="HUE-Szenen" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%060_R-%TT%5%CC%06001" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%060_R-%TT%5%CC%06001">
                                 <when test=">=1">
@@ -942,7 +1042,7 @@
                                 </when>
                               </choose>
                               <!-- Szene 6 -->
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc6Hdr" Text="Szene 6" UIHint="Headline" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc6Hdr" Text="Szene 6" UIHint="Headline" HelpContext="HUE-Szenen" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%070_R-%TT%5%CC%07001" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%070_R-%TT%5%CC%07001">
                                 <when test=">=1">
@@ -1017,7 +1117,7 @@
                                 </when>
                               </choose>
                               <!-- Szene 7 -->
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc7Hdr" Text="Szene 7" UIHint="Headline" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc7Hdr" Text="Szene 7" UIHint="Headline" HelpContext="HUE-Szenen" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%080_R-%TT%5%CC%08001" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%080_R-%TT%5%CC%08001">
                                 <when test=">=1">
@@ -1092,7 +1192,7 @@
                                 </when>
                               </choose>
                               <!-- Szene 8 -->
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc8Hdr" Text="Szene 8" UIHint="Headline" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc8Hdr" Text="Szene 8" UIHint="Headline" HelpContext="HUE-Szenen" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%090_R-%TT%5%CC%09001" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%090_R-%TT%5%CC%09001">
                                 <when test=">=1">
@@ -1178,192 +1278,261 @@
                         <!-- ===== DeviceType 1: Bewegungsmelder ===== -->
                         <when test="1">
                           <!-- Geräte-UUID -->
-                          <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" />
+                          <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" HelpContext="HUE-Hue-Ziel-Light-Room-Zone-ID-oder-Name" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_MotionOptLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_MotionOptHdr" Text="Optionale Kommunikationsobjekte" UIHint="Headline" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%014_R-%TT%5%CC%01401" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%017_R-%TT%5%CC%01701" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%015_R-%TT%5%CC%01501" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%016_R-%TT%5%CC%01601" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_MotionOptHdr" Text="Optionale Kommunikationsobjekte" UIHint="Headline" HelpContext="HUE-Kanal" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%014_R-%TT%5%CC%01401" HelpContext="HUE-Kanal" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%017_R-%TT%5%CC%01701" HelpContext="HUE-Kanal" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%015_R-%TT%5%CC%01501" HelpContext="HUE-Kanal" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%016_R-%TT%5%CC%01601" HelpContext="HUE-Kanal" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_MotionSyncLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_MotionSyncHdr" Text="Abfrage" UIHint="Headline" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%005_R-%TT%5%CC%00501" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_MotionSyncHdr" Text="Abfrage" UIHint="Headline" HelpContext="HUE-Polling-Intervall" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%005_R-%TT%5%CC%00501" HelpContext="HUE-Polling-Intervall" />
                         </when>
 
                         <!-- ===== DeviceType 2: Taster/Schalter ===== -->
                         <when test="2">
                           <!-- Geräte-UUID -->
-                          <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" />
+                          <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" HelpContext="HUE-Hue-Ziel-Light-Room-Zone-ID-oder-Name" />
                           <!-- Anzahl Tasten -->
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301" HelpContext="HUE-TasterSchalter-Konfiguration" />
                           <!-- Native Hue Aktion -->
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%140_R-%TT%5%CC%14001" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%140_R-%TT%5%CC%14001" HelpContext="HUE-TasterSchalter-Konfiguration" />
 
                           <!-- === Taste 1 === -->
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Btn1Hdr" Text="Taste 1" UIHint="Headline" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%130_R-%TT%5%CC%13001" />
-                          <choose ParamRefId="%AID%_UP-%TT%5%CC%130_R-%TT%5%CC%13001">
-                            <when test="4">
-                              <ParameterRefRef RefId="%AID%_P-%TT%5%CC%123_R-%TT%5%CC%12301" IndentLevel="1" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Btn1Hdr" Text="Taste 1" UIHint="Headline" HelpContext="HUE-Taste-Gewerk" />
+                          <!-- Gewerk: Bei 1 Taste GewerkEinzel (ohne Jalousie), sonst Gewerk -->
+                          <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
+                            <when test="1">
+                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%131_R-%TT%5%CC%13101" HelpContext="HUE-Taste-Gewerk" />
+                            </when>
+                            <when test=">=2">
+                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%130_R-%TT%5%CC%13001" HelpContext="HUE-Taste-Gewerk" />
                             </when>
                           </choose>
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%131_R-%TT%5%CC%13101" />
+                          <!-- Kurzdruck + Langdruck abhängig vom Gewerk -->
+                          <choose ParamRefId="%AID%_UP-%TT%5%CC%130_R-%TT%5%CC%13001">
+                            <when test="0">
+                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%141_R-%TT%5%CC%14101" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
+                              <choose ParamRefId="%AID%_UP-%TT%5%CC%141_R-%TT%5%CC%14101">
+                                <when test="2">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%5%CC%123_R-%TT%5%CC%12301" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
+                                </when>
+                              </choose>
+                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%143_R-%TT%5%CC%14301" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                            </when>
+                            <when test="1">
+                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%142_R-%TT%5%CC%14201" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
+                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%144_R-%TT%5%CC%14401" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                            </when>
+                            <when test="2">
+                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%145_R-%TT%5%CC%14501" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                            </when>
+                            <when test="3">
+                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%146_R-%TT%5%CC%14601" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                            </when>
+                          </choose>
 
                           <!-- === Taste 2 (ab 2 Tasten) === -->
                           <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
                             <when test=">=2">
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Btn2Hdr" Text="Taste 2" UIHint="Headline" />
-                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%132_R-%TT%5%CC%13201" />
-                              <choose ParamRefId="%AID%_UP-%TT%5%CC%132_R-%TT%5%CC%13201">
-                                <when test="4">
-                                  <ParameterRefRef RefId="%AID%_P-%TT%5%CC%124_R-%TT%5%CC%12401" IndentLevel="1" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Btn2Hdr" Text="Taste 2" UIHint="Headline" HelpContext="HUE-Taste-Gewerk" />
+                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%150_R-%TT%5%CC%15001" HelpContext="HUE-Taste-Gewerk" />
+                              <choose ParamRefId="%AID%_UP-%TT%5%CC%150_R-%TT%5%CC%15001">
+                                <when test="0">
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%151_R-%TT%5%CC%15101" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
+                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%151_R-%TT%5%CC%15101">
+                                    <when test="2">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%124_R-%TT%5%CC%12401" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
+                                    </when>
+                                  </choose>
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%153_R-%TT%5%CC%15301" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                </when>
+                                <when test="1">
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%152_R-%TT%5%CC%15201" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%154_R-%TT%5%CC%15401" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                </when>
+                                <when test="2">
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%155_R-%TT%5%CC%15501" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                </when>
+                                <when test="3">
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%156_R-%TT%5%CC%15601" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
                                 </when>
                               </choose>
-                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%133_R-%TT%5%CC%13301" />
                             </when>
                           </choose>
 
                           <!-- === Taste 3 (ab 3 Tasten) === -->
                           <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
                             <when test=">=3">
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Btn3Hdr" Text="Taste 3" UIHint="Headline" />
-                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%134_R-%TT%5%CC%13401" />
-                              <choose ParamRefId="%AID%_UP-%TT%5%CC%134_R-%TT%5%CC%13401">
-                                <when test="4">
-                                  <ParameterRefRef RefId="%AID%_P-%TT%5%CC%125_R-%TT%5%CC%12501" IndentLevel="1" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Btn3Hdr" Text="Taste 3" UIHint="Headline" HelpContext="HUE-Taste-Gewerk" />
+                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%160_R-%TT%5%CC%16001" HelpContext="HUE-Taste-Gewerk" />
+                              <choose ParamRefId="%AID%_UP-%TT%5%CC%160_R-%TT%5%CC%16001">
+                                <when test="0">
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%161_R-%TT%5%CC%16101" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
+                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%161_R-%TT%5%CC%16101">
+                                    <when test="2">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%125_R-%TT%5%CC%12501" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
+                                    </when>
+                                  </choose>
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%163_R-%TT%5%CC%16301" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                </when>
+                                <when test="1">
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%162_R-%TT%5%CC%16201" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%164_R-%TT%5%CC%16401" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                </when>
+                                <when test="2">
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%165_R-%TT%5%CC%16501" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                </when>
+                                <when test="3">
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%166_R-%TT%5%CC%16601" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
                                 </when>
                               </choose>
-                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%135_R-%TT%5%CC%13501" />
                             </when>
                           </choose>
 
                           <!-- === Taste 4 (ab 4 Tasten) === -->
                           <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
                             <when test=">=4">
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Btn4Hdr" Text="Taste 4" UIHint="Headline" />
-                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%136_R-%TT%5%CC%13601" />
-                              <choose ParamRefId="%AID%_UP-%TT%5%CC%136_R-%TT%5%CC%13601">
-                                <when test="4">
-                                  <ParameterRefRef RefId="%AID%_P-%TT%5%CC%126_R-%TT%5%CC%12601" IndentLevel="1" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Btn4Hdr" Text="Taste 4" UIHint="Headline" HelpContext="HUE-Taste-Gewerk" />
+                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%170_R-%TT%5%CC%17001" HelpContext="HUE-Taste-Gewerk" />
+                              <choose ParamRefId="%AID%_UP-%TT%5%CC%170_R-%TT%5%CC%17001">
+                                <when test="0">
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%171_R-%TT%5%CC%17101" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
+                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%171_R-%TT%5%CC%17101">
+                                    <when test="2">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%126_R-%TT%5%CC%12601" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
+                                    </when>
+                                  </choose>
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%173_R-%TT%5%CC%17301" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                </when>
+                                <when test="1">
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%172_R-%TT%5%CC%17201" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%174_R-%TT%5%CC%17401" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                </when>
+                                <when test="2">
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%175_R-%TT%5%CC%17501" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                </when>
+                                <when test="3">
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%176_R-%TT%5%CC%17601" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
                                 </when>
                               </choose>
-                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%137_R-%TT%5%CC%13701" />
                             </when>
                           </choose>
 
                           <!-- === Drehregler === -->
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_RotaryLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_RotaryHdr" Text="Drehregler" UIHint="Headline" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%138_R-%TT%5%CC%13801" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_RotaryHdr" Text="Drehregler" UIHint="Headline" HelpContext="HUE-Drehregler" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%138_R-%TT%5%CC%13801" HelpContext="HUE-Drehregler" />
                           <choose ParamRefId="%AID%_UP-%TT%5%CC%138_R-%TT%5%CC%13801">
                             <when test="1">
-                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%139_R-%TT%5%CC%13901" IndentLevel="1" />
-                              <ParameterRefRef RefId="%AID%_P-%TT%5%CC%127_R-%TT%5%CC%12701" IndentLevel="1" />
+                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%139_R-%TT%5%CC%13901" IndentLevel="1" HelpContext="HUE-Drehregler" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%5%CC%127_R-%TT%5%CC%12701" IndentLevel="1" HelpContext="HUE-Drehregler" />
                             </when>
                           </choose>
 
                           <!-- Polling-Intervall -->
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_BtnSyncLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_BtnSyncHdr" Text="Abfrage" UIHint="Headline" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%005_R-%TT%5%CC%00501" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_BtnSyncHdr" Text="Abfrage" UIHint="Headline" HelpContext="HUE-Polling-Intervall" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%005_R-%TT%5%CC%00501" HelpContext="HUE-Polling-Intervall" />
                         </when>
 
                         <!-- ===== DeviceType 3: Kontaktsensor ===== -->
                         <when test="3">
                           <!-- Geräte-UUID -->
-                          <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" />
+                          <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" HelpContext="HUE-Hue-Ziel-Light-Room-Zone-ID-oder-Name" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_ContactOptLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_ContactOptHdr" Text="Optionale Kommunikationsobjekte" UIHint="Headline" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%018_R-%TT%5%CC%01801" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%017_R-%TT%5%CC%01701" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%014_R-%TT%5%CC%01401" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_ContactOptHdr" Text="Optionale Kommunikationsobjekte" UIHint="Headline" HelpContext="HUE-Kanal" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%018_R-%TT%5%CC%01801" HelpContext="HUE-Kanal" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%017_R-%TT%5%CC%01701" HelpContext="HUE-Kanal" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%014_R-%TT%5%CC%01401" HelpContext="HUE-Kanal" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_ContactSyncLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_ContactSyncHdr" Text="Abfrage" UIHint="Headline" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%005_R-%TT%5%CC%00501" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_ContactSyncHdr" Text="Abfrage" UIHint="Headline" HelpContext="HUE-Polling-Intervall" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%005_R-%TT%5%CC%00501" HelpContext="HUE-Polling-Intervall" />
                         </when>
 
                         <!-- ===== DeviceType 4: Steckdose ===== -->
                         <when test="4">
                           <!-- Geräte-UUID -->
-                          <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" />
+                          <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" HelpContext="HUE-Hue-Ziel-Light-Room-Zone-ID-oder-Name" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PlugOptLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PlugOptHdr" Text="Optionale Kommunikationsobjekte" UIHint="Headline" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%014_R-%TT%5%CC%01401" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PlugOptHdr" Text="Optionale Kommunikationsobjekte" UIHint="Headline" HelpContext="HUE-Kanal" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%014_R-%TT%5%CC%01401" HelpContext="HUE-Kanal" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PlugSyncLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PlugSyncHdr" Text="Synchronisation" UIHint="Headline" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%004_R-%TT%5%CC%00401" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%005_R-%TT%5%CC%00501" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PlugSyncHdr" Text="Synchronisation" UIHint="Headline" HelpContext="HUE-Synchronisationsrichtung" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%004_R-%TT%5%CC%00401" HelpContext="HUE-Synchronisationsrichtung" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%005_R-%TT%5%CC%00501" HelpContext="HUE-Polling-Intervall" />
                           <!-- Szenensteuerung -->
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PScnLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PScnHdr" Text="Szenensteuerung" UIHint="Headline" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%019_R-%TT%5%CC%01901" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PScnHdr" Text="Szenensteuerung" UIHint="Headline" HelpContext="HUE-Szenensteuerung" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%019_R-%TT%5%CC%01901" HelpContext="HUE-Szenensteuerung" />
                           <choose ParamRefId="%AID%_UP-%TT%5%CC%019_R-%TT%5%CC%01901">
                               <when test="1">
                                 <!-- Szene speichern -->
-                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PStoreHdr" Text="Szene speichern" UIHint="Headline" />
-                                <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%200_R-%TT%5%CC%20001" />
+                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PStoreHdr" Text="Szene speichern" UIHint="Headline" HelpContext="HUE-Szenensteuerung" />
+                                <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%200_R-%TT%5%CC%20001" HelpContext="HUE-Szenensteuerung" />
                                 <!-- Szene 1 -->
-                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc1Hdr" Text="Szene 1" UIHint="Headline" />
-                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%020_R-%TT%5%CC%02001" />
+                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc1Hdr" Text="Szene 1" UIHint="Headline" HelpContext="HUE-Szenen" />
+                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%020_R-%TT%5%CC%02001" HelpContext="HUE-Szenen" />
                                 <choose ParamRefId="%AID%_P-%TT%5%CC%020_R-%TT%5%CC%02001">
                                   <when test=">=1">
-                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%101_R-%TT%5%CC%10101" IndentLevel="1" />
+                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%101_R-%TT%5%CC%10101" IndentLevel="1" HelpContext="HUE-Szenen" />
                                   </when>
                                 </choose>
                                 <!-- Szene 2 -->
-                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc2Hdr" Text="Szene 2" UIHint="Headline" />
-                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%030_R-%TT%5%CC%03001" />
+                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc2Hdr" Text="Szene 2" UIHint="Headline" HelpContext="HUE-Szenen" />
+                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%030_R-%TT%5%CC%03001" HelpContext="HUE-Szenen" />
                                 <choose ParamRefId="%AID%_P-%TT%5%CC%030_R-%TT%5%CC%03001">
                                   <when test=">=1">
-                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%104_R-%TT%5%CC%10401" IndentLevel="1" />
+                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%104_R-%TT%5%CC%10401" IndentLevel="1" HelpContext="HUE-Szenen" />
                                   </when>
                                 </choose>
                                 <!-- Szene 3 -->
-                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc3Hdr" Text="Szene 3" UIHint="Headline" />
-                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%040_R-%TT%5%CC%04001" />
+                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc3Hdr" Text="Szene 3" UIHint="Headline" HelpContext="HUE-Szenen" />
+                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%040_R-%TT%5%CC%04001" HelpContext="HUE-Szenen" />
                                 <choose ParamRefId="%AID%_P-%TT%5%CC%040_R-%TT%5%CC%04001">
                                   <when test=">=1">
-                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%107_R-%TT%5%CC%10701" IndentLevel="1" />
+                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%107_R-%TT%5%CC%10701" IndentLevel="1" HelpContext="HUE-Szenen" />
                                   </when>
                                 </choose>
                                 <!-- Szene 4 -->
-                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc4Hdr" Text="Szene 4" UIHint="Headline" />
-                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%050_R-%TT%5%CC%05001" />
+                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc4Hdr" Text="Szene 4" UIHint="Headline" HelpContext="HUE-Szenen" />
+                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%050_R-%TT%5%CC%05001" HelpContext="HUE-Szenen" />
                                 <choose ParamRefId="%AID%_P-%TT%5%CC%050_R-%TT%5%CC%05001">
                                   <when test=">=1">
-                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%110_R-%TT%5%CC%11001" IndentLevel="1" />
+                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%110_R-%TT%5%CC%11001" IndentLevel="1" HelpContext="HUE-Szenen" />
                                   </when>
                                 </choose>
                                 <!-- Szene 5 -->
-                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc5Hdr" Text="Szene 5" UIHint="Headline" />
-                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%060_R-%TT%5%CC%06001" />
+                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc5Hdr" Text="Szene 5" UIHint="Headline" HelpContext="HUE-Szenen" />
+                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%060_R-%TT%5%CC%06001" HelpContext="HUE-Szenen" />
                                 <choose ParamRefId="%AID%_P-%TT%5%CC%060_R-%TT%5%CC%06001">
                                   <when test=">=1">
-                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%113_R-%TT%5%CC%11301" IndentLevel="1" />
+                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%113_R-%TT%5%CC%11301" IndentLevel="1" HelpContext="HUE-Szenen" />
                                   </when>
                                 </choose>
                                 <!-- Szene 6 -->
-                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc6Hdr" Text="Szene 6" UIHint="Headline" />
-                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%070_R-%TT%5%CC%07001" />
+                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc6Hdr" Text="Szene 6" UIHint="Headline" HelpContext="HUE-Szenen" />
+                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%070_R-%TT%5%CC%07001" HelpContext="HUE-Szenen" />
                                 <choose ParamRefId="%AID%_P-%TT%5%CC%070_R-%TT%5%CC%07001">
                                   <when test=">=1">
-                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%116_R-%TT%5%CC%11601" IndentLevel="1" />
+                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%116_R-%TT%5%CC%11601" IndentLevel="1" HelpContext="HUE-Szenen" />
                                   </when>
                                 </choose>
                                 <!-- Szene 7 -->
-                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc7Hdr" Text="Szene 7" UIHint="Headline" />
-                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%080_R-%TT%5%CC%08001" />
+                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc7Hdr" Text="Szene 7" UIHint="Headline" HelpContext="HUE-Szenen" />
+                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%080_R-%TT%5%CC%08001" HelpContext="HUE-Szenen" />
                                 <choose ParamRefId="%AID%_P-%TT%5%CC%080_R-%TT%5%CC%08001">
                                   <when test=">=1">
-                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%119_R-%TT%5%CC%11901" IndentLevel="1" />
+                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%119_R-%TT%5%CC%11901" IndentLevel="1" HelpContext="HUE-Szenen" />
                                   </when>
                                 </choose>
                                 <!-- Szene 8 -->
-                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc8Hdr" Text="Szene 8" UIHint="Headline" />
-                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%090_R-%TT%5%CC%09001" />
+                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc8Hdr" Text="Szene 8" UIHint="Headline" HelpContext="HUE-Szenen" />
+                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%090_R-%TT%5%CC%09001" HelpContext="HUE-Szenen" />
                                 <choose ParamRefId="%AID%_P-%TT%5%CC%090_R-%TT%5%CC%09001">
                                   <when test=">=1">
-                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%122_R-%TT%5%CC%12201" IndentLevel="1" />
+                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%122_R-%TT%5%CC%12201" IndentLevel="1" HelpContext="HUE-Szenen" />
                                   </when>
                                 </choose>
                               </when>
@@ -1494,36 +1663,332 @@
                         </choose>
                       </when>
 
-                      <!-- DeviceType 2: Taster – bis zu 4 Tasten (je nach ButtonCount) + opt. Drehregler -->
+                      <!-- DeviceType 2: Taster – KOs abhängig von Gewerk + Kurz/Lang-Typ -->
                       <when test="2">
-                        <!-- Taste 1: Kurzdruck (KO0) + Langdruck (KO1) -->
-                        <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00005" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                        <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00103" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                        <!-- Taste 2 (ab 2 Tasten): Kurzdruck (KO2) + Langdruck (KO3) -->
+                        <!-- ===== Taste 1: Kurzdruck-KO (KO-Slot 0) ===== -->
+                        <choose ParamRefId="%AID%_UP-%TT%5%CC%130_R-%TT%5%CC%13001">
+                          <when test="0"><!-- Licht -->
+                            <choose ParamRefId="%AID%_UP-%TT%5%CC%141_R-%TT%5%CC%14101">
+                              <when test="1">
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00020" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              </when>
+                              <when test="2">
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00021" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              </when>
+                            </choose>
+                          </when>
+                          <when test="1"><!-- Jalousie -->
+                            <choose ParamRefId="%AID%_UP-%TT%5%CC%142_R-%TT%5%CC%14201">
+                              <when test="1">
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00022" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              </when>
+                              <when test="2">
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00023" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              </when>
+                            </choose>
+                          </when>
+                          <when test="2"><!-- Medien -->
+                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00024" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                          </when>
+                          <when test="3"><!-- Generisch -->
+                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00025" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                          </when>
+                        </choose>
+                        <!-- Taste 1: Langdruck-KO (KO-Slot 1) -->
+                        <choose ParamRefId="%AID%_UP-%TT%5%CC%130_R-%TT%5%CC%13001">
+                          <when test="0"><!-- Licht -->
+                            <choose ParamRefId="%AID%_UP-%TT%5%CC%143_R-%TT%5%CC%14301">
+                              <when test="1">
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00130" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              </when>
+                              <when test="2">
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00131" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              </when>
+                            </choose>
+                          </when>
+                          <when test="1"><!-- Jalousie -->
+                            <choose ParamRefId="%AID%_UP-%TT%5%CC%144_R-%TT%5%CC%14401">
+                              <when test="1">
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00132" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              </when>
+                              <when test="2">
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00133" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              </when>
+                            </choose>
+                          </when>
+                          <when test="2"><!-- Medien -->
+                            <choose ParamRefId="%AID%_UP-%TT%5%CC%145_R-%TT%5%CC%14501">
+                              <when test="1">
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00134" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              </when>
+                              <when test="2">
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00135" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              </when>
+                            </choose>
+                          </when>
+                          <when test="3"><!-- Generisch -->
+                            <choose ParamRefId="%AID%_UP-%TT%5%CC%146_R-%TT%5%CC%14601">
+                              <when test="1">
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00136" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              </when>
+                            </choose>
+                          </when>
+                        </choose>
+
+                        <!-- ===== Taste 2 (ab 2 Tasten): Kurzdruck-KO (KO-Slot 2) ===== -->
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
                           <when test=">=2">
-                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00202" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00307" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                            <choose ParamRefId="%AID%_UP-%TT%5%CC%150_R-%TT%5%CC%15001">
+                              <when test="0"><!-- Licht -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%151_R-%TT%5%CC%15101">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00220" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00221" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                              <when test="1"><!-- Jalousie -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%152_R-%TT%5%CC%15201">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00222" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00223" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                              <when test="2"><!-- Medien -->
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00224" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              </when>
+                              <when test="3"><!-- Generisch -->
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00225" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              </when>
+                            </choose>
                           </when>
                         </choose>
-                        <!-- Taste 3 (ab 3 Tasten): Kurzdruck (KO4) + Langdruck (KO5) -->
+                        <!-- Taste 2: Langdruck-KO (KO-Slot 3) -->
+                        <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
+                          <when test=">=2">
+                            <choose ParamRefId="%AID%_UP-%TT%5%CC%150_R-%TT%5%CC%15001">
+                              <when test="0"><!-- Licht -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%153_R-%TT%5%CC%15301">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00330" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00331" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                              <when test="1"><!-- Jalousie -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%154_R-%TT%5%CC%15401">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00332" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00333" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                              <when test="2"><!-- Medien -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%155_R-%TT%5%CC%15501">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00334" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00335" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                              <when test="3"><!-- Generisch -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%156_R-%TT%5%CC%15601">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00336" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                            </choose>
+                          </when>
+                        </choose>
+
+                        <!-- ===== Taste 3 (ab 3 Tasten): Kurzdruck-KO (KO-Slot 4) ===== -->
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
                           <when test=">=3">
-                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00403" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00503" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                            <choose ParamRefId="%AID%_UP-%TT%5%CC%160_R-%TT%5%CC%16001">
+                              <when test="0"><!-- Licht -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%161_R-%TT%5%CC%16101">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00420" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00421" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                              <when test="1"><!-- Jalousie -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%162_R-%TT%5%CC%16201">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00422" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00423" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                              <when test="2"><!-- Medien -->
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00424" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              </when>
+                              <when test="3"><!-- Generisch -->
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00425" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              </when>
+                            </choose>
                           </when>
                         </choose>
-                        <!-- Taste 4 (ab 4 Tasten): Kurzdruck (KO6) + Langdruck (KO7) -->
+                        <!-- Taste 3: Langdruck-KO (KO-Slot 5) -->
+                        <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
+                          <when test=">=3">
+                            <choose ParamRefId="%AID%_UP-%TT%5%CC%160_R-%TT%5%CC%16001">
+                              <when test="0"><!-- Licht -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%163_R-%TT%5%CC%16301">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00530" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00531" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                              <when test="1"><!-- Jalousie -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%164_R-%TT%5%CC%16401">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00532" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00533" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                              <when test="2"><!-- Medien -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%165_R-%TT%5%CC%16501">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00534" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00535" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                              <when test="3"><!-- Generisch -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%166_R-%TT%5%CC%16601">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00536" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                            </choose>
+                          </when>
+                        </choose>
+
+                        <!-- ===== Taste 4 (ab 4 Tasten): Kurzdruck-KO (KO-Slot 6) ===== -->
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
                           <when test=">=4">
-                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00603" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00703" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                            <choose ParamRefId="%AID%_UP-%TT%5%CC%170_R-%TT%5%CC%17001">
+                              <when test="0"><!-- Licht -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%171_R-%TT%5%CC%17101">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00620" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00621" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                              <when test="1"><!-- Jalousie -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%172_R-%TT%5%CC%17201">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00622" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00623" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                              <when test="2"><!-- Medien -->
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00624" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              </when>
+                              <when test="3"><!-- Generisch -->
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00625" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              </when>
+                            </choose>
                           </when>
                         </choose>
-                        <!-- Drehregler (KO8) – nur wenn HasRotary=1 -->
+                        <!-- Taste 4: Langdruck-KO (KO-Slot 7) -->
+                        <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
+                          <when test=">=4">
+                            <choose ParamRefId="%AID%_UP-%TT%5%CC%170_R-%TT%5%CC%17001">
+                              <when test="0"><!-- Licht -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%173_R-%TT%5%CC%17301">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00730" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00731" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                              <when test="1"><!-- Jalousie -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%174_R-%TT%5%CC%17401">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00732" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00733" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                              <when test="2"><!-- Medien -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%175_R-%TT%5%CC%17501">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00734" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00735" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                              <when test="3"><!-- Generisch -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%176_R-%TT%5%CC%17601">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00736" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                            </choose>
+                          </when>
+                        </choose>
+
+                        <!-- ===== Drehregler (KO-Slot 8) – nur wenn HasRotary=1 ===== -->
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%138_R-%TT%5%CC%13801">
                           <when test="1">
-                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00803" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                            <choose ParamRefId="%AID%_UP-%TT%5%CC%139_R-%TT%5%CC%13901">
+                              <when test="0">
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00820" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              </when>
+                              <when test="1">
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00821" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              </when>
+                              <when test="2">
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00822" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              </when>
+                              <when test="3">
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00823" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              </when>
+                              <when test="4">
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00824" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              </when>
+                            </choose>
                           </when>
                         </choose>
                       </when>

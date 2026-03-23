@@ -161,6 +161,28 @@ Hinweise:
 - Standardwerte: `2 s` für Ein, `6 s` für Aus.
 - Für typische Praxisanforderungen: Einschalten eher kurz, Ausschalten eher länger.
 
+<!-- DOC -->
+### Relatives Dimmen
+
+Legt fest, wie schnell ein relatives Dimmkommando (DPT 3.007) pro Schritt übernommen wird.
+
+- **Dimmgeschwindigkeit (ms)**: Pause in Millisekunden zwischen zwei Dimm-Schritten.
+
+Hinweise:
+- Kleinere Werte = schnelleres Dimmen.
+- Gilt für alle Kanäle mit Lampentyp `Dimmbar` oder höher.
+- Typischer Richtwert: `80..150 ms`.
+
+<!-- DOC -->
+### Hue Szenen aktivieren
+
+Aktiviert die globale Szenen-Zuordnungsseite (Reiter **Hue Szenen**), auf der bis zu 8 Hue-Szenen-RIDs hinterlegt werden können.
+
+- **Deaktiviert**: Der Szenen-Reiter ist ausgeblendet.
+- **Aktiviert**: Der Reiter **Hue Szenen** erscheint und ermöglicht die Zuordnung von Hue-Szenen-RIDs zu den 8 globalen Szenen-Slots.
+
+Hinweis: Kanalspezifische Szenensteuerung (DPT 18.001) wird separat je Kanal unter **Szenensteuerung** konfiguriert.
+
 <!-- DOC HelpContext="Kanal" -->
 ## Kanal 1-n (Hue Ziele)
 
@@ -238,9 +260,97 @@ Legt fest, welche Art von Hue-Gerät der Kanal steuert. Je nach Gerätetyp werde
 |---|---|---|
 | **Licht** | Hue-Leuchte (On/Off, Dimmbar, CT, RGB) | Schalten, Dimmen, CT, RGB, Szenen, HCL |
 | **Steckdose** | Smart Plug | Schalten, Szenen (nur Ein/Aus) |
-| **Taster/Schalter** | Hue-Schalter mit Tasten | KOs je Taste (Kurz/Lang) |
+| **Taster/Schalter** | Hue-Schalter mit Tasten | KOs je Taste (Kurz/Lang), Drehregler |
 | **Bewegungsmelder** | Hue-Bewegungssensor | Präsenz-KO, optional Lux/Temperatur |
 | **Kontaktsensor** | Hue-Tür-/Fensterkontakt | Kontakt-KO |
+
+<!-- DOC -->
+### Taster/Schalter – Konfiguration
+
+Bei Gerätetyp **Taster/Schalter** werden Tastenereignisse (Kurz-/Langdruck) vom Hue-System empfangen und als KNX-Telegramme auf den Bus gesendet.
+
+#### Anzahl Tasten
+
+Legt fest, wie viele Tasten des Hue-Geräts konfiguriert werden (1–4). Entsprechend viele Taste-N-Sektionen werden eingeblendet.
+
+#### Native Hue Aktion
+
+Steuert, ob das Hue-Gerät zusätzlich seine eigene Hue-Nativaktion ausführt, wenn eine Taste gedrückt wird:
+
+- **Beibehalten**: Das Gerät führt seine native Hue-Aktion UND das KNX-Telegramm aus (Parallelausführung).
+- **Deaktivieren**: Das Gerät führt nur das KNX-Telegramm aus – die native Hue-Aktion wird über die API unterdrückt.
+
+Empfehlung: **Deaktivieren**, wenn die Hue-Leuchten vollständig über KNX gesteuert werden sollen, um Doppelreaktionen zu vermeiden.
+
+<!-- DOC -->
+### Taste Gewerk
+
+Legt das Gewerk (die Funktion) einer Taste fest. Je nach gewähltem Gewerk werden unterschiedliche Kurz- und Langdruck-Optionen eingeblendet:
+
+| Gewerk | Beschreibung |
+|---|---|
+| **Licht** | Schalten oder Szene (Kurzdruck), Dimmen (Langdruck) |
+| **Jalousie** | Lamellensteuerung (Kurzdruck), Behangsteuerung (Langdruck) |
+| **Medien** | Play/Pause (Kurzdruck), Lautstärke (Langdruck) |
+| **Generisch** | Zwei frei belegbare KNX-Objekte (A = Kurzdruck, B = Langdruck) |
+
+<!-- DOC -->
+### Taste Kurzdruck
+
+Bestimmt die Aktion beim kurzen Tastendruck. Die verfügbaren Optionen hängen vom Gewerk ab:
+
+**Gewerk Licht:**
+- **Kein Kurzdruck**: Kurzdruck ohne KNX-Aktion (sinnvoll z. B. für reine Dimmtaster)
+- **Schalten**: Togglet den Schaltzustand (EIN/AUS wechselnd). Standardwert.
+- **Szene abrufen**: Ruft eine KNX-Szene ab (DPT 17.001). Die Szenennummer wird unterhalb eingeblendet.
+
+**Gewerk Jalousie:**
+- **Kein Kurzdruck**: Kurzdruck ohne KNX-Aktion
+- **Lamelle Auf**: Sendet `Auf`-Befehl (DPT 1.008)
+- **Lamelle Ab**: Sendet `Ab`-Befehl (DPT 1.008)
+
+**Gewerk Medien:**
+- **Play/Pause**: Togglet Play/Pause (DPT 1.001)
+
+**Gewerk Generisch:**
+- **Objekt A**: Sendet auf das primäre KO (DPT 1.001)
+
+Hinweis: Bei **Kein Kurzdruck** wird für diese Taste kein Kurzdruck-KO in ETS eingeblendet.
+
+<!-- DOC -->
+### Taste Langdruck
+
+Bestimmt die Aktion beim langen Tastendruck. Optionen je Gewerk:
+
+**Gewerk Licht:**
+- **Kein Langdruck**: Kein Langdruck-KO, kein Dimm-Verhalten
+- **Heller dimmen**: Sendet relatives Dimmen `heller` (DPT 3.007)
+- **Dunkler dimmen**: Sendet relatives Dimmen `dunkler` (DPT 3.007)
+
+Hinweis: Ist Kurzdruck = **Szene abrufen**, ist kein Langdruck möglich (Szenen-Taste hat keinen Langdruck-Modus).
+
+**Gewerk Jalousie:**
+- **Kein Langdruck**: Keine Behangsteuerung
+- **Behang Auf**: Sendet `Auf`-Befehl (DPT 1.007)
+- **Behang Ab**: Sendet `Ab`-Befehl (DPT 1.007)
+
+**Gewerk Medien:**
+- **Kein Langdruck**: Keine Lautstärkesteuerung
+- **Lauter**: Sendet relatives Dimmen `heller` (repurposed, DPT 3.007)
+- **Leiser**: Sendet relatives Dimmen `dunkler` (repurposed, DPT 3.007)
+
+**Gewerk Generisch:**
+- **Kein Langdruck**: Kein Sekundär-KO
+- **Objekt B**: Sendet auf das sekundäre KO (DPT 1.001)
+
+<!-- DOC -->
+### Drehregler
+
+Wenn der Hue-Schalter über einen Drehregler verfügt (z. B. Hue Tap Dial):
+
+- **Drehregler vorhanden**: Aktiviert die Drehregler-Konfiguration
+- **Funktion**: Legt fest, ob der Drehregler **Helligkeit absolut**, **Helligkeit relativ** oder **Farbtemperatur** steuert
+- **Schrittweite (%)**: Prozentwert je Rastschritt (Standardwert: 5 %)
 
 <!-- DOC -->
 ### Lampentyp
