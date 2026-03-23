@@ -122,6 +122,7 @@ HueGatewayClient::HueGatewayClient()
     , _eventParseErrorStreak(0)
     , _eventDropCount(0)
     , _eventAutoRestartEnabled(true)
+    , _behaviorInstanceEventPending(false)
     , _diagStats{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", ""}
 {
 }
@@ -2820,6 +2821,11 @@ int HueGatewayClient::parseEventPayloadFull(const String& payload,
                     Serial.printf("[HueGatewayClient] SSE btn: rid=%s ctrl=%d event=%s\n",
                                   id, su.buttonIndex, lastEvent);
                 }
+            }
+            else if (strcmp(type, "behavior_instance") == 0)
+            {
+                _behaviorInstanceEventPending = true;
+                Serial.printf("[HueGatewayClient] SSE behavior_instance event: id=%s\n", id);
             }
             else if (strcmp(type, "relative_rotary") == 0)
             {

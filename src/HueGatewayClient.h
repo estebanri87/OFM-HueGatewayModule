@@ -407,6 +407,10 @@ public:
      */
     bool deleteBehaviorInstance(const String& instanceId);
 
+    /** Returns true if a behavior_instance add event was seen via SSE since last clear. */
+    bool hasBehaviorInstanceEvent() const { return _behaviorInstanceEventPending; }
+    void clearBehaviorInstanceEvent() { _behaviorInstanceEventPending = false; }
+
 private:
     bool _initialized;
     String _bridgeIP;
@@ -421,6 +425,7 @@ private:
     uint8_t _eventParseErrorStreak;
     uint32_t _eventDropCount;
     bool _eventAutoRestartEnabled;
+    bool _behaviorInstanceEventPending;
     String _eventLineBuffer;
     String _eventDataBuffer;
     DiagnosticsStats _diagStats;

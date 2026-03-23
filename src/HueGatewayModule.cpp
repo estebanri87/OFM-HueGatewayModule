@@ -755,6 +755,8 @@ HueGatewayModule::HueGatewayModule()
     , _consecutiveEmptyLightFetches(0)
     , _diagCounterEmptyLightFetches(0)
     , _lastValidLightFetchMs(0)
+    , _biAutoDeletePending(false)
+    , _biAutoDeleteTriggerMs(0)
     , _webScanRequested(false)
     , _webScanInProgress(false)
     , _networkConnectedLast(false)
@@ -1087,6 +1089,28 @@ void HueGatewayModule::loop()
                 }
             }
         }
+    }
+
+    // --- Auto-delete behavior_instances when SSE reports a new one ---
+    if (_client && _devicesInitialized && _client->hasBehaviorInstanceEvent())
+    {
+        _client->clearBehaviorInstanceEvent();
+        if (!_biAutoDeletePending)
+        {
+            _biAutoDeletePending = true;
+            _biAutoDeleteTriggerMs = now;
+            Serial.println("[HueGatewayModule] behavior_instance SSE event -> delete pending (2s debounce)");
+        }
+        else
+        {
+            // Reset debounce timer on subsequent events
+            _biAutoDeleteTriggerMs = now;
+        }
+    }
+    if (_biAutoDeletePending && (now - _biAutoDeleteTriggerMs >= 2000UL))
+    {
+        _biAutoDeletePending = false;
+        processBehaviorInstanceAutoDelete();
     }
 
     if (!_authPending && !_manualPairingRequired && (_bridgeStatus == BridgeStatus::CONNECTION_LOST || _bridgeStatus == BridgeStatus::BRIDGE_UNREACHABLE || !_client || !_client->isInitialized()))
@@ -3579,6 +3603,56 @@ void HueGatewayModule::setupDevices()
     _lastChannelSyncOkMs = millis();
     _devicesInitialized = true;
     finalizeSetupSession("ok");
+}
+
+void HueGatewayModule::processBehaviorInstanceAutoDelete()
+{
+    if (!_client || !_devicesInitialized)
+        return;
+
+    Serial.println("[HueGatewayModule] processBehaviorInstanceAutoDelete: checking channels...");
+
+    #ifdef ParamHUE_HUEChannelCount
+    const uint8_t configuredChannels = min(static_cast<uint8_t>(ParamHUE_HUEChannelCount), static_cast<uint8_t>(MAX_LIGHTS));
+    #else
+    const uint8_t configuredChannels = MAX_LIGHTS;
+    #endif
+
+    int totalDeleted = 0;
+    for (uint8_t ch = 0; ch < configuredChannels; ch++)
+    {
+        if (_devices[ch] == nullptr || _devices[ch]->deviceType() != 2)
+            continue;
+
+        #ifdef ParamHUE_CHNativeHueAction
+        {
+            uint8_t _channelIndex = ch;
+            const uint8_t nativeAction = ParamHUE_CHNativeHueAction;
+            if (nativeAction != 1)
+                continue;
+
+            const String resourceId = _devices[ch]->getResourceId();
+            static constexpr int kMaxInst = 8;
+            String instanceIds[kMaxInst];
+            const int nInst = _client->getBehaviorInstances(resourceId, instanceIds, kMaxInst);
+            if (nInst > 0)
+            {
+                for (int i = 0; i < nInst; i++)
+                {
+                    Serial.printf("  auto-delete behavior_instance[%d]=%s for ch%d\n",
+                                  i, instanceIds[i].c_str(), ch + 1);
+                    _client->deleteBehaviorInstance(instanceIds[i]);
+                    totalDeleted++;
+                    delay(100);
+                }
+                appendDiagnosticLog("INFO", "BI_DEL", String("ch") + String(ch + 1)
+                    + " deleted=" + String(nInst));
+            }
+        }
+        #endif
+    }
+
+    Serial.printf("[HueGatewayModule] processBehaviorInstanceAutoDelete: deleted %d instances\n", totalDeleted);
 }
 
 void HueGatewayModule::setupHCL()

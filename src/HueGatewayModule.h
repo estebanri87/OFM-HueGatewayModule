@@ -149,6 +149,8 @@ private:
     uint8_t _consecutiveEmptyLightFetches;
     uint32_t _diagCounterEmptyLightFetches;
     unsigned long _lastValidLightFetchMs;
+    bool _biAutoDeletePending;             // behavior_instance SSE event seen, delete pending
+    unsigned long _biAutoDeleteTriggerMs;   // millis() when SSE event was first seen (debounce)
     bool _webScanRequested;
     bool _webScanInProgress;
     bool _networkConnectedLast;
@@ -239,6 +241,7 @@ private:
     void setupBridge();
     void setupDevices();
     void setupHCL();
+    void processBehaviorInstanceAutoDelete();
     void checkConnection();
     void refreshLightStatus();
     void applyEventStreamUpdates(const HueGatewayEventLightUpdate* updates, int updateCount);
