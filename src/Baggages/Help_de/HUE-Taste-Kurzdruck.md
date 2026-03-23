@@ -9,8 +9,8 @@ Bestimmt die Aktion beim kurzen Tastendruck. Die verfügbaren Optionen hängen v
 
 **Gewerk Jalousie:**
 - **Kein Kurzdruck**: Kurzdruck ohne KNX-Aktion
-- **Lamelle Auf**: Sendet `Auf`-Befehl (DPT 1.008)
-- **Lamelle Ab**: Sendet `Ab`-Befehl (DPT 1.008)
+- **Lamelle Auf/Stop**: Sendet `Auf`-Befehl (DPT 1.008)
+- **Lamelle Ab/Stop**: Sendet `Ab`-Befehl (DPT 1.008)
 
 **Gewerk Medien:**
 - **Play/Pause**: Togglet Play/Pause (DPT 1.001)

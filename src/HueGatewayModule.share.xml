@@ -420,8 +420,8 @@
               <ParameterType Id="%AID%_PT-HUEJalousieKurz" Name="HUEJalousieKurz">
                 <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
                   <Enumeration Text="Kein Kurzdruck"  Value="0" Id="%ENID%" />
-                  <Enumeration Text="Lamelle Auf"     Value="1" Id="%ENID%" />
-                  <Enumeration Text="Lamelle Ab"      Value="2" Id="%ENID%" />
+                  <Enumeration Text="Lamelle Auf/Stop"     Value="1" Id="%ENID%" />
+                  <Enumeration Text="Lamelle Ab/Stop"      Value="2" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
 

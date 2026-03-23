@@ -430,12 +430,9 @@ private:
                 break;
 
             case BF::Jalousie:
-                // Stop = send step telegram on ko0 (Step/Stop); any telegram stops movement
-                {
-                    const uint16_t ko0 = _koBtn[idx][0];
-                    if (ko0) knx.getGroupObject(ko0).value(false, Dpt(1, 7));
-                }
-                Serial.printf("[HueGatewayButton] %s btn%u Jalousie stop\n", _name.c_str(), idx+1);
+                // No stop on release — move telegram (DPT 1.008) triggers a full travel.
+                // User stops manually via short press (Step/Stop on ko0, DPT 1.007).
+                Serial.printf("[HueGatewayButton] %s btn%u Jalousie long release (no stop)\n", _name.c_str(), idx+1);
                 break;
 
             case BF::Medien:
