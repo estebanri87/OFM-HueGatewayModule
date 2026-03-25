@@ -1370,27 +1370,14 @@
                             <when test="1">
                               <choose ParamRefId="%AID%_UP-%TT%5%CC%131_R-%TT%5%CC%13101">
                                 <when test="0">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%5%CC%181_R-%TT%5%CC%18101" IndentLevel="1" HelpContext="HUE-Taste-Gewerk" />
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%141_R-%TT%5%CC%14101" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
                                   <choose ParamRefId="%AID%_UP-%TT%5%CC%141_R-%TT%5%CC%14101">
                                     <when test="4">
                                       <ParameterRefRef RefId="%AID%_P-%TT%5%CC%123_R-%TT%5%CC%12301" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
                                     </when>
-                                    <when test="2">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%181_R-%TT%5%CC%18101" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
-                                    </when>
-                                    <when test="3">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%181_R-%TT%5%CC%18101" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
-                                    </when>
                                   </choose>
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%143_R-%TT%5%CC%14301" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
-                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%143_R-%TT%5%CC%14301">
-                                    <when test="1">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%181_R-%TT%5%CC%18101" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
-                                    </when>
-                                    <when test="2">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%181_R-%TT%5%CC%18101" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
-                                    </when>
-                                  </choose>
                                 </when>
                                 <when test="2">
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%147_R-%TT%5%CC%14701" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
@@ -1404,27 +1391,14 @@
                             <when test=">=2">
                               <choose ParamRefId="%AID%_UP-%TT%5%CC%130_R-%TT%5%CC%13001">
                                 <when test="0">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%5%CC%181_R-%TT%5%CC%18101" IndentLevel="1" HelpContext="HUE-Taste-Gewerk" />
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%141_R-%TT%5%CC%14101" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
                                   <choose ParamRefId="%AID%_UP-%TT%5%CC%141_R-%TT%5%CC%14101">
                                     <when test="4">
                                       <ParameterRefRef RefId="%AID%_P-%TT%5%CC%123_R-%TT%5%CC%12301" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
                                     </when>
-                                    <when test="2">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%181_R-%TT%5%CC%18101" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
-                                    </when>
-                                    <when test="3">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%181_R-%TT%5%CC%18101" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
-                                    </when>
                                   </choose>
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%143_R-%TT%5%CC%14301" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
-                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%143_R-%TT%5%CC%14301">
-                                    <when test="1">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%181_R-%TT%5%CC%18101" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
-                                    </when>
-                                    <when test="2">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%181_R-%TT%5%CC%18101" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
-                                    </when>
-                                  </choose>
                                 </when>
                                 <when test="1">
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%142_R-%TT%5%CC%14201" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
@@ -1448,27 +1422,14 @@
                               <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%150_R-%TT%5%CC%15001" HelpContext="HUE-Taste-Gewerk" />
                               <choose ParamRefId="%AID%_UP-%TT%5%CC%150_R-%TT%5%CC%15001">
                                 <when test="0">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%5%CC%182_R-%TT%5%CC%18201" IndentLevel="1" HelpContext="HUE-Taste-Gewerk" />
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%151_R-%TT%5%CC%15101" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
                                   <choose ParamRefId="%AID%_UP-%TT%5%CC%151_R-%TT%5%CC%15101">
                                     <when test="4">
                                       <ParameterRefRef RefId="%AID%_P-%TT%5%CC%124_R-%TT%5%CC%12401" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
                                     </when>
-                                    <when test="2">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%182_R-%TT%5%CC%18201" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
-                                    </when>
-                                    <when test="3">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%182_R-%TT%5%CC%18201" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
-                                    </when>
                                   </choose>
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%153_R-%TT%5%CC%15301" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
-                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%153_R-%TT%5%CC%15301">
-                                    <when test="1">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%182_R-%TT%5%CC%18201" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
-                                    </when>
-                                    <when test="2">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%182_R-%TT%5%CC%18201" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
-                                    </when>
-                                  </choose>
                                 </when>
                                 <when test="1">
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%152_R-%TT%5%CC%15201" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
@@ -1492,27 +1453,14 @@
                               <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%160_R-%TT%5%CC%16001" HelpContext="HUE-Taste-Gewerk" />
                               <choose ParamRefId="%AID%_UP-%TT%5%CC%160_R-%TT%5%CC%16001">
                                 <when test="0">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%5%CC%183_R-%TT%5%CC%18301" IndentLevel="1" HelpContext="HUE-Taste-Gewerk" />
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%161_R-%TT%5%CC%16101" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
                                   <choose ParamRefId="%AID%_UP-%TT%5%CC%161_R-%TT%5%CC%16101">
                                     <when test="4">
                                       <ParameterRefRef RefId="%AID%_P-%TT%5%CC%125_R-%TT%5%CC%12501" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
                                     </when>
-                                    <when test="2">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%183_R-%TT%5%CC%18301" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
-                                    </when>
-                                    <when test="3">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%183_R-%TT%5%CC%18301" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
-                                    </when>
                                   </choose>
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%163_R-%TT%5%CC%16301" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
-                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%163_R-%TT%5%CC%16301">
-                                    <when test="1">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%183_R-%TT%5%CC%18301" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
-                                    </when>
-                                    <when test="2">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%183_R-%TT%5%CC%18301" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
-                                    </when>
-                                  </choose>
                                 </when>
                                 <when test="1">
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%162_R-%TT%5%CC%16201" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
@@ -1536,27 +1484,14 @@
                               <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%170_R-%TT%5%CC%17001" HelpContext="HUE-Taste-Gewerk" />
                               <choose ParamRefId="%AID%_UP-%TT%5%CC%170_R-%TT%5%CC%17001">
                                 <when test="0">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%5%CC%184_R-%TT%5%CC%18401" IndentLevel="1" HelpContext="HUE-Taste-Gewerk" />
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%171_R-%TT%5%CC%17101" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
                                   <choose ParamRefId="%AID%_UP-%TT%5%CC%171_R-%TT%5%CC%17101">
                                     <when test="4">
                                       <ParameterRefRef RefId="%AID%_P-%TT%5%CC%126_R-%TT%5%CC%12601" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
                                     </when>
-                                    <when test="2">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%184_R-%TT%5%CC%18401" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
-                                    </when>
-                                    <when test="3">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%184_R-%TT%5%CC%18401" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
-                                    </when>
                                   </choose>
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%173_R-%TT%5%CC%17301" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
-                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%173_R-%TT%5%CC%17301">
-                                    <when test="1">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%184_R-%TT%5%CC%18401" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
-                                    </when>
-                                    <when test="2">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%184_R-%TT%5%CC%18401" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
-                                    </when>
-                                  </choose>
                                 </when>
                                 <when test="1">
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%172_R-%TT%5%CC%17201" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
