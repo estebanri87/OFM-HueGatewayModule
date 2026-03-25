@@ -83,7 +83,8 @@ public:
         , _reachable(false)
         , _initialized(false)
         , _hasRotary(false)
-        , _rotaryStepPercent(5)
+        , _rotaryStepPercent(13)
+        , _rotaryStepCode(4)
         , _rotaryValue(127)
     {
         for (uint8_t i = 0; i < MAX_BUTTONS; i++)
@@ -101,7 +102,7 @@ public:
             _serviceRid[i]    = "";
             _btnMedienKurz[i] = MedienShortAction::PlayPause;
             _btnLightKurz[i]  = LightShortAction::Switch;
-            _btnLightStepCode[i] = 4;
+            _btnLightStepCode[i] = 4; // default: 13% → DPT 3.007 step code 4
         }
         _rotaryKo[0]       = 0;
         _rotaryKo[1]       = 0;
@@ -159,9 +160,25 @@ public:
     void setRotaryFunction(RotaryFunction fn) { _rotaryFunction = fn; }
     void setRotaryStepPercent(uint8_t enumVal)
     {
-        static const uint8_t pctMap[] = {0, 2, 3, 6, 13, 25};
-        _rotaryStepPercent = (enumVal >= 1 && enumVal <= 5) ? pctMap[enumVal] : 13;
+        static const uint8_t pctMap[]  = {0, 2, 3, 6, 13, 25};
+        static const uint8_t stepMap[] = {4, 7, 6, 5,  4,  3};
+        _rotaryStepPercent = (enumVal >= 1 && enumVal <= 5) ? pctMap[enumVal]  : 13;
+        _rotaryStepCode    = (enumVal >= 1 && enumVal <= 5) ? stepMap[enumVal] :  4;
     }
+    /** Correctly encode and send a DPT 3.007 value (control bit + step code). */
+    static void sendDpt3(uint16_t koNum, bool increase, uint8_t stepCode)
+    {
+        auto& ko = knx.getGroupObject(koNum);
+        ko.valueNoSend(increase, Dpt(3, 7, 0));
+        ko.value(static_cast<uint8_t>(stepCode & 0x07), Dpt(3, 7, 1));
+    }
+    /** Map DPT 3.007 step code (1-7) to approximate percent string for logging. */
+    static const char* stepCodePct(uint8_t code)
+    {
+        static const char* map[] = {"stop", "100%", "50%", "25%", "13%", "6%", "3%", "2%"};
+        return (code <= 7) ? map[code] : "?";
+    }
+
     void setButtonMedienKurz(uint8_t idx, MedienShortAction action)
     {
         if (idx < MAX_BUTTONS) _btnMedienKurz[idx] = action;
@@ -170,11 +187,14 @@ public:
     {
         if (idx < MAX_BUTTONS) _btnLightKurz[idx] = action;
     }
-    void setButtonLightStepCode(uint8_t idx, uint8_t stepCode)
+    void setButtonLightStepCode(uint8_t idx, uint8_t enumVal)
     {
+        // ETS enum 1..5 → DPT 3.007 step code  (step = 100%/2^(code-1)):
+        //   1=2% →7, 2=3% →6, 3=6% →5, 4=13% →4, 5=25% →3
+        static const uint8_t enumToStep[] = {4, 7, 6, 5, 4, 3};
         if (idx < MAX_BUTTONS)
         {
-            _btnLightStepCode[idx] = (stepCode < 1) ? 1 : (stepCode > 7 ? 7 : stepCode);
+            _btnLightStepCode[idx] = (enumVal >= 1 && enumVal <= 5) ? enumToStep[enumVal] : 4;
         }
     }
 
@@ -307,15 +327,6 @@ public:
         // Hue 'steps' is encoder tick count per burst — irrelevant for the step size.
         const int delta = (_rotaryStepPercent * 254 + 50) / 100;
 
-        // Map _rotaryStepPercent (1-25) to DPT 3.007 speed code (1-7).
-        // KNX speed codes: 1=1/64, 2=1/32, 3=1/16, 4=1/8, 5=1/4, 6=1/2, 7=1/1
-        // At 25% step the encoder reaches KNX code 5 (=1/4 of full range).
-        const uint8_t stepCode = static_cast<uint8_t>(max(1, min(7, (_rotaryStepPercent * 7 + 22) / 25)));
-        // DPT 3.007 byte encoding (same convention as button long-press):
-        //   increase (up): 0x18 | stepCode
-        //   decrease (down): 0x08 | stepCode
-        const uint8_t dpt3val = up ? (0x18u | stepCode) : (0x08u | stepCode);
-
         using RF = RotaryFunction;
         switch (_rotaryFunction)
         {
@@ -323,9 +334,9 @@ public:
             case RF::Lautstaerke:
             {
                 // Relative dimming — stateless, no absolute position tracking needed.
-                knx.getGroupObject(_rotaryKo[0]).value(dpt3val, Dpt(3, 7));
-                Serial.printf("[HueGatewayButton] %s - Rotary %s DPT3.007 code=%u (0x%02X)\n",
-                              _name.c_str(), up ? "+" : "-", stepCode, dpt3val);
+                sendDpt3(_rotaryKo[0], up, _rotaryStepCode);
+                Serial.printf("[HueGatewayButton] %s - Rotary %s DPT3.007 code=%u(%s)\n",
+                              _name.c_str(), up ? "+" : "-", _rotaryStepCode, stepCodePct(_rotaryStepCode));
                 break;
             }
             case RF::Wertgeber:
@@ -383,6 +394,7 @@ private:
     bool _hasRotary;
     RotaryFunction _rotaryFunction;
     uint8_t _rotaryStepPercent;
+    uint8_t _rotaryStepCode;
     uint16_t _rotaryKo[2];
     String _rotaryServiceRid;
     uint8_t _rotaryValue   = 127;        // current absolute value (DPT 5.001)
@@ -417,18 +429,16 @@ private:
                         break;
                     case LightShortAction::DimUp:
                     {
-                        const uint8_t stepVal = static_cast<uint8_t>(0x18u | _btnLightStepCode[idx]);
-                        if (ko0) knx.getGroupObject(ko0).value(stepVal, Dpt(3, 7));
-                        Serial.printf("[HueGatewayButton] %s btn%u Dimmen short -> brighter (0x%02X)\n",
-                                      _name.c_str(), idx+1, stepVal);
+                        if (ko0) sendDpt3(ko0, true, _btnLightStepCode[idx]);
+                        Serial.printf("[HueGatewayButton] %s btn%u Dimmen short -> brighter step=%u(%s)\n",
+                                      _name.c_str(), idx+1, _btnLightStepCode[idx], stepCodePct(_btnLightStepCode[idx]));
                         break;
                     }
                     case LightShortAction::DimDown:
                     {
-                        const uint8_t stepVal = static_cast<uint8_t>(0x08u | _btnLightStepCode[idx]);
-                        if (ko0) knx.getGroupObject(ko0).value(stepVal, Dpt(3, 7));
-                        Serial.printf("[HueGatewayButton] %s btn%u Dimmen short -> darker (0x%02X)\n",
-                                      _name.c_str(), idx+1, stepVal);
+                        if (ko0) sendDpt3(ko0, false, _btnLightStepCode[idx]);
+                        Serial.printf("[HueGatewayButton] %s btn%u Dimmen short -> darker step=%u(%s)\n",
+                                      _name.c_str(), idx+1, _btnLightStepCode[idx], stepCodePct(_btnLightStepCode[idx]));
                         break;
                     }
                     case LightShortAction::Scene:
@@ -529,14 +539,9 @@ private:
 
             case BF::Dimmen:
                 // Long press start = DPT 3.007 dimming start using the configured KNX step code.
-                if (ko1)
-                {
-                    const uint8_t dimmVal = inv ? static_cast<uint8_t>(0x08u | _btnLightStepCode[idx])
-                                                : static_cast<uint8_t>(0x18u | _btnLightStepCode[idx]);
-                    knx.getGroupObject(ko1).value(dimmVal, Dpt(3, 7));
-                }
-                Serial.printf("[HueGatewayButton] %s btn%u Dimmen start -> %s\n",
-                              _name.c_str(), idx+1, inv ? "darker" : "brighter");
+                if (ko1) sendDpt3(ko1, !inv, _btnLightStepCode[idx]);
+                Serial.printf("[HueGatewayButton] %s btn%u Dimmen start -> %s step=%u(%s)\n",
+                              _name.c_str(), idx+1, inv ? "darker" : "brighter", _btnLightStepCode[idx], stepCodePct(_btnLightStepCode[idx]));
                 break;
 
             case BF::Jalousie:
@@ -547,12 +552,8 @@ private:
                 break;
 
             case BF::Medien:
-                // Long press = volume start (DPT 3.007: increase = 0x1D)
-                if (ko1)
-                {
-                    const uint8_t volVal = inv ? 0x0D : 0x1D;
-                    knx.getGroupObject(ko1).value(volVal, Dpt(3, 7));
-                }
+                // Long press = volume start (DPT 3.007: increase with step code 5)
+                if (ko1) sendDpt3(ko1, !inv, 5);
                 Serial.printf("[HueGatewayButton] %s btn%u Medien volume %s\n",
                               _name.c_str(), idx+1, inv ? "down" : "up");
                 break;
@@ -577,8 +578,8 @@ private:
         switch (_btnFunction[idx])
         {
             case BF::Dimmen:
-                // DPT 3.007 stop = 0x00
-                if (ko1) knx.getGroupObject(ko1).value((uint8_t)0x00, Dpt(3, 7));
+                // DPT 3.007 stop = step code 0
+                if (ko1) sendDpt3(ko1, false, 0);
                 Serial.printf("[HueGatewayButton] %s btn%u Dimmen stop\n", _name.c_str(), idx+1);
                 break;
 
@@ -590,7 +591,7 @@ private:
 
             case BF::Medien:
                 // Volume stop = DPT 3.007 stop
-                if (ko1) knx.getGroupObject(ko1).value((uint8_t)0x00, Dpt(3, 7));
+                if (ko1) sendDpt3(ko1, false, 0);
                 Serial.printf("[HueGatewayButton] %s btn%u Medien volume stop\n", _name.c_str(), idx+1);
                 break;
 
