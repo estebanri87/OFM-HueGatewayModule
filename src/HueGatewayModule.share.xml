@@ -1829,7 +1829,6 @@
 
                     <ParameterSeparator Id="%AID%_PS-HUEHCLLock" Text="Sperre Lichtmanager (global)" UIHint="Headline" HelpContext="HUE-HCL-Sperre-global" />
                     <ParameterRefRef RefId="%AID%_P-%TT%00042_R-%TT%0004201" HelpContext="HUE-HCL-Sperre-global" />
-                    <ParameterSeparator Id="%AID%_PS-HUEHCLLockInfo" Text="Priorität: Kanal-Sperre > Manager-Sperre > Globale Sperre. Eine Kanal-Sperre überschreibt die globale Einstellung." UIHint="Information" HelpContext="HUE-HCL-Sperre-global" />
                     <choose ParamRefId="%AID%_P-%TT%00042_R-%TT%0004201">
                       <when test="0">
                         <ParameterRefRef RefId="%AID%_P-%TT%00014_R-%TT%0001401" HelpContext="HUE-HCL-Sperre-global" IndentLevel="1" />
@@ -1845,6 +1844,7 @@
                         <ParameterRefRef RefId="%AID%_P-%TT%00044_R-%TT%0004401" HelpContext="HUE-HCL-Sperre-global" IndentLevel="1" />
                       </when>
                     </choose>
+                    <ParameterSeparator Id="%AID%_PS-HUEHCLLockInfo" Text="Priorität: Kanal-Sperre > Manager-Sperre > Globale Sperre. Eine Kanal-Sperre überschreibt die globale Einstellung." UIHint="Information" HelpContext="HUE-HCL-Sperre-global" />
 
                     <ComObjectRefRef RefId="%AID%_O-%TT%00003_R-%TT%0000301" HelpContext="HUE-HCL-Sperre-global-Status-HCL-Sperre" />
                     <ComObjectRefRef RefId="%AID%_O-%TT%00004_R-%TT%0000401" HelpContext="HUE-HCL-Sperre-global-Status-HCL-Sperre" />
