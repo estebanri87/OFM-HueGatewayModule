@@ -1567,6 +1567,13 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
             break;
         }
         case 8:
+            // Rotary KO: incoming value from bus (actuator status / GroupValueResponse)
+            // syncs the button's internal rotary position tracking.
+            if (_devices[channel] != nullptr && _devices[channel]->deviceType() == 2)
+            {
+                static_cast<HueGatewayButton*>(_devices[channel])->handleRotaryStatusKo(ko);
+                Serial.printf("[HueGatewayModule] Rotary KO sync ch%d\n", channel + 1);
+            }
             break;
         case 10:
             break;
@@ -2940,7 +2947,7 @@ void HueGatewayModule::setupDevices()
                         using RF = HueGatewayButton::RotaryFunction;
 
                         // Map Gewerk+Kurz+Lang to ButtonFunction, invertKurz, invertLang, hasLong, hasShort
-                        auto mapButton = [&](uint8_t btnIdx, uint8_t gewerk, uint8_t kurz, uint8_t lang, uint8_t sceneNr) {
+                        auto mapButton = [&](uint8_t btnIdx, uint8_t gewerk, uint8_t kurz, uint8_t lang, uint8_t sceneNr, uint8_t lightStepCode, uint8_t medKurz, uint8_t medLang) {
                             BF bf = BF::Schalten;
                             bool invKurz = false;
                             bool invLang = false;
@@ -2948,16 +2955,20 @@ void HueGatewayModule::setupDevices()
                             bool hasShort = (kurz != 0);
                             switch (gewerk) {
                                 case 0: // Licht
-                                    if (kurz == 2) { // Szene
+                                {
+                                    const auto lightShortAction = static_cast<HueGatewayButton::LightShortAction>(kurz);
+                                    btn->setButtonLightShortAction(btnIdx, lightShortAction);
+                                    btn->setButtonLightStepCode(btnIdx, lightStepCode);
+                                    if (kurz == 4 && lang == 0) { // Szene
                                         bf = BF::Szene;
-                                        hasLong = false;
-                                    } else if (lang == 0) {
+                                    } else if (kurz == 1 && lang == 0) {
                                         bf = BF::Schalten;
                                     } else {
                                         bf = BF::Dimmen;
                                         invLang = (lang == 2); // Dunkler
                                     }
                                     break;
+                                }
                                 case 1: // Jalousie
                                     bf = BF::Jalousie;
                                     invKurz = (kurz == 1); // LamelleAuf → Up on DPT 1.008
@@ -2965,8 +2976,9 @@ void HueGatewayModule::setupDevices()
                                     break;
                                 case 2: // Medien
                                     bf = BF::Medien;
-                                    hasShort = true; // Play/Pause always available
-                                    invLang = (lang == 2); // Leiser
+                                    hasShort = (medKurz != 0);
+                                    invLang = (medLang == 2); // Leiser
+                                    btn->setButtonMedienKurz(btnIdx, static_cast<HueGatewayButton::MedienShortAction>(medKurz));
                                     break;
                                 case 3: // Generisch
                                     bf = BF::ZweiObjekte;
@@ -2978,26 +2990,30 @@ void HueGatewayModule::setupDevices()
                             btn->setButtonInvertLong(btnIdx, invLang);
                             btn->setButtonHasLong(btnIdx, hasLong);
                             btn->setButtonHasShort(btnIdx, hasShort);
-                            if (bf == BF::Szene) btn->setButtonSceneNr(btnIdx, sceneNr);
+                            if (gewerk == 0 || bf == BF::Szene) btn->setButtonSceneNr(btnIdx, sceneNr);
                         };
 
                         // Taste 1 (Gewerk reads same bits for Gewerk/GewerkEinzel Union)
                         mapButton(0, ParamHUE_CHBtn1Gewerk, ParamHUE_CHBtn1LichtKurz,
-                                  ParamHUE_CHBtn1LichtLang, ParamHUE_CHBtn1SceneNr);
+                                  ParamHUE_CHBtn1LichtLang, ParamHUE_CHBtn1SceneNr, ParamHUE_CHBtn1LichtDimStep,
+                                  ParamHUE_CHBtn1MedienKurz, ParamHUE_CHBtn1MedienLang);
                         // Taste 2
                         if (btnCount >= 2) {
                             mapButton(1, ParamHUE_CHBtn2Gewerk, ParamHUE_CHBtn2LichtKurz,
-                                      ParamHUE_CHBtn2LichtLang, ParamHUE_CHBtn2SceneNr);
+                                      ParamHUE_CHBtn2LichtLang, ParamHUE_CHBtn2SceneNr, ParamHUE_CHBtn2LichtDimStep,
+                                      ParamHUE_CHBtn2MedienKurz, ParamHUE_CHBtn2MedienLang);
                         }
                         // Taste 3
                         if (btnCount >= 3) {
                             mapButton(2, ParamHUE_CHBtn3Gewerk, ParamHUE_CHBtn3LichtKurz,
-                                      ParamHUE_CHBtn3LichtLang, ParamHUE_CHBtn3SceneNr);
+                                      ParamHUE_CHBtn3LichtLang, ParamHUE_CHBtn3SceneNr, ParamHUE_CHBtn3LichtDimStep,
+                                      ParamHUE_CHBtn3MedienKurz, ParamHUE_CHBtn3MedienLang);
                         }
                         // Taste 4
                         if (btnCount >= 4) {
                             mapButton(3, ParamHUE_CHBtn4Gewerk, ParamHUE_CHBtn4LichtKurz,
-                                      ParamHUE_CHBtn4LichtLang, ParamHUE_CHBtn4SceneNr);
+                                      ParamHUE_CHBtn4LichtLang, ParamHUE_CHBtn4SceneNr, ParamHUE_CHBtn4LichtDimStep,
+                                      ParamHUE_CHBtn4MedienKurz, ParamHUE_CHBtn4MedienLang);
                         }
                         // Drehregler
                         btn->setHasRotary(ParamHUE_CHHasRotary != 0);

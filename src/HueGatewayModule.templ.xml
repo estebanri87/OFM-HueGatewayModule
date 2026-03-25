@@ -221,9 +221,10 @@
                 <Parameter Id="%AID%_UP-%TT%5%CC%131" Name="CH%C%Btn1GewerkEinzel" ParameterType="%AID%_PT-HUEButtonGewerkEinzel" Offset="0" BitOffset="0" Text="Taste 1 Gewerk" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%141" Name="CH%C%Btn1LichtKurz" ParameterType="%AID%_PT-HUELichtKurz" Offset="0" BitOffset="2" Text="Taste 1 Kurzdruck" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%142" Name="CH%C%Btn1JalousieKurz" ParameterType="%AID%_PT-HUEJalousieKurz" Offset="0" BitOffset="2" Text="Taste 1 Kurzdruck" Value="1" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%143" Name="CH%C%Btn1LichtLang" ParameterType="%AID%_PT-HUELichtLang" Offset="0" BitOffset="4" Text="Taste 1 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%147" Name="CH%C%Btn1MedienKurz" ParameterType="%AID%_PT-HUEMedienKurz" Offset="0" BitOffset="2" Text="Taste 1 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%143" Name="CH%C%Btn1LichtLang" ParameterType="%AID%_PT-HUELichtLang" Offset="0" BitOffset="5" Text="Taste 1 Langdruck" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%144" Name="CH%C%Btn1JalousieLang" ParameterType="%AID%_PT-HUEJalousieLang" Offset="0" BitOffset="4" Text="Taste 1 Langdruck" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%145" Name="CH%C%Btn1MedienLang" ParameterType="%AID%_PT-HUEMedienLang" Offset="0" BitOffset="4" Text="Taste 1 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%145" Name="CH%C%Btn1MedienLang" ParameterType="%AID%_PT-HUEMedienLang" Offset="0" BitOffset="5" Text="Taste 1 Langdruck" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%146" Name="CH%C%Btn1GenerischLang" ParameterType="%AID%_PT-HUEGenerischLang" Offset="0" BitOffset="4" Text="Taste 1 Langdruck" Value="0" />
               </Union>
 
@@ -232,9 +233,10 @@
                 <Parameter Id="%AID%_UP-%TT%5%CC%150" Name="CH%C%Btn2Gewerk" ParameterType="%AID%_PT-HUEButtonGewerk" Offset="0" BitOffset="0" Text="Taste 2 Gewerk" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%151" Name="CH%C%Btn2LichtKurz" ParameterType="%AID%_PT-HUELichtKurz" Offset="0" BitOffset="2" Text="Taste 2 Kurzdruck" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%152" Name="CH%C%Btn2JalousieKurz" ParameterType="%AID%_PT-HUEJalousieKurz" Offset="0" BitOffset="2" Text="Taste 2 Kurzdruck" Value="1" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%153" Name="CH%C%Btn2LichtLang" ParameterType="%AID%_PT-HUELichtLang" Offset="0" BitOffset="4" Text="Taste 2 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%157" Name="CH%C%Btn2MedienKurz" ParameterType="%AID%_PT-HUEMedienKurz" Offset="0" BitOffset="2" Text="Taste 2 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%153" Name="CH%C%Btn2LichtLang" ParameterType="%AID%_PT-HUELichtLang" Offset="0" BitOffset="5" Text="Taste 2 Langdruck" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%154" Name="CH%C%Btn2JalousieLang" ParameterType="%AID%_PT-HUEJalousieLang" Offset="0" BitOffset="4" Text="Taste 2 Langdruck" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%155" Name="CH%C%Btn2MedienLang" ParameterType="%AID%_PT-HUEMedienLang" Offset="0" BitOffset="4" Text="Taste 2 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%155" Name="CH%C%Btn2MedienLang" ParameterType="%AID%_PT-HUEMedienLang" Offset="0" BitOffset="5" Text="Taste 2 Langdruck" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%156" Name="CH%C%Btn2GenerischLang" ParameterType="%AID%_PT-HUEGenerischLang" Offset="0" BitOffset="4" Text="Taste 2 Langdruck" Value="0" />
               </Union>
 
@@ -243,9 +245,10 @@
                 <Parameter Id="%AID%_UP-%TT%5%CC%160" Name="CH%C%Btn3Gewerk" ParameterType="%AID%_PT-HUEButtonGewerk" Offset="0" BitOffset="0" Text="Taste 3 Gewerk" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%161" Name="CH%C%Btn3LichtKurz" ParameterType="%AID%_PT-HUELichtKurz" Offset="0" BitOffset="2" Text="Taste 3 Kurzdruck" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%162" Name="CH%C%Btn3JalousieKurz" ParameterType="%AID%_PT-HUEJalousieKurz" Offset="0" BitOffset="2" Text="Taste 3 Kurzdruck" Value="1" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%163" Name="CH%C%Btn3LichtLang" ParameterType="%AID%_PT-HUELichtLang" Offset="0" BitOffset="4" Text="Taste 3 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%167" Name="CH%C%Btn3MedienKurz" ParameterType="%AID%_PT-HUEMedienKurz" Offset="0" BitOffset="2" Text="Taste 3 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%163" Name="CH%C%Btn3LichtLang" ParameterType="%AID%_PT-HUELichtLang" Offset="0" BitOffset="5" Text="Taste 3 Langdruck" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%164" Name="CH%C%Btn3JalousieLang" ParameterType="%AID%_PT-HUEJalousieLang" Offset="0" BitOffset="4" Text="Taste 3 Langdruck" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%165" Name="CH%C%Btn3MedienLang" ParameterType="%AID%_PT-HUEMedienLang" Offset="0" BitOffset="4" Text="Taste 3 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%165" Name="CH%C%Btn3MedienLang" ParameterType="%AID%_PT-HUEMedienLang" Offset="0" BitOffset="5" Text="Taste 3 Langdruck" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%166" Name="CH%C%Btn3GenerischLang" ParameterType="%AID%_PT-HUEGenerischLang" Offset="0" BitOffset="4" Text="Taste 3 Langdruck" Value="0" />
               </Union>
 
@@ -254,9 +257,10 @@
                 <Parameter Id="%AID%_UP-%TT%5%CC%170" Name="CH%C%Btn4Gewerk" ParameterType="%AID%_PT-HUEButtonGewerk" Offset="0" BitOffset="0" Text="Taste 4 Gewerk" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%171" Name="CH%C%Btn4LichtKurz" ParameterType="%AID%_PT-HUELichtKurz" Offset="0" BitOffset="2" Text="Taste 4 Kurzdruck" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%172" Name="CH%C%Btn4JalousieKurz" ParameterType="%AID%_PT-HUEJalousieKurz" Offset="0" BitOffset="2" Text="Taste 4 Kurzdruck" Value="1" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%173" Name="CH%C%Btn4LichtLang" ParameterType="%AID%_PT-HUELichtLang" Offset="0" BitOffset="4" Text="Taste 4 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%177" Name="CH%C%Btn4MedienKurz" ParameterType="%AID%_PT-HUEMedienKurz" Offset="0" BitOffset="2" Text="Taste 4 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%173" Name="CH%C%Btn4LichtLang" ParameterType="%AID%_PT-HUELichtLang" Offset="0" BitOffset="5" Text="Taste 4 Langdruck" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%174" Name="CH%C%Btn4JalousieLang" ParameterType="%AID%_PT-HUEJalousieLang" Offset="0" BitOffset="4" Text="Taste 4 Langdruck" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%175" Name="CH%C%Btn4MedienLang" ParameterType="%AID%_PT-HUEMedienLang" Offset="0" BitOffset="4" Text="Taste 4 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%175" Name="CH%C%Btn4MedienLang" ParameterType="%AID%_PT-HUEMedienLang" Offset="0" BitOffset="5" Text="Taste 4 Langdruck" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%176" Name="CH%C%Btn4GenerischLang" ParameterType="%AID%_PT-HUEGenerischLang" Offset="0" BitOffset="4" Text="Taste 4 Langdruck" Value="0" />
               </Union>
 
@@ -266,6 +270,12 @@
               <Parameter Id="%AID%_P-%TT%5%CC%125" Name="CH%C%Btn3SceneNr" ParameterType="%AID%_PT-HUESceneNrButton" Text="Taste 3 Szenennummer" Value="1"><Memory CodeSegment="%MID%" Offset="167" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-%TT%5%CC%126" Name="CH%C%Btn4SceneNr" ParameterType="%AID%_PT-HUESceneNrButton" Text="Taste 4 Szenennummer" Value="1"><Memory CodeSegment="%MID%" Offset="168" BitOffset="0" /></Parameter>
 
+              <!-- ===== Tasterkanal: Dimm-Schrittweite je Taste (Offsets 172-175) ===== -->
+              <Parameter Id="%AID%_P-%TT%5%CC%181" Name="CH%C%Btn1LichtDimStep" ParameterType="%AID%_PT-HUELichtDimStep" Text="Taste 1 Dimm-Schrittweite" Value="4"><Memory CodeSegment="%MID%" Offset="172" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%5%CC%182" Name="CH%C%Btn2LichtDimStep" ParameterType="%AID%_PT-HUELichtDimStep" Text="Taste 2 Dimm-Schrittweite" Value="4"><Memory CodeSegment="%MID%" Offset="173" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%5%CC%183" Name="CH%C%Btn3LichtDimStep" ParameterType="%AID%_PT-HUELichtDimStep" Text="Taste 3 Dimm-Schrittweite" Value="4"><Memory CodeSegment="%MID%" Offset="174" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%5%CC%184" Name="CH%C%Btn4LichtDimStep" ParameterType="%AID%_PT-HUELichtDimStep" Text="Taste 4 Dimm-Schrittweite" Value="4"><Memory CodeSegment="%MID%" Offset="175" BitOffset="0" /></Parameter>
+
               <!-- ===== Tasterkanal: Drehregler Aktivierung + Funktion (Offset 169) ===== -->
               <Union Id="%AID%_U-%TT%5%CC%134" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="169" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%138" Name="CH%C%HasRotary" ParameterType="%AID%_PT-HUEHasRotary" Offset="0" BitOffset="0" Text="Drehregler vorhanden" Value="0" />
@@ -273,7 +283,7 @@
               </Union>
 
               <!-- ===== Tasterkanal: Drehregler Schrittweite (Offset 170) ===== -->
-              <Parameter Id="%AID%_P-%TT%5%CC%127" Name="CH%C%RotaryStepPercent" ParameterType="%AID%_PT-HUERotaryStepPercent" Text="Schrittweite (%)" Value="5"><Memory CodeSegment="%MID%" Offset="170" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%5%CC%127" Name="CH%C%RotaryStepPercent" ParameterType="%AID%_PT-HUELichtDimStep" Text="Schrittweite" Value="4"><Memory CodeSegment="%MID%" Offset="170" BitOffset="0" /></Parameter>
 
               <!-- ===== Tasterkanal: Native Hue Aktion (Offset 171) ===== -->
               <Union Id="%AID%_U-%TT%5%CC%135" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="171" BitOffset="0" />
@@ -418,6 +428,7 @@
               <ParameterRef Id="%AID%_UP-%TT%5%CC%131_R-%TT%5%CC%13101" RefId="%AID%_UP-%TT%5%CC%131" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%141_R-%TT%5%CC%14101" RefId="%AID%_UP-%TT%5%CC%141" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%142_R-%TT%5%CC%14201" RefId="%AID%_UP-%TT%5%CC%142" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%147_R-%TT%5%CC%14701" RefId="%AID%_UP-%TT%5%CC%147" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%143_R-%TT%5%CC%14301" RefId="%AID%_UP-%TT%5%CC%143" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%144_R-%TT%5%CC%14401" RefId="%AID%_UP-%TT%5%CC%144" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%145_R-%TT%5%CC%14501" RefId="%AID%_UP-%TT%5%CC%145" />
@@ -426,6 +437,7 @@
               <ParameterRef Id="%AID%_UP-%TT%5%CC%150_R-%TT%5%CC%15001" RefId="%AID%_UP-%TT%5%CC%150" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%151_R-%TT%5%CC%15101" RefId="%AID%_UP-%TT%5%CC%151" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%152_R-%TT%5%CC%15201" RefId="%AID%_UP-%TT%5%CC%152" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%157_R-%TT%5%CC%15701" RefId="%AID%_UP-%TT%5%CC%157" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%153_R-%TT%5%CC%15301" RefId="%AID%_UP-%TT%5%CC%153" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%154_R-%TT%5%CC%15401" RefId="%AID%_UP-%TT%5%CC%154" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%155_R-%TT%5%CC%15501" RefId="%AID%_UP-%TT%5%CC%155" />
@@ -434,6 +446,7 @@
               <ParameterRef Id="%AID%_UP-%TT%5%CC%160_R-%TT%5%CC%16001" RefId="%AID%_UP-%TT%5%CC%160" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%161_R-%TT%5%CC%16101" RefId="%AID%_UP-%TT%5%CC%161" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%162_R-%TT%5%CC%16201" RefId="%AID%_UP-%TT%5%CC%162" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%167_R-%TT%5%CC%16701" RefId="%AID%_UP-%TT%5%CC%167" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%163_R-%TT%5%CC%16301" RefId="%AID%_UP-%TT%5%CC%163" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%164_R-%TT%5%CC%16401" RefId="%AID%_UP-%TT%5%CC%164" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%165_R-%TT%5%CC%16501" RefId="%AID%_UP-%TT%5%CC%165" />
@@ -442,10 +455,15 @@
               <ParameterRef Id="%AID%_UP-%TT%5%CC%170_R-%TT%5%CC%17001" RefId="%AID%_UP-%TT%5%CC%170" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%171_R-%TT%5%CC%17101" RefId="%AID%_UP-%TT%5%CC%171" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%172_R-%TT%5%CC%17201" RefId="%AID%_UP-%TT%5%CC%172" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%177_R-%TT%5%CC%17701" RefId="%AID%_UP-%TT%5%CC%177" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%173_R-%TT%5%CC%17301" RefId="%AID%_UP-%TT%5%CC%173" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%174_R-%TT%5%CC%17401" RefId="%AID%_UP-%TT%5%CC%174" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%175_R-%TT%5%CC%17501" RefId="%AID%_UP-%TT%5%CC%175" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%176_R-%TT%5%CC%17601" RefId="%AID%_UP-%TT%5%CC%176" />
+              <ParameterRef Id="%AID%_P-%TT%5%CC%181_R-%TT%5%CC%18101" RefId="%AID%_P-%TT%5%CC%181" />
+              <ParameterRef Id="%AID%_P-%TT%5%CC%182_R-%TT%5%CC%18201" RefId="%AID%_P-%TT%5%CC%182" />
+              <ParameterRef Id="%AID%_P-%TT%5%CC%183_R-%TT%5%CC%18301" RefId="%AID%_P-%TT%5%CC%183" />
+              <ParameterRef Id="%AID%_P-%TT%5%CC%184_R-%TT%5%CC%18401" RefId="%AID%_P-%TT%5%CC%184" />
               <ParameterRef Id="%AID%_P-%TT%5%CC%123_R-%TT%5%CC%12301" RefId="%AID%_P-%TT%5%CC%123" />
               <ParameterRef Id="%AID%_P-%TT%5%CC%124_R-%TT%5%CC%12401" RefId="%AID%_P-%TT%5%CC%124" />
               <ParameterRef Id="%AID%_P-%TT%5%CC%125_R-%TT%5%CC%12501" RefId="%AID%_P-%TT%5%CC%125" />
@@ -473,113 +491,141 @@
             </ComObjectTable>
 
             <ComObjectRefs>
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00001" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Hue %C%}}: Schalten" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00101" RefId="%AID%_O-%TT%5%CC%001" Text="{{0:Hue %C%}}: Helligkeit" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00201" RefId="%AID%_O-%TT%5%CC%002" Text="{{0:Hue %C%}}: Dimmen" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00301" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Status Schalten" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00401" RefId="%AID%_O-%TT%5%CC%004" Text="{{0:Hue %C%}}: Status Helligkeit" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00501" RefId="%AID%_O-%TT%5%CC%005" Text="{{0:Hue %C%}}: Farbtemperatur" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00601" RefId="%AID%_O-%TT%5%CC%006" Text="{{0:Hue %C%}}: Status Farbtemperatur" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00701" RefId="%AID%_O-%TT%5%CC%007" Text="{{0:Hue %C%}}: Farbe RGB" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00801" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Status RGB" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%009_R-%TT%5%CC%00901" RefId="%AID%_O-%TT%5%CC%009" Text="{{0:Hue %C%}}: Lichtmanager Sperre" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%010_R-%TT%5%CC%01001" RefId="%AID%_O-%TT%5%CC%010" Text="{{0:Hue %C%}}: Status Lichtmanager Sperre" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00001" RefId="%AID%_O-%TT%5%CC%000" Text="Hue %C% - {{0}}: Schalten" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00101" RefId="%AID%_O-%TT%5%CC%001" Text="Hue %C% - {{0}}: Helligkeit" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00201" RefId="%AID%_O-%TT%5%CC%002" Text="Hue %C% - {{0}}: Dimmen" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00301" RefId="%AID%_O-%TT%5%CC%003" Text="Hue %C% - {{0}}: Status Schalten" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00401" RefId="%AID%_O-%TT%5%CC%004" Text="Hue %C% - {{0}}: Status Helligkeit" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00501" RefId="%AID%_O-%TT%5%CC%005" Text="Hue %C% - {{0}}: Farbtemperatur" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00601" RefId="%AID%_O-%TT%5%CC%006" Text="Hue %C% - {{0}}: Status Farbtemperatur" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00701" RefId="%AID%_O-%TT%5%CC%007" Text="Hue %C% - {{0}}: Farbe RGB" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00801" RefId="%AID%_O-%TT%5%CC%008" Text="Hue %C% - {{0}}: Status RGB" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%009_R-%TT%5%CC%00901" RefId="%AID%_O-%TT%5%CC%009" Text="Hue %C% - {{0}}: Lichtmanager Sperre" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%010_R-%TT%5%CC%01001" RefId="%AID%_O-%TT%5%CC%010" Text="Hue %C% - {{0}}: Status Lichtmanager Sperre" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Bewegungsmelder: Status Bewegung (KO-Slot 0, DPT-1-8, nur Senden) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00002" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Hue %C%}}: Status Bewegung" FunctionText="Bewegung erkannt (1=ja)" DatapointType="DPST-1-8" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00002" RefId="%AID%_O-%TT%5%CC%000" Text="Hue %C% - {{0}}: Status Bewegung" FunctionText="Bewegung erkannt (1=ja)" DatapointType="DPST-1-8" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Kontaktsensor: Status Kontakt offen (KO-Slot 0, DPT-1-9, nur Senden) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00003" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Hue %C%}}: Status Kontakt offen" FunctionText="Kontakt offen (1=offen, 0=geschlossen)" DatapointType="DPST-1-9" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00003" RefId="%AID%_O-%TT%5%CC%000" Text="Hue %C% - {{0}}: Status Kontakt offen" FunctionText="Kontakt offen (1=offen, 0=geschlossen)" DatapointType="DPST-1-9" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Steckdose: Schalten (KO-Slot 0, DPT-1-1, bidirektional) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00004" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Hue %C%}}: Schalten" FunctionText="Steckdose Ein/Aus" DatapointType="DPST-1-1" ReadFlag="Enabled" WriteFlag="Enabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00004" RefId="%AID%_O-%TT%5%CC%000" Text="Hue %C% - {{0}}: Schalten" FunctionText="Steckdose Ein/Aus" DatapointType="DPST-1-1" ReadFlag="Enabled" WriteFlag="Enabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Steckdose: Status Schalten (KO-Slot 3, DPT-1-1, nur Senden) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00302" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Status Schalten" FunctionText="Status Steckdose Ein/Aus" DatapointType="DPST-1-1" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00302" RefId="%AID%_O-%TT%5%CC%003" Text="Hue %C% - {{0}}: Status Schalten" FunctionText="Status Steckdose Ein/Aus" DatapointType="DPST-1-1" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Bewegungsmelder: Gerät erreichbar (KO-Slot 3, DPST-1-2, nur Senden) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00304" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Gerät erreichbar" FunctionText="Gerät erreichbar (1=ja)" DatapointType="DPST-1-2" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00304" RefId="%AID%_O-%TT%5%CC%003" Text="Hue %C% - {{0}}: Gerät erreichbar" FunctionText="Gerät erreichbar (1=ja)" DatapointType="DPST-1-2" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Sensor/Kontakt: Batterie (KO-Slot 4, DPST-5-1, nur Senden) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00402" RefId="%AID%_O-%TT%5%CC%004" Text="{{0:Hue %C%}}: Batterie" FunctionText="Batterie-Ladung (0-100%)" DatapointType="DPST-5-1" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00402" RefId="%AID%_O-%TT%5%CC%004" Text="Hue %C% - {{0}}: Batterie" FunctionText="Batterie-Ladung (0-100%)" DatapointType="DPST-5-1" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Sensor/Kontakt: Temperatur (KO-Slot 5, DPST-9-1, nur Senden) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00502" RefId="%AID%_O-%TT%5%CC%005" Text="{{0:Hue %C%}}: Temperatur" FunctionText="Temperatur (°C)" DatapointType="DPST-9-1" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00502" RefId="%AID%_O-%TT%5%CC%005" Text="Hue %C% - {{0}}: Temperatur" FunctionText="Temperatur (°C)" DatapointType="DPST-9-1" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Bewegungsmelder: Helligkeit Lux (KO-Slot 6, DPST-9-4, nur Senden) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00602" RefId="%AID%_O-%TT%5%CC%006" Text="{{0:Hue %C%}}: Helligkeit (Lux)" FunctionText="Helligkeit (Lux)" DatapointType="DPST-9-4" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00602" RefId="%AID%_O-%TT%5%CC%006" Text="Hue %C% - {{0}}: Helligkeit (Lux)" FunctionText="Helligkeit (Lux)" DatapointType="DPST-9-4" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Kontaktsensor: Sabotage (KO-Slot 3, DPST-1-1, nur Senden) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00305" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Sabotage" FunctionText="Sabotagekontakt ausgelöst (1=ja)" DatapointType="DPST-1-1" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00305" RefId="%AID%_O-%TT%5%CC%003" Text="Hue %C% - {{0}}: Sabotage" FunctionText="Sabotagekontakt ausgelöst (1=ja)" DatapointType="DPST-1-1" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Kontakt/Steckdose: Gerät erreichbar (KO-Slot 9, DPST-1-2, nur Senden) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%009_R-%TT%5%CC%00903" RefId="%AID%_O-%TT%5%CC%009" Text="{{0:Hue %C%}}: Gerät erreichbar" FunctionText="Gerät erreichbar (1=ja)" DatapointType="DPST-1-2" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%009_R-%TT%5%CC%00903" RefId="%AID%_O-%TT%5%CC%009" Text="Hue %C% - {{0}}: Gerät erreichbar" FunctionText="Gerät erreichbar (1=ja)" DatapointType="DPST-1-2" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Szene (KO-Slot 11, DPST-18-1, Speichern aktiv) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%011_R-%TT%5%CC%01101" RefId="%AID%_O-%TT%5%CC%011" Text="{{0:Hue %C%}}: Szene" FunctionText="Szene" DatapointType="DPST-18-1" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%011_R-%TT%5%CC%01101" RefId="%AID%_O-%TT%5%CC%011" Text="Hue %C% - {{0}}: Szene" FunctionText="Szene" DatapointType="DPST-18-1" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Szene (KO-Slot 11, DPST-17-1, Speichern nicht aktiv) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%011_R-%TT%5%CC%01102" RefId="%AID%_O-%TT%5%CC%011" Text="{{0:Hue %C%}}: Szene" FunctionText="Szene" DatapointType="DPST-17-1" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%011_R-%TT%5%CC%01102" RefId="%AID%_O-%TT%5%CC%011" Text="Hue %C% - {{0}}: Szene" FunctionText="Szene" DatapointType="DPST-17-1" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
 
               <!-- ===== Taster: funktionsabhängige KOs pro Taste (Gewerk/Kurz/Lang) ===== -->
               <!-- === Taste 1 Kurzdruck (KO-Slot 0, base O-000) === -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00020" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Hue %C%}}: Taste 1: Schalten" FunctionText="Kurzdruck: Ein/Aus" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00021" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Hue %C%}}: Taste 1: Szene" FunctionText="Kurzdruck: Szene abrufen" ObjectSize="1 Byte" DatapointType="DPST-18-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00022" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Hue %C%}}: Taste 1: Lamelle Auf/Stop" FunctionText="Kurzdruck: Lamelle Auf/Stop" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00023" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Hue %C%}}: Taste 1: Lamelle Ab/Stop" FunctionText="Kurzdruck: Lamelle Ab/Stop" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00024" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Hue %C%}}: Taste 1: Play/Pause" FunctionText="Kurzdruck: Play/Pause" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00025" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Hue %C%}}: Taste 1: Objekt A" FunctionText="Kurzdruck: Objekt A senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00020" RefId="%AID%_O-%TT%5%CC%000" Text="Hue %C% - {{0}}: Taste 1: Schalten" FunctionText="Kurzdruck: Ein/Aus" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00021" RefId="%AID%_O-%TT%5%CC%000" Text="Hue %C% - {{0}}: Taste 1: Szene" FunctionText="Kurzdruck: Szene abrufen" ObjectSize="1 Byte" DatapointType="DPST-18-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00022" RefId="%AID%_O-%TT%5%CC%000" Text="Hue %C% - {{0}}: Taste 1: Lamelle Auf/Stop" FunctionText="Kurzdruck: Lamelle Auf/Stop" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00023" RefId="%AID%_O-%TT%5%CC%000" Text="Hue %C% - {{0}}: Taste 1: Lamelle Ab/Stop" FunctionText="Kurzdruck: Lamelle Ab/Stop" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00024" RefId="%AID%_O-%TT%5%CC%000" Text="Hue %C% - {{0}}: Taste 1: Play/Pause" FunctionText="Kurzdruck: Play/Pause" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00028" RefId="%AID%_O-%TT%5%CC%000" Text="Hue %C% - {{0}}: Taste 1: Mute" FunctionText="Kurzdruck: Mute" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00029" RefId="%AID%_O-%TT%5%CC%000" Text="Hue %C% - {{0}}: Taste 1: Nächster Titel" FunctionText="Kurzdruck: Nächster Titel" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00030" RefId="%AID%_O-%TT%5%CC%000" Text="Hue %C% - {{0}}: Taste 1: Vorheriger Titel" FunctionText="Kurzdruck: Vorheriger Titel" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00031" RefId="%AID%_O-%TT%5%CC%000" Text="Hue %C% - {{0}}: Taste 1: Shuffle" FunctionText="Kurzdruck: Shuffle" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00032" RefId="%AID%_O-%TT%5%CC%000" Text="Hue %C% - {{0}}: Taste 1: Repeat" FunctionText="Kurzdruck: Repeat" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00026" RefId="%AID%_O-%TT%5%CC%000" Text="Hue %C% - {{0}}: Taste 1: Dimmen heller" FunctionText="Kurzdruck: Dimmen heller" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00027" RefId="%AID%_O-%TT%5%CC%000" Text="Hue %C% - {{0}}: Taste 1: Dimmen dunkler" FunctionText="Kurzdruck: Dimmen dunkler" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00025" RefId="%AID%_O-%TT%5%CC%000" Text="Hue %C% - {{0}}: Taste 1: Objekt A" FunctionText="Kurzdruck: Objekt A senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- === Taste 1 Langdruck (KO-Slot 1, base O-001) === -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00130" RefId="%AID%_O-%TT%5%CC%001" Text="{{0:Hue %C%}}: Taste 1: Heller dimmen" FunctionText="Langdruck: Heller dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00131" RefId="%AID%_O-%TT%5%CC%001" Text="{{0:Hue %C%}}: Taste 1: Dunkler dimmen" FunctionText="Langdruck: Dunkler dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00132" RefId="%AID%_O-%TT%5%CC%001" Text="{{0:Hue %C%}}: Taste 1: Behang Auf" FunctionText="Langdruck: Behang hochfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00133" RefId="%AID%_O-%TT%5%CC%001" Text="{{0:Hue %C%}}: Taste 1: Behang Ab" FunctionText="Langdruck: Behang herunterfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00134" RefId="%AID%_O-%TT%5%CC%001" Text="{{0:Hue %C%}}: Taste 1: Lauter" FunctionText="Langdruck: Lautstärke erhöhen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00135" RefId="%AID%_O-%TT%5%CC%001" Text="{{0:Hue %C%}}: Taste 1: Leiser" FunctionText="Langdruck: Lautstärke verringern" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00136" RefId="%AID%_O-%TT%5%CC%001" Text="{{0:Hue %C%}}: Taste 1: Objekt B" FunctionText="Langdruck: Objekt B senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00130" RefId="%AID%_O-%TT%5%CC%001" Text="Hue %C% - {{0}}: Taste 1: Heller dimmen" FunctionText="Langdruck: Heller dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00131" RefId="%AID%_O-%TT%5%CC%001" Text="Hue %C% - {{0}}: Taste 1: Dunkler dimmen" FunctionText="Langdruck: Dunkler dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00132" RefId="%AID%_O-%TT%5%CC%001" Text="Hue %C% - {{0}}: Taste 1: Behang Auf" FunctionText="Langdruck: Behang hochfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00133" RefId="%AID%_O-%TT%5%CC%001" Text="Hue %C% - {{0}}: Taste 1: Behang Ab" FunctionText="Langdruck: Behang herunterfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00134" RefId="%AID%_O-%TT%5%CC%001" Text="Hue %C% - {{0}}: Taste 1: Lauter" FunctionText="Langdruck: Lautstärke erhöhen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00135" RefId="%AID%_O-%TT%5%CC%001" Text="Hue %C% - {{0}}: Taste 1: Leiser" FunctionText="Langdruck: Lautstärke verringern" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00136" RefId="%AID%_O-%TT%5%CC%001" Text="Hue %C% - {{0}}: Taste 1: Objekt B" FunctionText="Langdruck: Objekt B senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
 
               <!-- === Taste 2 Kurzdruck (KO-Slot 2, base O-002) === -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00220" RefId="%AID%_O-%TT%5%CC%002" Text="{{0:Hue %C%}}: Taste 2: Schalten" FunctionText="Kurzdruck: Ein/Aus" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00221" RefId="%AID%_O-%TT%5%CC%002" Text="{{0:Hue %C%}}: Taste 2: Szene" FunctionText="Kurzdruck: Szene abrufen" ObjectSize="1 Byte" DatapointType="DPST-18-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00222" RefId="%AID%_O-%TT%5%CC%002" Text="{{0:Hue %C%}}: Taste 2: Lamelle Auf/Stop" FunctionText="Kurzdruck: Lamelle Auf/Stop" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00223" RefId="%AID%_O-%TT%5%CC%002" Text="{{0:Hue %C%}}: Taste 2: Lamelle Ab/Stop" FunctionText="Kurzdruck: Lamelle Ab/Stop" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00224" RefId="%AID%_O-%TT%5%CC%002" Text="{{0:Hue %C%}}: Taste 2: Play/Pause" FunctionText="Kurzdruck: Play/Pause" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00225" RefId="%AID%_O-%TT%5%CC%002" Text="{{0:Hue %C%}}: Taste 2: Objekt A" FunctionText="Kurzdruck: Objekt A senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00220" RefId="%AID%_O-%TT%5%CC%002" Text="Hue %C% - {{0}}: Taste 2: Schalten" FunctionText="Kurzdruck: Ein/Aus" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00221" RefId="%AID%_O-%TT%5%CC%002" Text="Hue %C% - {{0}}: Taste 2: Szene" FunctionText="Kurzdruck: Szene abrufen" ObjectSize="1 Byte" DatapointType="DPST-18-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00222" RefId="%AID%_O-%TT%5%CC%002" Text="Hue %C% - {{0}}: Taste 2: Lamelle Auf/Stop" FunctionText="Kurzdruck: Lamelle Auf/Stop" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00223" RefId="%AID%_O-%TT%5%CC%002" Text="Hue %C% - {{0}}: Taste 2: Lamelle Ab/Stop" FunctionText="Kurzdruck: Lamelle Ab/Stop" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00224" RefId="%AID%_O-%TT%5%CC%002" Text="Hue %C% - {{0}}: Taste 2: Play/Pause" FunctionText="Kurzdruck: Play/Pause" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00228" RefId="%AID%_O-%TT%5%CC%002" Text="Hue %C% - {{0}}: Taste 2: Mute" FunctionText="Kurzdruck: Mute" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00229" RefId="%AID%_O-%TT%5%CC%002" Text="Hue %C% - {{0}}: Taste 2: Nächster Titel" FunctionText="Kurzdruck: Nächster Titel" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00230" RefId="%AID%_O-%TT%5%CC%002" Text="Hue %C% - {{0}}: Taste 2: Vorheriger Titel" FunctionText="Kurzdruck: Vorheriger Titel" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00231" RefId="%AID%_O-%TT%5%CC%002" Text="Hue %C% - {{0}}: Taste 2: Shuffle" FunctionText="Kurzdruck: Shuffle" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00232" RefId="%AID%_O-%TT%5%CC%002" Text="Hue %C% - {{0}}: Taste 2: Repeat" FunctionText="Kurzdruck: Repeat" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00226" RefId="%AID%_O-%TT%5%CC%002" Text="Hue %C% - {{0}}: Taste 2: Dimmen heller" FunctionText="Kurzdruck: Dimmen heller" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00227" RefId="%AID%_O-%TT%5%CC%002" Text="Hue %C% - {{0}}: Taste 2: Dimmen dunkler" FunctionText="Kurzdruck: Dimmen dunkler" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00225" RefId="%AID%_O-%TT%5%CC%002" Text="Hue %C% - {{0}}: Taste 2: Objekt A" FunctionText="Kurzdruck: Objekt A senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- === Taste 2 Langdruck (KO-Slot 3, base O-003) === -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00330" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Taste 2: Heller dimmen" FunctionText="Langdruck: Heller dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00331" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Taste 2: Dunkler dimmen" FunctionText="Langdruck: Dunkler dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00332" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Taste 2: Behang Auf" FunctionText="Langdruck: Behang hochfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00333" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Taste 2: Behang Ab" FunctionText="Langdruck: Behang herunterfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00334" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Taste 2: Lauter" FunctionText="Langdruck: Lautstärke erhöhen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00335" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Taste 2: Leiser" FunctionText="Langdruck: Lautstärke verringern" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00336" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Taste 2: Objekt B" FunctionText="Langdruck: Objekt B senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00330" RefId="%AID%_O-%TT%5%CC%003" Text="Hue %C% - {{0}}: Taste 2: Heller dimmen" FunctionText="Langdruck: Heller dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00331" RefId="%AID%_O-%TT%5%CC%003" Text="Hue %C% - {{0}}: Taste 2: Dunkler dimmen" FunctionText="Langdruck: Dunkler dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00332" RefId="%AID%_O-%TT%5%CC%003" Text="Hue %C% - {{0}}: Taste 2: Behang Auf" FunctionText="Langdruck: Behang hochfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00333" RefId="%AID%_O-%TT%5%CC%003" Text="Hue %C% - {{0}}: Taste 2: Behang Ab" FunctionText="Langdruck: Behang herunterfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00334" RefId="%AID%_O-%TT%5%CC%003" Text="Hue %C% - {{0}}: Taste 2: Lauter" FunctionText="Langdruck: Lautstärke erhöhen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00335" RefId="%AID%_O-%TT%5%CC%003" Text="Hue %C% - {{0}}: Taste 2: Leiser" FunctionText="Langdruck: Lautstärke verringern" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00336" RefId="%AID%_O-%TT%5%CC%003" Text="Hue %C% - {{0}}: Taste 2: Objekt B" FunctionText="Langdruck: Objekt B senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
 
               <!-- === Taste 3 Kurzdruck (KO-Slot 4, base O-004) === -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00420" RefId="%AID%_O-%TT%5%CC%004" Text="{{0:Hue %C%}}: Taste 3: Schalten" FunctionText="Kurzdruck: Ein/Aus" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00421" RefId="%AID%_O-%TT%5%CC%004" Text="{{0:Hue %C%}}: Taste 3: Szene" FunctionText="Kurzdruck: Szene abrufen" ObjectSize="1 Byte" DatapointType="DPST-18-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00422" RefId="%AID%_O-%TT%5%CC%004" Text="{{0:Hue %C%}}: Taste 3: Lamelle Auf/Stop" FunctionText="Kurzdruck: Lamelle Auf/Stop" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00423" RefId="%AID%_O-%TT%5%CC%004" Text="{{0:Hue %C%}}: Taste 3: Lamelle Ab/Stop" FunctionText="Kurzdruck: Lamelle Ab/Stop" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00424" RefId="%AID%_O-%TT%5%CC%004" Text="{{0:Hue %C%}}: Taste 3: Play/Pause" FunctionText="Kurzdruck: Play/Pause" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00425" RefId="%AID%_O-%TT%5%CC%004" Text="{{0:Hue %C%}}: Taste 3: Objekt A" FunctionText="Kurzdruck: Objekt A senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00420" RefId="%AID%_O-%TT%5%CC%004" Text="Hue %C% - {{0}}: Taste 3: Schalten" FunctionText="Kurzdruck: Ein/Aus" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00421" RefId="%AID%_O-%TT%5%CC%004" Text="Hue %C% - {{0}}: Taste 3: Szene" FunctionText="Kurzdruck: Szene abrufen" ObjectSize="1 Byte" DatapointType="DPST-18-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00422" RefId="%AID%_O-%TT%5%CC%004" Text="Hue %C% - {{0}}: Taste 3: Lamelle Auf/Stop" FunctionText="Kurzdruck: Lamelle Auf/Stop" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00423" RefId="%AID%_O-%TT%5%CC%004" Text="Hue %C% - {{0}}: Taste 3: Lamelle Ab/Stop" FunctionText="Kurzdruck: Lamelle Ab/Stop" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00424" RefId="%AID%_O-%TT%5%CC%004" Text="Hue %C% - {{0}}: Taste 3: Play/Pause" FunctionText="Kurzdruck: Play/Pause" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00428" RefId="%AID%_O-%TT%5%CC%004" Text="Hue %C% - {{0}}: Taste 3: Mute" FunctionText="Kurzdruck: Mute" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00429" RefId="%AID%_O-%TT%5%CC%004" Text="Hue %C% - {{0}}: Taste 3: Nächster Titel" FunctionText="Kurzdruck: Nächster Titel" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00430" RefId="%AID%_O-%TT%5%CC%004" Text="Hue %C% - {{0}}: Taste 3: Vorheriger Titel" FunctionText="Kurzdruck: Vorheriger Titel" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00431" RefId="%AID%_O-%TT%5%CC%004" Text="Hue %C% - {{0}}: Taste 3: Shuffle" FunctionText="Kurzdruck: Shuffle" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00432" RefId="%AID%_O-%TT%5%CC%004" Text="Hue %C% - {{0}}: Taste 3: Repeat" FunctionText="Kurzdruck: Repeat" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00426" RefId="%AID%_O-%TT%5%CC%004" Text="Hue %C% - {{0}}: Taste 3: Dimmen heller" FunctionText="Kurzdruck: Dimmen heller" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00427" RefId="%AID%_O-%TT%5%CC%004" Text="Hue %C% - {{0}}: Taste 3: Dimmen dunkler" FunctionText="Kurzdruck: Dimmen dunkler" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00425" RefId="%AID%_O-%TT%5%CC%004" Text="Hue %C% - {{0}}: Taste 3: Objekt A" FunctionText="Kurzdruck: Objekt A senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- === Taste 3 Langdruck (KO-Slot 5, base O-005) === -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00530" RefId="%AID%_O-%TT%5%CC%005" Text="{{0:Hue %C%}}: Taste 3: Heller dimmen" FunctionText="Langdruck: Heller dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00531" RefId="%AID%_O-%TT%5%CC%005" Text="{{0:Hue %C%}}: Taste 3: Dunkler dimmen" FunctionText="Langdruck: Dunkler dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00532" RefId="%AID%_O-%TT%5%CC%005" Text="{{0:Hue %C%}}: Taste 3: Behang Auf" FunctionText="Langdruck: Behang hochfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00533" RefId="%AID%_O-%TT%5%CC%005" Text="{{0:Hue %C%}}: Taste 3: Behang Ab" FunctionText="Langdruck: Behang herunterfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00534" RefId="%AID%_O-%TT%5%CC%005" Text="{{0:Hue %C%}}: Taste 3: Lauter" FunctionText="Langdruck: Lautstärke erhöhen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00535" RefId="%AID%_O-%TT%5%CC%005" Text="{{0:Hue %C%}}: Taste 3: Leiser" FunctionText="Langdruck: Lautstärke verringern" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00536" RefId="%AID%_O-%TT%5%CC%005" Text="{{0:Hue %C%}}: Taste 3: Objekt B" FunctionText="Langdruck: Objekt B senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00530" RefId="%AID%_O-%TT%5%CC%005" Text="Hue %C% - {{0}}: Taste 3: Heller dimmen" FunctionText="Langdruck: Heller dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00531" RefId="%AID%_O-%TT%5%CC%005" Text="Hue %C% - {{0}}: Taste 3: Dunkler dimmen" FunctionText="Langdruck: Dunkler dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00532" RefId="%AID%_O-%TT%5%CC%005" Text="Hue %C% - {{0}}: Taste 3: Behang Auf" FunctionText="Langdruck: Behang hochfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00533" RefId="%AID%_O-%TT%5%CC%005" Text="Hue %C% - {{0}}: Taste 3: Behang Ab" FunctionText="Langdruck: Behang herunterfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00534" RefId="%AID%_O-%TT%5%CC%005" Text="Hue %C% - {{0}}: Taste 3: Lauter" FunctionText="Langdruck: Lautstärke erhöhen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00535" RefId="%AID%_O-%TT%5%CC%005" Text="Hue %C% - {{0}}: Taste 3: Leiser" FunctionText="Langdruck: Lautstärke verringern" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00536" RefId="%AID%_O-%TT%5%CC%005" Text="Hue %C% - {{0}}: Taste 3: Objekt B" FunctionText="Langdruck: Objekt B senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
 
               <!-- === Taste 4 Kurzdruck (KO-Slot 6, base O-006) === -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00620" RefId="%AID%_O-%TT%5%CC%006" Text="{{0:Hue %C%}}: Taste 4: Schalten" FunctionText="Kurzdruck: Ein/Aus" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00621" RefId="%AID%_O-%TT%5%CC%006" Text="{{0:Hue %C%}}: Taste 4: Szene" FunctionText="Kurzdruck: Szene abrufen" ObjectSize="1 Byte" DatapointType="DPST-18-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00622" RefId="%AID%_O-%TT%5%CC%006" Text="{{0:Hue %C%}}: Taste 4: Lamelle Auf/Stop" FunctionText="Kurzdruck: Lamelle Auf/Stop" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00623" RefId="%AID%_O-%TT%5%CC%006" Text="{{0:Hue %C%}}: Taste 4: Lamelle Ab/Stop" FunctionText="Kurzdruck: Lamelle Ab/Stop" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00624" RefId="%AID%_O-%TT%5%CC%006" Text="{{0:Hue %C%}}: Taste 4: Play/Pause" FunctionText="Kurzdruck: Play/Pause" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00625" RefId="%AID%_O-%TT%5%CC%006" Text="{{0:Hue %C%}}: Taste 4: Objekt A" FunctionText="Kurzdruck: Objekt A senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00620" RefId="%AID%_O-%TT%5%CC%006" Text="Hue %C% - {{0}}: Taste 4: Schalten" FunctionText="Kurzdruck: Ein/Aus" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00621" RefId="%AID%_O-%TT%5%CC%006" Text="Hue %C% - {{0}}: Taste 4: Szene" FunctionText="Kurzdruck: Szene abrufen" ObjectSize="1 Byte" DatapointType="DPST-18-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00622" RefId="%AID%_O-%TT%5%CC%006" Text="Hue %C% - {{0}}: Taste 4: Lamelle Auf/Stop" FunctionText="Kurzdruck: Lamelle Auf/Stop" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00623" RefId="%AID%_O-%TT%5%CC%006" Text="Hue %C% - {{0}}: Taste 4: Lamelle Ab/Stop" FunctionText="Kurzdruck: Lamelle Ab/Stop" ObjectSize="1 Bit" DatapointType="DPST-1-8" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00624" RefId="%AID%_O-%TT%5%CC%006" Text="Hue %C% - {{0}}: Taste 4: Play/Pause" FunctionText="Kurzdruck: Play/Pause" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00628" RefId="%AID%_O-%TT%5%CC%006" Text="Hue %C% - {{0}}: Taste 4: Mute" FunctionText="Kurzdruck: Mute" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00629" RefId="%AID%_O-%TT%5%CC%006" Text="Hue %C% - {{0}}: Taste 4: Nächster Titel" FunctionText="Kurzdruck: Nächster Titel" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00630" RefId="%AID%_O-%TT%5%CC%006" Text="Hue %C% - {{0}}: Taste 4: Vorheriger Titel" FunctionText="Kurzdruck: Vorheriger Titel" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00631" RefId="%AID%_O-%TT%5%CC%006" Text="Hue %C% - {{0}}: Taste 4: Shuffle" FunctionText="Kurzdruck: Shuffle" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00632" RefId="%AID%_O-%TT%5%CC%006" Text="Hue %C% - {{0}}: Taste 4: Repeat" FunctionText="Kurzdruck: Repeat" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00626" RefId="%AID%_O-%TT%5%CC%006" Text="Hue %C% - {{0}}: Taste 4: Dimmen heller" FunctionText="Kurzdruck: Dimmen heller" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00627" RefId="%AID%_O-%TT%5%CC%006" Text="Hue %C% - {{0}}: Taste 4: Dimmen dunkler" FunctionText="Kurzdruck: Dimmen dunkler" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00625" RefId="%AID%_O-%TT%5%CC%006" Text="Hue %C% - {{0}}: Taste 4: Objekt A" FunctionText="Kurzdruck: Objekt A senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- === Taste 4 Langdruck (KO-Slot 7, base O-007) === -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00730" RefId="%AID%_O-%TT%5%CC%007" Text="{{0:Hue %C%}}: Taste 4: Heller dimmen" FunctionText="Langdruck: Heller dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00731" RefId="%AID%_O-%TT%5%CC%007" Text="{{0:Hue %C%}}: Taste 4: Dunkler dimmen" FunctionText="Langdruck: Dunkler dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00732" RefId="%AID%_O-%TT%5%CC%007" Text="{{0:Hue %C%}}: Taste 4: Behang Auf" FunctionText="Langdruck: Behang hochfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00733" RefId="%AID%_O-%TT%5%CC%007" Text="{{0:Hue %C%}}: Taste 4: Behang Ab" FunctionText="Langdruck: Behang herunterfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00734" RefId="%AID%_O-%TT%5%CC%007" Text="{{0:Hue %C%}}: Taste 4: Lauter" FunctionText="Langdruck: Lautstärke erhöhen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00735" RefId="%AID%_O-%TT%5%CC%007" Text="{{0:Hue %C%}}: Taste 4: Leiser" FunctionText="Langdruck: Lautstärke verringern" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00736" RefId="%AID%_O-%TT%5%CC%007" Text="{{0:Hue %C%}}: Taste 4: Objekt B" FunctionText="Langdruck: Objekt B senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00730" RefId="%AID%_O-%TT%5%CC%007" Text="Hue %C% - {{0}}: Taste 4: Heller dimmen" FunctionText="Langdruck: Heller dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00731" RefId="%AID%_O-%TT%5%CC%007" Text="Hue %C% - {{0}}: Taste 4: Dunkler dimmen" FunctionText="Langdruck: Dunkler dimmen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00732" RefId="%AID%_O-%TT%5%CC%007" Text="Hue %C% - {{0}}: Taste 4: Behang Auf" FunctionText="Langdruck: Behang hochfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00733" RefId="%AID%_O-%TT%5%CC%007" Text="Hue %C% - {{0}}: Taste 4: Behang Ab" FunctionText="Langdruck: Behang herunterfahren" ObjectSize="1 Bit" DatapointType="DPST-1-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00734" RefId="%AID%_O-%TT%5%CC%007" Text="Hue %C% - {{0}}: Taste 4: Lauter" FunctionText="Langdruck: Lautstärke erhöhen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00735" RefId="%AID%_O-%TT%5%CC%007" Text="Hue %C% - {{0}}: Taste 4: Leiser" FunctionText="Langdruck: Lautstärke verringern" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00736" RefId="%AID%_O-%TT%5%CC%007" Text="Hue %C% - {{0}}: Taste 4: Objekt B" FunctionText="Langdruck: Objekt B senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
 
-              <!-- === Drehregler (KO-Slot 8, base O-008, unverändert) === -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00820" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Drehregler: Dimmen" FunctionText="Drehregler Dimmen (0-100%)" ObjectSize="1 Byte" DatapointType="DPST-5-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00821" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Drehregler: Wertgeber" FunctionText="Drehregler Wertgeber (0-100%)" ObjectSize="1 Byte" DatapointType="DPST-5-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00822" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Drehregler: Lautstärke" FunctionText="Drehregler Lautstärke (0-100%)" ObjectSize="1 Byte" DatapointType="DPST-5-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00823" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Drehregler: Farbtemperatur" FunctionText="Drehregler Farbtemperatur (Kelvin)" ObjectSize="2 Bytes" DatapointType="DPST-7-600" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00824" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Drehregler: Lamelle" FunctionText="Drehregler Lamellenposition (0-100%)" ObjectSize="1 Byte" DatapointType="DPST-5-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <!-- === Drehregler (KO-Slot 8, base O-008) === -->
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00820" RefId="%AID%_O-%TT%5%CC%008" Text="Hue %C% - {{0}}: Drehregler: Dimmen" FunctionText="Drehregler Dimmen (relativ)" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00821" RefId="%AID%_O-%TT%5%CC%008" Text="Hue %C% - {{0}}: Drehregler: Wertgeber" FunctionText="Drehregler Wertgeber (0-100%)" ObjectSize="1 Byte" DatapointType="DPST-5-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00822" RefId="%AID%_O-%TT%5%CC%008" Text="Hue %C% - {{0}}: Drehregler: Lautstärke" FunctionText="Drehregler Lautstärke (relativ)" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00823" RefId="%AID%_O-%TT%5%CC%008" Text="Hue %C% - {{0}}: Drehregler: Farbtemperatur" FunctionText="Drehregler Farbtemperatur (Kelvin)" ObjectSize="2 Bytes" DatapointType="DPST-7-600" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00824" RefId="%AID%_O-%TT%5%CC%008" Text="Hue %C% - {{0}}: Drehregler: Lamelle" FunctionText="Drehregler Lamellenposition (0-100%)" ObjectSize="1 Byte" DatapointType="DPST-5-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
             </ComObjectRefs>
             
           </Static>
@@ -1320,25 +1366,78 @@
                             </when>
                           </choose>
                           <!-- Kurzdruck + Langdruck abhängig vom Gewerk -->
-                          <choose ParamRefId="%AID%_UP-%TT%5%CC%130_R-%TT%5%CC%13001">
-                            <when test="0">
-                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%141_R-%TT%5%CC%14101" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
-                              <choose ParamRefId="%AID%_UP-%TT%5%CC%141_R-%TT%5%CC%14101">
+                          <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
+                            <when test="1">
+                              <choose ParamRefId="%AID%_UP-%TT%5%CC%131_R-%TT%5%CC%13101">
+                                <when test="0">
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%141_R-%TT%5%CC%14101" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
+                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%141_R-%TT%5%CC%14101">
+                                    <when test="4">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%123_R-%TT%5%CC%12301" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
+                                    </when>
+                                    <when test="2">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%181_R-%TT%5%CC%18101" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
+                                    </when>
+                                    <when test="3">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%181_R-%TT%5%CC%18101" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
+                                    </when>
+                                  </choose>
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%143_R-%TT%5%CC%14301" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%143_R-%TT%5%CC%14301">
+                                    <when test="1">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%181_R-%TT%5%CC%18101" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
+                                    </when>
+                                    <when test="2">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%181_R-%TT%5%CC%18101" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
+                                    </when>
+                                  </choose>
+                                </when>
                                 <when test="2">
-                                  <ParameterRefRef RefId="%AID%_P-%TT%5%CC%123_R-%TT%5%CC%12301" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%147_R-%TT%5%CC%14701" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%145_R-%TT%5%CC%14501" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                </when>
+                                <when test="3">
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%146_R-%TT%5%CC%14601" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
                                 </when>
                               </choose>
-                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%143_R-%TT%5%CC%14301" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
                             </when>
-                            <when test="1">
-                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%142_R-%TT%5%CC%14201" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
-                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%144_R-%TT%5%CC%14401" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
-                            </when>
-                            <when test="2">
-                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%145_R-%TT%5%CC%14501" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
-                            </when>
-                            <when test="3">
-                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%146_R-%TT%5%CC%14601" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                            <when test=">=2">
+                              <choose ParamRefId="%AID%_UP-%TT%5%CC%130_R-%TT%5%CC%13001">
+                                <when test="0">
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%141_R-%TT%5%CC%14101" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
+                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%141_R-%TT%5%CC%14101">
+                                    <when test="4">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%123_R-%TT%5%CC%12301" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
+                                    </when>
+                                    <when test="2">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%181_R-%TT%5%CC%18101" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
+                                    </when>
+                                    <when test="3">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%181_R-%TT%5%CC%18101" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
+                                    </when>
+                                  </choose>
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%143_R-%TT%5%CC%14301" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%143_R-%TT%5%CC%14301">
+                                    <when test="1">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%181_R-%TT%5%CC%18101" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
+                                    </when>
+                                    <when test="2">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%181_R-%TT%5%CC%18101" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
+                                    </when>
+                                  </choose>
+                                </when>
+                                <when test="1">
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%142_R-%TT%5%CC%14201" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%144_R-%TT%5%CC%14401" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                </when>
+                                <when test="2">
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%147_R-%TT%5%CC%14701" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%145_R-%TT%5%CC%14501" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                </when>
+                                <when test="3">
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%146_R-%TT%5%CC%14601" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                </when>
+                              </choose>
                             </when>
                           </choose>
 
@@ -1351,17 +1450,32 @@
                                 <when test="0">
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%151_R-%TT%5%CC%15101" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
                                   <choose ParamRefId="%AID%_UP-%TT%5%CC%151_R-%TT%5%CC%15101">
-                                    <when test="2">
+                                    <when test="4">
                                       <ParameterRefRef RefId="%AID%_P-%TT%5%CC%124_R-%TT%5%CC%12401" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
+                                    </when>
+                                    <when test="2">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%182_R-%TT%5%CC%18201" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
+                                    </when>
+                                    <when test="3">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%182_R-%TT%5%CC%18201" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
                                     </when>
                                   </choose>
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%153_R-%TT%5%CC%15301" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%153_R-%TT%5%CC%15301">
+                                    <when test="1">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%182_R-%TT%5%CC%18201" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
+                                    </when>
+                                    <when test="2">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%182_R-%TT%5%CC%18201" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
+                                    </when>
+                                  </choose>
                                 </when>
                                 <when test="1">
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%152_R-%TT%5%CC%15201" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%154_R-%TT%5%CC%15401" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
                                 </when>
                                 <when test="2">
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%157_R-%TT%5%CC%15701" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%155_R-%TT%5%CC%15501" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
                                 </when>
                                 <when test="3">
@@ -1380,17 +1494,32 @@
                                 <when test="0">
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%161_R-%TT%5%CC%16101" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
                                   <choose ParamRefId="%AID%_UP-%TT%5%CC%161_R-%TT%5%CC%16101">
-                                    <when test="2">
+                                    <when test="4">
                                       <ParameterRefRef RefId="%AID%_P-%TT%5%CC%125_R-%TT%5%CC%12501" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
+                                    </when>
+                                    <when test="2">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%183_R-%TT%5%CC%18301" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
+                                    </when>
+                                    <when test="3">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%183_R-%TT%5%CC%18301" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
                                     </when>
                                   </choose>
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%163_R-%TT%5%CC%16301" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%163_R-%TT%5%CC%16301">
+                                    <when test="1">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%183_R-%TT%5%CC%18301" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
+                                    </when>
+                                    <when test="2">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%183_R-%TT%5%CC%18301" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
+                                    </when>
+                                  </choose>
                                 </when>
                                 <when test="1">
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%162_R-%TT%5%CC%16201" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%164_R-%TT%5%CC%16401" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
                                 </when>
                                 <when test="2">
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%167_R-%TT%5%CC%16701" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%165_R-%TT%5%CC%16501" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
                                 </when>
                                 <when test="3">
@@ -1409,17 +1538,32 @@
                                 <when test="0">
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%171_R-%TT%5%CC%17101" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
                                   <choose ParamRefId="%AID%_UP-%TT%5%CC%171_R-%TT%5%CC%17101">
-                                    <when test="2">
+                                    <when test="4">
                                       <ParameterRefRef RefId="%AID%_P-%TT%5%CC%126_R-%TT%5%CC%12601" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
+                                    </when>
+                                    <when test="2">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%184_R-%TT%5%CC%18401" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
+                                    </when>
+                                    <when test="3">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%184_R-%TT%5%CC%18401" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
                                     </when>
                                   </choose>
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%173_R-%TT%5%CC%17301" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%173_R-%TT%5%CC%17301">
+                                    <when test="1">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%184_R-%TT%5%CC%18401" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
+                                    </when>
+                                    <when test="2">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%184_R-%TT%5%CC%18401" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
+                                    </when>
+                                  </choose>
                                 </when>
                                 <when test="1">
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%172_R-%TT%5%CC%17201" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%174_R-%TT%5%CC%17401" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
                                 </when>
                                 <when test="2">
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%177_R-%TT%5%CC%17701" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%175_R-%TT%5%CC%17501" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
                                 </when>
                                 <when test="3">
@@ -1642,70 +1786,142 @@
                       <!-- DeviceType 2: Taster – KOs abhängig von Gewerk + Kurz/Lang-Typ -->
                       <when test="2">
                         <!-- ===== Taste 1: Kurzdruck-KO (KO-Slot 0) ===== -->
-                        <choose ParamRefId="%AID%_UP-%TT%5%CC%130_R-%TT%5%CC%13001">
-                          <when test="0"><!-- Licht -->
-                            <choose ParamRefId="%AID%_UP-%TT%5%CC%141_R-%TT%5%CC%14101">
-                              <when test="1">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00020" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                        <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
+                          <when test="1">
+                            <choose ParamRefId="%AID%_UP-%TT%5%CC%131_R-%TT%5%CC%13101">
+                              <when test="0"><!-- Licht -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%141_R-%TT%5%CC%14101">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00020" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00026" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="3">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00027" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="4">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00021" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
                               </when>
-                              <when test="2">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00021" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              <when test="2"><!-- Medien -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%147_R-%TT%5%CC%14701">
+                                  <when test="1"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00024" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                  <when test="2"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00028" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                  <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00029" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                  <when test="4"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00030" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                  <when test="5"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00031" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                  <when test="6"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00032" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                </choose>
+                              </when>
+                              <when test="3"><!-- Generisch -->
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00025" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                               </when>
                             </choose>
                           </when>
-                          <when test="1"><!-- Jalousie -->
-                            <choose ParamRefId="%AID%_UP-%TT%5%CC%142_R-%TT%5%CC%14201">
-                              <when test="1">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00022" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                          <when test=">=2">
+                            <choose ParamRefId="%AID%_UP-%TT%5%CC%130_R-%TT%5%CC%13001">
+                              <when test="0"><!-- Licht -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%141_R-%TT%5%CC%14101">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00020" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00021" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
                               </when>
-                              <when test="2">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00023" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              <when test="1"><!-- Jalousie -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%142_R-%TT%5%CC%14201">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00022" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00023" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                              <when test="2"><!-- Medien -->
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00024" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              </when>
+                              <when test="3"><!-- Generisch -->
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00025" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                               </when>
                             </choose>
-                          </when>
-                          <when test="2"><!-- Medien -->
-                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00024" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                          </when>
-                          <when test="3"><!-- Generisch -->
-                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00025" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                           </when>
                         </choose>
                         <!-- Taste 1: Langdruck-KO (KO-Slot 1) -->
-                        <choose ParamRefId="%AID%_UP-%TT%5%CC%130_R-%TT%5%CC%13001">
-                          <when test="0"><!-- Licht -->
-                            <choose ParamRefId="%AID%_UP-%TT%5%CC%143_R-%TT%5%CC%14301">
-                              <when test="1">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00130" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                        <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
+                          <when test="1">
+                            <choose ParamRefId="%AID%_UP-%TT%5%CC%131_R-%TT%5%CC%13101">
+                              <when test="0"><!-- Licht -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%143_R-%TT%5%CC%14301">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00130" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00131" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
                               </when>
-                              <when test="2">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00131" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              <when test="2"><!-- Medien -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%145_R-%TT%5%CC%14501">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00134" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00135" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                              <when test="3"><!-- Generisch -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%146_R-%TT%5%CC%14601">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00136" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
                               </when>
                             </choose>
                           </when>
-                          <when test="1"><!-- Jalousie -->
-                            <choose ParamRefId="%AID%_UP-%TT%5%CC%144_R-%TT%5%CC%14401">
-                              <when test="1">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00132" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                          <when test=">=2">
+                            <choose ParamRefId="%AID%_UP-%TT%5%CC%130_R-%TT%5%CC%13001">
+                              <when test="0"><!-- Licht -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%143_R-%TT%5%CC%14301">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00130" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00131" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
                               </when>
-                              <when test="2">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00133" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              <when test="1"><!-- Jalousie -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%144_R-%TT%5%CC%14401">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00132" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00133" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
                               </when>
-                            </choose>
-                          </when>
-                          <when test="2"><!-- Medien -->
-                            <choose ParamRefId="%AID%_UP-%TT%5%CC%145_R-%TT%5%CC%14501">
-                              <when test="1">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00134" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              <when test="2"><!-- Medien -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%145_R-%TT%5%CC%14501">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00134" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00135" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
                               </when>
-                              <when test="2">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00135" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                              </when>
-                            </choose>
-                          </when>
-                          <when test="3"><!-- Generisch -->
-                            <choose ParamRefId="%AID%_UP-%TT%5%CC%146_R-%TT%5%CC%14601">
-                              <when test="1">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00136" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                              <when test="3"><!-- Generisch -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%146_R-%TT%5%CC%14601">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00136" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
                               </when>
                             </choose>
                           </when>
@@ -1721,6 +1937,12 @@
                                     <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00220" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                                   </when>
                                   <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00226" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="3">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00227" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="4">
                                     <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00221" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                                   </when>
                                 </choose>
@@ -1736,7 +1958,14 @@
                                 </choose>
                               </when>
                               <when test="2"><!-- Medien -->
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00224" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%157_R-%TT%5%CC%15701">
+                                  <when test="1"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00224" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                  <when test="2"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00228" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                  <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00229" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                  <when test="4"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00230" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                  <when test="5"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00231" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                  <when test="6"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00232" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                </choose>
                               </when>
                               <when test="3"><!-- Generisch -->
                                 <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00225" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
@@ -1799,6 +2028,12 @@
                                     <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00420" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                                   </when>
                                   <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00426" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="3">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00427" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="4">
                                     <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00421" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                                   </when>
                                 </choose>
@@ -1814,7 +2049,14 @@
                                 </choose>
                               </when>
                               <when test="2"><!-- Medien -->
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00424" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%167_R-%TT%5%CC%16701">
+                                  <when test="1"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00424" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                  <when test="2"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00428" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                  <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00429" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                  <when test="4"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00430" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                  <when test="5"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00431" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                  <when test="6"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00432" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                </choose>
                               </when>
                               <when test="3"><!-- Generisch -->
                                 <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00425" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
@@ -1877,6 +2119,12 @@
                                     <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00620" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                                   </when>
                                   <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00626" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="3">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00627" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="4">
                                     <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00621" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                                   </when>
                                 </choose>
@@ -1892,7 +2140,14 @@
                                 </choose>
                               </when>
                               <when test="2"><!-- Medien -->
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00624" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%177_R-%TT%5%CC%17701">
+                                  <when test="1"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00624" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                  <when test="2"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00628" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                  <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00629" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                  <when test="4"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00630" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                  <when test="5"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00631" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                  <when test="6"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00632" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                                </choose>
                               </when>
                               <when test="3"><!-- Generisch -->
                                 <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00625" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />

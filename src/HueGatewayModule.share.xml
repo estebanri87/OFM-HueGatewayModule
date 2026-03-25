@@ -409,10 +409,12 @@
 
               <!-- Licht: Kurzdruck-Aktion -->
               <ParameterType Id="%AID%_PT-HUELichtKurz" Name="HUELichtKurz">
-                <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
+                <TypeRestriction Base="Value" SizeInBit="3" UIHint="DropDown">
                   <Enumeration Text="Kein Kurzdruck"  Value="0" Id="%ENID%" />
                   <Enumeration Text="Schalten"        Value="1" Id="%ENID%" />
-                  <Enumeration Text="Szene abrufen"   Value="2" Id="%ENID%" />
+                  <Enumeration Text="Dimmen heller"  Value="2" Id="%ENID%" />
+                  <Enumeration Text="Dimmen dunkler" Value="3" Id="%ENID%" />
+                  <Enumeration Text="Szene abrufen"   Value="4" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
 
@@ -422,6 +424,19 @@
                   <Enumeration Text="Kein Kurzdruck"  Value="0" Id="%ENID%" />
                   <Enumeration Text="Lamelle Auf/Stop"     Value="1" Id="%ENID%" />
                   <Enumeration Text="Lamelle Ab/Stop"      Value="2" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+
+              <!-- Medien: Kurzdruck-Aktion -->
+              <ParameterType Id="%AID%_PT-HUEMedienKurz" Name="HUEMedienKurz">
+                <TypeRestriction Base="Value" SizeInBit="3" UIHint="DropDown">
+                  <Enumeration Text="Kein Kurzdruck"    Value="0" Id="%ENID%" />
+                  <Enumeration Text="Play/Pause"        Value="1" Id="%ENID%" />
+                  <Enumeration Text="Mute"              Value="2" Id="%ENID%" />
+                  <Enumeration Text="Nächster Titel"    Value="3" Id="%ENID%" />
+                  <Enumeration Text="Vorheriger Titel"  Value="4" Id="%ENID%" />
+                  <Enumeration Text="Shuffle"           Value="5" Id="%ENID%" />
+                  <Enumeration Text="Repeat"            Value="6" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
 
@@ -465,6 +480,17 @@
                 <TypeNumber SizeInBit="6" Type="unsignedInt" minInclusive="1" maxInclusive="64" />
               </ParameterType>
 
+              <!-- Dimm-Schrittweite fuer Tasten (feste DPT 3.007 Schrittcodes) -->
+              <ParameterType Id="%AID%_PT-HUELichtDimStep" Name="HUELichtDimStep">
+                <TypeRestriction Base="Value" SizeInBit="3" UIHint="DropDown">
+                  <Enumeration Text="2 %"  Value="1" Id="%ENID%" />
+                  <Enumeration Text="3 %"  Value="2" Id="%ENID%" />
+                  <Enumeration Text="6 %"  Value="3" Id="%ENID%" />
+                  <Enumeration Text="13 %" Value="4" Id="%ENID%" />
+                  <Enumeration Text="25 %" Value="5" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+
               <!-- Hat Drehregler? -->
               <ParameterType Id="%AID%_PT-HUEHasRotary" Name="HUEHasRotary">
                 <TypeRestriction Base="Value" SizeInBit="1" UIHint="DropDown">
@@ -476,18 +502,15 @@
               <!-- Drehregler-Funktion -->
               <ParameterType Id="%AID%_PT-HUERotaryFunction" Name="HUERotaryFunction">
                 <TypeRestriction Base="Value" SizeInBit="3" UIHint="DropDown">
-                  <Enumeration Text="Dimmen"             Value="0" Id="%ENID%" />
-                  <Enumeration Text="Wertgeber"          Value="1" Id="%ENID%" />
-                  <Enumeration Text="Lautstärke"         Value="2" Id="%ENID%" />
-                  <Enumeration Text="Farbtemperatur"     Value="3" Id="%ENID%" />
-                  <Enumeration Text="Jalousie-Lamelle"   Value="4" Id="%ENID%" />
+                  <Enumeration Text="Licht - Dimmen"            Value="0" Id="%ENID%" />
+                  <Enumeration Text="Generisch - Wertgeber"     Value="1" Id="%ENID%" />
+                  <Enumeration Text="Medien - Lautstärke"       Value="2" Id="%ENID%" />
+                  <Enumeration Text="Licht - Farbtemperatur"    Value="3" Id="%ENID%" />
+                  <Enumeration Text="Jalousie - Lamelle"        Value="4" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
 
-              <!-- Drehregler-Schrittweite (1-25 % pro Schritt) -->
-              <ParameterType Id="%AID%_PT-HUERotaryStepPercent" Name="HUERotaryStepPercent">
-                <TypeNumber SizeInBit="5" Type="unsignedInt" minInclusive="1" maxInclusive="25" />
-              </ParameterType>
+
 
               <!-- Native Hue Aktion (deaktivieren oder beibehalten) -->
               <ParameterType Id="%AID%_PT-HUENativeHueAction" Name="HUENativeHueAction">
@@ -1632,45 +1655,45 @@
                 <ComObject Id="%AID%_O-%TT%00002" Name="HUEPairingTrigger" Text="Pairing-Trigger" Number="1" FunctionText="Hue-Pairing starten (1=Start)" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-17" />
 
               <!-- HCL-Sperre -->
-                <ComObject Id="%AID%_O-%TT%00003" Name="HUEHCLLock" Text="Lichtmanager: Sperre (global)" Number="2" FunctionText="Alle Lichtmanager sperren (1=Sperre aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
-                <ComObject Id="%AID%_O-%TT%00004" Name="HUEHCLLockStatus" Text="Lichtmanager: Status Sperre (global)" Number="3" FunctionText="Sperrstatus Lichtmanager (global)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+                <ComObject Id="%AID%_O-%TT%00003" Name="HUEHCLLock" Text="LM: Sperre (global)" Number="2" FunctionText="Alle Lichtmanager sperren (1=Sperre aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+                <ComObject Id="%AID%_O-%TT%00004" Name="HUEHCLLockStatus" Text="LM: Status Sperre (global)" Number="3" FunctionText="Sperrstatus Lichtmanager (global)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
 
               <!-- Lichtmanager Sollwerte (berechnet) -->
-                <ComObject Id="%AID%_O-%TT%00005" Name="HUEHCLM1StatusBrightness" Text="Lichtmanager 1: Soll-Helligkeit" Number="4" FunctionText="Soll-Helligkeit Lichtmanager 1" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
-                <ComObject Id="%AID%_O-%TT%00006" Name="HUEHCLM1StatusColorTemp" Text="Lichtmanager 1: Soll-Farbtemperatur" Number="5" FunctionText="Soll-Farbtemperatur Lichtmanager 1" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
-                <ComObject Id="%AID%_O-%TT%00007" Name="HUEHCLM2StatusBrightness" Text="Lichtmanager 2: Soll-Helligkeit" Number="6" FunctionText="Soll-Helligkeit Lichtmanager 2" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
-                <ComObject Id="%AID%_O-%TT%00008" Name="HUEHCLM2StatusColorTemp" Text="Lichtmanager 2: Soll-Farbtemperatur" Number="7" FunctionText="Soll-Farbtemperatur Lichtmanager 2" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
-                <ComObject Id="%AID%_O-%TT%00009" Name="HUEHCLM3StatusBrightness" Text="Lichtmanager 3: Soll-Helligkeit" Number="8" FunctionText="Soll-Helligkeit Lichtmanager 3" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
-                <ComObject Id="%AID%_O-%TT%00010" Name="HUEHCLM3StatusColorTemp" Text="Lichtmanager 3: Soll-Farbtemperatur" Number="9" FunctionText="Soll-Farbtemperatur Lichtmanager 3" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
-                <ComObject Id="%AID%_O-%TT%00011" Name="HUEHCLM4StatusBrightness" Text="Lichtmanager 4: Soll-Helligkeit" Number="10" FunctionText="Soll-Helligkeit Lichtmanager 4" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
-                <ComObject Id="%AID%_O-%TT%00012" Name="HUEHCLM4StatusColorTemp" Text="Lichtmanager 4: Soll-Farbtemperatur" Number="11" FunctionText="Soll-Farbtemperatur Lichtmanager 4" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
+                <ComObject Id="%AID%_O-%TT%00005" Name="HUEHCLM1StatusBrightness" Text="LM 1: Soll-Helligkeit" Number="4" FunctionText="Soll-Helligkeit Lichtmanager 1" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+                <ComObject Id="%AID%_O-%TT%00006" Name="HUEHCLM1StatusColorTemp" Text="LM 1: Soll-Farbtemperatur" Number="5" FunctionText="Soll-Farbtemperatur Lichtmanager 1" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
+                <ComObject Id="%AID%_O-%TT%00007" Name="HUEHCLM2StatusBrightness" Text="LM 2: Soll-Helligkeit" Number="6" FunctionText="Soll-Helligkeit Lichtmanager 2" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+                <ComObject Id="%AID%_O-%TT%00008" Name="HUEHCLM2StatusColorTemp" Text="LM 2: Soll-Farbtemperatur" Number="7" FunctionText="Soll-Farbtemperatur Lichtmanager 2" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
+                <ComObject Id="%AID%_O-%TT%00009" Name="HUEHCLM3StatusBrightness" Text="LM 3: Soll-Helligkeit" Number="8" FunctionText="Soll-Helligkeit Lichtmanager 3" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+                <ComObject Id="%AID%_O-%TT%00010" Name="HUEHCLM3StatusColorTemp" Text="LM 3: Soll-Farbtemperatur" Number="9" FunctionText="Soll-Farbtemperatur Lichtmanager 3" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
+                <ComObject Id="%AID%_O-%TT%00011" Name="HUEHCLM4StatusBrightness" Text="LM 4: Soll-Helligkeit" Number="10" FunctionText="Soll-Helligkeit Lichtmanager 4" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+                <ComObject Id="%AID%_O-%TT%00012" Name="HUEHCLM4StatusColorTemp" Text="LM 4: Soll-Farbtemperatur" Number="11" FunctionText="Soll-Farbtemperatur Lichtmanager 4" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
 
-              <ComObject Id="%AID%_O-%TT%00013" Name="HUEHCLM1Lock" Text="Lichtmanager 1: Sperre" Number="12" FunctionText="Sperren Lichtmanager 1 (1=aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
-              <ComObject Id="%AID%_O-%TT%00014" Name="HUEHCLM1LockStatus" Text="Lichtmanager 1: Status Sperre" Number="13" FunctionText="Status Sperre Lichtmanager 1" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
-              <ComObject Id="%AID%_O-%TT%00015" Name="HUEHCLM2Lock" Text="Lichtmanager 2: Sperre" Number="14" FunctionText="Sperren Lichtmanager 2 (1=aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
-              <ComObject Id="%AID%_O-%TT%00016" Name="HUEHCLM2LockStatus" Text="Lichtmanager 2: Status Sperre" Number="15" FunctionText="Status Sperre Lichtmanager 2" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
-              <ComObject Id="%AID%_O-%TT%00017" Name="HUEHCLM3Lock" Text="Lichtmanager 3: Sperre" Number="16" FunctionText="Sperren Lichtmanager 3 (1=aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
-              <ComObject Id="%AID%_O-%TT%00018" Name="HUEHCLM3LockStatus" Text="Lichtmanager 3: Status Sperre" Number="17" FunctionText="Status Sperre Lichtmanager 3" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
-              <ComObject Id="%AID%_O-%TT%00019" Name="HUEHCLM4Lock" Text="Lichtmanager 4: Sperre" Number="18" FunctionText="Sperren Lichtmanager 4 (1=aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
-              <ComObject Id="%AID%_O-%TT%00020" Name="HUEHCLM4LockStatus" Text="Lichtmanager 4: Status Sperre" Number="19" FunctionText="Status Sperre Lichtmanager 4" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
-              <ComObject Id="%AID%_O-%TT%00021" Name="HUEHCLM5StatusBrightness" Text="Lichtmanager 5: Soll-Helligkeit" Number="20" FunctionText="Soll-Helligkeit Lichtmanager 5" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
-              <ComObject Id="%AID%_O-%TT%00022" Name="HUEHCLM5StatusColorTemp" Text="Lichtmanager 5: Soll-Farbtemperatur" Number="21" FunctionText="Soll-Farbtemperatur Lichtmanager 5" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
-              <ComObject Id="%AID%_O-%TT%00023" Name="HUEHCLM6StatusBrightness" Text="Lichtmanager 6: Soll-Helligkeit" Number="22" FunctionText="Soll-Helligkeit Lichtmanager 6" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
-              <ComObject Id="%AID%_O-%TT%00024" Name="HUEHCLM6StatusColorTemp" Text="Lichtmanager 6: Soll-Farbtemperatur" Number="23" FunctionText="Soll-Farbtemperatur Lichtmanager 6" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
-              <ComObject Id="%AID%_O-%TT%00025" Name="HUEHCLM7StatusBrightness" Text="Lichtmanager 7: Soll-Helligkeit" Number="24" FunctionText="Soll-Helligkeit Lichtmanager 7" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
-              <ComObject Id="%AID%_O-%TT%00026" Name="HUEHCLM7StatusColorTemp" Text="Lichtmanager 7: Soll-Farbtemperatur" Number="25" FunctionText="Soll-Farbtemperatur Lichtmanager 7" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
-              <ComObject Id="%AID%_O-%TT%00027" Name="HUEHCLM8StatusBrightness" Text="Lichtmanager 8: Soll-Helligkeit" Number="26" FunctionText="Soll-Helligkeit Lichtmanager 8" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
-              <ComObject Id="%AID%_O-%TT%00028" Name="HUEHCLM8StatusColorTemp" Text="Lichtmanager 8: Soll-Farbtemperatur" Number="27" FunctionText="Soll-Farbtemperatur Lichtmanager 8" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
+              <ComObject Id="%AID%_O-%TT%00013" Name="HUEHCLM1Lock" Text="LM 1: Sperre" Number="12" FunctionText="Sperren Lichtmanager 1 (1=aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%00014" Name="HUEHCLM1LockStatus" Text="LM 1: Status Sperre" Number="13" FunctionText="Status Sperre Lichtmanager 1" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%00015" Name="HUEHCLM2Lock" Text="LM 2: Sperre" Number="14" FunctionText="Sperren Lichtmanager 2 (1=aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%00016" Name="HUEHCLM2LockStatus" Text="LM 2: Status Sperre" Number="15" FunctionText="Status Sperre Lichtmanager 2" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%00017" Name="HUEHCLM3Lock" Text="LM 3: Sperre" Number="16" FunctionText="Sperren Lichtmanager 3 (1=aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%00018" Name="HUEHCLM3LockStatus" Text="LM 3: Status Sperre" Number="17" FunctionText="Status Sperre Lichtmanager 3" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%00019" Name="HUEHCLM4Lock" Text="LM 4: Sperre" Number="18" FunctionText="Sperren Lichtmanager 4 (1=aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%00020" Name="HUEHCLM4LockStatus" Text="LM 4: Status Sperre" Number="19" FunctionText="Status Sperre Lichtmanager 4" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%00021" Name="HUEHCLM5StatusBrightness" Text="LM 5: Soll-Helligkeit" Number="20" FunctionText="Soll-Helligkeit Lichtmanager 5" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <ComObject Id="%AID%_O-%TT%00022" Name="HUEHCLM5StatusColorTemp" Text="LM 5: Soll-Farbtemperatur" Number="21" FunctionText="Soll-Farbtemperatur Lichtmanager 5" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
+              <ComObject Id="%AID%_O-%TT%00023" Name="HUEHCLM6StatusBrightness" Text="LM 6: Soll-Helligkeit" Number="22" FunctionText="Soll-Helligkeit Lichtmanager 6" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <ComObject Id="%AID%_O-%TT%00024" Name="HUEHCLM6StatusColorTemp" Text="LM 6: Soll-Farbtemperatur" Number="23" FunctionText="Soll-Farbtemperatur Lichtmanager 6" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
+              <ComObject Id="%AID%_O-%TT%00025" Name="HUEHCLM7StatusBrightness" Text="LM 7: Soll-Helligkeit" Number="24" FunctionText="Soll-Helligkeit Lichtmanager 7" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <ComObject Id="%AID%_O-%TT%00026" Name="HUEHCLM7StatusColorTemp" Text="LM 7: Soll-Farbtemperatur" Number="25" FunctionText="Soll-Farbtemperatur Lichtmanager 7" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
+              <ComObject Id="%AID%_O-%TT%00027" Name="HUEHCLM8StatusBrightness" Text="LM 8: Soll-Helligkeit" Number="26" FunctionText="Soll-Helligkeit Lichtmanager 8" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <ComObject Id="%AID%_O-%TT%00028" Name="HUEHCLM8StatusColorTemp" Text="LM 8: Soll-Farbtemperatur" Number="27" FunctionText="Soll-Farbtemperatur Lichtmanager 8" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
 
-              <ComObject Id="%AID%_O-%TT%00029" Name="HUEHCLM5Lock" Text="Lichtmanager 5: Sperre" Number="28" FunctionText="Sperren Lichtmanager 5 (1=aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
-              <ComObject Id="%AID%_O-%TT%00030" Name="HUEHCLM5LockStatus" Text="Lichtmanager 5: Status Sperre" Number="29" FunctionText="Status Sperre Lichtmanager 5" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
-              <ComObject Id="%AID%_O-%TT%00031" Name="HUEHCLM6Lock" Text="Lichtmanager 6: Sperre" Number="30" FunctionText="Sperren Lichtmanager 6 (1=aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
-              <ComObject Id="%AID%_O-%TT%00032" Name="HUEHCLM6LockStatus" Text="Lichtmanager 6: Status Sperre" Number="31" FunctionText="Status Sperre Lichtmanager 6" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
-              <ComObject Id="%AID%_O-%TT%00033" Name="HUEHCLM7Lock" Text="Lichtmanager 7: Sperre" Number="32" FunctionText="Sperren Lichtmanager 7 (1=aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
-              <ComObject Id="%AID%_O-%TT%00034" Name="HUEHCLM7LockStatus" Text="Lichtmanager 7: Status Sperre" Number="33" FunctionText="Status Sperre Lichtmanager 7" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
-              <ComObject Id="%AID%_O-%TT%00035" Name="HUEHCLM8Lock" Text="Lichtmanager 8: Sperre" Number="34" FunctionText="Sperren Lichtmanager 8 (1=aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
-              <ComObject Id="%AID%_O-%TT%00036" Name="HUEHCLM8LockStatus" Text="Lichtmanager 8: Status Sperre" Number="35" FunctionText="Status Sperre Lichtmanager 8" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
-              <ComObject Id="%AID%_O-%TT%00037" Name="HUEHCLReleaseTrigger" Text="Lichtmanager: Entsperr-Trigger" Number="36" FunctionText="Alle Lichtmanager entsperren (1=Entsperren)" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-17" />
+              <ComObject Id="%AID%_O-%TT%00029" Name="HUEHCLM5Lock" Text="LM 5: Sperre" Number="28" FunctionText="Sperren Lichtmanager 5 (1=aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%00030" Name="HUEHCLM5LockStatus" Text="LM 5: Status Sperre" Number="29" FunctionText="Status Sperre Lichtmanager 5" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%00031" Name="HUEHCLM6Lock" Text="LM 6: Sperre" Number="30" FunctionText="Sperren Lichtmanager 6 (1=aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%00032" Name="HUEHCLM6LockStatus" Text="LM 6: Status Sperre" Number="31" FunctionText="Status Sperre Lichtmanager 6" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%00033" Name="HUEHCLM7Lock" Text="LM 7: Sperre" Number="32" FunctionText="Sperren Lichtmanager 7 (1=aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%00034" Name="HUEHCLM7LockStatus" Text="LM 7: Status Sperre" Number="33" FunctionText="Status Sperre Lichtmanager 7" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%00035" Name="HUEHCLM8Lock" Text="LM 8: Sperre" Number="34" FunctionText="Sperren Lichtmanager 8 (1=aktiv)" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%00036" Name="HUEHCLM8LockStatus" Text="LM 8: Status Sperre" Number="35" FunctionText="Status Sperre Lichtmanager 8" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%00037" Name="HUEHCLReleaseTrigger" Text="LM: Entsperr-Trigger (global)" Number="36" FunctionText="Alle Lichtmanager entsperren (1=Entsperren)" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-17" />
             </ComObjectTable>
             
             <ComObjectRefs>
@@ -1678,38 +1701,38 @@
               <ComObjectRef Id="%AID%_O-%TT%00002_R-%TT%0000201" RefId="%AID%_O-%TT%00002" />
               <ComObjectRef Id="%AID%_O-%TT%00003_R-%TT%0000301" RefId="%AID%_O-%TT%00003" />
               <ComObjectRef Id="%AID%_O-%TT%00004_R-%TT%0000401" RefId="%AID%_O-%TT%00004" />
-              <ComObjectRef Id="%AID%_O-%TT%00005_R-%TT%0000501" RefId="%AID%_O-%TT%00005" />
-              <ComObjectRef Id="%AID%_O-%TT%00006_R-%TT%0000601" RefId="%AID%_O-%TT%00006" />
-              <ComObjectRef Id="%AID%_O-%TT%00007_R-%TT%0000701" RefId="%AID%_O-%TT%00007" />
-              <ComObjectRef Id="%AID%_O-%TT%00008_R-%TT%0000801" RefId="%AID%_O-%TT%00008" />
-              <ComObjectRef Id="%AID%_O-%TT%00009_R-%TT%0000901" RefId="%AID%_O-%TT%00009" />
-              <ComObjectRef Id="%AID%_O-%TT%00010_R-%TT%0001001" RefId="%AID%_O-%TT%00010" />
-              <ComObjectRef Id="%AID%_O-%TT%00011_R-%TT%0001101" RefId="%AID%_O-%TT%00011" />
-              <ComObjectRef Id="%AID%_O-%TT%00012_R-%TT%0001201" RefId="%AID%_O-%TT%00012" />
-              <ComObjectRef Id="%AID%_O-%TT%00013_R-%TT%0001301" RefId="%AID%_O-%TT%00013" />
-              <ComObjectRef Id="%AID%_O-%TT%00014_R-%TT%0001401" RefId="%AID%_O-%TT%00014" />
-              <ComObjectRef Id="%AID%_O-%TT%00015_R-%TT%0001501" RefId="%AID%_O-%TT%00015" />
-              <ComObjectRef Id="%AID%_O-%TT%00016_R-%TT%0001601" RefId="%AID%_O-%TT%00016" />
-              <ComObjectRef Id="%AID%_O-%TT%00017_R-%TT%0001701" RefId="%AID%_O-%TT%00017" />
-              <ComObjectRef Id="%AID%_O-%TT%00018_R-%TT%0001801" RefId="%AID%_O-%TT%00018" />
-              <ComObjectRef Id="%AID%_O-%TT%00019_R-%TT%0001901" RefId="%AID%_O-%TT%00019" />
-              <ComObjectRef Id="%AID%_O-%TT%00020_R-%TT%0002001" RefId="%AID%_O-%TT%00020" />
-              <ComObjectRef Id="%AID%_O-%TT%00021_R-%TT%0002101" RefId="%AID%_O-%TT%00021" />
-              <ComObjectRef Id="%AID%_O-%TT%00022_R-%TT%0002201" RefId="%AID%_O-%TT%00022" />
-              <ComObjectRef Id="%AID%_O-%TT%00023_R-%TT%0002301" RefId="%AID%_O-%TT%00023" />
-              <ComObjectRef Id="%AID%_O-%TT%00024_R-%TT%0002401" RefId="%AID%_O-%TT%00024" />
-              <ComObjectRef Id="%AID%_O-%TT%00025_R-%TT%0002501" RefId="%AID%_O-%TT%00025" />
-              <ComObjectRef Id="%AID%_O-%TT%00026_R-%TT%0002601" RefId="%AID%_O-%TT%00026" />
-              <ComObjectRef Id="%AID%_O-%TT%00027_R-%TT%0002701" RefId="%AID%_O-%TT%00027" />
-              <ComObjectRef Id="%AID%_O-%TT%00028_R-%TT%0002801" RefId="%AID%_O-%TT%00028" />
-              <ComObjectRef Id="%AID%_O-%TT%00029_R-%TT%0002901" RefId="%AID%_O-%TT%00029" />
-              <ComObjectRef Id="%AID%_O-%TT%00030_R-%TT%0003001" RefId="%AID%_O-%TT%00030" />
-              <ComObjectRef Id="%AID%_O-%TT%00031_R-%TT%0003101" RefId="%AID%_O-%TT%00031" />
-              <ComObjectRef Id="%AID%_O-%TT%00032_R-%TT%0003201" RefId="%AID%_O-%TT%00032" />
-              <ComObjectRef Id="%AID%_O-%TT%00033_R-%TT%0003301" RefId="%AID%_O-%TT%00033" />
-              <ComObjectRef Id="%AID%_O-%TT%00034_R-%TT%0003401" RefId="%AID%_O-%TT%00034" />
-              <ComObjectRef Id="%AID%_O-%TT%00035_R-%TT%0003501" RefId="%AID%_O-%TT%00035" />
-              <ComObjectRef Id="%AID%_O-%TT%00036_R-%TT%0003601" RefId="%AID%_O-%TT%00036" />
+              <ComObjectRef Id="%AID%_O-%TT%00005_R-%TT%0000501" RefId="%AID%_O-%TT%00005" Text="LM 1 - {{0}}: Soll-Helligkeit" TextParameterRefId="%AID%_P-%TT%10100_R-%TT%1010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00006_R-%TT%0000601" RefId="%AID%_O-%TT%00006" Text="LM 1 - {{0}}: Soll-Farbtemperatur" TextParameterRefId="%AID%_P-%TT%10100_R-%TT%1010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00007_R-%TT%0000701" RefId="%AID%_O-%TT%00007" Text="LM 2 - {{0}}: Soll-Helligkeit" TextParameterRefId="%AID%_P-%TT%20100_R-%TT%2010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00008_R-%TT%0000801" RefId="%AID%_O-%TT%00008" Text="LM 2 - {{0}}: Soll-Farbtemperatur" TextParameterRefId="%AID%_P-%TT%20100_R-%TT%2010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00009_R-%TT%0000901" RefId="%AID%_O-%TT%00009" Text="LM 3 - {{0}}: Soll-Helligkeit" TextParameterRefId="%AID%_P-%TT%30100_R-%TT%3010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00010_R-%TT%0001001" RefId="%AID%_O-%TT%00010" Text="LM 3 - {{0}}: Soll-Farbtemperatur" TextParameterRefId="%AID%_P-%TT%30100_R-%TT%3010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00011_R-%TT%0001101" RefId="%AID%_O-%TT%00011" Text="LM 4 - {{0}}: Soll-Helligkeit" TextParameterRefId="%AID%_P-%TT%40100_R-%TT%4010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00012_R-%TT%0001201" RefId="%AID%_O-%TT%00012" Text="LM 4 - {{0}}: Soll-Farbtemperatur" TextParameterRefId="%AID%_P-%TT%40100_R-%TT%4010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00013_R-%TT%0001301" RefId="%AID%_O-%TT%00013" Text="LM 1 - {{0}}: Sperre" TextParameterRefId="%AID%_P-%TT%10100_R-%TT%1010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00014_R-%TT%0001401" RefId="%AID%_O-%TT%00014" Text="LM 1 - {{0}}: Status Sperre" TextParameterRefId="%AID%_P-%TT%10100_R-%TT%1010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00015_R-%TT%0001501" RefId="%AID%_O-%TT%00015" Text="LM 2 - {{0}}: Sperre" TextParameterRefId="%AID%_P-%TT%20100_R-%TT%2010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00016_R-%TT%0001601" RefId="%AID%_O-%TT%00016" Text="LM 2 - {{0}}: Status Sperre" TextParameterRefId="%AID%_P-%TT%20100_R-%TT%2010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00017_R-%TT%0001701" RefId="%AID%_O-%TT%00017" Text="LM 3 - {{0}}: Sperre" TextParameterRefId="%AID%_P-%TT%30100_R-%TT%3010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00018_R-%TT%0001801" RefId="%AID%_O-%TT%00018" Text="LM 3 - {{0}}: Status Sperre" TextParameterRefId="%AID%_P-%TT%30100_R-%TT%3010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00019_R-%TT%0001901" RefId="%AID%_O-%TT%00019" Text="LM 4 - {{0}}: Sperre" TextParameterRefId="%AID%_P-%TT%40100_R-%TT%4010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00020_R-%TT%0002001" RefId="%AID%_O-%TT%00020" Text="LM 4 - {{0}}: Status Sperre" TextParameterRefId="%AID%_P-%TT%40100_R-%TT%4010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00021_R-%TT%0002101" RefId="%AID%_O-%TT%00021" Text="LM 5 - {{0}}: Soll-Helligkeit" TextParameterRefId="%AID%_P-%TT%50100_R-%TT%5010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00022_R-%TT%0002201" RefId="%AID%_O-%TT%00022" Text="LM 5 - {{0}}: Soll-Farbtemperatur" TextParameterRefId="%AID%_P-%TT%50100_R-%TT%5010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00023_R-%TT%0002301" RefId="%AID%_O-%TT%00023" Text="LM 6 - {{0}}: Soll-Helligkeit" TextParameterRefId="%AID%_P-%TT%60100_R-%TT%6010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00024_R-%TT%0002401" RefId="%AID%_O-%TT%00024" Text="LM 6 - {{0}}: Soll-Farbtemperatur" TextParameterRefId="%AID%_P-%TT%60100_R-%TT%6010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00025_R-%TT%0002501" RefId="%AID%_O-%TT%00025" Text="LM 7 - {{0}}: Soll-Helligkeit" TextParameterRefId="%AID%_P-%TT%70100_R-%TT%7010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00026_R-%TT%0002601" RefId="%AID%_O-%TT%00026" Text="LM 7 - {{0}}: Soll-Farbtemperatur" TextParameterRefId="%AID%_P-%TT%70100_R-%TT%7010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00027_R-%TT%0002701" RefId="%AID%_O-%TT%00027" Text="LM 8 - {{0}}: Soll-Helligkeit" TextParameterRefId="%AID%_P-%TT%80100_R-%TT%8010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00028_R-%TT%0002801" RefId="%AID%_O-%TT%00028" Text="LM 8 - {{0}}: Soll-Farbtemperatur" TextParameterRefId="%AID%_P-%TT%80100_R-%TT%8010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00029_R-%TT%0002901" RefId="%AID%_O-%TT%00029" Text="LM 5 - {{0}}: Sperre" TextParameterRefId="%AID%_P-%TT%50100_R-%TT%5010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00030_R-%TT%0003001" RefId="%AID%_O-%TT%00030" Text="LM 5 - {{0}}: Status Sperre" TextParameterRefId="%AID%_P-%TT%50100_R-%TT%5010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00031_R-%TT%0003101" RefId="%AID%_O-%TT%00031" Text="LM 6 - {{0}}: Sperre" TextParameterRefId="%AID%_P-%TT%60100_R-%TT%6010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00032_R-%TT%0003201" RefId="%AID%_O-%TT%00032" Text="LM 6 - {{0}}: Status Sperre" TextParameterRefId="%AID%_P-%TT%60100_R-%TT%6010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00033_R-%TT%0003301" RefId="%AID%_O-%TT%00033" Text="LM 7 - {{0}}: Sperre" TextParameterRefId="%AID%_P-%TT%70100_R-%TT%7010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00034_R-%TT%0003401" RefId="%AID%_O-%TT%00034" Text="LM 7 - {{0}}: Status Sperre" TextParameterRefId="%AID%_P-%TT%70100_R-%TT%7010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00035_R-%TT%0003501" RefId="%AID%_O-%TT%00035" Text="LM 8 - {{0}}: Sperre" TextParameterRefId="%AID%_P-%TT%80100_R-%TT%8010001" />
+              <ComObjectRef Id="%AID%_O-%TT%00036_R-%TT%0003601" RefId="%AID%_O-%TT%00036" Text="LM 8 - {{0}}: Status Sperre" TextParameterRefId="%AID%_P-%TT%80100_R-%TT%8010001" />
               <ComObjectRef Id="%AID%_O-%TT%00037_R-%TT%0003701" RefId="%AID%_O-%TT%00037" />
             </ComObjectRefs>
           
@@ -1848,7 +1871,7 @@
                     <!-- Reiter Lichtmanager 1 -->
                     <choose ParamRefId="%AID%_P-%TT%00011_R-%TT%0001101">
                       <when test="&gt;=1">
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM1" Name="HCLM1" Text="Lichtmanager 1: {{0: ...}}" TextParameterRefId="%AID%_P-%TT%10100_R-%TT%1010001" HelpContext="HUE-HCL-Manager-18">
+                        <ParameterBlock Id="%AID%_PB-HUEHCLM1" Name="HCLM1" Text="LM 1: {{0: ...}}" TextParameterRefId="%AID%_P-%TT%10100_R-%TT%1010001" HelpContext="HUE-HCL-Manager-18">
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM1Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-%TT%10100_R-%TT%1010001" />
                           <ParameterRefRef RefId="%AID%_P-%TT%00016_R-%TT%0001601" />
@@ -1984,7 +2007,7 @@
                     <!-- Reiter Lichtmanager 2 -->
                     <choose ParamRefId="%AID%_P-%TT%00011_R-%TT%0001101">
                       <when test="&gt;=2">
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM2" Name="HCLM2" Text="Lichtmanager 2: {{0: ...}}" TextParameterRefId="%AID%_P-1420100_R-142010001" HelpContext="HUE-HCL-Manager-18">
+                        <ParameterBlock Id="%AID%_PB-HUEHCLM2" Name="HCLM2" Text="LM 2: {{0: ...}}" TextParameterRefId="%AID%_P-1420100_R-142010001" HelpContext="HUE-HCL-Manager-18">
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM2Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1420100_R-142010001" />
                           <ParameterRefRef RefId="%AID%_P-1400017_R-140001701" />
@@ -2120,7 +2143,7 @@
                     <!-- Reiter Lichtmanager 3 -->
                     <choose ParamRefId="%AID%_P-%TT%00011_R-%TT%0001101">
                       <when test="&gt;=3">
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM3" Name="HCLM3" Text="Lichtmanager 3: {{0: ...}}" TextParameterRefId="%AID%_P-1430100_R-143010001" HelpContext="HUE-HCL-Manager-18">
+                        <ParameterBlock Id="%AID%_PB-HUEHCLM3" Name="HCLM3" Text="LM 3: {{0: ...}}" TextParameterRefId="%AID%_P-1430100_R-143010001" HelpContext="HUE-HCL-Manager-18">
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM3Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1430100_R-143010001" />
                           <ParameterRefRef RefId="%AID%_P-1400018_R-140001801" />
@@ -2256,7 +2279,7 @@
                     <!-- Reiter Lichtmanager 4 -->
                     <choose ParamRefId="%AID%_P-%TT%00011_R-%TT%0001101">
                       <when test="&gt;=4">
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM4" Name="HCLM4" Text="Lichtmanager 4: {{0: ...}}" TextParameterRefId="%AID%_P-1440100_R-144010001" HelpContext="HUE-HCL-Manager-18">
+                        <ParameterBlock Id="%AID%_PB-HUEHCLM4" Name="HCLM4" Text="LM 4: {{0: ...}}" TextParameterRefId="%AID%_P-1440100_R-144010001" HelpContext="HUE-HCL-Manager-18">
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM4Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1440100_R-144010001" />
                           <ParameterRefRef RefId="%AID%_P-1400019_R-140001901" />
@@ -2393,7 +2416,7 @@
                     <!-- Reiter Lichtmanager 5 -->
                     <choose ParamRefId="%AID%_P-%TT%00011_R-%TT%0001101">
                       <when test="&gt;=5">
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM5" Name="HCLM5" Text="Lichtmanager 5: {{0: ...}}" TextParameterRefId="%AID%_P-%TT%50100_R-%TT%5010001" HelpContext="HUE-HCL-Manager-18">
+                        <ParameterBlock Id="%AID%_PB-HUEHCLM5" Name="HCLM5" Text="LM 5: {{0: ...}}" TextParameterRefId="%AID%_P-%TT%50100_R-%TT%5010001" HelpContext="HUE-HCL-Manager-18">
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM5Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-%TT%50100_R-%TT%5010001" />
                           <ParameterRefRef RefId="%AID%_P-%TT%00028_R-%TT%0002801" />
@@ -2530,7 +2553,7 @@
                     <!-- Reiter Lichtmanager 6 -->
                     <choose ParamRefId="%AID%_P-%TT%00011_R-%TT%0001101">
                       <when test="&gt;=6">
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM6" Name="HCLM6" Text="Lichtmanager 6: {{0: ...}}" TextParameterRefId="%AID%_P-%TT%60100_R-%TT%6010001" HelpContext="HUE-HCL-Manager-18">
+                        <ParameterBlock Id="%AID%_PB-HUEHCLM6" Name="HCLM6" Text="LM 6: {{0: ...}}" TextParameterRefId="%AID%_P-%TT%60100_R-%TT%6010001" HelpContext="HUE-HCL-Manager-18">
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM6Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-%TT%60100_R-%TT%6010001" />
                           <ParameterRefRef RefId="%AID%_P-%TT%00029_R-%TT%0002901" />
@@ -2667,7 +2690,7 @@
                     <!-- Reiter Lichtmanager 7 -->
                     <choose ParamRefId="%AID%_P-%TT%00011_R-%TT%0001101">
                       <when test="&gt;=7">
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM7" Name="HCLM7" Text="Lichtmanager 7: {{0: ...}}" TextParameterRefId="%AID%_P-%TT%70100_R-%TT%7010001" HelpContext="HUE-HCL-Manager-18">
+                        <ParameterBlock Id="%AID%_PB-HUEHCLM7" Name="HCLM7" Text="LM 7: {{0: ...}}" TextParameterRefId="%AID%_P-%TT%70100_R-%TT%7010001" HelpContext="HUE-HCL-Manager-18">
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM7Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-%TT%70100_R-%TT%7010001" />
                           <ParameterRefRef RefId="%AID%_P-%TT%00030_R-%TT%0003001" />
@@ -2804,7 +2827,7 @@
                     <!-- Reiter Lichtmanager 8 -->
                     <choose ParamRefId="%AID%_P-%TT%00011_R-%TT%0001101">
                       <when test="&gt;=8">
-                        <ParameterBlock Id="%AID%_PB-HUEHCLM8" Name="HCLM8" Text="Lichtmanager 8: {{0: ...}}" TextParameterRefId="%AID%_P-%TT%80100_R-%TT%8010001" HelpContext="HUE-HCL-Manager-18">
+                        <ParameterBlock Id="%AID%_PB-HUEHCLM8" Name="HCLM8" Text="LM 8: {{0: ...}}" TextParameterRefId="%AID%_P-%TT%80100_R-%TT%8010001" HelpContext="HUE-HCL-Manager-18">
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM8Name" Text="Bezeichnung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-%TT%80100_R-%TT%8010001" />
                           <ParameterRefRef RefId="%AID%_P-%TT%00031_R-%TT%0003101" />
