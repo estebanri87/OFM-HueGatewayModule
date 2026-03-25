@@ -457,17 +457,17 @@
             </ParameterRefs>
             
             <ComObjectTable>
-              <ComObject Id="%AID%_O-%TT%5%CC%000" Name="CH%C%Switch" Text="Schalten" FunctionText="Hue ein/aus" Number="%K00%" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
-              <ComObject Id="%AID%_O-%TT%5%CC%001" Name="CH%C%Brightness" Text="Helligkeit" FunctionText="Helligkeit absolut 0-100%" Number="%K01%" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <ComObject Id="%AID%_O-%TT%5%CC%000" Name="CH%C%Switch" Text="Schalten" FunctionText="Schalten Ein/Aus" Number="%K00%" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%5%CC%001" Name="CH%C%Brightness" Text="Helligkeit" FunctionText="Helligkeit absolut (0-100%)" Number="%K01%" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
               <ComObject Id="%AID%_O-%TT%5%CC%002" Name="CH%C%Dimming" Text="Dimmen" FunctionText="Helligkeit relativ dimmen" Number="%K02%" ObjectSize="4 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-3-7" />
-              <ComObject Id="%AID%_O-%TT%5%CC%003" Name="CH%C%StatusSwitch" Text="Status Schalten" FunctionText="Lampenstatus Ein/Aus" Number="%K03%" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
-              <ComObject Id="%AID%_O-%TT%5%CC%004" Name="CH%C%StatusBrightness" Text="Status Helligkeit" FunctionText="Lampenstatus Helligkeit 0-100%" Number="%K04%" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
-              <ComObject Id="%AID%_O-%TT%5%CC%005" Name="CH%C%ColorTemp" Text="Farbtemperatur" FunctionText="Farbtemperatur in Kelvin (2000-6500K)" Number="%K05%" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
-              <ComObject Id="%AID%_O-%TT%5%CC%006" Name="CH%C%StatusColorTemp" Text="Status Farbtemp." FunctionText="Status Farbtemperatur in Kelvin" Number="%K06%" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
-              <ComObject Id="%AID%_O-%TT%5%CC%007" Name="CH%C%ColorRGB" Text="Farbe RGB" FunctionText="Farbe als RGB-Wert" Number="%K07%" ObjectSize="3 Bytes" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-232-600" />
-              <ComObject Id="%AID%_O-%TT%5%CC%008" Name="CH%C%StatusColorRGB" Text="Status RGB" FunctionText="Status Farbe als RGB-Wert" Number="%K08%" ObjectSize="3 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-232-600" />
-              <ComObject Id="%AID%_O-%TT%5%CC%009" Name="CH%C%HCLLock" Text="Lichtmanager Sperre (Hue-Kanal)" FunctionText="Ausgabe für diesen Hue-Kanal sperren (1=Sperre aktiv)" Number="%K09%" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
-              <ComObject Id="%AID%_O-%TT%5%CC%010" Name="CH%C%HCLLockStatus" Text="Status Lichtmanager Sperre (Hue-Kanal)" FunctionText="Aktueller Sperrstatus der Ausgabe für diesen Hue-Kanal" Number="%K10%" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%5%CC%003" Name="CH%C%StatusSwitch" Text="Status Schalten" FunctionText="Status Ein/Aus" Number="%K03%" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%5%CC%004" Name="CH%C%StatusBrightness" Text="Status Helligkeit" FunctionText="Status Helligkeit (0-100%)" Number="%K04%" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <ComObject Id="%AID%_O-%TT%5%CC%005" Name="CH%C%ColorTemp" Text="Farbtemperatur" FunctionText="Farbtemperatur (2000-6500K)" Number="%K05%" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
+              <ComObject Id="%AID%_O-%TT%5%CC%006" Name="CH%C%StatusColorTemp" Text="Status Farbtemperatur" FunctionText="Status Farbtemperatur (Kelvin)" Number="%K06%" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-600" />
+              <ComObject Id="%AID%_O-%TT%5%CC%007" Name="CH%C%ColorRGB" Text="Farbe RGB" FunctionText="Farbe (RGB)" Number="%K07%" ObjectSize="3 Bytes" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-232-600" />
+              <ComObject Id="%AID%_O-%TT%5%CC%008" Name="CH%C%StatusColorRGB" Text="Status RGB" FunctionText="Status Farbe (RGB)" Number="%K08%" ObjectSize="3 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-232-600" />
+              <ComObject Id="%AID%_O-%TT%5%CC%009" Name="CH%C%HCLLock" Text="Sperre Lichtmanager" FunctionText="Hue-Kanal sperren (1=Sperre aktiv)" Number="%K09%" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%5%CC%010" Name="CH%C%HCLLockStatus" Text="Status Sperre Lichtmanager" FunctionText="Sperrstatus Hue-Kanal" Number="%K10%" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
               <!-- KO-Slot 11: Szene (DPT 18.001, Bit7=Speichern/Abrufen, Bits0-5=Szene 0-63) -->
               <ComObject Id="%AID%_O-%TT%5%CC%011" Name="CH%C%Scene" Text="Szene" FunctionText="Szene abrufen/speichern (DPT 18.001)" Number="%K11%" ObjectSize="1 Byte" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-18-1" />
             </ComObjectTable>
@@ -485,29 +485,29 @@
               <ComObjectRef Id="%AID%_O-%TT%5%CC%009_R-%TT%5%CC%00901" RefId="%AID%_O-%TT%5%CC%009" Text="{{0:Hue %C%}}: Lichtmanager Sperre" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <ComObjectRef Id="%AID%_O-%TT%5%CC%010_R-%TT%5%CC%01001" RefId="%AID%_O-%TT%5%CC%010" Text="{{0:Hue %C%}}: Status Lichtmanager Sperre" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Bewegungsmelder: Status Bewegung (KO-Slot 0, DPT-1-8, nur Senden) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00002" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Hue %C%}}: Status Bewegung" FunctionText="Bewegung erkannt (1=ja, 0=nein)" DatapointType="DPST-1-8" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00002" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Hue %C%}}: Status Bewegung" FunctionText="Bewegung erkannt (1=ja)" DatapointType="DPST-1-8" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Kontaktsensor: Status Kontakt offen (KO-Slot 0, DPT-1-9, nur Senden) -->
               <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00003" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Hue %C%}}: Status Kontakt offen" FunctionText="Kontakt offen (1=offen, 0=geschlossen)" DatapointType="DPST-1-9" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Steckdose: Schalten (KO-Slot 0, DPT-1-1, bidirektional) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00004" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Hue %C%}}: Schalten" FunctionText="Steckdose ein/aus" DatapointType="DPST-1-1" ReadFlag="Enabled" WriteFlag="Enabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00004" RefId="%AID%_O-%TT%5%CC%000" Text="{{0:Hue %C%}}: Schalten" FunctionText="Steckdose Ein/Aus" DatapointType="DPST-1-1" ReadFlag="Enabled" WriteFlag="Enabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Steckdose: Status Schalten (KO-Slot 3, DPT-1-1, nur Senden) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00302" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Status Schalten" FunctionText="Steckdose Status ein/aus" DatapointType="DPST-1-1" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00302" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Status Schalten" FunctionText="Status Steckdose Ein/Aus" DatapointType="DPST-1-1" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Bewegungsmelder: Gerät erreichbar (KO-Slot 3, DPST-1-2, nur Senden) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00304" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Gerät erreichbar" FunctionText="Gerät erreichbar (1=ja, 0=nein)" DatapointType="DPST-1-2" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00304" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Gerät erreichbar" FunctionText="Gerät erreichbar (1=ja)" DatapointType="DPST-1-2" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Sensor/Kontakt: Batterie (KO-Slot 4, DPST-5-1, nur Senden) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00402" RefId="%AID%_O-%TT%5%CC%004" Text="{{0:Hue %C%}}: Batterie" FunctionText="Batterie-Ladung 0-100%" DatapointType="DPST-5-1" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00402" RefId="%AID%_O-%TT%5%CC%004" Text="{{0:Hue %C%}}: Batterie" FunctionText="Batterie-Ladung (0-100%)" DatapointType="DPST-5-1" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Sensor/Kontakt: Temperatur (KO-Slot 5, DPST-9-1, nur Senden) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00502" RefId="%AID%_O-%TT%5%CC%005" Text="{{0:Hue %C%}}: Temperatur" FunctionText="Temperatur in °C" DatapointType="DPST-9-1" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00502" RefId="%AID%_O-%TT%5%CC%005" Text="{{0:Hue %C%}}: Temperatur" FunctionText="Temperatur (°C)" DatapointType="DPST-9-1" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Bewegungsmelder: Helligkeit Lux (KO-Slot 6, DPST-9-4, nur Senden) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00602" RefId="%AID%_O-%TT%5%CC%006" Text="{{0:Hue %C%}}: Helligkeit (Lux)" FunctionText="Helligkeit in Lux" DatapointType="DPST-9-4" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00602" RefId="%AID%_O-%TT%5%CC%006" Text="{{0:Hue %C%}}: Helligkeit (Lux)" FunctionText="Helligkeit (Lux)" DatapointType="DPST-9-4" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Kontaktsensor: Sabotage (KO-Slot 3, DPST-1-1, nur Senden) -->
               <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00305" RefId="%AID%_O-%TT%5%CC%003" Text="{{0:Hue %C%}}: Sabotage" FunctionText="Sabotagekontakt ausgelöst (1=ja)" DatapointType="DPST-1-1" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Kontakt/Steckdose: Gerät erreichbar (KO-Slot 9, DPST-1-2, nur Senden) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%009_R-%TT%5%CC%00903" RefId="%AID%_O-%TT%5%CC%009" Text="{{0:Hue %C%}}: Gerät erreichbar" FunctionText="Gerät erreichbar (1=ja, 0=nein)" DatapointType="DPST-1-2" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%009_R-%TT%5%CC%00903" RefId="%AID%_O-%TT%5%CC%009" Text="{{0:Hue %C%}}: Gerät erreichbar" FunctionText="Gerät erreichbar (1=ja)" DatapointType="DPST-1-2" ReadFlag="Enabled" WriteFlag="Disabled" TransmitFlag="Enabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Szene (KO-Slot 11, DPST-18-1, Speichern aktiv) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%011_R-%TT%5%CC%01101" RefId="%AID%_O-%TT%5%CC%011" Text="{{0:Hue %C%}}: Szene" FunctionText="Szene abrufen/speichern (DPT 18.001)" DatapointType="DPST-18-1" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%011_R-%TT%5%CC%01101" RefId="%AID%_O-%TT%5%CC%011" Text="{{0:Hue %C%}}: Szene" FunctionText="Szene" DatapointType="DPST-18-1" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <!-- Szene (KO-Slot 11, DPST-17-1, Speichern nicht aktiv) -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%011_R-%TT%5%CC%01102" RefId="%AID%_O-%TT%5%CC%011" Text="{{0:Hue %C%}}: Szene" FunctionText="Szene abrufen (DPT 17.001)" DatapointType="DPST-17-1" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%011_R-%TT%5%CC%01102" RefId="%AID%_O-%TT%5%CC%011" Text="{{0:Hue %C%}}: Szene" FunctionText="Szene" DatapointType="DPST-17-1" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
 
               <!-- ===== Taster: funktionsabhängige KOs pro Taste (Gewerk/Kurz/Lang) ===== -->
               <!-- === Taste 1 Kurzdruck (KO-Slot 0, base O-000) === -->
@@ -575,11 +575,11 @@
               <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00736" RefId="%AID%_O-%TT%5%CC%007" Text="{{0:Hue %C%}}: Taste 4: Objekt B" FunctionText="Langdruck: Objekt B senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
 
               <!-- === Drehregler (KO-Slot 8, base O-008, unverändert) === -->
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00820" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Drehregler: Dimmen" FunctionText="Drehregler Absolutwert Dimmen" ObjectSize="1 Byte" DatapointType="DPST-5-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00821" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Drehregler: Wertgeber" FunctionText="Drehregler Absolutwert Wertgeber" ObjectSize="1 Byte" DatapointType="DPST-5-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00822" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Drehregler: Lautstärke" FunctionText="Drehregler Absolutwert Lautstärke" ObjectSize="1 Byte" DatapointType="DPST-5-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00823" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Drehregler: Farbtemperatur" FunctionText="Drehregler Absolutwert Farbtemperatur" ObjectSize="2 Bytes" DatapointType="DPST-7-600" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00824" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Drehregler: Lamelle" FunctionText="Drehregler Absolutwert Lamellenposition" ObjectSize="1 Byte" DatapointType="DPST-5-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00820" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Drehregler: Dimmen" FunctionText="Drehregler Dimmen (0-100%)" ObjectSize="1 Byte" DatapointType="DPST-5-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00821" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Drehregler: Wertgeber" FunctionText="Drehregler Wertgeber (0-100%)" ObjectSize="1 Byte" DatapointType="DPST-5-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00822" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Drehregler: Lautstärke" FunctionText="Drehregler Lautstärke (0-100%)" ObjectSize="1 Byte" DatapointType="DPST-5-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00823" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Drehregler: Farbtemperatur" FunctionText="Drehregler Farbtemperatur (Kelvin)" ObjectSize="2 Bytes" DatapointType="DPST-7-600" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00824" RefId="%AID%_O-%TT%5%CC%008" Text="{{0:Hue %C%}}: Drehregler: Lamelle" FunctionText="Drehregler Lamellenposition (0-100%)" ObjectSize="1 Byte" DatapointType="DPST-5-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
             </ComObjectRefs>
             
           </Static>
@@ -603,6 +603,11 @@
                         <when test="0">
                           <!-- Zieltyp (Licht/Raum/Zone) -->
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%009_R-%TT%5%CC%00901" HelpContext="HUE-Zieltyp" />
+                          <choose ParamRefId="%AID%_UP-%TT%5%CC%009_R-%TT%5%CC%00901">
+                            <when test=">=1">
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_TargetTypeInfo" Text="Für Raum/Zone: Der Statuswert bildet nicht zwingend den exakten Zustand aller Einzelgeräte ab." UIHint="Information" HelpContext="HUE-Zieltyp" />
+                            </when>
+                          </choose>
                           <!-- Ziel-RID oder Name -->
                           <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" HelpContext="HUE-Hue-Ziel-Light-Room-Zone-ID-oder-Name" />
                           <!-- Lampentyp -->
@@ -613,26 +618,30 @@
                           <!-- HCL-Master-Zuordnung (nur für Farbtemperatur/RGB) -->
                           <choose ParamRefId="%AID%_UP-%TT%5%CC%002_R-%TT%5%CC%00201">
                             <when test=">=2">
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLLine" Text="" UIHint="HorizontalRuler" />
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLHeader" Text="Lichtmanager" UIHint="Headline" HelpContext="HUE-Lichtmanager-Zuordnung" />
-                              <ParameterRefRef RefId="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701" HelpContext="HUE-Lichtmanager-Zuordnung" />
-                              <choose ParamRefId="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701">
-                                <when test=">=1">
-                                  <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLLockHeader" Text="Lichtmanager Sperre (Hue-Kanal)" UIHint="Headline" HelpContext="HUE-Sperre-kanal-spezifisch" />
-                                  <ParameterRefRef RefId="%AID%_P-%TT%00042_R-%TT%0004201" HelpContext="HUE-Sperre-kanal-spezifisch" />
-                                  <choose ParamRefId="%AID%_P-%TT%00042_R-%TT%0004201">
-                                    <when test="0">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%011_R-%TT%5%CC%01101" IndentLevel="1" HelpContext="HUE-Sperre-kanal-spezifisch" />
-                                    </when>
-                                    <when test="1">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%00043_R-%TT%0004301" IndentLevel="1" HelpContext="HUE-Sperre-kanal-spezifisch" />
-                                    </when>
-                                    <when test="2">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%00044_R-%TT%0004401" IndentLevel="1" HelpContext="HUE-Sperre-kanal-spezifisch" />
-                                    </when>
-                                    <when test="3">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%00043_R-%TT%0004301" IndentLevel="1" HelpContext="HUE-Sperre-kanal-spezifisch" />
-                                      <ParameterRefRef RefId="%AID%_P-%TT%00044_R-%TT%0004401" IndentLevel="1" HelpContext="HUE-Sperre-kanal-spezifisch" />
+                              <choose ParamRefId="%AID%_P-%TT%00010_R-%TT%0001001">
+                                <when test="1">
+                                  <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLLine" Text="" UIHint="HorizontalRuler" />
+                                  <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLHeader" Text="Lichtmanager" UIHint="Headline" HelpContext="HUE-Lichtmanager-Zuordnung" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701" HelpContext="HUE-Lichtmanager-Zuordnung" />
+                                  <choose ParamRefId="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701">
+                                    <when test=">=1">
+                                      <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLLockHeader" Text="Lichtmanager Sperre (Hue-Kanal)" UIHint="Headline" HelpContext="HUE-Sperre-kanal-spezifisch" />
+                                      <ParameterRefRef RefId="%AID%_P-%TT%00042_R-%TT%0004201" HelpContext="HUE-Sperre-kanal-spezifisch" />
+                                      <choose ParamRefId="%AID%_P-%TT%00042_R-%TT%0004201">
+                                        <when test="0">
+                                          <ParameterRefRef RefId="%AID%_P-%TT%5%CC%011_R-%TT%5%CC%01101" IndentLevel="1" HelpContext="HUE-Sperre-kanal-spezifisch" />
+                                        </when>
+                                        <when test="1">
+                                          <ParameterRefRef RefId="%AID%_P-%TT%00043_R-%TT%0004301" IndentLevel="1" HelpContext="HUE-Sperre-kanal-spezifisch" />
+                                        </when>
+                                        <when test="2">
+                                          <ParameterRefRef RefId="%AID%_P-%TT%00044_R-%TT%0004401" IndentLevel="1" HelpContext="HUE-Sperre-kanal-spezifisch" />
+                                        </when>
+                                        <when test="3">
+                                          <ParameterRefRef RefId="%AID%_P-%TT%00043_R-%TT%0004301" IndentLevel="1" HelpContext="HUE-Sperre-kanal-spezifisch" />
+                                          <ParameterRefRef RefId="%AID%_P-%TT%00044_R-%TT%0004401" IndentLevel="1" HelpContext="HUE-Sperre-kanal-spezifisch" />
+                                        </when>
+                                      </choose>
                                     </when>
                                   </choose>
                                 </when>
@@ -1278,13 +1287,13 @@
                         <!-- ===== DeviceType 1: Bewegungsmelder ===== -->
                         <when test="1">
                           <!-- Geräte-UUID -->
-                          <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" HelpContext="HUE-Hue-Ziel-Light-Room-Zone-ID-oder-Name" />
+                          <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" HelpContext="HUE-Hue-Ziel-Geraete-ID-oder-Name" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_MotionOptLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_MotionOptHdr" Text="Optionale Kommunikationsobjekte" UIHint="Headline" HelpContext="HUE-Kanal" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%014_R-%TT%5%CC%01401" HelpContext="HUE-Kanal" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%017_R-%TT%5%CC%01701" HelpContext="HUE-Kanal" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%015_R-%TT%5%CC%01501" HelpContext="HUE-Kanal" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%016_R-%TT%5%CC%01601" HelpContext="HUE-Kanal" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_MotionOptHdr" Text="Optionale Kommunikationsobjekte" UIHint="Headline" HelpContext="HUE-Optionale-Kommunikationsobjekte" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%014_R-%TT%5%CC%01401" HelpContext="HUE-Geraet-erreichbar-verwenden" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%017_R-%TT%5%CC%01701" HelpContext="HUE-Batterie-verwenden" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%015_R-%TT%5%CC%01501" HelpContext="HUE-Temperatur-verwenden" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%016_R-%TT%5%CC%01601" HelpContext="HUE-Helligkeit-verwenden" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_MotionSyncLine" Text="" UIHint="HorizontalRuler" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_MotionSyncHdr" Text="Abfrage" UIHint="Headline" HelpContext="HUE-Polling-Intervall" />
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%005_R-%TT%5%CC%00501" HelpContext="HUE-Polling-Intervall" />
@@ -1293,7 +1302,7 @@
                         <!-- ===== DeviceType 2: Taster/Schalter ===== -->
                         <when test="2">
                           <!-- Geräte-UUID -->
-                          <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" HelpContext="HUE-Hue-Ziel-Light-Room-Zone-ID-oder-Name" />
+                          <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" HelpContext="HUE-Hue-Ziel-Geraete-ID-oder-Name" />
                           <!-- Anzahl Tasten -->
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301" HelpContext="HUE-TasterSchalter-Konfiguration" />
                           <!-- Native Hue Aktion -->
@@ -1440,12 +1449,12 @@
                         <!-- ===== DeviceType 3: Kontaktsensor ===== -->
                         <when test="3">
                           <!-- Geräte-UUID -->
-                          <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" HelpContext="HUE-Hue-Ziel-Light-Room-Zone-ID-oder-Name" />
+                          <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" HelpContext="HUE-Hue-Ziel-Geraete-ID-oder-Name" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_ContactOptLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_ContactOptHdr" Text="Optionale Kommunikationsobjekte" UIHint="Headline" HelpContext="HUE-Kanal" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%018_R-%TT%5%CC%01801" HelpContext="HUE-Kanal" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%017_R-%TT%5%CC%01701" HelpContext="HUE-Kanal" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%014_R-%TT%5%CC%01401" HelpContext="HUE-Kanal" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_ContactOptHdr" Text="Optionale Kommunikationsobjekte" UIHint="Headline" HelpContext="HUE-Optionale-Kommunikationsobjekte" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%018_R-%TT%5%CC%01801" HelpContext="HUE-Sabotage-verwenden" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%017_R-%TT%5%CC%01701" HelpContext="HUE-Batterie-verwenden" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%014_R-%TT%5%CC%01401" HelpContext="HUE-Geraet-erreichbar-verwenden" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_ContactSyncLine" Text="" UIHint="HorizontalRuler" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_ContactSyncHdr" Text="Abfrage" UIHint="Headline" HelpContext="HUE-Polling-Intervall" />
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%005_R-%TT%5%CC%00501" HelpContext="HUE-Polling-Intervall" />
@@ -1454,10 +1463,10 @@
                         <!-- ===== DeviceType 4: Steckdose ===== -->
                         <when test="4">
                           <!-- Geräte-UUID -->
-                          <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" HelpContext="HUE-Hue-Ziel-Light-Room-Zone-ID-oder-Name" />
+                          <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" HelpContext="HUE-Hue-Ziel-Geraete-ID-oder-Name" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PlugOptLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PlugOptHdr" Text="Optionale Kommunikationsobjekte" UIHint="Headline" HelpContext="HUE-Kanal" />
-                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%014_R-%TT%5%CC%01401" HelpContext="HUE-Kanal" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PlugOptHdr" Text="Optionale Kommunikationsobjekte" UIHint="Headline" HelpContext="HUE-Optionale-Kommunikationsobjekte" />
+                          <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%014_R-%TT%5%CC%01401" HelpContext="HUE-Geraet-erreichbar-verwenden" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PlugSyncLine" Text="" UIHint="HorizontalRuler" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PlugSyncHdr" Text="Synchronisation" UIHint="Headline" HelpContext="HUE-Synchronisationsrichtung" />
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%004_R-%TT%5%CC%00401" HelpContext="HUE-Synchronisationsrichtung" />
@@ -1466,80 +1475,43 @@
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PScnLine" Text="" UIHint="HorizontalRuler" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PScnHdr" Text="Szenensteuerung" UIHint="Headline" HelpContext="HUE-Szenensteuerung" />
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%019_R-%TT%5%CC%01901" HelpContext="HUE-Szenensteuerung" />
-                          <choose ParamRefId="%AID%_UP-%TT%5%CC%019_R-%TT%5%CC%01901">
-                              <when test="1">
-                                <!-- Szene speichern -->
-                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PStoreHdr" Text="Szene speichern" UIHint="Headline" HelpContext="HUE-Szenensteuerung" />
-                                <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%200_R-%TT%5%CC%20001" HelpContext="HUE-Szenensteuerung" />
-                                <!-- Szene 1 -->
-                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc1Hdr" Text="Szene 1" UIHint="Headline" HelpContext="HUE-Szenen" />
-                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%020_R-%TT%5%CC%02001" HelpContext="HUE-Szenen" />
-                                <choose ParamRefId="%AID%_P-%TT%5%CC%020_R-%TT%5%CC%02001">
-                                  <when test=">=1">
-                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%101_R-%TT%5%CC%10101" IndentLevel="1" HelpContext="HUE-Szenen" />
-                                  </when>
-                                </choose>
-                                <!-- Szene 2 -->
-                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc2Hdr" Text="Szene 2" UIHint="Headline" HelpContext="HUE-Szenen" />
-                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%030_R-%TT%5%CC%03001" HelpContext="HUE-Szenen" />
-                                <choose ParamRefId="%AID%_P-%TT%5%CC%030_R-%TT%5%CC%03001">
-                                  <when test=">=1">
-                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%104_R-%TT%5%CC%10401" IndentLevel="1" HelpContext="HUE-Szenen" />
-                                  </when>
-                                </choose>
-                                <!-- Szene 3 -->
-                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc3Hdr" Text="Szene 3" UIHint="Headline" HelpContext="HUE-Szenen" />
-                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%040_R-%TT%5%CC%04001" HelpContext="HUE-Szenen" />
-                                <choose ParamRefId="%AID%_P-%TT%5%CC%040_R-%TT%5%CC%04001">
-                                  <when test=">=1">
-                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%107_R-%TT%5%CC%10701" IndentLevel="1" HelpContext="HUE-Szenen" />
-                                  </when>
-                                </choose>
-                                <!-- Szene 4 -->
-                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc4Hdr" Text="Szene 4" UIHint="Headline" HelpContext="HUE-Szenen" />
-                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%050_R-%TT%5%CC%05001" HelpContext="HUE-Szenen" />
-                                <choose ParamRefId="%AID%_P-%TT%5%CC%050_R-%TT%5%CC%05001">
-                                  <when test=">=1">
-                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%110_R-%TT%5%CC%11001" IndentLevel="1" HelpContext="HUE-Szenen" />
-                                  </when>
-                                </choose>
-                                <!-- Szene 5 -->
-                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc5Hdr" Text="Szene 5" UIHint="Headline" HelpContext="HUE-Szenen" />
-                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%060_R-%TT%5%CC%06001" HelpContext="HUE-Szenen" />
-                                <choose ParamRefId="%AID%_P-%TT%5%CC%060_R-%TT%5%CC%06001">
-                                  <when test=">=1">
-                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%113_R-%TT%5%CC%11301" IndentLevel="1" HelpContext="HUE-Szenen" />
-                                  </when>
-                                </choose>
-                                <!-- Szene 6 -->
-                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc6Hdr" Text="Szene 6" UIHint="Headline" HelpContext="HUE-Szenen" />
-                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%070_R-%TT%5%CC%07001" HelpContext="HUE-Szenen" />
-                                <choose ParamRefId="%AID%_P-%TT%5%CC%070_R-%TT%5%CC%07001">
-                                  <when test=">=1">
-                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%116_R-%TT%5%CC%11601" IndentLevel="1" HelpContext="HUE-Szenen" />
-                                  </when>
-                                </choose>
-                                <!-- Szene 7 -->
-                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc7Hdr" Text="Szene 7" UIHint="Headline" HelpContext="HUE-Szenen" />
-                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%080_R-%TT%5%CC%08001" HelpContext="HUE-Szenen" />
-                                <choose ParamRefId="%AID%_P-%TT%5%CC%080_R-%TT%5%CC%08001">
-                                  <when test=">=1">
-                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%119_R-%TT%5%CC%11901" IndentLevel="1" HelpContext="HUE-Szenen" />
-                                  </when>
-                                </choose>
-                                <!-- Szene 8 -->
-                                <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc8Hdr" Text="Szene 8" UIHint="Headline" HelpContext="HUE-Szenen" />
-                                <ParameterRefRef RefId="%AID%_P-%TT%5%CC%090_R-%TT%5%CC%09001" HelpContext="HUE-Szenen" />
-                                <choose ParamRefId="%AID%_P-%TT%5%CC%090_R-%TT%5%CC%09001">
-                                  <when test=">=1">
-                                    <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%122_R-%TT%5%CC%12201" IndentLevel="1" HelpContext="HUE-Szenen" />
-                                  </when>
-                                </choose>
-                              </when>
-                          </choose>
                         </when>
 
-                      </choose>
+                      <when test="4">
+                        <choose ParamRefId="%AID%_UP-%TT%5%CC%019_R-%TT%5%CC%01901">
+                          <when test="1">
+                            <ParameterBlock Id="%AID%_PB-%TT%5%CC%03" Name="HUE%C%ScenesPlug" Text="Hue %C%: Szenen" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" Icon="view-list-outline" HelpContext="HUE-Szenen">
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PStoreHdr" Text="Szene speichern" UIHint="Headline" HelpContext="HUE-Szenensteuerung" />
+                              <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%200_R-%TT%5%CC%20001" HelpContext="HUE-Szenensteuerung" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc1Hdr" Text="Szene 1" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%5%CC%020_R-%TT%5%CC%02001" HelpContext="HUE-Szenen" />
+                              <choose ParamRefId="%AID%_P-%TT%5%CC%020_R-%TT%5%CC%02001"><when test=">=1"><ParameterRefRef RefId="%AID%_UP-%TT%5%CC%101_R-%TT%5%CC%10101" IndentLevel="1" HelpContext="HUE-Szenen" /></when></choose>
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc2Hdr" Text="Szene 2" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%5%CC%030_R-%TT%5%CC%03001" HelpContext="HUE-Szenen" />
+                              <choose ParamRefId="%AID%_P-%TT%5%CC%030_R-%TT%5%CC%03001"><when test=">=1"><ParameterRefRef RefId="%AID%_UP-%TT%5%CC%104_R-%TT%5%CC%10401" IndentLevel="1" HelpContext="HUE-Szenen" /></when></choose>
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc3Hdr" Text="Szene 3" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%5%CC%040_R-%TT%5%CC%04001" HelpContext="HUE-Szenen" />
+                              <choose ParamRefId="%AID%_P-%TT%5%CC%040_R-%TT%5%CC%04001"><when test=">=1"><ParameterRefRef RefId="%AID%_UP-%TT%5%CC%107_R-%TT%5%CC%10701" IndentLevel="1" HelpContext="HUE-Szenen" /></when></choose>
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc4Hdr" Text="Szene 4" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%5%CC%050_R-%TT%5%CC%05001" HelpContext="HUE-Szenen" />
+                              <choose ParamRefId="%AID%_P-%TT%5%CC%050_R-%TT%5%CC%05001"><when test=">=1"><ParameterRefRef RefId="%AID%_UP-%TT%5%CC%110_R-%TT%5%CC%11001" IndentLevel="1" HelpContext="HUE-Szenen" /></when></choose>
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc5Hdr" Text="Szene 5" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%5%CC%060_R-%TT%5%CC%06001" HelpContext="HUE-Szenen" />
+                              <choose ParamRefId="%AID%_P-%TT%5%CC%060_R-%TT%5%CC%06001"><when test=">=1"><ParameterRefRef RefId="%AID%_UP-%TT%5%CC%113_R-%TT%5%CC%11301" IndentLevel="1" HelpContext="HUE-Szenen" /></when></choose>
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc6Hdr" Text="Szene 6" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%5%CC%070_R-%TT%5%CC%07001" HelpContext="HUE-Szenen" />
+                              <choose ParamRefId="%AID%_P-%TT%5%CC%070_R-%TT%5%CC%07001"><when test=">=1"><ParameterRefRef RefId="%AID%_UP-%TT%5%CC%116_R-%TT%5%CC%11601" IndentLevel="1" HelpContext="HUE-Szenen" /></when></choose>
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc7Hdr" Text="Szene 7" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%5%CC%080_R-%TT%5%CC%08001" HelpContext="HUE-Szenen" />
+                              <choose ParamRefId="%AID%_P-%TT%5%CC%080_R-%TT%5%CC%08001"><when test=">=1"><ParameterRefRef RefId="%AID%_UP-%TT%5%CC%119_R-%TT%5%CC%11901" IndentLevel="1" HelpContext="HUE-Szenen" /></when></choose>
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc8Hdr" Text="Szene 8" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%5%CC%090_R-%TT%5%CC%09001" HelpContext="HUE-Szenen" />
+                              <choose ParamRefId="%AID%_P-%TT%5%CC%090_R-%TT%5%CC%09001"><when test=">=1"><ParameterRefRef RefId="%AID%_UP-%TT%5%CC%122_R-%TT%5%CC%12201" IndentLevel="1" HelpContext="HUE-Szenen" /></when></choose>
+                            </ParameterBlock>
+                          </when>
+                        </choose>
+                      </when>
+                    </choose>
 
                     <!-- ===== KO-Sichtbarkeit nach Gerätetyp ===== -->
                     <choose ParamRefId="%AID%_UP-%TT%5%CC%012_R-%TT%5%CC%01201">
@@ -1616,10 +1588,14 @@
                         </choose>
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%002_R-%TT%5%CC%00201">
                           <when test=">=2">
-                            <choose ParamRefId="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701">
-                              <when test=">=1">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%009_R-%TT%5%CC%00901" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%010_R-%TT%5%CC%01001" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                            <choose ParamRefId="%AID%_P-%TT%00010_R-%TT%0001001">
+                              <when test="1">
+                                <choose ParamRefId="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701">
+                                  <when test=">=1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%009_R-%TT%5%CC%00901" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%010_R-%TT%5%CC%01001" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
                               </when>
                             </choose>
                           </when>
