@@ -55,3 +55,22 @@ Wenn **Szene speichern** aktiviert ist und ein Speicherbefehl (DPT 18.001, Bit 7
 
 Hinweis: Gespeicherte Szenen werden im Flash des Geräts abgelegt und überleben einen Neustart.
 
+#### DPT 18.001 kurz erklärt
+
+DPT 18.001 erweitert den reinen Szenenabruf um eine Speicherfunktion:
+
+- Bit 7 = `0`: Szene abrufen
+- Bit 7 = `1`: Szene speichern
+- Bits 0..5: Szenennummer `1..64`
+
+Beispiel:
+
+- GA `2/1/10` sendet `Szene 4 abrufen` -> HueGateway führt den konfigurierten Slot 4 aus.
+- Dieselbe GA sendet `Szene 4 speichern` -> HueGateway speichert den aktuellen Istzustand in Slot 4, wenn `Szene speichern` aktiviert ist.
+
+#### Empfehlung für die Praxis
+
+- Für klassische Tastszenen denselben GA-Typ konsequent für Abruf und optionales Speichern verwenden.
+- Bei Kanälen mit Lichtmanager prüfen, ob nach dem Szenenabruf eine Sperre oder Rückfallstrategie gewünscht ist.
+- Für Steckdosen gibt es eine eigene reduzierte Szenensteuerung mit Ein-/Aus-Aktionen.
+
