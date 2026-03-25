@@ -1828,6 +1828,12 @@
                                     <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00020" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                                   </when>
                                   <when test="2">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00026" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="3">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00027" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                  <when test="4">
                                     <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00021" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                                   </when>
                                 </choose>
