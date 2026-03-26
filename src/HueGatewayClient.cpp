@@ -1696,8 +1696,8 @@ int HueGatewayClient::getBehaviorInstances(const String& deviceId, String* insta
     filterData["owner"]["rtype"] = true;
 
     DynamicJsonDocument doc(16384);
-    // Use 10s timeout — behavior_instance response is large and bridge needs time
-    int statusCode = httpGet("/clip/v2/resource/behavior_instance", doc, &filterDoc, 10000, 50);
+    // Use 3s timeout — behavior_instance response is filtered, bridge should respond quickly
+    int statusCode = httpGet("/clip/v2/resource/behavior_instance", doc, &filterDoc, 3000, 50);
     if (!isHttpSuccessStatus(statusCode))
     {
         Serial.printf("[HueGatewayClient] getBehaviorInstances: HTTP %d (filtered)\n", statusCode);
@@ -2084,7 +2084,7 @@ int HueGatewayClient::parseEventPayload(const String& payload, HueGatewayEventLi
         return -1;
     }
 
-    static DynamicJsonDocument doc(6144);
+    static DynamicJsonDocument doc(12288);
     doc.clear();
     DeserializationError error = deserializeJson(doc, payload);
     if (error)
@@ -2249,14 +2249,16 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDoc
     _diagStats.lastContentLength = -1;
     _http.setTimeout(timeoutMs);
     const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected) && _eventClient.connected();
+    bool eventPausedForGet = false;
 
-    if (eventWasActive && _eventAutoRestartEnabled)
+    if (eventWasActive && _eventAutoRestartEnabled && !hasTlsInternalHeadroom())
     {
-        Serial.println("[HueGatewayClient] Pausing EventStream for HTTPS GET");
+        Serial.println("[HueGatewayClient] Pausing EventStream for HTTPS GET (internal TLS headroom low)");
         _http.end();
         stopEventStream();
         _secureClient.stop();
         delay(25);
+        eventPausedForGet = true;
     }
     
     _http.useHTTP10(true);
@@ -2337,7 +2339,7 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDoc
     
     _http.end();
 
-    if (eventWasActive && _eventAutoRestartEnabled)
+    if (eventPausedForGet)
     {
         if (!hasTlsInternalHeadroom())
         {
@@ -2396,7 +2398,21 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
         {
             _diagStats.httpPutErrorCount++;
         }
-        String response = _http.getString();
+        String response;
+        int bodyLen = _http.getSize();
+        if (bodyLen >= 0 && bodyLen <= 512)
+        {
+            response = _http.getString();
+        }
+        else
+        {
+            Stream& s = _http.getStream();
+            char buf[513];
+            int n = s.readBytes(buf, 512);
+            buf[n] = '\0';
+            response = buf;
+            if (bodyLen > 512) response += "...";
+        }
         Serial.printf("[HueGatewayClient] HTTP PUT failed (%d): %s\n", statusCode, response.c_str());
     }
     

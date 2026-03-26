@@ -163,7 +163,9 @@ bool HueGatewayAuth::requestAppKeyOnce(const char* ip)
                 if (obj.containsKey("success"))
                 {
                     String username = obj["success"]["username"].as<String>();
-                    Serial.printf("[HueGatewayAuth] App-Key received: %s\n", username.c_str());
+                    Serial.printf("[HueGatewayAuth] App-Key received: %s...%s\n",
+                                  username.substring(0, 4).c_str(),
+                                  username.substring(username.length() > 4 ? username.length() - 4 : 0).c_str());
                     saveAppKey(username);
                     if (obj["success"].containsKey("clientkey"))
                     {
@@ -196,6 +198,8 @@ void HueGatewayAuth::clearAppKey()
 
 void HueGatewayAuth::saveAppKey(const String& key)
 {
+    if (key == _appKey)
+        return;
     HueGatewayStorage::saveAppKey(key);
     _appKey = key;
     Serial.println("[HueGatewayAuth] App-Key saved to flash");
@@ -203,6 +207,8 @@ void HueGatewayAuth::saveAppKey(const String& key)
 
 void HueGatewayAuth::saveClientKey(const String& key)
 {
+    if (key == _clientKey)
+        return;
     HueGatewayStorage::saveClientKey(key);
     _clientKey = key;
 }

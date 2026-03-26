@@ -11,6 +11,7 @@
 #include "OpenKNX/Led/RGB.h"
 #include <ETH.h>
 #include <esp_heap_caps.h>
+#include <esp_task_wdt.h>
 #include <lwip/sockets.h>
 #include <lwip/inet.h>
 #include <cstring>
@@ -58,9 +59,9 @@ static constexpr int kWebScanMaxLights = 192;
 static constexpr int kWebScanMaxTargets = 192;
 static constexpr unsigned long kWebScanCacheStaleMs = 15000UL;
 static constexpr unsigned long kWebScanTimeoutMs = 180000UL;
-static constexpr size_t kDiagLogCapacity = 500;
+static constexpr size_t kDiagLogCapacity = 150;
 static constexpr size_t kDiagLogMessageMaxLen = 220;
-static constexpr size_t kDiagDefaultDepth = 500;
+static constexpr size_t kDiagDefaultDepth = 150;
 static bool sEventStreamEnabled = (OPENKNX_HUE_EVENTSTREAM_POLICY_DEFAULT != 0);
 
 static unsigned long sBridgeNextPingAllowedMs = 0UL;
@@ -405,7 +406,7 @@ String HueGatewayModule::buildDiagnosticReport(size_t requestedDepth, const Stri
     const String maskedBridgeIp = maskIpForDiagnose(_bridgeIP, includeNetworkDetails);
 
     String report;
-    report.reserve(26000);
+    report.reserve(50000);
 
     report += "=== OpenKNX Hue Diagnose V1 ===\n";
     report += "GeneratedAtMs=" + String(uptimeMs) + "\n";
@@ -884,6 +885,15 @@ void HueGatewayModule::setup()
     _initialized = true;
     Serial.println("[HueGatewayModule] Setup complete");
     appendDiagnosticLog("INFO", "BOOT", "Setup complete");
+
+    // Defense-in-depth: hardware watchdog resets device if loop() stalls >30s
+    const esp_task_wdt_config_t wdtConfig = {
+        .timeout_ms = 30000,
+        .idle_core_mask = 0,
+        .trigger_panic = true
+    };
+    esp_task_wdt_init(&wdtConfig);
+    esp_task_wdt_add(NULL);
 }
 
 void HueGatewayModule::loop()
@@ -892,7 +902,9 @@ void HueGatewayModule::loop()
 
     if (!_initialized)
         return;
-    
+
+    esp_task_wdt_reset();
+
     // Update Info-LED pattern
     updateInfoLED();
 
@@ -982,97 +994,82 @@ void HueGatewayModule::loop()
             _eventStreamPauseUntilMs = 0;
             _eventStreamFailureCount = 0;
         }
-        else if (!_client->isEventStreamConnected())
+        else
         {
-            if (suppressEventStreamRetryForSetup)
+            if (!_client->isEventStreamConnected())
             {
-                static unsigned long sLastSetupRetrySuppressLogMs = 0;
-                if ((now - sLastSetupRetrySuppressLogMs) >= 10000UL || now < sLastSetupRetrySuppressLogMs)
+                if (suppressEventStreamRetryForSetup)
                 {
-                    Serial.println("[HueGatewayModule] EventStream retry suppressed until device setup succeeds");
-                    sLastSetupRetrySuppressLogMs = now;
+                    static unsigned long sLastSetupRetrySuppressLogMs = 0;
+                    if ((now - sLastSetupRetrySuppressLogMs) >= 10000UL || now < sLastSetupRetrySuppressLogMs)
+                    {
+                        Serial.println("[HueGatewayModule] EventStream retry suppressed until device setup succeeds");
+                        sLastSetupRetrySuppressLogMs = now;
+                    }
+                }
+                else
+                {
+                    if (hasLoopBudget("eventstream-retry"))
+                    {
+                        const bool bridgeHealthyForEventstream = (_lastBridgeHealthOkMs != 0)
+                            && ((now - _lastBridgeHealthOkMs) <= kBridgeHealthForEventstreamMs);
+
+                        if (_eventStreamPauseUntilMs != 0 && now >= _eventStreamPauseUntilMs)
+                        {
+                            _eventStreamPauseUntilMs = 0;
+                            _eventStreamRetryBackoffMs = kEventStreamRetryBaseMs;
+                            _eventStreamFailureCount = 0;
+                            Serial.println("[HueGatewayModule] EventStream cooldown elapsed, retrying");
+                        }
+
+                        if (_eventStreamPauseUntilMs == 0
+                            && bridgeHealthyForEventstream
+                            && (now - _lastEventStreamRetryMs >= _eventStreamRetryBackoffMs))
+                        {
+                            _lastEventStreamRetryMs = now;
+                            Serial.printf("[HueGatewayModule] EventStream retry at %lu ms\n", static_cast<unsigned long>(now));
+                            if (!_client->startEventStream())
+                            {
+                                _eventStreamFailureCount = min<uint8_t>(static_cast<uint8_t>(_eventStreamFailureCount + 1), static_cast<uint8_t>(10));
+                                _eventStreamRetryBackoffMs = min<unsigned long>(_eventStreamRetryBackoffMs * 2UL, 120000UL);
+
+                                if (_eventStreamFailureCount >= 6)
+                                {
+                                    _eventStreamPauseUntilMs = now + 600000UL;
+                                    _eventStreamFailureCount = 0;
+                                    Serial.println("[HueGatewayModule] EventStream disabled for 10 minutes (TLS/memory pressure), polling remains active");
+                                }
+                                else
+                                {
+                                    Serial.printf("[HueGatewayModule] EventStream retry failed, next retry in %lu s\n",
+                                                  static_cast<unsigned long>(_eventStreamRetryBackoffMs / 1000UL));
+                                }
+                            }
+                            else
+                            {
+                                _eventStreamFailureCount = 0;
+                            }
+                        }
+                    }
                 }
             }
             else
             {
-                if (hasLoopBudget("eventstream-retry"))
+                _eventStreamRetryBackoffMs = kEventStreamRetryBaseMs;
+                _eventStreamPauseUntilMs = 0;
+                _eventStreamFailureCount = 0;
+
+                if (fallbackActiveLogged)
                 {
-                    const bool bridgeHealthyForEventstream = (_lastBridgeHealthOkMs != 0)
-                        && ((now - _lastBridgeHealthOkMs) <= kBridgeHealthForEventstreamMs);
-
-                    if (_eventStreamPauseUntilMs != 0 && now >= _eventStreamPauseUntilMs)
-                    {
-                        _eventStreamPauseUntilMs = 0;
-                        _eventStreamRetryBackoffMs = kEventStreamRetryBaseMs;
-                        _eventStreamFailureCount = 0;
-                        Serial.println("[HueGatewayModule] EventStream cooldown elapsed, retrying");
-                    }
-
-                    if (_eventStreamPauseUntilMs == 0
-                        && bridgeHealthyForEventstream
-                        && (now - _lastEventStreamRetryMs >= _eventStreamRetryBackoffMs))
-                    {
-                        _lastEventStreamRetryMs = now;
-                        Serial.printf("[HueGatewayModule] EventStream retry at %lu ms\n", static_cast<unsigned long>(now));
-                        if (!_client->startEventStream())
-                        {
-                            _eventStreamFailureCount = min<uint8_t>(static_cast<uint8_t>(_eventStreamFailureCount + 1), static_cast<uint8_t>(10));
-                            _eventStreamRetryBackoffMs = min<unsigned long>(_eventStreamRetryBackoffMs * 2UL, 120000UL);
-
-                            if (_eventStreamFailureCount >= 6)
-                            {
-                                _eventStreamPauseUntilMs = now + 600000UL;
-                                _eventStreamFailureCount = 0;
-                                Serial.println("[HueGatewayModule] EventStream disabled for 10 minutes (TLS/memory pressure), polling remains active");
-                            }
-                            else
-                            {
-                                Serial.printf("[HueGatewayModule] EventStream retry failed, next retry in %lu s\n",
-                                              static_cast<unsigned long>(_eventStreamRetryBackoffMs / 1000UL));
-                            }
-                        }
-                        else
-                        {
-                            _eventStreamFailureCount = 0;
-                        }
-                    }
+                    Serial.println("[HueGatewayModule] EventStream active, polling fallback suspended");
+                    fallbackActiveLogged = false;
                 }
             }
 
+            // Drain pending EventStream updates (common for both connected and retry paths).
             {
-                HueGatewayEventLightUpdate updates[MAX_LIGHTS];
-                HueGatewayEventSensorUpdate sensorUpdates[MAX_LIGHTS];
-                int sensorCount = 0;
-                int updateCount = _client->pollEventStreamFull(updates, MAX_LIGHTS, sensorUpdates, MAX_LIGHTS, sensorCount);
-                if (updateCount > 0)
-                {
-                    _lastChannelSyncOkMs = now;
-                    Serial.printf("[HueGatewayModule] EventStream light updates received: %d\n", updateCount);
-                    applyEventStreamUpdates(updates, updateCount);
-                }
-                if (sensorCount > 0)
-                {
-                    _lastChannelSyncOkMs = now;
-                    Serial.printf("[HueGatewayModule] EventStream sensor updates received: %d\n", sensorCount);
-                    applyEventStreamDeviceUpdates(sensorUpdates, sensorCount);
-                }
-            }
-        }
-        else
-        {
-            _eventStreamRetryBackoffMs = kEventStreamRetryBaseMs;
-            _eventStreamPauseUntilMs = 0;
-            _eventStreamFailureCount = 0;
-
-            if (fallbackActiveLogged)
-            {
-                Serial.println("[HueGatewayModule] EventStream active, polling fallback suspended");
-                fallbackActiveLogged = false;
-            }
-
-            {
-                HueGatewayEventLightUpdate updates[MAX_LIGHTS];
-                HueGatewayEventSensorUpdate sensorUpdates[MAX_LIGHTS];
+                static HueGatewayEventLightUpdate updates[MAX_LIGHTS];
+                static HueGatewayEventSensorUpdate sensorUpdates[MAX_LIGHTS];
                 int sensorCount = 0;
                 int updateCount = _client->pollEventStreamFull(updates, MAX_LIGHTS, sensorUpdates, MAX_LIGHTS, sensorCount);
                 if (updateCount > 0)
@@ -1117,7 +1114,7 @@ void HueGatewayModule::loop()
     {
         if (_bridgeIP.isEmpty())
         {
-            if (now >= sBridgeNextDiscoveryTryMs || now < sBridgeNextDiscoveryTryMs)
+            if (now >= sBridgeNextDiscoveryTryMs)
             {
                 _bridgeIP = getBridgeIP();
                 sBridgeNextDiscoveryTryMs = now + kBridgeDiscoveryRetryMs;
@@ -1360,62 +1357,44 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
     }
     #endif
 
-    #ifdef HUE_KoHUEHCLM1Lock
-    if (koNumber == HUE_KoHUEHCLM1Lock)
     {
-        setHclManagerLock(1, ko.value(Dpt(1, 1)), "KO");
-        return;
+        struct HclMasterKoEntry { uint16_t ko; uint8_t master; };
+        static const HclMasterKoEntry hclMasterKos[] = {
+#ifdef HUE_KoHUEHCLM1Lock
+            { HUE_KoHUEHCLM1Lock, 1 },
+#endif
+#ifdef HUE_KoHUEHCLM2Lock
+            { HUE_KoHUEHCLM2Lock, 2 },
+#endif
+#ifdef HUE_KoHUEHCLM3Lock
+            { HUE_KoHUEHCLM3Lock, 3 },
+#endif
+#ifdef HUE_KoHUEHCLM4Lock
+            { HUE_KoHUEHCLM4Lock, 4 },
+#endif
+#ifdef HUE_KoHUEHCLM5Lock
+            { HUE_KoHUEHCLM5Lock, 5 },
+#endif
+#ifdef HUE_KoHUEHCLM6Lock
+            { HUE_KoHUEHCLM6Lock, 6 },
+#endif
+#ifdef HUE_KoHUEHCLM7Lock
+            { HUE_KoHUEHCLM7Lock, 7 },
+#endif
+#ifdef HUE_KoHUEHCLM8Lock
+            { HUE_KoHUEHCLM8Lock, 8 },
+#endif
+            { 0, 0 } // sentinel
+        };
+        for (size_t i = 0; hclMasterKos[i].master != 0; i++)
+        {
+            if (koNumber == hclMasterKos[i].ko)
+            {
+                setHclManagerLock(hclMasterKos[i].master, ko.value(Dpt(1, 1)), "KO");
+                return;
+            }
+        }
     }
-    #endif
-    #ifdef HUE_KoHUEHCLM2Lock
-    if (koNumber == HUE_KoHUEHCLM2Lock)
-    {
-        setHclManagerLock(2, ko.value(Dpt(1, 1)), "KO");
-        return;
-    }
-    #endif
-    #ifdef HUE_KoHUEHCLM3Lock
-    if (koNumber == HUE_KoHUEHCLM3Lock)
-    {
-        setHclManagerLock(3, ko.value(Dpt(1, 1)), "KO");
-        return;
-    }
-    #endif
-    #ifdef HUE_KoHUEHCLM4Lock
-    if (koNumber == HUE_KoHUEHCLM4Lock)
-    {
-        setHclManagerLock(4, ko.value(Dpt(1, 1)), "KO");
-        return;
-    }
-    #endif
-    #ifdef HUE_KoHUEHCLM5Lock
-    if (koNumber == HUE_KoHUEHCLM5Lock)
-    {
-        setHclManagerLock(5, ko.value(Dpt(1, 1)), "KO");
-        return;
-    }
-    #endif
-    #ifdef HUE_KoHUEHCLM6Lock
-    if (koNumber == HUE_KoHUEHCLM6Lock)
-    {
-        setHclManagerLock(6, ko.value(Dpt(1, 1)), "KO");
-        return;
-    }
-    #endif
-    #ifdef HUE_KoHUEHCLM7Lock
-    if (koNumber == HUE_KoHUEHCLM7Lock)
-    {
-        setHclManagerLock(7, ko.value(Dpt(1, 1)), "KO");
-        return;
-    }
-    #endif
-    #ifdef HUE_KoHUEHCLM8Lock
-    if (koNumber == HUE_KoHUEHCLM8Lock)
-    {
-        setHclManagerLock(8, ko.value(Dpt(1, 1)), "KO");
-        return;
-    }
-    #endif
 
     if (koNumber < HUE_KoBlockOffset)
     {
@@ -2947,7 +2926,7 @@ void HueGatewayModule::setupDevices()
                         using RF = HueGatewayButton::RotaryFunction;
 
                         // Map Gewerk+Kurz+Lang to ButtonFunction, invertKurz, invertLang, hasLong, hasShort
-                        auto mapButton = [&](uint8_t btnIdx, uint8_t gewerk, uint8_t kurz, uint8_t lang, uint8_t sceneNr, uint8_t lightStepCode, uint8_t medKurz, uint8_t medLang, uint8_t jalKurz, uint8_t jalLang) {
+                        auto mapButton = [&](uint8_t btnIdx, uint8_t gewerk, uint8_t kurz, uint8_t lang, uint8_t sceneNr, uint8_t lightStepCode, uint8_t medKurz, uint8_t medLang, uint8_t jalKurz, uint8_t jalLang, uint8_t genKurz) {
                             BF bf = BF::Schalten;
                             bool invKurz = false;
                             bool invLang = false;
@@ -2987,7 +2966,7 @@ void HueGatewayModule::setupDevices()
                                     break;
                                 case 3: // Generisch
                                     bf = BF::ZweiObjekte;
-                                    hasShort = true; // Object A always available
+                                    hasShort = (genKurz != 0);
                                     break;
                             }
                             btn->setButtonFunction(btnIdx, bf);
@@ -2999,30 +2978,38 @@ void HueGatewayModule::setupDevices()
                         };
 
                         // Taste 1 (Gewerk reads same bits for Gewerk/GewerkEinzel Union)
-                        mapButton(0, ParamHUE_CHBtn1Gewerk, ParamHUE_CHBtn1LichtKurz,
+                        // Bei 1 Taste: GewerkEinzel erlaubt nur 0/2/3; Jalousie(1) ist ungültig -> Fallback Licht
+                        uint8_t btn1Gewerk = ParamHUE_CHBtn1Gewerk;
+                        if (btnCount == 1 && btn1Gewerk == 1)
+                            btn1Gewerk = 0;
+                        mapButton(0, btn1Gewerk, ParamHUE_CHBtn1LichtKurz,
                                   ParamHUE_CHBtn1LichtLang, ParamHUE_CHBtn1SceneNr, ParamHUE_CHBtn1LichtDimStep,
                                   ParamHUE_CHBtn1MedienKurz, ParamHUE_CHBtn1MedienLang,
-                                  ParamHUE_CHBtn1JalousieKurz, ParamHUE_CHBtn1JalousieLang);
+                                  ParamHUE_CHBtn1JalousieKurz, ParamHUE_CHBtn1JalousieLang,
+                                  ParamHUE_CHBtn1GenerischKurz);
                         // Taste 2
                         if (btnCount >= 2) {
                             mapButton(1, ParamHUE_CHBtn2Gewerk, ParamHUE_CHBtn2LichtKurz,
                                       ParamHUE_CHBtn2LichtLang, ParamHUE_CHBtn2SceneNr, ParamHUE_CHBtn2LichtDimStep,
                                       ParamHUE_CHBtn2MedienKurz, ParamHUE_CHBtn2MedienLang,
-                                      ParamHUE_CHBtn2JalousieKurz, ParamHUE_CHBtn2JalousieLang);
+                                      ParamHUE_CHBtn2JalousieKurz, ParamHUE_CHBtn2JalousieLang,
+                                      ParamHUE_CHBtn2GenerischKurz);
                         }
                         // Taste 3
                         if (btnCount >= 3) {
                             mapButton(2, ParamHUE_CHBtn3Gewerk, ParamHUE_CHBtn3LichtKurz,
                                       ParamHUE_CHBtn3LichtLang, ParamHUE_CHBtn3SceneNr, ParamHUE_CHBtn3LichtDimStep,
                                       ParamHUE_CHBtn3MedienKurz, ParamHUE_CHBtn3MedienLang,
-                                      ParamHUE_CHBtn3JalousieKurz, ParamHUE_CHBtn3JalousieLang);
+                                      ParamHUE_CHBtn3JalousieKurz, ParamHUE_CHBtn3JalousieLang,
+                                      ParamHUE_CHBtn3GenerischKurz);
                         }
                         // Taste 4
                         if (btnCount >= 4) {
                             mapButton(3, ParamHUE_CHBtn4Gewerk, ParamHUE_CHBtn4LichtKurz,
                                       ParamHUE_CHBtn4LichtLang, ParamHUE_CHBtn4SceneNr, ParamHUE_CHBtn4LichtDimStep,
                                       ParamHUE_CHBtn4MedienKurz, ParamHUE_CHBtn4MedienLang,
-                                      ParamHUE_CHBtn4JalousieKurz, ParamHUE_CHBtn4JalousieLang);
+                                      ParamHUE_CHBtn4JalousieKurz, ParamHUE_CHBtn4JalousieLang,
+                                      ParamHUE_CHBtn4GenerischKurz);
                         }
                         // Drehregler
                         btn->setHasRotary(ParamHUE_CHHasRotary != 0);
@@ -5907,6 +5894,28 @@ void HueGatewayModule::resetDevices()
         _channelFastTrackRemaining[i] = 0;
     }
 
+    for (int i = 0; i < MAX_CHANNELS; i++)
+    {
+        _hclChannelLockActive[i] = false;
+        _hclChannelLockFallbackMode[i] = 0;
+        _hclChannelLockActivatedMs[i] = 0;
+        _hclChannelLockAutoReleaseMs[i] = 0;
+        _hclChannelLockActivationDayOfYear[i] = -1;
+        _hclChannelLockActivationMinuteOfDay[i] = -1;
+    }
+
+    for (int i = 0; i < HCL::MasterManager::MAX_MASTERS; i++)
+    {
+        _hclManagerLockActive[i] = false;
+        _hclManagerLockFallbackMode[i] = 0;
+        _hclManagerLockActivatedMs[i] = 0;
+        _hclManagerLockAutoReleaseMs[i] = 0;
+        _hclManagerLockActivationDayOfYear[i] = -1;
+        _hclManagerLockActivationMinuteOfDay[i] = -1;
+    }
+
+    _hclLockActive = false;
+
     _lightCount = 0;
     _devicesInitialized = false;
     _deviceSetupNeedsRetry = false;
@@ -7345,7 +7354,7 @@ esp_err_t HueGatewayModule::handleWebDiagnose(httpd_req_t* req)
     html += "<label>Logtiefe</label>";
     html += "<select name='depth'>";
     html += "<option value='120'" + String(depth == 120 ? " selected" : "") + ">120 (Vorschau)</option>";
-    html += "<option value='500'" + String(depth == 500 ? " selected" : "") + ">500 (Maximum)</option>";
+    html += "<option value='150'" + String(depth == 150 ? " selected" : "") + ">150 (Maximum)</option>";
     html += "</select>";
     html += "<label>Tester-Notiz</label>";
     html += "<textarea name='note' rows='3' placeholder='Was wurde getestet? Welche Gruppenadresse? Erwartet/Passiert?'>" + escape_html(note) + "</textarea>";
@@ -7679,7 +7688,7 @@ void HueGatewayModule::updateWebScanCache()
     }
 
     // Zubehör (Schalter, Sensoren)
-    const int kMaxAccessories = 24;
+    const int kMaxAccessories = 48;
     HueGatewayAccessoryDevice* accessories = new (std::nothrow) HueGatewayAccessoryDevice[kMaxAccessories];
     if (accessories != nullptr)
     {

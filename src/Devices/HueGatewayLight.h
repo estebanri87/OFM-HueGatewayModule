@@ -177,9 +177,6 @@ private:
     uint16_t _koStatusColorTemp;
     uint16_t _koStatusColorRGB;
     
-    // Legacy status KO (deprecated).
-    uint16_t _koStatus;
-    
     // Cached runtime state.
     bool _on;
     uint8_t _brightness;  // 0-254 (Hue API Range)
