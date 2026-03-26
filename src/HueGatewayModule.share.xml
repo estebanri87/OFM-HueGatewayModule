@@ -76,9 +76,9 @@
                 <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="30" />
               </ParameterType>
 
-              <!-- Relative DDimmgeschwindigkeit (Millisekunden, 20-500 ms) -->
+              <!-- Relative DDimmgeschwindigkeit (Millisekunden, 80-300 ms) -->
               <ParameterType Id="%AID%_PT-HUERelDimRepeatMs" Name="HUERelDimRepeatMs">
-                <TypeNumber SizeInBit="16" Type="unsignedInt" minInclusive="20" maxInclusive="500" />
+                <TypeNumber SizeInBit="16" Type="unsignedInt" minInclusive="80" maxInclusive="300" />
               </ParameterType>
               
               <!-- Helligkeit -->
@@ -91,7 +91,7 @@
                 <TypeRestriction Base="Value" SizeInBit="3" UIHint="DropDown">
                   <Enumeration Text="Licht" Value="0" Id="%ENID%" />
                     <Enumeration Text="Bewegungsmelder (Beta)" Value="1" Id="%ENID%" />
-                  <Enumeration Text="Taster/Schalter" Value="2" Id="%ENID%" />
+                  <Enumeration Text="Taster/Schalter (Beta)" Value="2" Id="%ENID%" />
                   <Enumeration Text="Kontaktsensor" Value="3" Id="%ENID%" />
                   <Enumeration Text="Steckdose" Value="4" Id="%ENID%" />
                 </TypeRestriction>
