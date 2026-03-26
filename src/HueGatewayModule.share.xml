@@ -414,7 +414,7 @@
                   <Enumeration Text="Schalten"        Value="1" Id="%ENID%" />
                   <Enumeration Text="Dimmen heller"  Value="2" Id="%ENID%" />
                   <Enumeration Text="Dimmen dunkler" Value="3" Id="%ENID%" />
-                  <Enumeration Text="Szene abrufen"   Value="4" Id="%ENID%" />
+                  <Enumeration Text="Szenennummer senden"   Value="4" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
 
@@ -464,6 +464,14 @@
                   <Enumeration Text="Kein Langdruck"  Value="0" Id="%ENID%" />
                   <Enumeration Text="Lauter"          Value="1" Id="%ENID%" />
                   <Enumeration Text="Leiser"          Value="2" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+
+              <!-- Generisch: Kurzdruck-Aktion -->
+              <ParameterType Id="%AID%_PT-HUEGenerischKurz" Name="HUEGenerischKurz">
+                <TypeRestriction Base="Value" SizeInBit="1" UIHint="DropDown">
+                  <Enumeration Text="Kein Kurzdruck"    Value="0" Id="%ENID%" />
+                  <Enumeration Text="Objekt A senden"   Value="1" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
 
@@ -1865,6 +1873,22 @@
                         <ComObjectRefRef RefId="%AID%_O-%TT%00019_R-%TT%0001901" />
                         <ComObjectRefRef RefId="%AID%_O-%TT%00020_R-%TT%0002001" />
                       </when>
+                      <when test="&gt;=5">
+                        <ComObjectRefRef RefId="%AID%_O-%TT%00029_R-%TT%0002901" />
+                        <ComObjectRefRef RefId="%AID%_O-%TT%00030_R-%TT%0003001" />
+                      </when>
+                      <when test="&gt;=6">
+                        <ComObjectRefRef RefId="%AID%_O-%TT%00031_R-%TT%0003101" />
+                        <ComObjectRefRef RefId="%AID%_O-%TT%00032_R-%TT%0003201" />
+                      </when>
+                      <when test="&gt;=7">
+                        <ComObjectRefRef RefId="%AID%_O-%TT%00033_R-%TT%0003301" />
+                        <ComObjectRefRef RefId="%AID%_O-%TT%00034_R-%TT%0003401" />
+                      </when>
+                      <when test="&gt;=8">
+                        <ComObjectRefRef RefId="%AID%_O-%TT%00035_R-%TT%0003501" />
+                        <ComObjectRefRef RefId="%AID%_O-%TT%00036_R-%TT%0003601" />
+                      </when>
                     </choose>
                     <ComObjectRefRef RefId="%AID%_O-%TT%00037_R-%TT%0003701" HelpContext="HUE-HCL-Sperre-global" />
                     
@@ -1925,6 +1949,7 @@
                             </when>
                             <when test="!=3">
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM1" Text="Stützpunkte" UIHint="Headline" />
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM1InfoTime" Text="Stützpunkte müssen in chronologisch aufsteigender Reihenfolge definiert werden." UIHint="Information" />
                               <ParameterRefRef RefId="%AID%_P-1410212_R-141021201" IndentLevel="1" />
                               <choose ParamRefId="%AID%_P-1410201_R-141020101">
                               </choose>
@@ -2061,6 +2086,7 @@
                             </when>
                             <when test="!=3">
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM2" Text="Stützpunkte" UIHint="Headline" />
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM2InfoTime" Text="Stützpunkte müssen in chronologisch aufsteigender Reihenfolge definiert werden." UIHint="Information" />
                               <ParameterRefRef RefId="%AID%_P-1420212_R-142021201" IndentLevel="1" />
                               <choose ParamRefId="%AID%_P-1420201_R-142020101">
                               </choose>
@@ -2189,6 +2215,7 @@
                           <choose ParamRefId="%AID%_P-1430201_R-143020101">
                             <when test="!=3">
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM3" Text="Stützpunkte" UIHint="Headline" />
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM3InfoTime" Text="Stützpunkte müssen in chronologisch aufsteigender Reihenfolge definiert werden." UIHint="Information" />
                               <ParameterRefRef RefId="%AID%_P-1430212_R-143021201" IndentLevel="1" />
                               <choose ParamRefId="%AID%_P-1430201_R-143020101">
                               </choose>
@@ -2325,6 +2352,7 @@
                           <choose ParamRefId="%AID%_P-1440201_R-144020101">
                             <when test="!=3">
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM4" Text="Stützpunkte" UIHint="Headline" />
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM4InfoTime" Text="Stützpunkte müssen in chronologisch aufsteigender Reihenfolge definiert werden." UIHint="Information" />
                               <ParameterRefRef RefId="%AID%_P-1440212_R-144021201" IndentLevel="1" />
                               <choose ParamRefId="%AID%_P-1440201_R-144020101">
                               </choose>
@@ -2462,6 +2490,7 @@
                           <choose ParamRefId="%AID%_P-%TT%50201_R-%TT%5020101">
                             <when test="!=3">
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM5" Text="Stützpunkte" UIHint="Headline" />
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM5InfoTime" Text="Stützpunkte müssen in chronologisch aufsteigender Reihenfolge definiert werden." UIHint="Information" />
                               <ParameterRefRef RefId="%AID%_P-%TT%50212_R-%TT%5021201" IndentLevel="1" />
                               <choose ParamRefId="%AID%_P-%TT%50201_R-%TT%5020101">
                               </choose>
@@ -2599,6 +2628,7 @@
                           <choose ParamRefId="%AID%_P-%TT%60201_R-%TT%6020101">
                             <when test="!=3">
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM6" Text="Stützpunkte" UIHint="Headline" />
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM6InfoTime" Text="Stützpunkte müssen in chronologisch aufsteigender Reihenfolge definiert werden." UIHint="Information" />
                               <ParameterRefRef RefId="%AID%_P-%TT%60212_R-%TT%6021201" IndentLevel="1" />
                               <choose ParamRefId="%AID%_P-%TT%60201_R-%TT%6020101">
                               </choose>
@@ -2736,6 +2766,7 @@
                           <choose ParamRefId="%AID%_P-%TT%70201_R-%TT%7020101">
                             <when test="!=3">
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM7" Text="Stützpunkte" UIHint="Headline" />
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM7InfoTime" Text="Stützpunkte müssen in chronologisch aufsteigender Reihenfolge definiert werden." UIHint="Information" />
                               <ParameterRefRef RefId="%AID%_P-%TT%70212_R-%TT%7021201" IndentLevel="1" />
                               <choose ParamRefId="%AID%_P-%TT%70201_R-%TT%7020101">
                               </choose>
@@ -2873,6 +2904,7 @@
                           <choose ParamRefId="%AID%_P-%TT%80201_R-%TT%8020101">
                             <when test="!=3">
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM8" Text="Stützpunkte" UIHint="Headline" />
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM8InfoTime" Text="Stützpunkte müssen in chronologisch aufsteigender Reihenfolge definiert werden." UIHint="Information" />
                               <ParameterRefRef RefId="%AID%_P-%TT%80212_R-%TT%8021201" IndentLevel="1" />
                               <choose ParamRefId="%AID%_P-%TT%80201_R-%TT%8020101">
                               </choose>
