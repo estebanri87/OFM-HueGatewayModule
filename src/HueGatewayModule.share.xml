@@ -495,7 +495,7 @@
               <ParameterType Id="%AID%_PT-HUEHasRotary" Name="HUEHasRotary">
                 <TypeRestriction Base="Value" SizeInBit="1" UIHint="DropDown">
                   <Enumeration Text="Kein Drehregler" Value="0" Id="%ENID%" />
-                  <Enumeration Text="Drehregler vorhanden" Value="1" Id="%ENID%" />
+                  <Enumeration Text="Drehregler vorhanden (Beta)" Value="1" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
 

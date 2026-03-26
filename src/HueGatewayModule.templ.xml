@@ -278,7 +278,7 @@
 
               <!-- ===== Tasterkanal: Drehregler Aktivierung + Funktion (Offset 169) ===== -->
               <Union Id="%AID%_U-%TT%5%CC%134" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="169" BitOffset="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%138" Name="CH%C%HasRotary" ParameterType="%AID%_PT-HUEHasRotary" Offset="0" BitOffset="0" Text="Drehregler vorhanden" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%138" Name="CH%C%HasRotary" ParameterType="%AID%_PT-HUEHasRotary" Offset="0" BitOffset="0" Text="Drehregler vorhanden (Beta)" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%139" Name="CH%C%RotaryFunction" ParameterType="%AID%_PT-HUERotaryFunction" Offset="0" BitOffset="1" Text="Drehregler Funktion" Value="0" />
               </Union>
 
