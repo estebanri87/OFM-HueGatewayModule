@@ -211,7 +211,7 @@ Nach erfolgreicher Kopplung (LED grün dauerhaft) erfolgt die eigentliche Gerät
 
 1. **Hue-Geräte laden** öffnen: `http://<IP-des-OpenKNX-Geräts>/openknx/hue/scan`
 2. In der Liste die gewünschten Ziele (Licht/Raum/Zone) inkl. ID erfassen.
-3. In ETS je Kanal **Zieltyp** setzen und **Hue Ziel (Light-/Room-/Zone-ID oder Name)** eintragen.
+3. In ETS je Kanal **Zieltyp** setzen und **Hue Ziel (Light-/Room-/Zone-ID)** eintragen.
 4. Pro Kanal Lampentyp, Synchronisationsrichtung und Polling prüfen.
 5. Download ausführen und Funktion testen (Schalten, ggf. Helligkeit/Farbtemperatur/RGB).
 
@@ -332,7 +332,7 @@ Mögliche Zieltypen:
 - **Raum**
 - **Zone**
 
-Die Zielzuordnung erfolgt primär über **Hue Ziel (Light-/Room-/Zone-ID oder Name)**.
+Die Zielzuordnung erfolgt primär über **Hue Ziel (Light-/Room-/Zone-ID)**.
 
 <!-- DOC -->
 ### Kanalbezeichnung
@@ -354,7 +354,7 @@ Hinweis:
 - Der Kanal bleibt damit auch bei Änderungen innerhalb des Raums/der Zone nutzbar.
 
 <!-- DOC -->
-### Hue Ziel (Light-/Room-/Zone-ID oder Name)
+### Hue Ziel (Light-/Room-/Zone-ID)
 
 Primäres Zielfeld für alle Zieltypen.
 
@@ -372,7 +372,7 @@ Empfehlung:
 - Namen nur bei eindeutiger Benennung verwenden.
 
 <!-- DOC -->
-### Hue Ziel (Geräte-ID oder Name)
+### Hue Ziel (Geräte-ID)
 
 Zielfeld für Gerätetypen, die direkt auf ein einzelnes Hue-Gerät zeigen, insbesondere:
 
@@ -392,14 +392,14 @@ Empfehlung:
 - Namen nur bei eindeutiger Benennung verwenden.
 
 Hinweis:
-- Im Unterschied zu **Hue Ziel (Light-/Room-/Zone-ID oder Name)** wird hier kein Raum/Zone-Ziel aufgelöst, sondern ein konkretes Hue-Gerät adressiert.
+- Im Unterschied zu **Hue Ziel (Light-/Room-/Zone-ID)** wird hier kein Raum/Zone-Ziel aufgelöst, sondern ein konkretes Hue-Gerät adressiert.
 
 <!-- DOC -->
 ### Hue Lampen-ID (UUID)
 
 Legacy-/Fallback-Feld für bestehende Projektierungen.
 
-Für neue Projektierungen bitte **Hue Ziel (Light-/Room-/Zone-ID oder Name)** verwenden.
+Für neue Projektierungen bitte **Hue Ziel (Light-/Room-/Zone-ID)** verwenden.
 
 Gilt nur für Zieltyp **Licht**.
 
@@ -719,18 +719,7 @@ Jeder Slot kann unabhängig parametriert werden. Ist die **Szenennummer** auf `0
 
 **Szenennummer**: KNX-Szenennummer 1..64 (entspricht Bit 0..5 im DPT, also KNX-intern 0..63)
 
-**Aktion**: Legt fest, was beim Abruf dieser Szene passiert. Die verfügbaren Optionen hängen vom **Lampentyp** des Kanals ab:
-
-| Aktion | Beschreibung | Lampentyp |
-|---|---|---|
-| Ausschalten | Licht aus | alle |
-| Einschalten | Licht ein (letzte Helligkeit) | alle |
-| Helligkeit setzen | Ein + Helligkeitswert | Dimmbar, CT, RGB |
-| Farbtemperatur setzen | Ein + CT-Wert | CT, RGB |
-| Helligkeit + Farbtemperatur | Ein + Helligkeit + CT | CT, RGB |
-| Farbe (RGB) setzen | Ein + RGB-Wert | RGB |
-| Helligkeit + Farbe (RGB) | Ein + Helligkeit + RGB | RGB |
-| Hue Szene abrufen | Ruft eine Hue-Szene per RID ab | alle (außer Steckdose) |
+**Aktion**: Legt fest, was beim Abruf dieser Szene passiert. Die verfügbaren Optionen hängen vom **Lampentyp** des Kanals ab.
 
 **Helligkeit**: Prozentwert 0..100 % (wird bei Aktionen mit Helligkeit verwendet)
 
@@ -1188,7 +1177,7 @@ Sichtbar nur wenn **Szenensteuerung aktivieren** am Kanal gesetzt ist.
 - Pairing-Fenster abgelaufen → neu triggern und Link-Button erneut drücken.
 
 ### Hue-Ziel reagiert nicht
-- Zieltyp und **Hue Ziel (Light-/Room-/Zone-ID oder Name)** prüfen.
+- Zieltyp und **Hue Ziel (Light-/Room-/Zone-ID)** prüfen.
 - Bei Legacy-Projektierung zusätzlich **Hue Lampen-ID (UUID)** prüfen.
 - Kanal deaktiviert?
 - Sync-Richtung passend?
