@@ -2947,15 +2947,17 @@ void HueGatewayModule::setupDevices()
                         using RF = HueGatewayButton::RotaryFunction;
 
                         // Map Gewerk+Kurz+Lang to ButtonFunction, invertKurz, invertLang, hasLong, hasShort
-                        auto mapButton = [&](uint8_t btnIdx, uint8_t gewerk, uint8_t kurz, uint8_t lang, uint8_t sceneNr, uint8_t lightStepCode, uint8_t medKurz, uint8_t medLang) {
+                        auto mapButton = [&](uint8_t btnIdx, uint8_t gewerk, uint8_t kurz, uint8_t lang, uint8_t sceneNr, uint8_t lightStepCode, uint8_t medKurz, uint8_t medLang, uint8_t jalKurz, uint8_t jalLang) {
                             BF bf = BF::Schalten;
                             bool invKurz = false;
                             bool invLang = false;
-                            bool hasLong = (lang != 0);
-                            bool hasShort = (kurz != 0);
+                            bool hasLong = false;
+                            bool hasShort = false;
                             switch (gewerk) {
                                 case 0: // Licht
                                 {
+                                    hasShort = (kurz != 0);
+                                    hasLong  = (lang != 0);
                                     const auto lightShortAction = static_cast<HueGatewayButton::LightShortAction>(kurz);
                                     btn->setButtonLightShortAction(btnIdx, lightShortAction);
                                     btn->setButtonLightStepCode(btnIdx, lightStepCode);
@@ -2971,12 +2973,15 @@ void HueGatewayModule::setupDevices()
                                 }
                                 case 1: // Jalousie
                                     bf = BF::Jalousie;
-                                    invKurz = (kurz == 1); // LamelleAuf → Up on DPT 1.008
-                                    invLang = (lang == 1); // BehangAuf → Up on DPT 1.007
+                                    hasShort = (jalKurz != 0);
+                                    hasLong  = (jalLang != 0);
+                                    invKurz = (jalKurz == 1); // LamelleAuf → stepUp
+                                    invLang = (jalLang == 1); // BehangAuf → moveUp
                                     break;
                                 case 2: // Medien
                                     bf = BF::Medien;
                                     hasShort = (medKurz != 0);
+                                    hasLong  = (medLang != 0);
                                     invLang = (medLang == 2); // Leiser
                                     btn->setButtonMedienKurz(btnIdx, static_cast<HueGatewayButton::MedienShortAction>(medKurz));
                                     break;
@@ -2996,24 +3001,28 @@ void HueGatewayModule::setupDevices()
                         // Taste 1 (Gewerk reads same bits for Gewerk/GewerkEinzel Union)
                         mapButton(0, ParamHUE_CHBtn1Gewerk, ParamHUE_CHBtn1LichtKurz,
                                   ParamHUE_CHBtn1LichtLang, ParamHUE_CHBtn1SceneNr, ParamHUE_CHBtn1LichtDimStep,
-                                  ParamHUE_CHBtn1MedienKurz, ParamHUE_CHBtn1MedienLang);
+                                  ParamHUE_CHBtn1MedienKurz, ParamHUE_CHBtn1MedienLang,
+                                  ParamHUE_CHBtn1JalousieKurz, ParamHUE_CHBtn1JalousieLang);
                         // Taste 2
                         if (btnCount >= 2) {
                             mapButton(1, ParamHUE_CHBtn2Gewerk, ParamHUE_CHBtn2LichtKurz,
                                       ParamHUE_CHBtn2LichtLang, ParamHUE_CHBtn2SceneNr, ParamHUE_CHBtn2LichtDimStep,
-                                      ParamHUE_CHBtn2MedienKurz, ParamHUE_CHBtn2MedienLang);
+                                      ParamHUE_CHBtn2MedienKurz, ParamHUE_CHBtn2MedienLang,
+                                      ParamHUE_CHBtn2JalousieKurz, ParamHUE_CHBtn2JalousieLang);
                         }
                         // Taste 3
                         if (btnCount >= 3) {
                             mapButton(2, ParamHUE_CHBtn3Gewerk, ParamHUE_CHBtn3LichtKurz,
                                       ParamHUE_CHBtn3LichtLang, ParamHUE_CHBtn3SceneNr, ParamHUE_CHBtn3LichtDimStep,
-                                      ParamHUE_CHBtn3MedienKurz, ParamHUE_CHBtn3MedienLang);
+                                      ParamHUE_CHBtn3MedienKurz, ParamHUE_CHBtn3MedienLang,
+                                      ParamHUE_CHBtn3JalousieKurz, ParamHUE_CHBtn3JalousieLang);
                         }
                         // Taste 4
                         if (btnCount >= 4) {
                             mapButton(3, ParamHUE_CHBtn4Gewerk, ParamHUE_CHBtn4LichtKurz,
                                       ParamHUE_CHBtn4LichtLang, ParamHUE_CHBtn4SceneNr, ParamHUE_CHBtn4LichtDimStep,
-                                      ParamHUE_CHBtn4MedienKurz, ParamHUE_CHBtn4MedienLang);
+                                      ParamHUE_CHBtn4MedienKurz, ParamHUE_CHBtn4MedienLang,
+                                      ParamHUE_CHBtn4JalousieKurz, ParamHUE_CHBtn4JalousieLang);
                         }
                         // Drehregler
                         btn->setHasRotary(ParamHUE_CHHasRotary != 0);

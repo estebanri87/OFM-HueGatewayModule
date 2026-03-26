@@ -276,9 +276,21 @@ public:
         else if (eventType == "long_release")
         {
             if (_btnLongActive[idx])
+            {
+                // repeat was received earlier → dimming/move already started, now stop
                 sendLongPressStop(static_cast<uint8_t>(idx));
+            }
+            else if (_btnHasLong[idx])
+            {
+                // No repeat event was received (some Hue devices skip it),
+                // but bridge detected a long press → execute start+stop for one step
+                sendLongPressStart(static_cast<uint8_t>(idx));
+                sendLongPressStop(static_cast<uint8_t>(idx));
+            }
             else if (_btnHasShort[idx])
-                sendShortPress(static_cast<uint8_t>(idx)); // hasLong=false: treat as short press
+            {
+                sendShortPress(static_cast<uint8_t>(idx));
+            }
             _btnLongActive[idx] = false;
         }
     }
@@ -333,7 +345,8 @@ public:
             case RF::Dimmen:
             case RF::Lautstaerke:
             {
-                // Relative dimming — stateless, no absolute position tracking needed.
+                // Relative dimming — send step command. DPT 3.007 step code defines
+                // the number of intervals (100%/2^(code-1)), actuator stops on its own.
                 sendDpt3(_rotaryKo[0], up, _rotaryStepCode);
                 Serial.printf("[HueGatewayButton] %s - Rotary %s DPT3.007 code=%u(%s)\n",
                               _name.c_str(), up ? "+" : "-", _rotaryStepCode, stepCodePct(_rotaryStepCode));
