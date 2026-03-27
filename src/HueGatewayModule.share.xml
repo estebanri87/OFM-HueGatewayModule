@@ -388,33 +388,34 @@
                 <TypeText SizeInBit="320" />
               </ParameterType>
 
-              <!-- Gewerk-Auswahl pro Taste (alle 4 Gewerke) -->
+              <!-- Gewerk-Auswahl pro Taste (alle 5 Gewerke) -->
               <ParameterType Id="%AID%_PT-HUEButtonGewerk" Name="HUEButtonGewerk">
-                <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
+                <TypeRestriction Base="Value" SizeInBit="3" UIHint="DropDown">
                   <Enumeration Text="Licht"       Value="0" Id="%ENID%" />
                   <Enumeration Text="Jalousie"    Value="1" Id="%ENID%" />
                   <Enumeration Text="Medien"      Value="2" Id="%ENID%" />
                   <Enumeration Text="Generisch"   Value="3" Id="%ENID%" />
+                  <Enumeration Text="Szene"       Value="4" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
 
               <!-- Gewerk-Auswahl pro Taste bei nur 1 Taste (ohne Jalousie) -->
               <ParameterType Id="%AID%_PT-HUEButtonGewerkEinzel" Name="HUEButtonGewerkEinzel">
-                <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
+                <TypeRestriction Base="Value" SizeInBit="3" UIHint="DropDown">
                   <Enumeration Text="Licht"       Value="0" Id="%ENID%" />
                   <Enumeration Text="Medien"      Value="2" Id="%ENID%" />
                   <Enumeration Text="Generisch"   Value="3" Id="%ENID%" />
+                  <Enumeration Text="Szene"       Value="4" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
 
               <!-- Licht: Kurzdruck-Aktion -->
               <ParameterType Id="%AID%_PT-HUELichtKurz" Name="HUELichtKurz">
-                <TypeRestriction Base="Value" SizeInBit="3" UIHint="DropDown">
+                <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
                   <Enumeration Text="Kein Kurzdruck"  Value="0" Id="%ENID%" />
                   <Enumeration Text="Schalten"        Value="1" Id="%ENID%" />
                   <Enumeration Text="Dimmen heller"  Value="2" Id="%ENID%" />
                   <Enumeration Text="Dimmen dunkler" Value="3" Id="%ENID%" />
-                  <Enumeration Text="Szenennummer senden"   Value="4" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
 
@@ -480,6 +481,22 @@
                 <TypeRestriction Base="Value" SizeInBit="1" UIHint="DropDown">
                   <Enumeration Text="Kein Langdruck"    Value="0" Id="%ENID%" />
                   <Enumeration Text="Objekt B senden"   Value="1" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+
+              <!-- Szene: Kurzdruck-Aktion -->
+              <ParameterType Id="%AID%_PT-HUESceneKurz" Name="HUESceneKurz">
+                <TypeRestriction Base="Value" SizeInBit="1" UIHint="DropDown">
+                  <Enumeration Text="Kein Kurzdruck"         Value="0" Id="%ENID%" />
+                  <Enumeration Text="Szenennummer senden"    Value="1" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+
+              <!-- Szene: Langdruck-Aktion -->
+              <ParameterType Id="%AID%_PT-HUESceneLang" Name="HUESceneLang">
+                <TypeRestriction Base="Value" SizeInBit="1" UIHint="DropDown">
+                  <Enumeration Text="Kein Langdruck"         Value="0" Id="%ENID%" />
+                  <Enumeration Text="Szenennummer senden"    Value="1" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
 

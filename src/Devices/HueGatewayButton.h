@@ -97,6 +97,7 @@ public:
             _btnHasLong[i]    = false;
             _btnHasShort[i]   = true;
             _btnSceneNr[i]    = 1;
+            _btnSceneNrLang[i] = 1;
             _btnState[i]      = false;   // current toggle state
             _btnLongActive[i] = false;   // long press in progress
             _serviceRid[i]    = "";
@@ -155,6 +156,10 @@ public:
     void setButtonSceneNr(uint8_t idx, uint8_t sceneNr)
     {
         if (idx < MAX_BUTTONS) _btnSceneNr[idx] = sceneNr;
+    }
+    void setButtonSceneNrLang(uint8_t idx, uint8_t sceneNr)
+    {
+        if (idx < MAX_BUTTONS) _btnSceneNrLang[idx] = sceneNr;
     }
     void setHasRotary(bool hasRotary) { _hasRotary = hasRotary; }
     void setRotaryFunction(RotaryFunction fn) { _rotaryFunction = fn; }
@@ -395,6 +400,7 @@ private:
     bool _btnHasLong[MAX_BUTTONS];
     bool _btnHasShort[MAX_BUTTONS];
     uint8_t _btnSceneNr[MAX_BUTTONS];
+    uint8_t _btnSceneNrLang[MAX_BUTTONS];
     bool _btnState[MAX_BUTTONS];         // toggle state for Schalten/Medien
     bool _btnLongActive[MAX_BUTTONS];    // long press state machine
     String _serviceRid[MAX_BUTTONS];     // button service RIDs
@@ -569,6 +575,17 @@ private:
                 if (ko1) sendDpt3(ko1, !inv, 5);
                 Serial.printf("[HueGatewayButton] %s btn%u Medien volume %s\n",
                               _name.c_str(), idx+1, inv ? "down" : "up");
+                break;
+
+            case BF::Szene:
+                // Long press = recall scene (DPT 18.001) on secondary KO
+                if (ko1)
+                {
+                    const uint8_t sceneVal = 0x80 | ((_btnSceneNrLang[idx] - 1) & 0x3F);
+                    knx.getGroupObject(ko1).value(sceneVal, Dpt(18, 1));
+                }
+                Serial.printf("[HueGatewayButton] %s btn%u Szene lang %u\n",
+                              _name.c_str(), idx+1, _btnSceneNrLang[idx]);
                 break;
 
             case BF::ZweiObjekte:

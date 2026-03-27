@@ -219,53 +219,61 @@
               <Union Id="%AID%_U-%TT%5%CC%130" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="161" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%130" Name="CH%C%Btn1Gewerk" ParameterType="%AID%_PT-HUEButtonGewerk" Offset="0" BitOffset="0" Text="Taste 1 Gewerk" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%131" Name="CH%C%Btn1GewerkEinzel" ParameterType="%AID%_PT-HUEButtonGewerkEinzel" Offset="0" BitOffset="0" Text="Taste 1 Gewerk" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%141" Name="CH%C%Btn1LichtKurz" ParameterType="%AID%_PT-HUELichtKurz" Offset="0" BitOffset="2" Text="Taste 1 Kurzdruck" Value="1" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%142" Name="CH%C%Btn1JalousieKurz" ParameterType="%AID%_PT-HUEJalousieKurz" Offset="0" BitOffset="2" Text="Taste 1 Kurzdruck" Value="1" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%147" Name="CH%C%Btn1MedienKurz" ParameterType="%AID%_PT-HUEMedienKurz" Offset="0" BitOffset="2" Text="Taste 1 Kurzdruck" Value="1" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%148" Name="CH%C%Btn1GenerischKurz" ParameterType="%AID%_PT-HUEGenerischKurz" Offset="0" BitOffset="2" Text="Taste 1 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%141" Name="CH%C%Btn1LichtKurz" ParameterType="%AID%_PT-HUELichtKurz" Offset="0" BitOffset="3" Text="Taste 1 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%142" Name="CH%C%Btn1JalousieKurz" ParameterType="%AID%_PT-HUEJalousieKurz" Offset="0" BitOffset="3" Text="Taste 1 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%147" Name="CH%C%Btn1MedienKurz" ParameterType="%AID%_PT-HUEMedienKurz" Offset="0" BitOffset="3" Text="Taste 1 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%148" Name="CH%C%Btn1GenerischKurz" ParameterType="%AID%_PT-HUEGenerischKurz" Offset="0" BitOffset="3" Text="Taste 1 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%190" Name="CH%C%Btn1SceneKurz" ParameterType="%AID%_PT-HUESceneKurz" Offset="0" BitOffset="3" Text="Taste 1 Kurzdruck" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%143" Name="CH%C%Btn1LichtLang" ParameterType="%AID%_PT-HUELichtLang" Offset="0" BitOffset="5" Text="Taste 1 Langdruck" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%144" Name="CH%C%Btn1JalousieLang" ParameterType="%AID%_PT-HUEJalousieLang" Offset="0" BitOffset="4" Text="Taste 1 Langdruck" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%145" Name="CH%C%Btn1MedienLang" ParameterType="%AID%_PT-HUEMedienLang" Offset="0" BitOffset="5" Text="Taste 1 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%144" Name="CH%C%Btn1JalousieLang" ParameterType="%AID%_PT-HUEJalousieLang" Offset="0" BitOffset="5" Text="Taste 1 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%145" Name="CH%C%Btn1MedienLang" ParameterType="%AID%_PT-HUEMedienLang" Offset="0" BitOffset="6" Text="Taste 1 Langdruck" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%146" Name="CH%C%Btn1GenerischLang" ParameterType="%AID%_PT-HUEGenerischLang" Offset="0" BitOffset="4" Text="Taste 1 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%191" Name="CH%C%Btn1SceneLang" ParameterType="%AID%_PT-HUESceneLang" Offset="0" BitOffset="4" Text="Taste 1 Langdruck" Value="0" />
               </Union>
 
               <!-- ===== Tasterkanal: Taste 2 Gewerk/Kurz/Lang (Offset 162) ===== -->
               <Union Id="%AID%_U-%TT%5%CC%131" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="162" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%150" Name="CH%C%Btn2Gewerk" ParameterType="%AID%_PT-HUEButtonGewerk" Offset="0" BitOffset="0" Text="Taste 2 Gewerk" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%151" Name="CH%C%Btn2LichtKurz" ParameterType="%AID%_PT-HUELichtKurz" Offset="0" BitOffset="2" Text="Taste 2 Kurzdruck" Value="1" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%152" Name="CH%C%Btn2JalousieKurz" ParameterType="%AID%_PT-HUEJalousieKurz" Offset="0" BitOffset="2" Text="Taste 2 Kurzdruck" Value="1" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%157" Name="CH%C%Btn2MedienKurz" ParameterType="%AID%_PT-HUEMedienKurz" Offset="0" BitOffset="2" Text="Taste 2 Kurzdruck" Value="1" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%158" Name="CH%C%Btn2GenerischKurz" ParameterType="%AID%_PT-HUEGenerischKurz" Offset="0" BitOffset="2" Text="Taste 2 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%151" Name="CH%C%Btn2LichtKurz" ParameterType="%AID%_PT-HUELichtKurz" Offset="0" BitOffset="3" Text="Taste 2 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%152" Name="CH%C%Btn2JalousieKurz" ParameterType="%AID%_PT-HUEJalousieKurz" Offset="0" BitOffset="3" Text="Taste 2 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%157" Name="CH%C%Btn2MedienKurz" ParameterType="%AID%_PT-HUEMedienKurz" Offset="0" BitOffset="3" Text="Taste 2 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%158" Name="CH%C%Btn2GenerischKurz" ParameterType="%AID%_PT-HUEGenerischKurz" Offset="0" BitOffset="3" Text="Taste 2 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%192" Name="CH%C%Btn2SceneKurz" ParameterType="%AID%_PT-HUESceneKurz" Offset="0" BitOffset="3" Text="Taste 2 Kurzdruck" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%153" Name="CH%C%Btn2LichtLang" ParameterType="%AID%_PT-HUELichtLang" Offset="0" BitOffset="5" Text="Taste 2 Langdruck" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%154" Name="CH%C%Btn2JalousieLang" ParameterType="%AID%_PT-HUEJalousieLang" Offset="0" BitOffset="4" Text="Taste 2 Langdruck" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%155" Name="CH%C%Btn2MedienLang" ParameterType="%AID%_PT-HUEMedienLang" Offset="0" BitOffset="5" Text="Taste 2 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%154" Name="CH%C%Btn2JalousieLang" ParameterType="%AID%_PT-HUEJalousieLang" Offset="0" BitOffset="5" Text="Taste 2 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%155" Name="CH%C%Btn2MedienLang" ParameterType="%AID%_PT-HUEMedienLang" Offset="0" BitOffset="6" Text="Taste 2 Langdruck" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%156" Name="CH%C%Btn2GenerischLang" ParameterType="%AID%_PT-HUEGenerischLang" Offset="0" BitOffset="4" Text="Taste 2 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%193" Name="CH%C%Btn2SceneLang" ParameterType="%AID%_PT-HUESceneLang" Offset="0" BitOffset="4" Text="Taste 2 Langdruck" Value="0" />
               </Union>
 
               <!-- ===== Tasterkanal: Taste 3 Gewerk/Kurz/Lang (Offset 163) ===== -->
               <Union Id="%AID%_U-%TT%5%CC%132" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="163" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%160" Name="CH%C%Btn3Gewerk" ParameterType="%AID%_PT-HUEButtonGewerk" Offset="0" BitOffset="0" Text="Taste 3 Gewerk" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%161" Name="CH%C%Btn3LichtKurz" ParameterType="%AID%_PT-HUELichtKurz" Offset="0" BitOffset="2" Text="Taste 3 Kurzdruck" Value="1" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%162" Name="CH%C%Btn3JalousieKurz" ParameterType="%AID%_PT-HUEJalousieKurz" Offset="0" BitOffset="2" Text="Taste 3 Kurzdruck" Value="1" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%167" Name="CH%C%Btn3MedienKurz" ParameterType="%AID%_PT-HUEMedienKurz" Offset="0" BitOffset="2" Text="Taste 3 Kurzdruck" Value="1" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%168" Name="CH%C%Btn3GenerischKurz" ParameterType="%AID%_PT-HUEGenerischKurz" Offset="0" BitOffset="2" Text="Taste 3 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%161" Name="CH%C%Btn3LichtKurz" ParameterType="%AID%_PT-HUELichtKurz" Offset="0" BitOffset="3" Text="Taste 3 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%162" Name="CH%C%Btn3JalousieKurz" ParameterType="%AID%_PT-HUEJalousieKurz" Offset="0" BitOffset="3" Text="Taste 3 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%167" Name="CH%C%Btn3MedienKurz" ParameterType="%AID%_PT-HUEMedienKurz" Offset="0" BitOffset="3" Text="Taste 3 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%168" Name="CH%C%Btn3GenerischKurz" ParameterType="%AID%_PT-HUEGenerischKurz" Offset="0" BitOffset="3" Text="Taste 3 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%194" Name="CH%C%Btn3SceneKurz" ParameterType="%AID%_PT-HUESceneKurz" Offset="0" BitOffset="3" Text="Taste 3 Kurzdruck" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%163" Name="CH%C%Btn3LichtLang" ParameterType="%AID%_PT-HUELichtLang" Offset="0" BitOffset="5" Text="Taste 3 Langdruck" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%164" Name="CH%C%Btn3JalousieLang" ParameterType="%AID%_PT-HUEJalousieLang" Offset="0" BitOffset="4" Text="Taste 3 Langdruck" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%165" Name="CH%C%Btn3MedienLang" ParameterType="%AID%_PT-HUEMedienLang" Offset="0" BitOffset="5" Text="Taste 3 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%164" Name="CH%C%Btn3JalousieLang" ParameterType="%AID%_PT-HUEJalousieLang" Offset="0" BitOffset="5" Text="Taste 3 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%165" Name="CH%C%Btn3MedienLang" ParameterType="%AID%_PT-HUEMedienLang" Offset="0" BitOffset="6" Text="Taste 3 Langdruck" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%166" Name="CH%C%Btn3GenerischLang" ParameterType="%AID%_PT-HUEGenerischLang" Offset="0" BitOffset="4" Text="Taste 3 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%195" Name="CH%C%Btn3SceneLang" ParameterType="%AID%_PT-HUESceneLang" Offset="0" BitOffset="4" Text="Taste 3 Langdruck" Value="0" />
               </Union>
 
               <!-- ===== Tasterkanal: Taste 4 Gewerk/Kurz/Lang (Offset 164) ===== -->
               <Union Id="%AID%_U-%TT%5%CC%133" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="164" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%170" Name="CH%C%Btn4Gewerk" ParameterType="%AID%_PT-HUEButtonGewerk" Offset="0" BitOffset="0" Text="Taste 4 Gewerk" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%171" Name="CH%C%Btn4LichtKurz" ParameterType="%AID%_PT-HUELichtKurz" Offset="0" BitOffset="2" Text="Taste 4 Kurzdruck" Value="1" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%172" Name="CH%C%Btn4JalousieKurz" ParameterType="%AID%_PT-HUEJalousieKurz" Offset="0" BitOffset="2" Text="Taste 4 Kurzdruck" Value="1" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%177" Name="CH%C%Btn4MedienKurz" ParameterType="%AID%_PT-HUEMedienKurz" Offset="0" BitOffset="2" Text="Taste 4 Kurzdruck" Value="1" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%178" Name="CH%C%Btn4GenerischKurz" ParameterType="%AID%_PT-HUEGenerischKurz" Offset="0" BitOffset="2" Text="Taste 4 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%171" Name="CH%C%Btn4LichtKurz" ParameterType="%AID%_PT-HUELichtKurz" Offset="0" BitOffset="3" Text="Taste 4 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%172" Name="CH%C%Btn4JalousieKurz" ParameterType="%AID%_PT-HUEJalousieKurz" Offset="0" BitOffset="3" Text="Taste 4 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%177" Name="CH%C%Btn4MedienKurz" ParameterType="%AID%_PT-HUEMedienKurz" Offset="0" BitOffset="3" Text="Taste 4 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%178" Name="CH%C%Btn4GenerischKurz" ParameterType="%AID%_PT-HUEGenerischKurz" Offset="0" BitOffset="3" Text="Taste 4 Kurzdruck" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%196" Name="CH%C%Btn4SceneKurz" ParameterType="%AID%_PT-HUESceneKurz" Offset="0" BitOffset="3" Text="Taste 4 Kurzdruck" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%173" Name="CH%C%Btn4LichtLang" ParameterType="%AID%_PT-HUELichtLang" Offset="0" BitOffset="5" Text="Taste 4 Langdruck" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%174" Name="CH%C%Btn4JalousieLang" ParameterType="%AID%_PT-HUEJalousieLang" Offset="0" BitOffset="4" Text="Taste 4 Langdruck" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%5%CC%175" Name="CH%C%Btn4MedienLang" ParameterType="%AID%_PT-HUEMedienLang" Offset="0" BitOffset="5" Text="Taste 4 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%174" Name="CH%C%Btn4JalousieLang" ParameterType="%AID%_PT-HUEJalousieLang" Offset="0" BitOffset="5" Text="Taste 4 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%175" Name="CH%C%Btn4MedienLang" ParameterType="%AID%_PT-HUEMedienLang" Offset="0" BitOffset="6" Text="Taste 4 Langdruck" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%176" Name="CH%C%Btn4GenerischLang" ParameterType="%AID%_PT-HUEGenerischLang" Offset="0" BitOffset="4" Text="Taste 4 Langdruck" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%5%CC%197" Name="CH%C%Btn4SceneLang" ParameterType="%AID%_PT-HUESceneLang" Offset="0" BitOffset="4" Text="Taste 4 Langdruck" Value="0" />
               </Union>
 
               <!-- ===== Tasterkanal: Szenen-Nr je Taste (Offsets 165-168) ===== -->
@@ -273,6 +281,12 @@
               <Parameter Id="%AID%_P-%TT%5%CC%124" Name="CH%C%Btn2SceneNr" ParameterType="%AID%_PT-HUESceneNrButton" Text="Taste 2 Szenennummer" Value="1"><Memory CodeSegment="%MID%" Offset="166" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-%TT%5%CC%125" Name="CH%C%Btn3SceneNr" ParameterType="%AID%_PT-HUESceneNrButton" Text="Taste 3 Szenennummer" Value="1"><Memory CodeSegment="%MID%" Offset="167" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-%TT%5%CC%126" Name="CH%C%Btn4SceneNr" ParameterType="%AID%_PT-HUESceneNrButton" Text="Taste 4 Szenennummer" Value="1"><Memory CodeSegment="%MID%" Offset="168" BitOffset="0" /></Parameter>
+
+              <!-- ===== Tasterkanal: Langdruck-Szenen-Nr je Taste (Offsets 176-179) ===== -->
+              <Parameter Id="%AID%_P-%TT%5%CC%198" Name="CH%C%Btn1SceneNrLang" ParameterType="%AID%_PT-HUESceneNrButton" Text="Taste 1 Langdruck Szenennummer" Value="1"><Memory CodeSegment="%MID%" Offset="176" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%5%CC%199" Name="CH%C%Btn2SceneNrLang" ParameterType="%AID%_PT-HUESceneNrButton" Text="Taste 2 Langdruck Szenennummer" Value="1"><Memory CodeSegment="%MID%" Offset="177" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%5%CC%185" Name="CH%C%Btn3SceneNrLang" ParameterType="%AID%_PT-HUESceneNrButton" Text="Taste 3 Langdruck Szenennummer" Value="1"><Memory CodeSegment="%MID%" Offset="178" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%5%CC%186" Name="CH%C%Btn4SceneNrLang" ParameterType="%AID%_PT-HUESceneNrButton" Text="Taste 4 Langdruck Szenennummer" Value="1"><Memory CodeSegment="%MID%" Offset="179" BitOffset="0" /></Parameter>
 
               <!-- ===== Tasterkanal: Dimm-Schrittweite je Taste (Offsets 172-175) ===== -->
               <Parameter Id="%AID%_P-%TT%5%CC%181" Name="CH%C%Btn1LichtDimStep" ParameterType="%AID%_PT-HUELichtDimStep" Text="Taste 1 Dimm-Schrittweite" Value="4"><Memory CodeSegment="%MID%" Offset="172" BitOffset="0" /></Parameter>
@@ -438,6 +452,8 @@
               <ParameterRef Id="%AID%_UP-%TT%5%CC%145_R-%TT%5%CC%14501" RefId="%AID%_UP-%TT%5%CC%145" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%146_R-%TT%5%CC%14601" RefId="%AID%_UP-%TT%5%CC%146" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%148_R-%TT%5%CC%14801" RefId="%AID%_UP-%TT%5%CC%148" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%190_R-%TT%5%CC%19001" RefId="%AID%_UP-%TT%5%CC%190" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%191_R-%TT%5%CC%19101" RefId="%AID%_UP-%TT%5%CC%191" />
               <!-- Taste 2 -->
               <ParameterRef Id="%AID%_UP-%TT%5%CC%150_R-%TT%5%CC%15001" RefId="%AID%_UP-%TT%5%CC%150" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%151_R-%TT%5%CC%15101" RefId="%AID%_UP-%TT%5%CC%151" />
@@ -448,6 +464,8 @@
               <ParameterRef Id="%AID%_UP-%TT%5%CC%155_R-%TT%5%CC%15501" RefId="%AID%_UP-%TT%5%CC%155" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%156_R-%TT%5%CC%15601" RefId="%AID%_UP-%TT%5%CC%156" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%158_R-%TT%5%CC%15801" RefId="%AID%_UP-%TT%5%CC%158" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%192_R-%TT%5%CC%19201" RefId="%AID%_UP-%TT%5%CC%192" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%193_R-%TT%5%CC%19301" RefId="%AID%_UP-%TT%5%CC%193" />
               <!-- Taste 3 -->
               <ParameterRef Id="%AID%_UP-%TT%5%CC%160_R-%TT%5%CC%16001" RefId="%AID%_UP-%TT%5%CC%160" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%161_R-%TT%5%CC%16101" RefId="%AID%_UP-%TT%5%CC%161" />
@@ -458,6 +476,8 @@
               <ParameterRef Id="%AID%_UP-%TT%5%CC%165_R-%TT%5%CC%16501" RefId="%AID%_UP-%TT%5%CC%165" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%166_R-%TT%5%CC%16601" RefId="%AID%_UP-%TT%5%CC%166" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%168_R-%TT%5%CC%16801" RefId="%AID%_UP-%TT%5%CC%168" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%194_R-%TT%5%CC%19401" RefId="%AID%_UP-%TT%5%CC%194" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%195_R-%TT%5%CC%19501" RefId="%AID%_UP-%TT%5%CC%195" />
               <!-- Taste 4 -->
               <ParameterRef Id="%AID%_UP-%TT%5%CC%170_R-%TT%5%CC%17001" RefId="%AID%_UP-%TT%5%CC%170" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%171_R-%TT%5%CC%17101" RefId="%AID%_UP-%TT%5%CC%171" />
@@ -468,6 +488,8 @@
               <ParameterRef Id="%AID%_UP-%TT%5%CC%175_R-%TT%5%CC%17501" RefId="%AID%_UP-%TT%5%CC%175" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%176_R-%TT%5%CC%17601" RefId="%AID%_UP-%TT%5%CC%176" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%178_R-%TT%5%CC%17801" RefId="%AID%_UP-%TT%5%CC%178" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%196_R-%TT%5%CC%19601" RefId="%AID%_UP-%TT%5%CC%196" />
+              <ParameterRef Id="%AID%_UP-%TT%5%CC%197_R-%TT%5%CC%19701" RefId="%AID%_UP-%TT%5%CC%197" />
               <ParameterRef Id="%AID%_P-%TT%5%CC%181_R-%TT%5%CC%18101" RefId="%AID%_P-%TT%5%CC%181" />
               <ParameterRef Id="%AID%_P-%TT%5%CC%182_R-%TT%5%CC%18201" RefId="%AID%_P-%TT%5%CC%182" />
               <ParameterRef Id="%AID%_P-%TT%5%CC%183_R-%TT%5%CC%18301" RefId="%AID%_P-%TT%5%CC%183" />
@@ -476,6 +498,10 @@
               <ParameterRef Id="%AID%_P-%TT%5%CC%124_R-%TT%5%CC%12401" RefId="%AID%_P-%TT%5%CC%124" />
               <ParameterRef Id="%AID%_P-%TT%5%CC%125_R-%TT%5%CC%12501" RefId="%AID%_P-%TT%5%CC%125" />
               <ParameterRef Id="%AID%_P-%TT%5%CC%126_R-%TT%5%CC%12601" RefId="%AID%_P-%TT%5%CC%126" />
+              <ParameterRef Id="%AID%_P-%TT%5%CC%198_R-%TT%5%CC%19801" RefId="%AID%_P-%TT%5%CC%198" />
+              <ParameterRef Id="%AID%_P-%TT%5%CC%199_R-%TT%5%CC%19901" RefId="%AID%_P-%TT%5%CC%199" />
+              <ParameterRef Id="%AID%_P-%TT%5%CC%185_R-%TT%5%CC%18501" RefId="%AID%_P-%TT%5%CC%185" />
+              <ParameterRef Id="%AID%_P-%TT%5%CC%186_R-%TT%5%CC%18601" RefId="%AID%_P-%TT%5%CC%186" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%138_R-%TT%5%CC%13801" RefId="%AID%_UP-%TT%5%CC%138" />
               <ParameterRef Id="%AID%_UP-%TT%5%CC%139_R-%TT%5%CC%13901" RefId="%AID%_UP-%TT%5%CC%139" />
               <ParameterRef Id="%AID%_P-%TT%5%CC%127_R-%TT%5%CC%12701" RefId="%AID%_P-%TT%5%CC%127" />
@@ -627,6 +653,12 @@
               <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00734" RefId="%AID%_O-%TT%5%CC%007" Text="Hue %C% - {{0}}: Taste 4: Lauter" FunctionText="Langdruck: Lautstärke erhöhen" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00735" RefId="%AID%_O-%TT%5%CC%007" Text="Hue %C% - {{0}}: Taste 4: Leiser" FunctionText="Langdruck: Lautstärke verringern" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
               <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00736" RefId="%AID%_O-%TT%5%CC%007" Text="Hue %C% - {{0}}: Taste 4: Objekt B" FunctionText="Langdruck: Objekt B senden" ObjectSize="1 Bit" DatapointType="DPST-1-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+
+              <!-- === Langdruck Szenennummer (je Taste, auf Lang-KO-Slot) === -->
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00137" RefId="%AID%_O-%TT%5%CC%001" Text="Hue %C% - {{0}}: Taste 1: Szenennummer" FunctionText="Langdruck: Szenennummer senden" ObjectSize="1 Byte" DatapointType="DPST-18-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00337" RefId="%AID%_O-%TT%5%CC%003" Text="Hue %C% - {{0}}: Taste 2: Szenennummer" FunctionText="Langdruck: Szenennummer senden" ObjectSize="1 Byte" DatapointType="DPST-18-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00537" RefId="%AID%_O-%TT%5%CC%005" Text="Hue %C% - {{0}}: Taste 3: Szenennummer" FunctionText="Langdruck: Szenennummer senden" ObjectSize="1 Byte" DatapointType="DPST-18-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00737" RefId="%AID%_O-%TT%5%CC%007" Text="Hue %C% - {{0}}: Taste 4: Szenennummer" FunctionText="Langdruck: Szenennummer senden" ObjectSize="1 Byte" DatapointType="DPST-18-1" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
 
               <!-- === Drehregler (KO-Slot 8, base O-008) === -->
               <ComObjectRef Id="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00820" RefId="%AID%_O-%TT%5%CC%008" Text="Hue %C% - {{0}}: Drehregler: Dimmen" FunctionText="Drehregler Dimmen (relativ)" ObjectSize="4 Bit" DatapointType="DPST-3-7" CommunicationFlag="Enabled" ReadFlag="Disabled" WriteFlag="Disabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
@@ -1389,11 +1421,6 @@
                                 <when test="0">
                                   <ParameterRefRef RefId="%AID%_P-%TT%5%CC%181_R-%TT%5%CC%18101" IndentLevel="1" HelpContext="HUE-Taste-Gewerk" />
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%141_R-%TT%5%CC%14101" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
-                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%141_R-%TT%5%CC%14101">
-                                    <when test="4">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%123_R-%TT%5%CC%12301" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
-                                    </when>
-                                  </choose>
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%143_R-%TT%5%CC%14301" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
                                 </when>
                                 <when test="2">
@@ -1404,6 +1431,20 @@
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%148_R-%TT%5%CC%14801" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%146_R-%TT%5%CC%14601" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
                                 </when>
+                                <when test="4"><!-- Szene -->
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%190_R-%TT%5%CC%19001" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
+                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%190_R-%TT%5%CC%19001">
+                                    <when test="1">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%123_R-%TT%5%CC%12301" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
+                                    </when>
+                                  </choose>
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%191_R-%TT%5%CC%19101" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%191_R-%TT%5%CC%19101">
+                                    <when test="1">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%198_R-%TT%5%CC%19801" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
+                                    </when>
+                                  </choose>
+                                </when>
                               </choose>
                             </when>
                             <when test=">=2">
@@ -1411,11 +1452,6 @@
                                 <when test="0">
                                   <ParameterRefRef RefId="%AID%_P-%TT%5%CC%181_R-%TT%5%CC%18101" IndentLevel="1" HelpContext="HUE-Taste-Gewerk" />
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%141_R-%TT%5%CC%14101" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
-                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%141_R-%TT%5%CC%14101">
-                                    <when test="4">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%123_R-%TT%5%CC%12301" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
-                                    </when>
-                                  </choose>
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%143_R-%TT%5%CC%14301" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
                                 </when>
                                 <when test="1">
@@ -1430,6 +1466,20 @@
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%148_R-%TT%5%CC%14801" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%146_R-%TT%5%CC%14601" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
                                 </when>
+                                <when test="4"><!-- Szene -->
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%190_R-%TT%5%CC%19001" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
+                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%190_R-%TT%5%CC%19001">
+                                    <when test="1">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%123_R-%TT%5%CC%12301" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
+                                    </when>
+                                  </choose>
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%191_R-%TT%5%CC%19101" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%191_R-%TT%5%CC%19101">
+                                    <when test="1">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%198_R-%TT%5%CC%19801" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
+                                    </when>
+                                  </choose>
+                                </when>
                               </choose>
                             </when>
                           </choose>
@@ -1443,11 +1493,6 @@
                                 <when test="0">
                                   <ParameterRefRef RefId="%AID%_P-%TT%5%CC%182_R-%TT%5%CC%18201" IndentLevel="1" HelpContext="HUE-Taste-Gewerk" />
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%151_R-%TT%5%CC%15101" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
-                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%151_R-%TT%5%CC%15101">
-                                    <when test="4">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%124_R-%TT%5%CC%12401" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
-                                    </when>
-                                  </choose>
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%153_R-%TT%5%CC%15301" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
                                 </when>
                                 <when test="1">
@@ -1462,6 +1507,20 @@
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%158_R-%TT%5%CC%15801" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%156_R-%TT%5%CC%15601" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
                                 </when>
+                                <when test="4"><!-- Szene -->
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%192_R-%TT%5%CC%19201" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
+                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%192_R-%TT%5%CC%19201">
+                                    <when test="1">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%124_R-%TT%5%CC%12401" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
+                                    </when>
+                                  </choose>
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%193_R-%TT%5%CC%19301" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%193_R-%TT%5%CC%19301">
+                                    <when test="1">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%199_R-%TT%5%CC%19901" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
+                                    </when>
+                                  </choose>
+                                </when>
                               </choose>
                             </when>
                           </choose>
@@ -1475,11 +1534,6 @@
                                 <when test="0">
                                   <ParameterRefRef RefId="%AID%_P-%TT%5%CC%183_R-%TT%5%CC%18301" IndentLevel="1" HelpContext="HUE-Taste-Gewerk" />
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%161_R-%TT%5%CC%16101" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
-                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%161_R-%TT%5%CC%16101">
-                                    <when test="4">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%125_R-%TT%5%CC%12501" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
-                                    </when>
-                                  </choose>
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%163_R-%TT%5%CC%16301" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
                                 </when>
                                 <when test="1">
@@ -1494,6 +1548,20 @@
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%168_R-%TT%5%CC%16801" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%166_R-%TT%5%CC%16601" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
                                 </when>
+                                <when test="4"><!-- Szene -->
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%194_R-%TT%5%CC%19401" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
+                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%194_R-%TT%5%CC%19401">
+                                    <when test="1">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%125_R-%TT%5%CC%12501" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
+                                    </when>
+                                  </choose>
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%195_R-%TT%5%CC%19501" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%195_R-%TT%5%CC%19501">
+                                    <when test="1">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%185_R-%TT%5%CC%18501" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
+                                    </when>
+                                  </choose>
+                                </when>
                               </choose>
                             </when>
                           </choose>
@@ -1507,11 +1575,6 @@
                                 <when test="0">
                                   <ParameterRefRef RefId="%AID%_P-%TT%5%CC%184_R-%TT%5%CC%18401" IndentLevel="1" HelpContext="HUE-Taste-Gewerk" />
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%171_R-%TT%5%CC%17101" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
-                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%171_R-%TT%5%CC%17101">
-                                    <when test="4">
-                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%126_R-%TT%5%CC%12601" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
-                                    </when>
-                                  </choose>
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%173_R-%TT%5%CC%17301" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
                                 </when>
                                 <when test="1">
@@ -1525,6 +1588,20 @@
                                 <when test="3">
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%178_R-%TT%5%CC%17801" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
                                   <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%176_R-%TT%5%CC%17601" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                </when>
+                                <when test="4"><!-- Szene -->
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%196_R-%TT%5%CC%19601" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" />
+                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%196_R-%TT%5%CC%19601">
+                                    <when test="1">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%126_R-%TT%5%CC%12601" IndentLevel="2" HelpContext="HUE-Taste-Kurzdruck" />
+                                    </when>
+                                  </choose>
+                                  <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%197_R-%TT%5%CC%19701" IndentLevel="1" HelpContext="HUE-Taste-Langdruck" />
+                                  <choose ParamRefId="%AID%_UP-%TT%5%CC%197_R-%TT%5%CC%19701">
+                                    <when test="1">
+                                      <ParameterRefRef RefId="%AID%_P-%TT%5%CC%186_R-%TT%5%CC%18601" IndentLevel="2" HelpContext="HUE-Taste-Langdruck" />
+                                    </when>
+                                  </choose>
                                 </when>
                               </choose>
                             </when>
@@ -1760,9 +1837,6 @@
                                   <when test="3">
                                     <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00027" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                                   </when>
-                                  <when test="4">
-                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00021" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                                  </when>
                                 </choose>
                               </when>
                               <when test="2"><!-- Medien -->
@@ -1782,6 +1856,13 @@
                                   </when>
                                 </choose>
                               </when>
+                              <when test="4"><!-- Szene -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%190_R-%TT%5%CC%19001">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00021" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
                             </choose>
                           </when>
                           <when test=">=2">
@@ -1796,9 +1877,6 @@
                                   </when>
                                   <when test="3">
                                     <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00027" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                                  </when>
-                                  <when test="4">
-                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00021" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                                   </when>
                                 </choose>
                               </when>
@@ -1819,6 +1897,13 @@
                                 <choose ParamRefId="%AID%_UP-%TT%5%CC%148_R-%TT%5%CC%14801">
                                   <when test="1">
                                     <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00025" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                              <when test="4"><!-- Szene -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%190_R-%TT%5%CC%19001">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00021" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                                   </when>
                                 </choose>
                               </when>
@@ -1853,6 +1938,13 @@
                                 <choose ParamRefId="%AID%_UP-%TT%5%CC%146_R-%TT%5%CC%14601">
                                   <when test="1">
                                     <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00136" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                              <when test="4"><!-- Szene -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%191_R-%TT%5%CC%19101">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00137" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                                   </when>
                                 </choose>
                               </when>
@@ -1897,6 +1989,13 @@
                                   </when>
                                 </choose>
                               </when>
+                              <when test="4"><!-- Szene -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%191_R-%TT%5%CC%19101">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00137" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
                             </choose>
                           </when>
                         </choose>
@@ -1915,9 +2014,6 @@
                                   </when>
                                   <when test="3">
                                     <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00227" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                                  </when>
-                                  <when test="4">
-                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00221" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                                   </when>
                                 </choose>
                               </when>
@@ -1945,6 +2041,13 @@
                                 <choose ParamRefId="%AID%_UP-%TT%5%CC%158_R-%TT%5%CC%15801">
                                   <when test="1">
                                     <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00225" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                              <when test="4"><!-- Szene -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%192_R-%TT%5%CC%19201">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00221" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                                   </when>
                                 </choose>
                               </when>
@@ -1992,6 +2095,13 @@
                                   </when>
                                 </choose>
                               </when>
+                              <when test="4"><!-- Szene -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%193_R-%TT%5%CC%19301">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00337" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
                             </choose>
                           </when>
                         </choose>
@@ -2010,9 +2120,6 @@
                                   </when>
                                   <when test="3">
                                     <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00427" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                                  </when>
-                                  <when test="4">
-                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00421" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                                   </when>
                                 </choose>
                               </when>
@@ -2040,6 +2147,13 @@
                                 <choose ParamRefId="%AID%_UP-%TT%5%CC%168_R-%TT%5%CC%16801">
                                   <when test="1">
                                     <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00425" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                              <when test="4"><!-- Szene -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%194_R-%TT%5%CC%19401">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00421" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                                   </when>
                                 </choose>
                               </when>
@@ -2087,6 +2201,13 @@
                                   </when>
                                 </choose>
                               </when>
+                              <when test="4"><!-- Szene -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%195_R-%TT%5%CC%19501">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00537" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
                             </choose>
                           </when>
                         </choose>
@@ -2105,9 +2226,6 @@
                                   </when>
                                   <when test="3">
                                     <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00627" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                                  </when>
-                                  <when test="4">
-                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00621" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                                   </when>
                                 </choose>
                               </when>
@@ -2135,6 +2253,13 @@
                                 <choose ParamRefId="%AID%_UP-%TT%5%CC%178_R-%TT%5%CC%17801">
                                   <when test="1">
                                     <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00625" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                              <when test="4"><!-- Szene -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%196_R-%TT%5%CC%19601">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00621" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                                   </when>
                                 </choose>
                               </when>
@@ -2179,6 +2304,13 @@
                                 <choose ParamRefId="%AID%_UP-%TT%5%CC%176_R-%TT%5%CC%17601">
                                   <when test="1">
                                     <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00736" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                  </when>
+                                </choose>
+                              </when>
+                              <when test="4"><!-- Szene -->
+                                <choose ParamRefId="%AID%_UP-%TT%5%CC%197_R-%TT%5%CC%19701">
+                                  <when test="1">
+                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00737" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                                   </when>
                                 </choose>
                               </when>
