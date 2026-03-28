@@ -2919,108 +2919,46 @@ void HueGatewayModule::setupDevices()
                     }
                     auto* btn = static_cast<HueGatewayButton*>(_devices[ch]);
                     btn->begin(koBase);
-                    // Apply per-button Gewerk/Kurz/Lang settings from ETS parameters
-                    #ifdef ParamHUE_CHBtn1Gewerk
+                    // Apply per-button KurzTyp/LangTyp settings from ETS parameters
+                    #ifdef ParamHUE_CHBtn1KurzTyp
                     {
-                        using BF = HueGatewayButton::ButtonFunction;
                         using RF = HueGatewayButton::RotaryFunction;
 
-                        // Map Gewerk+Kurz+Lang to ButtonFunction, invertKurz, invertLang, hasLong, hasShort
-                        auto mapButton = [&](uint8_t btnIdx, uint8_t gewerk, uint8_t kurz, uint8_t lang, uint8_t sceneNr, uint8_t lightStepCode, uint8_t medKurz, uint8_t medLang, uint8_t jalKurz, uint8_t jalLang, uint8_t genKurz, uint8_t sceneKurz, uint8_t sceneLang, uint8_t sceneNrLang) {
-                            BF bf = BF::Schalten;
-                            bool invKurz = false;
-                            bool invLang = false;
-                            bool hasLong = false;
-                            bool hasShort = false;
-                            switch (gewerk) {
-                                case 0: // Licht
-                                {
-                                    hasShort = (kurz != 0);
-                                    hasLong  = (lang != 0);
-                                    const auto lightShortAction = static_cast<HueGatewayButton::LightShortAction>(kurz);
-                                    btn->setButtonLightShortAction(btnIdx, lightShortAction);
-                                    btn->setButtonLightStepCode(btnIdx, lightStepCode);
-                                    if (kurz == 1 && lang == 0) {
-                                        bf = BF::Schalten;
-                                    } else {
-                                        bf = BF::Dimmen;
-                                        invLang = (lang == 2); // Dunkler
-                                    }
-                                    break;
-                                }
-                                case 1: // Jalousie
-                                    bf = BF::Jalousie;
-                                    hasShort = (jalKurz != 0);
-                                    hasLong  = (jalLang != 0);
-                                    invKurz = (jalKurz == 1); // LamelleAuf → stepUp
-                                    invLang = (jalLang == 1); // BehangAuf → moveUp
-                                    break;
-                                case 2: // Medien
-                                    bf = BF::Medien;
-                                    hasShort = (medKurz != 0);
-                                    hasLong  = (medLang != 0);
-                                    invLang = (medLang == 2); // Leiser
-                                    btn->setButtonMedienKurz(btnIdx, static_cast<HueGatewayButton::MedienShortAction>(medKurz));
-                                    break;
-                                case 3: // Generisch
-                                    bf = BF::ZweiObjekte;
-                                    hasShort = (genKurz != 0);
-                                    break;
-                                case 4: // Szene
-                                    bf = BF::Szene;
-                                    hasShort = (sceneKurz != 0);
-                                    hasLong  = (sceneLang != 0);
-                                    break;
-                            }
-                            btn->setButtonFunction(btnIdx, bf);
-                            btn->setButtonInvert(btnIdx, invKurz);
-                            btn->setButtonInvertLong(btnIdx, invLang);
-                            btn->setButtonHasLong(btnIdx, hasLong);
-                            btn->setButtonHasShort(btnIdx, hasShort);
-                            if (gewerk == 4) {
-                                btn->setButtonSceneNr(btnIdx, sceneNr);
-                                btn->setButtonSceneNrLang(btnIdx, sceneNrLang);
-                            }
-                        };
+                        // Read per-button KurzTyp/LangTyp + sub-values from ETS parameters.
+                        // Sub-values are union members — values for non-active types are unused
+                        // (dispatch selects the right field based on kurzTyp/langTyp).
+                        #define MAP_BTN_PARAMS(N, IDX)                                              \
+                        {                                                                            \
+                            auto& cfg = btn->buttonConfig(IDX);                                      \
+                            cfg.kurzTyp        = ParamHUE_CHBtn##N##KurzTyp;                         \
+                            cfg.langTyp        = ParamHUE_CHBtn##N##LangTyp;                         \
+                            cfg.kurzSchaltwert = ParamHUE_CHBtn##N##KurzSchaltwert;                  \
+                            cfg.kurzDimUp      = (ParamHUE_CHBtn##N##KurzRichtungDim == 0);          \
+                            cfg.kurzDimStep    = ParamHUE_CHBtn##N##KurzDimStep;                     \
+                            cfg.kurzSceneNr    = ParamHUE_CHBtn##N##KurzSceneNr;                     \
+                            cfg.kurzRichtung   = ParamHUE_CHBtn##N##KurzRichtungJal;                 \
+                            cfg.kurzProzent    = ParamHUE_CHBtn##N##KurzProzent;                     \
+                            cfg.kurzTemp       = ParamHUE_CHBtn##N##KurzTemp;                        \
+                            cfg.kurzByte       = ParamHUE_CHBtn##N##KurzByte;                        \
+                            cfg.kurzWord       = ParamHUE_CHBtn##N##KurzWord;                        \
+                            cfg.langSchaltwert = ParamHUE_CHBtn##N##LangSchaltwert;                  \
+                            cfg.langDimUp      = (ParamHUE_CHBtn##N##LangRichtungDim == 0);          \
+                            cfg.langDimStep    = ParamHUE_CHBtn##N##LangDimStep;                     \
+                            cfg.langSceneNr    = ParamHUE_CHBtn##N##LangSceneNr;                     \
+                            cfg.langRichtung   = ParamHUE_CHBtn##N##LangRichtungJal;                 \
+                            cfg.langProzent    = ParamHUE_CHBtn##N##LangProzent;                     \
+                            cfg.langTemp       = ParamHUE_CHBtn##N##LangTemp;                        \
+                            cfg.langByte       = ParamHUE_CHBtn##N##LangByte;                        \
+                            cfg.langWord       = ParamHUE_CHBtn##N##LangWord;                        \
+                        }
 
-                        // Taste 1 (Gewerk reads same bits for Gewerk/GewerkEinzel Union)
-                        // Bei 1 Taste: GewerkEinzel erlaubt nur 0/2/3; Jalousie(1) ist ungültig -> Fallback Licht
-                        uint8_t btn1Gewerk = ParamHUE_CHBtn1Gewerk;
-                        if (btnCount == 1 && btn1Gewerk == 1)
-                            btn1Gewerk = 0;
-                        mapButton(0, btn1Gewerk, ParamHUE_CHBtn1LichtKurz,
-                                  ParamHUE_CHBtn1LichtLang, ParamHUE_CHBtn1SceneNr, ParamHUE_CHBtn1LichtDimStep,
-                                  ParamHUE_CHBtn1MedienKurz, ParamHUE_CHBtn1MedienLang,
-                                  ParamHUE_CHBtn1JalousieKurz, ParamHUE_CHBtn1JalousieLang,
-                                  ParamHUE_CHBtn1GenerischKurz,
-                                  ParamHUE_CHBtn1SceneKurz, ParamHUE_CHBtn1SceneLang, ParamHUE_CHBtn1SceneNrLang);
-                        // Taste 2
-                        if (btnCount >= 2) {
-                            mapButton(1, ParamHUE_CHBtn2Gewerk, ParamHUE_CHBtn2LichtKurz,
-                                      ParamHUE_CHBtn2LichtLang, ParamHUE_CHBtn2SceneNr, ParamHUE_CHBtn2LichtDimStep,
-                                      ParamHUE_CHBtn2MedienKurz, ParamHUE_CHBtn2MedienLang,
-                                      ParamHUE_CHBtn2JalousieKurz, ParamHUE_CHBtn2JalousieLang,
-                                      ParamHUE_CHBtn2GenerischKurz,
-                                      ParamHUE_CHBtn2SceneKurz, ParamHUE_CHBtn2SceneLang, ParamHUE_CHBtn2SceneNrLang);
-                        }
-                        // Taste 3
-                        if (btnCount >= 3) {
-                            mapButton(2, ParamHUE_CHBtn3Gewerk, ParamHUE_CHBtn3LichtKurz,
-                                      ParamHUE_CHBtn3LichtLang, ParamHUE_CHBtn3SceneNr, ParamHUE_CHBtn3LichtDimStep,
-                                      ParamHUE_CHBtn3MedienKurz, ParamHUE_CHBtn3MedienLang,
-                                      ParamHUE_CHBtn3JalousieKurz, ParamHUE_CHBtn3JalousieLang,
-                                      ParamHUE_CHBtn3GenerischKurz,
-                                      ParamHUE_CHBtn3SceneKurz, ParamHUE_CHBtn3SceneLang, ParamHUE_CHBtn3SceneNrLang);
-                        }
-                        // Taste 4
-                        if (btnCount >= 4) {
-                            mapButton(3, ParamHUE_CHBtn4Gewerk, ParamHUE_CHBtn4LichtKurz,
-                                      ParamHUE_CHBtn4LichtLang, ParamHUE_CHBtn4SceneNr, ParamHUE_CHBtn4LichtDimStep,
-                                      ParamHUE_CHBtn4MedienKurz, ParamHUE_CHBtn4MedienLang,
-                                      ParamHUE_CHBtn4JalousieKurz, ParamHUE_CHBtn4JalousieLang,
-                                      ParamHUE_CHBtn4GenerischKurz,
-                                      ParamHUE_CHBtn4SceneKurz, ParamHUE_CHBtn4SceneLang, ParamHUE_CHBtn4SceneNrLang);
-                        }
+                        MAP_BTN_PARAMS(1, 0)
+                        if (btnCount >= 2) MAP_BTN_PARAMS(2, 1)
+                        if (btnCount >= 3) MAP_BTN_PARAMS(3, 2)
+                        if (btnCount >= 4) MAP_BTN_PARAMS(4, 3)
+
+                        #undef MAP_BTN_PARAMS
+
                         // Drehregler
                         btn->setHasRotary(ParamHUE_CHHasRotary != 0);
                         if (ParamHUE_CHHasRotary != 0) {

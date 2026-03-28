@@ -7,17 +7,13 @@
  * @brief Hue switch/button channel (Taster/Schalter).
  *
  * Supports up to 4 buttons per physical switch and an optional rotary encoder.
- * Each button is configured via a 3-tier system: Gewerk → Kurzdruck → Langdruck.
- * The Gewerk selects a category (Licht/Jalousie/Medien/Generisch), then the
- * Kurzdruck and Langdruck dropdowns select the specific actions within that category.
+ * Each button has two independent DPT-based function dropdowns: KurzTyp + LangTyp.
+ * Sub-parameters (value, direction, scene number etc.) depend on the selected type.
  *
- * Mapped ButtonFunction types for internal dispatch:
- *   Schalten     — 1 KO: short press toggles On/Off
- *   Dimmen       — 2 KOs: short toggle + long dim brighter/darker
- *   Jalousie     — 2 KOs: short step + long move (separate invert for each)
- *   Medien       — 2 KOs: short play/pause + long volume up/down
- *   Szene        — 1 KO: recall scene number
- *   ZweiObjekte  — 1-2 KOs: short=Obj A, optional long=Obj B
+ * KurzTyp (short press): 0=Keine, 1=Schalten, 2=Dimmen, 3=Szene, 4=Schritt/Stop,
+ *   5=Prozent, 6=Temperatur, 7=1-Byte, 8=2-Byte
+ * LangTyp (long press): 0=Kein, 1=Schalten, 2=Dimmen Start/Stop, 3=Szene, 4=Fahren,
+ *   5=Prozent, 6=Temperatur, 7=1-Byte, 8=2-Byte, 9=Schritt/Stop
  *
  * KO slot layout (per button, 2 slots each: Kurzdruck + Langdruck):
  *   Button 1: koBase+0, koBase+1
@@ -34,15 +30,38 @@ class HueGatewayButton : public HueGatewayDevice
 public:
     static constexpr uint8_t MAX_BUTTONS = 4;
 
-    /** Per-button KNX function type */
-    enum class ButtonFunction : uint8_t
+    /** Per-button configuration (KurzTyp + LangTyp + sub-values + runtime state) */
+    struct ButtonConfig
     {
-        Schalten     = 0,
-        Dimmen       = 1,
-        Jalousie     = 2,
-        Medien       = 3,
-        Szene        = 4,
-        ZweiObjekte  = 5,
+        uint8_t  kurzTyp        = 0;  // 0-8
+        uint8_t  langTyp        = 0;  // 0-9
+        // Kurzdruck sub-values
+        uint8_t  kurzSchaltwert = 0;  // 0=Toggle, 1=Ein, 2=Aus
+        bool     kurzDimUp      = true;
+        uint8_t  kurzDimStep    = 4;  // ETS enum → step code via dimEnumToStep()
+        uint8_t  kurzSceneNr    = 1;  // 1-64
+        bool     kurzRichtung   = false; // Schritt/Stop: 0=Auf, 1=Ab
+        uint8_t  kurzProzent    = 100;
+        uint8_t  kurzTemp       = 21;
+        uint8_t  kurzByte       = 0;
+        uint16_t kurzWord       = 0;
+        // Langdruck sub-values
+        bool     langSchaltwert = false; // 0=Ein, 1=Aus
+        bool     langDimUp      = true;
+        uint8_t  langDimStep    = 4;
+        uint8_t  langSceneNr    = 1;
+        bool     langRichtung   = false; // Fahren/Schritt/Stop: 0=Auf, 1=Ab
+        uint8_t  langProzent    = 0;
+        uint8_t  langTemp       = 21;
+        uint8_t  langByte       = 0;
+        uint16_t langWord       = 0;
+        // Runtime state
+        bool     state          = false; // toggle state for Schalten
+        bool     longActive     = false; // long press in progress
+        String   serviceRid;
+
+        bool hasKurz() const { return kurzTyp != 0; }
+        bool hasLang() const { return langTyp != 0; }
     };
 
     /** Rotary encoder KNX function type */
@@ -55,26 +74,13 @@ public:
         Lamelle        = 4,
     };
 
-    /** Medien short-press action */
-    enum class MedienShortAction : uint8_t
+    /** Convert ETS DimStep enum (1-5) to DPT 3.007 step code */
+    static uint8_t dimEnumToStep(uint8_t enumVal)
     {
-        None         = 0,
-        PlayPause    = 1,
-        Mute         = 2,
-        NextTrack    = 3,
-        PrevTrack    = 4,
-        Shuffle      = 5,
-        Repeat       = 6,
-    };
-
-    enum class LightShortAction : uint8_t
-    {
-        None      = 0,
-        Switch    = 1,
-        DimUp     = 2,
-        DimDown   = 3,
-        Scene     = 4,
-    };
+        // 1=2%→7, 2=3%→6, 3=6%→5, 4=13%→4, 5=25%→3
+        static const uint8_t map[] = {4, 7, 6, 5, 4, 3};
+        return (enumVal >= 1 && enumVal <= 5) ? map[enumVal] : 4;
+    }
 
     HueGatewayButton(const String& resourceId, const String& name, uint8_t buttonCount)
         : _resourceId(resourceId)
@@ -89,21 +95,9 @@ public:
     {
         for (uint8_t i = 0; i < MAX_BUTTONS; i++)
         {
-            _koBtn[i][0]      = 0;
-            _koBtn[i][1]      = 0;
-            _btnFunction[i]   = ButtonFunction::Schalten;
-            _btnInvert[i]     = false;
-            _btnInvertLong[i] = false;
-            _btnHasLong[i]    = false;
-            _btnHasShort[i]   = true;
-            _btnSceneNr[i]    = 1;
-            _btnSceneNrLang[i] = 1;
-            _btnState[i]      = false;   // current toggle state
-            _btnLongActive[i] = false;   // long press in progress
-            _serviceRid[i]    = "";
-            _btnMedienKurz[i] = MedienShortAction::PlayPause;
-            _btnLightKurz[i]  = LightShortAction::Switch;
-            _btnLightStepCode[i] = 4; // default: 13% → DPT 3.007 step code 4
+            _koBtn[i][0] = 0;
+            _koBtn[i][1] = 0;
+            // _btnCfg[i] is default-initialized by ButtonConfig defaults
         }
         _rotaryKo[0]       = 0;
         _rotaryKo[1]       = 0;
@@ -133,34 +127,9 @@ public:
         _initialized = true;
     }
 
-    void setButtonFunction(uint8_t idx, ButtonFunction fn)
-    {
-        if (idx < MAX_BUTTONS) _btnFunction[idx] = fn;
-    }
-    void setButtonInvert(uint8_t idx, bool invert)
-    {
-        if (idx < MAX_BUTTONS) _btnInvert[idx] = invert;
-    }
-    void setButtonInvertLong(uint8_t idx, bool invert)
-    {
-        if (idx < MAX_BUTTONS) _btnInvertLong[idx] = invert;
-    }
-    void setButtonHasLong(uint8_t idx, bool hasLong)
-    {
-        if (idx < MAX_BUTTONS) _btnHasLong[idx] = hasLong;
-    }
-    void setButtonHasShort(uint8_t idx, bool hasShort)
-    {
-        if (idx < MAX_BUTTONS) _btnHasShort[idx] = hasShort;
-    }
-    void setButtonSceneNr(uint8_t idx, uint8_t sceneNr)
-    {
-        if (idx < MAX_BUTTONS) _btnSceneNr[idx] = sceneNr;
-    }
-    void setButtonSceneNrLang(uint8_t idx, uint8_t sceneNr)
-    {
-        if (idx < MAX_BUTTONS) _btnSceneNrLang[idx] = sceneNr;
-    }
+    /** Direct access to per-button config for initialization from ETS parameters. */
+    ButtonConfig& buttonConfig(uint8_t idx) { return _btnCfg[idx < MAX_BUTTONS ? idx : 0]; }
+
     void setHasRotary(bool hasRotary) { _hasRotary = hasRotary; }
     void setRotaryFunction(RotaryFunction fn) { _rotaryFunction = fn; }
     void setRotaryStepPercent(uint8_t enumVal)
@@ -184,25 +153,6 @@ public:
         return (code <= 7) ? map[code] : "?";
     }
 
-    void setButtonMedienKurz(uint8_t idx, MedienShortAction action)
-    {
-        if (idx < MAX_BUTTONS) _btnMedienKurz[idx] = action;
-    }
-    void setButtonLightShortAction(uint8_t idx, LightShortAction action)
-    {
-        if (idx < MAX_BUTTONS) _btnLightKurz[idx] = action;
-    }
-    void setButtonLightStepCode(uint8_t idx, uint8_t enumVal)
-    {
-        // ETS enum 1..5 → DPT 3.007 step code  (step = 100%/2^(code-1)):
-        //   1=2% →7, 2=3% →6, 3=6% →5, 4=13% →4, 5=25% →3
-        static const uint8_t enumToStep[] = {4, 7, 6, 5, 4, 3};
-        if (idx < MAX_BUTTONS)
-        {
-            _btnLightStepCode[idx] = (enumVal >= 1 && enumVal <= 5) ? enumToStep[enumVal] : 4;
-        }
-    }
-
     void updateReachable(bool reachable) { _reachable = reachable; }
 
     // ---- Service RID management ----
@@ -213,7 +163,7 @@ public:
      */
     void setButtonServiceRid(uint8_t idx, const String& rid)
     {
-        if (idx < MAX_BUTTONS) _serviceRid[idx] = rid;
+        if (idx < MAX_BUTTONS) _btnCfg[idx].serviceRid = rid;
     }
     void setRotaryServiceRid(const String& rid) { _rotaryServiceRid = rid; }
 
@@ -232,8 +182,8 @@ public:
         }
         for (uint8_t i = 0; i < MAX_BUTTONS; i++)
         {
-            if (_serviceRid[i].length() > 0
-                && _serviceRid[i].equalsIgnoreCase(rid))
+            if (_btnCfg[i].serviceRid.length() > 0
+                && _btnCfg[i].serviceRid.equalsIgnoreCase(rid))
                 return i;
         }
         return -1;
@@ -261,42 +211,42 @@ public:
 
         if (eventType == "initial_press")
         {
-            _btnLongActive[idx] = false;
+            _btnCfg[idx].longActive = false;
             // No KNX send yet — wait for repeat or release
         }
         else if (eventType == "repeat")
         {
-            if (_btnHasLong[idx] && !_btnLongActive[idx])
+            if (_btnCfg[idx].hasLang() && !_btnCfg[idx].longActive)
             {
-                _btnLongActive[idx] = true;
+                _btnCfg[idx].longActive = true;
                 sendLongPressStart(static_cast<uint8_t>(idx));
             }
         }
         else if (eventType == "short_release")
         {
-            if (!_btnLongActive[idx] && _btnHasShort[idx])
+            if (!_btnCfg[idx].longActive && _btnCfg[idx].hasKurz())
                 sendShortPress(static_cast<uint8_t>(idx));
             // else: long press was active, stop will come via long_release
         }
         else if (eventType == "long_release")
         {
-            if (_btnLongActive[idx])
+            if (_btnCfg[idx].longActive)
             {
                 // repeat was received earlier → dimming/move already started, now stop
                 sendLongPressStop(static_cast<uint8_t>(idx));
             }
-            else if (_btnHasLong[idx])
+            else if (_btnCfg[idx].hasLang())
             {
                 // No repeat event was received (some Hue devices skip it),
                 // but bridge detected a long press → execute start+stop for one step
                 sendLongPressStart(static_cast<uint8_t>(idx));
                 sendLongPressStop(static_cast<uint8_t>(idx));
             }
-            else if (_btnHasShort[idx])
+            else if (_btnCfg[idx].hasKurz())
             {
                 sendShortPress(static_cast<uint8_t>(idx));
             }
-            _btnLongActive[idx] = false;
+            _btnCfg[idx].longActive = false;
         }
     }
 
@@ -392,22 +342,9 @@ private:
     bool _reachable;
     bool _initialized;
 
-    // Per-button state
-    uint16_t _koBtn[MAX_BUTTONS][2];     // [btn][0=primary, 1=secondary]
-    ButtonFunction _btnFunction[MAX_BUTTONS];
-    bool _btnInvert[MAX_BUTTONS];
-    bool _btnInvertLong[MAX_BUTTONS];
-    bool _btnHasLong[MAX_BUTTONS];
-    bool _btnHasShort[MAX_BUTTONS];
-    uint8_t _btnSceneNr[MAX_BUTTONS];
-    uint8_t _btnSceneNrLang[MAX_BUTTONS];
-    bool _btnState[MAX_BUTTONS];         // toggle state for Schalten/Medien
-    bool _btnLongActive[MAX_BUTTONS];    // long press state machine
-    String _serviceRid[MAX_BUTTONS];     // button service RIDs
-
-    MedienShortAction _btnMedienKurz[MAX_BUTTONS]; // short press action for Medien
-    LightShortAction _btnLightKurz[MAX_BUTTONS];
-    uint8_t _btnLightStepCode[MAX_BUTTONS];
+    // Per-button state (KurzTyp + LangTyp config + runtime)
+    uint16_t _koBtn[MAX_BUTTONS][2];     // [btn][0=Kurzdruck KO, 1=Langdruck KO]
+    ButtonConfig _btnCfg[MAX_BUTTONS];
 
     // Rotary state
     bool _hasRotary;
@@ -423,210 +360,159 @@ private:
 
     void sendShortPress(uint8_t idx)
     {
-        using BF = ButtonFunction;
-        const uint16_t ko0 = _koBtn[idx][0];
-        const bool inv = _btnInvert[idx];
+        auto& cfg = _btnCfg[idx];
+        const uint16_t ko = _koBtn[idx][0]; // Kurzdruck KO
+        if (!ko) return;
 
-        switch (_btnFunction[idx])
+        switch (cfg.kurzTyp)
         {
-            case BF::Schalten:
-                // Toggle: first press ON, invert flips
-                _btnState[idx] = !_btnState[idx];
-                if (ko0) knx.getGroupObject(ko0).value(static_cast<bool>(_btnState[idx] ^ inv), Dpt(1, 1));
-                Serial.printf("[HueGatewayButton] %s btn%u Schalten -> %d\n",
-                              _name.c_str(), idx+1, (_btnState[idx] ^ inv) ? 1 : 0);
-                break;
+            case 0: break; // Keine Aktion
 
-            case BF::Dimmen:
-                switch (_btnLightKurz[idx])
+            case 1: // Schalten (DPT 1.001)
+                switch (cfg.kurzSchaltwert)
                 {
-                    case LightShortAction::Switch:
-                        _btnState[idx] = !_btnState[idx];
-                        if (ko0) knx.getGroupObject(ko0).value(static_cast<bool>(_btnState[idx] ^ inv), Dpt(1, 1));
-                        Serial.printf("[HueGatewayButton] %s btn%u Dimmen short -> %d\n",
-                                      _name.c_str(), idx+1, (_btnState[idx] ^ inv) ? 1 : 0);
+                    case 0: // Toggle
+                        cfg.state = !cfg.state;
+                        knx.getGroupObject(ko).value(cfg.state, Dpt(1, 1));
+                        Serial.printf("[HueGatewayButton] %s btn%u Kurz Schalten toggle -> %d\n",
+                                      _name.c_str(), idx+1, cfg.state ? 1 : 0);
                         break;
-                    case LightShortAction::DimUp:
-                    {
-                        if (ko0) sendDpt3(ko0, true, _btnLightStepCode[idx]);
-                        Serial.printf("[HueGatewayButton] %s btn%u Dimmen short -> brighter step=%u(%s)\n",
-                                      _name.c_str(), idx+1, _btnLightStepCode[idx], stepCodePct(_btnLightStepCode[idx]));
+                    case 1: // Ein
+                        cfg.state = true;
+                        knx.getGroupObject(ko).value(true, Dpt(1, 1));
+                        Serial.printf("[HueGatewayButton] %s btn%u Kurz Schalten -> Ein\n", _name.c_str(), idx+1);
                         break;
-                    }
-                    case LightShortAction::DimDown:
-                    {
-                        if (ko0) sendDpt3(ko0, false, _btnLightStepCode[idx]);
-                        Serial.printf("[HueGatewayButton] %s btn%u Dimmen short -> darker step=%u(%s)\n",
-                                      _name.c_str(), idx+1, _btnLightStepCode[idx], stepCodePct(_btnLightStepCode[idx]));
-                        break;
-                    }
-                    case LightShortAction::Scene:
-                        if (ko0)
-                        {
-                            const uint8_t sceneVal = 0x80 | ((_btnSceneNr[idx] - 1) & 0x3F);
-                            knx.getGroupObject(ko0).value(sceneVal, Dpt(18, 1));
-                        }
-                        Serial.printf("[HueGatewayButton] %s btn%u Dimmen scene %u\n",
-                                      _name.c_str(), idx+1, _btnSceneNr[idx]);
-                        break;
-                    default:
+                    case 2: // Aus
+                        cfg.state = false;
+                        knx.getGroupObject(ko).value(false, Dpt(1, 1));
+                        Serial.printf("[HueGatewayButton] %s btn%u Kurz Schalten -> Aus\n", _name.c_str(), idx+1);
                         break;
                 }
                 break;
 
-            case BF::Jalousie:
-                // Short press = step (DPT 1.007: 0=stepUp, 1=stepDown)
-                if (ko0) knx.getGroupObject(ko0).value(inv ? false : true, Dpt(1, 7));
-                Serial.printf("[HueGatewayButton] %s btn%u Jalousie step\n", _name.c_str(), idx+1);
+            case 2: // Dimmen relativ (DPT 3.007)
+            {
+                const uint8_t step = dimEnumToStep(cfg.kurzDimStep);
+                sendDpt3(ko, cfg.kurzDimUp, step);
+                Serial.printf("[HueGatewayButton] %s btn%u Kurz Dimmen %s step=%u(%s)\n",
+                              _name.c_str(), idx+1, cfg.kurzDimUp ? "+" : "-", step, stepCodePct(step));
+                break;
+            }
+
+            case 3: // Szene (DPT 18.001)
+            {
+                const uint8_t sceneVal = 0x80 | ((cfg.kurzSceneNr - 1) & 0x3F);
+                knx.getGroupObject(ko).value(sceneVal, Dpt(18, 1));
+                Serial.printf("[HueGatewayButton] %s btn%u Kurz Szene %u\n", _name.c_str(), idx+1, cfg.kurzSceneNr);
+                break;
+            }
+
+            case 4: // Schritt/Stop (DPT 1.007)
+                knx.getGroupObject(ko).value(cfg.kurzRichtung, Dpt(1, 7));
+                Serial.printf("[HueGatewayButton] %s btn%u Kurz Schritt %s\n",
+                              _name.c_str(), idx+1, cfg.kurzRichtung ? "Ab" : "Auf");
                 break;
 
-            case BF::Medien:
-                // Short press dispatches based on configured MedienShortAction
-                switch (_btnMedienKurz[idx])
-                {
-                    case MedienShortAction::PlayPause:
-                        _btnState[idx] = !_btnState[idx];
-                        if (ko0) knx.getGroupObject(ko0).value(_btnState[idx], Dpt(1, 1));
-                        Serial.printf("[HueGatewayButton] %s btn%u Medien Play/Pause -> %d\n",
-                                      _name.c_str(), idx+1, _btnState[idx] ? 1 : 0);
-                        break;
-                    case MedienShortAction::Mute:
-                        _btnState[idx] = !_btnState[idx];
-                        if (ko0) knx.getGroupObject(ko0).value(_btnState[idx], Dpt(1, 1));
-                        Serial.printf("[HueGatewayButton] %s btn%u Medien Mute -> %d\n",
-                                      _name.c_str(), idx+1, _btnState[idx] ? 1 : 0);
-                        break;
-                    case MedienShortAction::NextTrack:
-                        if (ko0) knx.getGroupObject(ko0).value(true, Dpt(1, 1));
-                        Serial.printf("[HueGatewayButton] %s btn%u Medien Next Track\n", _name.c_str(), idx+1);
-                        break;
-                    case MedienShortAction::PrevTrack:
-                        if (ko0) knx.getGroupObject(ko0).value(true, Dpt(1, 1));
-                        Serial.printf("[HueGatewayButton] %s btn%u Medien Prev Track\n", _name.c_str(), idx+1);
-                        break;
-                    case MedienShortAction::Shuffle:
-                        _btnState[idx] = !_btnState[idx];
-                        if (ko0) knx.getGroupObject(ko0).value(_btnState[idx], Dpt(1, 1));
-                        Serial.printf("[HueGatewayButton] %s btn%u Medien Shuffle -> %d\n",
-                                      _name.c_str(), idx+1, _btnState[idx] ? 1 : 0);
-                        break;
-                    case MedienShortAction::Repeat:
-                        _btnState[idx] = !_btnState[idx];
-                        if (ko0) knx.getGroupObject(ko0).value(_btnState[idx], Dpt(1, 1));
-                        Serial.printf("[HueGatewayButton] %s btn%u Medien Repeat -> %d\n",
-                                      _name.c_str(), idx+1, _btnState[idx] ? 1 : 0);
-                        break;
-                    default:
-                        break;
-                }
+            case 5: // Prozent (DPT 5.001)
+                knx.getGroupObject(ko).value(cfg.kurzProzent, Dpt(5, 1));
+                Serial.printf("[HueGatewayButton] %s btn%u Kurz Prozent %u%%\n", _name.c_str(), idx+1, cfg.kurzProzent);
                 break;
 
-            case BF::Szene:
-                // Recall scene (DPT 18.001: activate bit 7 set, scene number 0-based)
-                if (ko0)
-                {
-                    const uint8_t sceneVal = 0x80 | ((_btnSceneNr[idx] - 1) & 0x3F);
-                    knx.getGroupObject(ko0).value(sceneVal, Dpt(18, 1));
-                }
-                Serial.printf("[HueGatewayButton] %s btn%u Szene %u\n",
-                              _name.c_str(), idx+1, _btnSceneNr[idx]);
+            case 6: // Temperatur (DPT 9.001)
+                knx.getGroupObject(ko).value((float)cfg.kurzTemp, Dpt(9, 1));
+                Serial.printf("[HueGatewayButton] %s btn%u Kurz Temp %u°C\n", _name.c_str(), idx+1, cfg.kurzTemp);
                 break;
 
-            case BF::ZweiObjekte:
-                // Short press = Object A (true)
-                if (ko0) knx.getGroupObject(ko0).value(true, Dpt(1, 1));
-                Serial.printf("[HueGatewayButton] %s btn%u ZweiObjekte -> A\n", _name.c_str(), idx+1);
+            case 7: // 1-Byte (DPT 5.010)
+                knx.getGroupObject(ko).value(cfg.kurzByte, Dpt(5, 10));
+                Serial.printf("[HueGatewayButton] %s btn%u Kurz 1-Byte %u\n", _name.c_str(), idx+1, cfg.kurzByte);
+                break;
+
+            case 8: // 2-Byte (DPT 7.001)
+                knx.getGroupObject(ko).value(cfg.kurzWord, Dpt(7, 1));
+                Serial.printf("[HueGatewayButton] %s btn%u Kurz 2-Byte %u\n", _name.c_str(), idx+1, cfg.kurzWord);
                 break;
         }
     }
 
     void sendLongPressStart(uint8_t idx)
     {
-        using BF = ButtonFunction;
-        const uint16_t ko1 = _koBtn[idx][1];
-        const bool inv = _btnInvertLong[idx];
+        auto& cfg = _btnCfg[idx];
+        const uint16_t ko = _koBtn[idx][1]; // Langdruck KO
+        if (!ko) return;
 
-        switch (_btnFunction[idx])
+        switch (cfg.langTyp)
         {
-            case BF::Schalten:
-                // Long press = force OFF
-                if (_koBtn[idx][0])
-                    knx.getGroupObject(_koBtn[idx][0]).value(inv ? true : false, Dpt(1, 1));
-                _btnState[idx] = !inv;
-                Serial.printf("[HueGatewayButton] %s btn%u Schalten long -> OFF\n", _name.c_str(), idx+1);
+            case 0: break; // Kein Langdruck
+
+            case 1: // Schalten (DPT 1.001)
+                knx.getGroupObject(ko).value(!cfg.langSchaltwert, Dpt(1, 1));
+                Serial.printf("[HueGatewayButton] %s btn%u Lang Schalten -> %s\n",
+                              _name.c_str(), idx+1, cfg.langSchaltwert ? "Aus" : "Ein");
                 break;
 
-            case BF::Dimmen:
-                // Long press start = DPT 3.007 dimming start using the configured KNX step code.
-                if (ko1) sendDpt3(ko1, !inv, _btnLightStepCode[idx]);
-                Serial.printf("[HueGatewayButton] %s btn%u Dimmen start -> %s step=%u(%s)\n",
-                              _name.c_str(), idx+1, inv ? "darker" : "brighter", _btnLightStepCode[idx], stepCodePct(_btnLightStepCode[idx]));
+            case 2: // Dimmen Start/Stop (DPT 3.007) — start
+            {
+                const uint8_t step = dimEnumToStep(cfg.langDimStep);
+                sendDpt3(ko, cfg.langDimUp, step);
+                Serial.printf("[HueGatewayButton] %s btn%u Lang Dimmen start %s step=%u(%s)\n",
+                              _name.c_str(), idx+1, cfg.langDimUp ? "+" : "-", step, stepCodePct(step));
+                break;
+            }
+
+            case 3: // Szene (DPT 18.001)
+            {
+                const uint8_t sceneVal = 0x80 | ((cfg.langSceneNr - 1) & 0x3F);
+                knx.getGroupObject(ko).value(sceneVal, Dpt(18, 1));
+                Serial.printf("[HueGatewayButton] %s btn%u Lang Szene %u\n", _name.c_str(), idx+1, cfg.langSceneNr);
+                break;
+            }
+
+            case 4: // Fahren (DPT 1.008)
+                knx.getGroupObject(ko).value(cfg.langRichtung, Dpt(1, 8));
+                Serial.printf("[HueGatewayButton] %s btn%u Lang Fahren %s\n",
+                              _name.c_str(), idx+1, cfg.langRichtung ? "Ab" : "Auf");
                 break;
 
-            case BF::Jalousie:
-                // Long press = move (DPT 1.008: 0=up, 1=down)
-                if (ko1) knx.getGroupObject(ko1).value(inv ? false : true, Dpt(1, 8));
-                Serial.printf("[HueGatewayButton] %s btn%u Jalousie move %s\n",
-                              _name.c_str(), idx+1, inv ? "up" : "down");
+            case 5: // Prozent (DPT 5.001)
+                knx.getGroupObject(ko).value(cfg.langProzent, Dpt(5, 1));
+                Serial.printf("[HueGatewayButton] %s btn%u Lang Prozent %u%%\n", _name.c_str(), idx+1, cfg.langProzent);
                 break;
 
-            case BF::Medien:
-                // Long press = volume start (DPT 3.007: increase with step code 5)
-                if (ko1) sendDpt3(ko1, !inv, 5);
-                Serial.printf("[HueGatewayButton] %s btn%u Medien volume %s\n",
-                              _name.c_str(), idx+1, inv ? "down" : "up");
+            case 6: // Temperatur (DPT 9.001)
+                knx.getGroupObject(ko).value((float)cfg.langTemp, Dpt(9, 1));
+                Serial.printf("[HueGatewayButton] %s btn%u Lang Temp %u°C\n", _name.c_str(), idx+1, cfg.langTemp);
                 break;
 
-            case BF::Szene:
-                // Long press = recall scene (DPT 18.001) on secondary KO
-                if (ko1)
-                {
-                    const uint8_t sceneVal = 0x80 | ((_btnSceneNrLang[idx] - 1) & 0x3F);
-                    knx.getGroupObject(ko1).value(sceneVal, Dpt(18, 1));
-                }
-                Serial.printf("[HueGatewayButton] %s btn%u Szene lang %u\n",
-                              _name.c_str(), idx+1, _btnSceneNrLang[idx]);
+            case 7: // 1-Byte (DPT 5.010)
+                knx.getGroupObject(ko).value(cfg.langByte, Dpt(5, 10));
+                Serial.printf("[HueGatewayButton] %s btn%u Lang 1-Byte %u\n", _name.c_str(), idx+1, cfg.langByte);
                 break;
 
-            case BF::ZweiObjekte:
-                // Long press = Object B
-                if (_koBtn[idx][1])
-                    knx.getGroupObject(_koBtn[idx][1]).value(true, Dpt(1, 1));
-                Serial.printf("[HueGatewayButton] %s btn%u ZweiObjekte -> B\n", _name.c_str(), idx+1);
+            case 8: // 2-Byte (DPT 7.001)
+                knx.getGroupObject(ko).value(cfg.langWord, Dpt(7, 1));
+                Serial.printf("[HueGatewayButton] %s btn%u Lang 2-Byte %u\n", _name.c_str(), idx+1, cfg.langWord);
                 break;
 
-            default:
+            case 9: // Schritt/Stop (DPT 1.007)
+                knx.getGroupObject(ko).value(cfg.langRichtung, Dpt(1, 7));
+                Serial.printf("[HueGatewayButton] %s btn%u Lang Schritt %s\n",
+                              _name.c_str(), idx+1, cfg.langRichtung ? "Ab" : "Auf");
                 break;
         }
     }
 
     void sendLongPressStop(uint8_t idx)
     {
-        using BF = ButtonFunction;
-        const uint16_t ko1 = _koBtn[idx][1];
+        const auto& cfg = _btnCfg[idx];
+        const uint16_t ko = _koBtn[idx][1]; // Langdruck KO
+        if (!ko) return;
 
-        switch (_btnFunction[idx])
+        // Only Dimmen Start/Stop (langTyp==2) needs a stop telegram
+        if (cfg.langTyp == 2)
         {
-            case BF::Dimmen:
-                // DPT 3.007 stop = step code 0
-                if (ko1) sendDpt3(ko1, false, 0);
-                Serial.printf("[HueGatewayButton] %s btn%u Dimmen stop\n", _name.c_str(), idx+1);
-                break;
-
-            case BF::Jalousie:
-                // No stop on release — move telegram (DPT 1.008) triggers a full travel.
-                // User stops manually via short press (Step/Stop on ko0, DPT 1.007).
-                Serial.printf("[HueGatewayButton] %s btn%u Jalousie long release (no stop)\n", _name.c_str(), idx+1);
-                break;
-
-            case BF::Medien:
-                // Volume stop = DPT 3.007 stop
-                if (ko1) sendDpt3(ko1, false, 0);
-                Serial.printf("[HueGatewayButton] %s btn%u Medien volume stop\n", _name.c_str(), idx+1);
-                break;
-
-            default:
-                break;
+            sendDpt3(ko, false, 0); // DPT 3.007 stop
+            Serial.printf("[HueGatewayButton] %s btn%u Lang Dimmen stop\n", _name.c_str(), idx+1);
         }
     }
 };

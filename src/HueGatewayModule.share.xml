@@ -388,116 +388,88 @@
                 <TypeText SizeInBit="320" />
               </ParameterType>
 
-              <!-- Gewerk-Auswahl pro Taste (alle 5 Gewerke) -->
-              <ParameterType Id="%AID%_PT-HUEButtonGewerk" Name="HUEButtonGewerk">
-                <TypeRestriction Base="Value" SizeInBit="3" UIHint="DropDown">
-                  <Enumeration Text="Licht"       Value="0" Id="%ENID%" />
-                  <Enumeration Text="Jalousie"    Value="1" Id="%ENID%" />
-                  <Enumeration Text="Medien"      Value="2" Id="%ENID%" />
-                  <Enumeration Text="Generisch"   Value="3" Id="%ENID%" />
-                  <Enumeration Text="Szene"       Value="4" Id="%ENID%" />
+              <!-- ===== Taster: Kurzdruck-Typ (DPT-basierte Funktionsauswahl) ===== -->
+              <ParameterType Id="%AID%_PT-HUEKurzTyp" Name="HUEKurzTyp">
+                <TypeRestriction Base="Value" SizeInBit="4" UIHint="DropDown">
+                  <Enumeration Text="Keine Aktion"                  Value="0" Id="%ENID%" />
+                  <Enumeration Text="Schalten (DPT 1.001)"          Value="1" Id="%ENID%" />
+                  <Enumeration Text="Dimmen relativ (DPT 3.007)"    Value="2" Id="%ENID%" />
+                  <Enumeration Text="Szenennummer (DPT 18.001)"     Value="3" Id="%ENID%" />
+                  <Enumeration Text="Schritt/Stop (DPT 1.007)"      Value="4" Id="%ENID%" />
+                  <Enumeration Text="Prozentwert (DPT 5.001)"       Value="5" Id="%ENID%" />
+                  <Enumeration Text="Temperaturwert (DPT 9.001)"    Value="6" Id="%ENID%" />
+                  <Enumeration Text="1-Byte Wert (DPT 5.010)"       Value="7" Id="%ENID%" />
+                  <Enumeration Text="2-Byte Wert (DPT 7.001)"       Value="8" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
 
-              <!-- Gewerk-Auswahl pro Taste bei nur 1 Taste (ohne Jalousie) -->
-              <ParameterType Id="%AID%_PT-HUEButtonGewerkEinzel" Name="HUEButtonGewerkEinzel">
-                <TypeRestriction Base="Value" SizeInBit="3" UIHint="DropDown">
-                  <Enumeration Text="Licht"       Value="0" Id="%ENID%" />
-                  <Enumeration Text="Medien"      Value="2" Id="%ENID%" />
-                  <Enumeration Text="Generisch"   Value="3" Id="%ENID%" />
-                  <Enumeration Text="Szene"       Value="4" Id="%ENID%" />
+              <!-- ===== Taster: Langdruck-Typ (DPT-basierte Funktionsauswahl) ===== -->
+              <ParameterType Id="%AID%_PT-HUELangTyp" Name="HUELangTyp">
+                <TypeRestriction Base="Value" SizeInBit="4" UIHint="DropDown">
+                  <Enumeration Text="Kein Langdruck"                 Value="0" Id="%ENID%" />
+                  <Enumeration Text="Schalten (DPT 1.001)"          Value="1" Id="%ENID%" />
+                  <Enumeration Text="Dimmen Start/Stop (DPT 3.007)" Value="2" Id="%ENID%" />
+                  <Enumeration Text="Szenennummer (DPT 18.001)"     Value="3" Id="%ENID%" />
+                  <Enumeration Text="Fahren (DPT 1.008)"            Value="4" Id="%ENID%" />
+                  <Enumeration Text="Prozentwert (DPT 5.001)"       Value="5" Id="%ENID%" />
+                  <Enumeration Text="Temperaturwert (DPT 9.001)"    Value="6" Id="%ENID%" />
+                  <Enumeration Text="1-Byte Wert (DPT 5.010)"       Value="7" Id="%ENID%" />
+                  <Enumeration Text="2-Byte Wert (DPT 7.001)"       Value="8" Id="%ENID%" />
+                  <Enumeration Text="Schritt/Stop (DPT 1.007)"      Value="9" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
 
-              <!-- Licht: Kurzdruck-Aktion -->
-              <ParameterType Id="%AID%_PT-HUELichtKurz" Name="HUELichtKurz">
+              <!-- Schaltwert Kurzdruck: Toggle, Ein, Aus -->
+              <ParameterType Id="%AID%_PT-HUESchaltwertKurz" Name="HUESchaltwertKurz">
                 <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
-                  <Enumeration Text="Kein Kurzdruck"  Value="0" Id="%ENID%" />
-                  <Enumeration Text="Schalten"        Value="1" Id="%ENID%" />
-                  <Enumeration Text="Dimmen heller"  Value="2" Id="%ENID%" />
-                  <Enumeration Text="Dimmen dunkler" Value="3" Id="%ENID%" />
+                  <Enumeration Text="Ein/Aus (Toggle)"  Value="0" Id="%ENID%" />
+                  <Enumeration Text="Ein"               Value="1" Id="%ENID%" />
+                  <Enumeration Text="Aus"               Value="2" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
 
-              <!-- Jalousie: Kurzdruck-Aktion -->
-              <ParameterType Id="%AID%_PT-HUEJalousieKurz" Name="HUEJalousieKurz">
-                <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
-                  <Enumeration Text="Kein Kurzdruck"  Value="0" Id="%ENID%" />
-                  <Enumeration Text="Lamelle Auf/Stop"     Value="1" Id="%ENID%" />
-                  <Enumeration Text="Lamelle Ab/Stop"      Value="2" Id="%ENID%" />
-                </TypeRestriction>
-              </ParameterType>
-
-              <!-- Medien: Kurzdruck-Aktion -->
-              <ParameterType Id="%AID%_PT-HUEMedienKurz" Name="HUEMedienKurz">
-                <TypeRestriction Base="Value" SizeInBit="3" UIHint="DropDown">
-                  <Enumeration Text="Kein Kurzdruck"    Value="0" Id="%ENID%" />
-                  <Enumeration Text="Play/Pause"        Value="1" Id="%ENID%" />
-                  <Enumeration Text="Mute"              Value="2" Id="%ENID%" />
-                  <Enumeration Text="Nächster Titel"    Value="3" Id="%ENID%" />
-                  <Enumeration Text="Vorheriger Titel"  Value="4" Id="%ENID%" />
-                  <Enumeration Text="Shuffle"           Value="5" Id="%ENID%" />
-                  <Enumeration Text="Repeat"            Value="6" Id="%ENID%" />
-                </TypeRestriction>
-              </ParameterType>
-
-              <!-- Licht: Langdruck-Aktion -->
-              <ParameterType Id="%AID%_PT-HUELichtLang" Name="HUELichtLang">
-                <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
-                  <Enumeration Text="Kein Langdruck"   Value="0" Id="%ENID%" />
-                  <Enumeration Text="Heller dimmen"    Value="1" Id="%ENID%" />
-                  <Enumeration Text="Dunkler dimmen"   Value="2" Id="%ENID%" />
-                </TypeRestriction>
-              </ParameterType>
-
-              <!-- Jalousie: Langdruck-Aktion -->
-              <ParameterType Id="%AID%_PT-HUEJalousieLang" Name="HUEJalousieLang">
-                <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
-                  <Enumeration Text="Kein Langdruck"  Value="0" Id="%ENID%" />
-                  <Enumeration Text="Behang Auf"      Value="1" Id="%ENID%" />
-                  <Enumeration Text="Behang Ab"       Value="2" Id="%ENID%" />
-                </TypeRestriction>
-              </ParameterType>
-
-              <!-- Medien: Langdruck-Aktion -->
-              <ParameterType Id="%AID%_PT-HUEMedienLang" Name="HUEMedienLang">
-                <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
-                  <Enumeration Text="Kein Langdruck"  Value="0" Id="%ENID%" />
-                  <Enumeration Text="Lauter"          Value="1" Id="%ENID%" />
-                  <Enumeration Text="Leiser"          Value="2" Id="%ENID%" />
-                </TypeRestriction>
-              </ParameterType>
-
-              <!-- Generisch: Kurzdruck-Aktion -->
-              <ParameterType Id="%AID%_PT-HUEGenerischKurz" Name="HUEGenerischKurz">
+              <!-- Schaltwert Langdruck: Ein, Aus (kein Toggle) -->
+              <ParameterType Id="%AID%_PT-HUESchaltwertLang" Name="HUESchaltwertLang">
                 <TypeRestriction Base="Value" SizeInBit="1" UIHint="DropDown">
-                  <Enumeration Text="Kein Kurzdruck"    Value="0" Id="%ENID%" />
-                  <Enumeration Text="Objekt A senden"   Value="1" Id="%ENID%" />
+                  <Enumeration Text="Ein"  Value="0" Id="%ENID%" />
+                  <Enumeration Text="Aus"  Value="1" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
 
-              <!-- Generisch: Langdruck-Aktion -->
-              <ParameterType Id="%AID%_PT-HUEGenerischLang" Name="HUEGenerischLang">
+              <!-- Dimm-Richtung -->
+              <ParameterType Id="%AID%_PT-HUERichtungDim" Name="HUERichtungDim">
                 <TypeRestriction Base="Value" SizeInBit="1" UIHint="DropDown">
-                  <Enumeration Text="Kein Langdruck"    Value="0" Id="%ENID%" />
-                  <Enumeration Text="Objekt B senden"   Value="1" Id="%ENID%" />
+                  <Enumeration Text="Heller"   Value="0" Id="%ENID%" />
+                  <Enumeration Text="Dunkler"  Value="1" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
 
-              <!-- Szene: Kurzdruck-Aktion -->
-              <ParameterType Id="%AID%_PT-HUESceneKurz" Name="HUESceneKurz">
+              <!-- Jalousie/Fahren-Richtung -->
+              <ParameterType Id="%AID%_PT-HUERichtungJal" Name="HUERichtungJal">
                 <TypeRestriction Base="Value" SizeInBit="1" UIHint="DropDown">
-                  <Enumeration Text="Kein Kurzdruck"         Value="0" Id="%ENID%" />
-                  <Enumeration Text="Szenennummer senden"    Value="1" Id="%ENID%" />
+                  <Enumeration Text="Auf"  Value="0" Id="%ENID%" />
+                  <Enumeration Text="Ab"   Value="1" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
 
-              <!-- Szene: Langdruck-Aktion -->
-              <ParameterType Id="%AID%_PT-HUESceneLang" Name="HUESceneLang">
-                <TypeRestriction Base="Value" SizeInBit="1" UIHint="DropDown">
-                  <Enumeration Text="Kein Langdruck"         Value="0" Id="%ENID%" />
-                  <Enumeration Text="Szenennummer senden"    Value="1" Id="%ENID%" />
-                </TypeRestriction>
+              <!-- Prozentwert (DPT 5.001, 0-100%) -->
+              <ParameterType Id="%AID%_PT-HUEProzentwert" Name="HUEProzentwert">
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="100" />
+              </ParameterType>
+
+              <!-- Temperaturwert in °C (DPT 9.001, ganzzahlig 5-40) -->
+              <ParameterType Id="%AID%_PT-HUETemperaturwert" Name="HUETemperaturwert">
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="5" maxInclusive="40" />
+              </ParameterType>
+
+              <!-- 1-Byte Wert (DPT 5.010, 0-255) -->
+              <ParameterType Id="%AID%_PT-HUEByteWert" Name="HUEByteWert">
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="255" />
+              </ParameterType>
+
+              <!-- 2-Byte Wert (DPT 7.001, 0-65535) -->
+              <ParameterType Id="%AID%_PT-HUEWordWert" Name="HUEWordWert">
+                <TypeNumber SizeInBit="16" Type="unsignedInt" minInclusive="0" maxInclusive="65535" />
               </ParameterType>
 
               <!-- Szenen-Nummer (1-64) -->
@@ -527,11 +499,11 @@
               <!-- Drehregler-Funktion -->
               <ParameterType Id="%AID%_PT-HUERotaryFunction" Name="HUERotaryFunction">
                 <TypeRestriction Base="Value" SizeInBit="3" UIHint="DropDown">
-                  <Enumeration Text="Licht - Dimmen"            Value="0" Id="%ENID%" />
-                  <Enumeration Text="Generisch - Wertgeber"     Value="1" Id="%ENID%" />
-                  <Enumeration Text="Medien - Lautstärke"       Value="2" Id="%ENID%" />
-                  <Enumeration Text="Licht - Farbtemperatur"    Value="3" Id="%ENID%" />
-                  <Enumeration Text="Jalousie - Lamelle"        Value="4" Id="%ENID%" />
+                  <Enumeration Text="Dimmen (DPT 3.007)"            Value="0" Id="%ENID%" />
+                  <Enumeration Text="Wertgeber (DPT 5.001)"         Value="1" Id="%ENID%" />
+                  <Enumeration Text="Lautstärke (DPT 3.007)"        Value="2" Id="%ENID%" />
+                  <Enumeration Text="Farbtemperatur (DPT 7.600)"    Value="3" Id="%ENID%" />
+                  <Enumeration Text="Lamelle (DPT 5.001)"           Value="4" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
 
