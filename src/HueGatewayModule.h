@@ -206,6 +206,7 @@ private:
     uint16_t _hclLastPublishedKelvin[HCL::MasterManager::MAX_MASTERS];
     uint8_t _hclLastPublishedBrightness[HCL::MasterManager::MAX_MASTERS];
     bool _hclMasterValuesPublished[HCL::MasterManager::MAX_MASTERS];
+    unsigned long _hclLastPublishMs[HCL::MasterManager::MAX_MASTERS];
 
     // In-memory diagnostics (for WebUI support package export).
     std::vector<DiagnosticLogEntry> _diagLogRing;

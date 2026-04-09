@@ -835,6 +835,7 @@ HueGatewayModule::HueGatewayModule()
         _hclLastPublishedKelvin[i] = 0;
         _hclLastPublishedBrightness[i] = 0;
         _hclMasterValuesPublished[i] = false;
+        _hclLastPublishMs[i] = 0;
     }
 
     _lastWebScanError = "";
@@ -5721,9 +5722,18 @@ void HueGatewayModule::publishHclMasterValues()
         const uint16_t kelvin = current.kelvin;
         const uint8_t index = static_cast<uint8_t>(masterNumber - 1);
 
+        const unsigned long nowMs = millis();
+        const unsigned long updateIntervalMs = static_cast<unsigned long>(HCL::masterManager.getUpdateInterval()) * 1000UL;
+        const bool intervalElapsed = (_hclLastPublishMs[index] == 0) || ((nowMs - _hclLastPublishMs[index]) >= updateIntervalMs);
+
         if (_hclMasterValuesPublished[index] &&
             _hclLastPublishedBrightness[index] == brightness &&
             _hclLastPublishedKelvin[index] == kelvin)
+        {
+            continue;
+        }
+
+        if (!intervalElapsed)
         {
             continue;
         }
@@ -5769,6 +5779,7 @@ void HueGatewayModule::publishHclMasterValues()
         _hclLastPublishedBrightness[index] = brightness;
         _hclLastPublishedKelvin[index] = kelvin;
         _hclMasterValuesPublished[index] = true;
+        _hclLastPublishMs[index] = millis();
     }
 }
 
