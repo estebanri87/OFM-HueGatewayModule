@@ -109,10 +109,26 @@ struct HueGatewayAccessoryDevice
     String type;  // z.B. "Taster", "Bewegungsmelder", "Kontaktsensor"
 };
 
-/** Sensorereignis aus dem SSE-Eventstream (Bewegungsmelder, Kontakt, Taster) */
+/** Hue-Szene von der Bridge */
+struct HueGatewayScene
+{
+    String id;         // Scene Resource UUID (wird in ETS als RID eingetragen)
+    String name;       // metadata.name
+    String groupRid;   // group.rid — grouped_light UUID des zugehörigen Raums/Zone
+    String groupName;  // Aufgelöster Raum-/Zonenname (oder "-")
+};
+
+/** Einzelner Service-Eintrag eines Hue-Geräts (z.B. button, motion, relative_rotary) */
+struct HueGatewayServiceRid
+{
+    String rtype;  // z.B. "button", "motion", "contact_sensor", "relative_rotary"
+    String rid;    // Service Resource ID (UUID)
+};
+
+/** Sensorereignis aus dem SSE-Eventstream (Bewegungsmelder, Kontakt, Taster, Drehregler) */
 struct HueGatewayEventSensorUpdate
 {
-    enum class Type { Unknown, Motion, Contact, Button };
+    enum class Type { Unknown, Motion, Contact, Button, Rotary };
     Type type;
     String resourceId;
     // Motion
@@ -122,6 +138,10 @@ struct HueGatewayEventSensorUpdate
     // Button
     int buttonIndex;
     String buttonEventType;
+    // Rotary
+    bool rotaryClockwise;
+    int rotarySteps;
+    int rotaryDurationMs;
 };
 
 class HueGatewayClient
@@ -143,6 +163,8 @@ public:
         int lastHttpStatusCode;
         String lastHttpMethod;
         String lastHttpEndpoint;
+        String lastJsonError;
+        int lastContentLength;
     };
 
     HueGatewayClient();
@@ -165,6 +187,7 @@ public:
     int getLights(HueGatewayLightState* lights, int maxLights, bool includeLocations = true);
     int getGroupedLights(HueGatewayLightState* groupedLights, int maxLights);
     int getAccessoryDevices(HueGatewayAccessoryDevice* devices, int maxDevices);
+    int getScenes(HueGatewayScene* scenes, int maxScenes);
     
     /**
     * @brief Switches a light on or off.
@@ -355,6 +378,39 @@ public:
      */
     bool recallHueScene(const String& sceneRID);
 
+    // ---- Geräte-Service-RIDs ----
+
+    /**
+     * @brief Liest alle Service-RIDs (button, motion, contact_sensor, relative_rotary …)
+     *        eines Hue-Geräts aus der Bridge.
+     * @param deviceId Device Resource ID (UUID, ohne Typ-Präfix)
+     * @param out       Array der Ausgabe-Einträge
+     * @param maxCount  Maximale Anzahl Einträge (Array-Größe)
+     * @return Anzahl gefundener Service-RIDs (0 bei Fehler)
+     */
+    int getDeviceServiceRids(const String& deviceId, HueGatewayServiceRid* out, int maxCount);
+
+    /**
+     * @brief Returns the IDs of all behavior_instances associated with a device.
+     * @param deviceId     Hue Device Resource ID
+     * @param instanceIds  Array for output IDs
+     * @param maxCount     Maximum number of entries (array size)
+     * @return Number of found behavior_instance IDs (0 on error or none)
+     */
+    int getBehaviorInstances(const String& deviceId, String* instanceIds, int maxCount, String* debugInfo = nullptr);
+
+    /**
+     * @brief Deletes a behavior_instance from the bridge.
+     * Used for "Hue Accessories" instances that don't support enabled=false.
+     * @param instanceId  ID of the behavior_instance
+     * @return true on success (HTTP 200)
+     */
+    bool deleteBehaviorInstance(const String& instanceId);
+
+    /** Returns true if a behavior_instance add event was seen via SSE since last clear. */
+    bool hasBehaviorInstanceEvent() const { return _behaviorInstanceEventPending; }
+    void clearBehaviorInstanceEvent() { _behaviorInstanceEventPending = false; }
+
 private:
     bool _initialized;
     String _bridgeIP;
@@ -369,6 +425,7 @@ private:
     uint8_t _eventParseErrorStreak;
     uint32_t _eventDropCount;
     bool _eventAutoRestartEnabled;
+    bool _behaviorInstanceEventPending;
     String _eventLineBuffer;
     String _eventDataBuffer;
     DiagnosticsStats _diagStats;
@@ -396,7 +453,7 @@ private:
     * @param doc JsonDocument for the response payload
      * @return HTTP Status Code
      */
-    int httpGet(const String& endpoint, JsonDocument& doc, JsonDocument* filterDoc = nullptr);
+    int httpGet(const String& endpoint, JsonDocument& doc, JsonDocument* filterDoc = nullptr, int timeoutMs = 2000, int nestingLimit = 10);
     
     /**
     * @brief Executes an HTTP PUT request.
@@ -405,6 +462,13 @@ private:
      * @return HTTP Status Code
      */
     int httpPut(const String& endpoint, const String& payload);
+
+    /**
+    * @brief Executes an HTTP DELETE request.
+     * @param endpoint API Endpoint
+     * @return HTTP Status Code
+     */
+    int httpDelete(const String& endpoint);
     
     /**
     * @brief Builds the full request URL.

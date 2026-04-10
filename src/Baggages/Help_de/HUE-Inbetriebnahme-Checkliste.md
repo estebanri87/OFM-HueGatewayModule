@@ -1,11 +1,16 @@
 ﻿### Inbetriebnahme-Checkliste
 
-- Bridge gefunden und authentifiziert
+- Bridge-Erkennung passend gewählt: mDNS im selben VLAN oder manuelle IP bei Segmentierung
+- Bridge gefunden, authentifiziert und Verbindungsstatus geprüft
+- Anzahl aktiver Kanäle passend eingestellt
 - Zieltyp und Hue Ziel pro Kanal geprüft
 - Gerätetyp und Lampentyp passend zur realen Hardware
-- Sync/Polling passend zur Anwendung
-- Benötigte Status-KOs mit GAs verbunden
-- Lichtmanager-Funktion inkl. Sperren (global/spezifisch) getestet
-- Szenensteuerung: Szenennummern, Aktionen und Preset-Werte geprüft
-- Bei Szene + Lichtmanager: Verhalten nach Aus-Befehl verifiziert (Sperre wird aufgehoben)
+- Sync-Richtung und Polling passend zur Anwendung parametriert
+- Benötigte Steuer- und Status-KOs mit GAs verbunden
+- Bei Raum/Zone das gewünschte Rückmeldeverhalten getestet
+- Lichtmanager global aktiviert, Manager-Anzahl geprüft und Kanäle sauber zugeordnet
+- Lichtmanager-Funktion inkl. globaler, managerbezogener und kanalspezifischer Sperren getestet
+- Szenensteuerung: Szenennummern, Aktionen, Preset-Werte und optionales Speichern geprüft
+- Bei Szene + Lichtmanager: Verhalten nach Aus-Befehl bzw. Entsperren verifiziert
+- Bei Taster/Schalter: Gewerk, Kurz-/Langdruck und Native-Hue-Aktion geprüft
 

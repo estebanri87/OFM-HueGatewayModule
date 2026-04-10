@@ -62,6 +62,16 @@ public:
     /** Primary Hue resource-ID for this channel. */
     virtual String getResourceId() const { return String(""); }
 
+    /**
+     * @brief Returns true when the given SSE event resource ID belongs to this device.
+     * Subclasses that store service RIDs should override this; the default
+     * falls back to comparing against the device's primary resource ID.
+     */
+    virtual bool matchesEventRid(const String& rid) const
+    {
+        return getResourceId().equalsIgnoreCase(rid);
+    }
+
     /** True when this channel targets a grouped resource (room/zone). */
     virtual bool isGroupedTarget() const { return false; }
 

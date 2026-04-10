@@ -1,6 +1,7 @@
 #include "HueGatewayAuth.h"
 #include "HueGatewayStorage.h"
 #include <ArduinoJson.h>
+#include "OpenKNX.h"
 
 HueGatewayAuth::HueGatewayAuth()
     : _appKey("")
@@ -9,7 +10,7 @@ HueGatewayAuth::HueGatewayAuth()
 
 bool HueGatewayAuth::authenticate(const char* bridgeIP)
 {
-    Serial.printf("[HueGatewayAuth] Authenticating with bridge at %s\n", bridgeIP);
+    logInfo("HueGatewayAuth", "Authenticating with bridge at %s", bridgeIP);
     
     // Load App-Key from storage.
     _appKey = loadAppKey();
@@ -17,26 +18,26 @@ bool HueGatewayAuth::authenticate(const char* bridgeIP)
     
     if (_appKey.length() > 0)
     {
-        Serial.println("[HueGatewayAuth] Using stored App-Key");
+        logInfo("HueGatewayAuth", "Using stored App-Key");
         return true;
     }
 
     // Non-blocking: single attempt.
-    Serial.println("[HueGatewayAuth] Requesting new App-Key (single attempt)...");
+    logInfo("HueGatewayAuth", "Requesting new App-Key (single attempt)...");
     return requestAppKeyOnce(bridgeIP);
 }
 
 bool HueGatewayAuth::authenticateBlocking(const char* bridgeIP, uint32_t timeoutMs)
 {
-    Serial.printf("[HueGatewayAuth] Authenticating with bridge at %s (blocking)\n", bridgeIP);
+    logInfo("HueGatewayAuth", "Authenticating with bridge at %s (blocking)", bridgeIP);
 
     if (authenticate(bridgeIP))
     {
-        Serial.println("[HueGatewayAuth] Authentication successful!");
+        logInfo("HueGatewayAuth", "Authentication successful!");
         return true;
     }
 
-    Serial.println("[HueGatewayAuth] *** PRESS BUTTON ON HUE BRIDGE NOW! ***");
+    logInfo("HueGatewayAuth", "*** PRESS BUTTON ON HUE BRIDGE NOW! ***");
 
     const uint32_t start = millis();
     uint32_t nextTryMs = start;
@@ -48,13 +49,13 @@ bool HueGatewayAuth::authenticateBlocking(const char* bridgeIP, uint32_t timeout
         {
             if (requestAppKeyOnce(bridgeIP))
             {
-                Serial.println("[HueGatewayAuth] Authentication successful!");
+                logInfo("HueGatewayAuth", "Authentication successful!");
                 return true;
             }
 
             attempt++;
             nextTryMs = now + 1000UL;
-            Serial.printf("[HueGatewayAuth] Waiting for button press... (%lu)\n", static_cast<unsigned long>(attempt));
+            logDebug("HueGatewayAuth", "Waiting for button press... (%lu)", static_cast<unsigned long>(attempt));
 #ifdef INFO_LED_PIN
             digitalWrite(INFO_LED_PIN, !digitalRead(INFO_LED_PIN));
 #endif
@@ -64,7 +65,7 @@ bool HueGatewayAuth::authenticateBlocking(const char* bridgeIP, uint32_t timeout
         yield();
     }
 
-    Serial.println("[HueGatewayAuth] Authentication timeout - button not pressed");
+    logError("HueGatewayAuth", "Authentication timeout - button not pressed");
     return false;
 }
 
@@ -92,9 +93,9 @@ bool HueGatewayAuth::loadStoredAppKey()
 
     _appKey = loadAppKey();
     _clientKey = loadClientKey();
-    Serial.printf("[HueGatewayAuth] Stored App-Key available: %s (length=%u)\n",
-                  _appKey.length() > 0 ? "yes" : "no",
-                  static_cast<unsigned>(_appKey.length()));
+    logDebug("HueGatewayAuth", "Stored App-Key available: %s (length=%u)",
+             _appKey.length() > 0 ? "yes" : "no",
+             static_cast<unsigned>(_appKey.length()));
     return _appKey.length() > 0;
 }
 
@@ -112,11 +113,11 @@ bool HueGatewayAuth::requestAppKeyOnce(const char* ip)
     String url = String("https://") + ip + "/api";
     bool success = false;
 
-    Serial.printf("[HueGatewayAuth] POST %s\n", url.c_str());
+    logDebug("HueGatewayAuth", "POST %s", url.c_str());
     
     if (!http.begin(client, url))
     {
-        Serial.println("[HueGatewayAuth] ERROR: HTTP begin failed (TLS/connection)");
+        logError("HueGatewayAuth", "ERROR: HTTP begin failed (TLS/connection)");
         return false;
     }
     http.addHeader("Content-Type", "application/json");
@@ -128,7 +129,7 @@ bool HueGatewayAuth::requestAppKeyOnce(const char* ip)
     if (httpCode == 200)
     {
         String response = http.getString();
-        Serial.printf("[HueGatewayAuth] Response: %s\n", response.c_str());
+        logDebug("HueGatewayAuth", "Response: %s", response.c_str());
         
         StaticJsonDocument<1024> doc;
         DeserializationError error = deserializeJson(doc, response);
@@ -147,14 +148,14 @@ bool HueGatewayAuth::requestAppKeyOnce(const char* ip)
                     if (errorType == 101)
                     {
                         // Expected during pairing: bridge button has not been pressed yet.
-                        Serial.println("[HueGatewayAuth] Bridge reports button not pressed yet (error 101)");
+                        logDebug("HueGatewayAuth", "Bridge reports button not pressed yet (error 101)");
                         success = false;
                     }
                     else
                     {
-                        Serial.printf("[HueGatewayAuth] Error %d: %s\n", 
-                                    errorType, 
-                                    obj["error"]["description"].as<const char*>());
+                        logError("HueGatewayAuth", "Error %d: %s",
+                                 errorType,
+                                 obj["error"]["description"].as<const char*>());
                         success = false;
                     }
                 }
@@ -163,13 +164,15 @@ bool HueGatewayAuth::requestAppKeyOnce(const char* ip)
                 if (obj.containsKey("success"))
                 {
                     String username = obj["success"]["username"].as<String>();
-                    Serial.printf("[HueGatewayAuth] App-Key received: %s\n", username.c_str());
+                    logInfo("HueGatewayAuth", "App-Key received: %s...%s",
+                            username.substring(0, 4).c_str(),
+                            username.substring(username.length() > 4 ? username.length() - 4 : 0).c_str());
                     saveAppKey(username);
                     if (obj["success"].containsKey("clientkey"))
                     {
                         String clientKey = obj["success"]["clientkey"].as<String>();
                         saveClientKey(clientKey);
-                        Serial.println("[HueGatewayAuth] Client-Key saved to flash");
+                        logInfo("HueGatewayAuth", "Client-Key saved to flash");
                     }
                     success = true;
                 }
@@ -179,7 +182,7 @@ bool HueGatewayAuth::requestAppKeyOnce(const char* ip)
     else
     {
         String response = http.getString();
-        Serial.printf("[HueGatewayAuth] HTTP Error: %d, response: %s\n", httpCode, response.c_str());
+        logError("HueGatewayAuth", "HTTP Error: %d, response: %s", httpCode, response.c_str());
     }
     
     http.end();
@@ -191,18 +194,22 @@ void HueGatewayAuth::clearAppKey()
     HueGatewayStorage::clearAuthKeys();
     _appKey = "";
     _clientKey = "";
-    Serial.println("[HueGatewayAuth] App-Key cleared");
+    logInfo("HueGatewayAuth", "App-Key cleared");
 }
 
 void HueGatewayAuth::saveAppKey(const String& key)
 {
+    if (key == _appKey)
+        return;
     HueGatewayStorage::saveAppKey(key);
     _appKey = key;
-    Serial.println("[HueGatewayAuth] App-Key saved to flash");
+    logInfo("HueGatewayAuth", "App-Key saved to flash");
 }
 
 void HueGatewayAuth::saveClientKey(const String& key)
 {
+    if (key == _clientKey)
+        return;
     HueGatewayStorage::saveClientKey(key);
     _clientKey = key;
 }
@@ -213,7 +220,7 @@ String HueGatewayAuth::loadAppKey()
     
     if (key.length() > 0)
     {
-        Serial.println("[HueGatewayAuth] App-Key loaded from flash");
+        logInfo("HueGatewayAuth", "App-Key loaded from flash");
     }
     
     return key;

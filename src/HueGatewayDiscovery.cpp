@@ -81,7 +81,12 @@ bool HueGatewayDiscovery::discoverMDNS(String& ip)
     static bool mdnsStarted = false;
     if (!mdnsStarted)
     {
-        if (!MDNS.begin("openknx-hue"))
+        // Build a unique hostname using last 4 hex digits of MAC address.
+        String mac = WiFi.macAddress();
+        mac.replace(":", "");
+        String hostname = "openknx-hue-" + mac.substring(mac.length() - 4);
+        hostname.toLowerCase();
+        if (!MDNS.begin(hostname.c_str()))
         {
             Serial.println("[HueGatewayDiscovery] mDNS init failed");
             return false;

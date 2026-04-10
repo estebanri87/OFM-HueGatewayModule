@@ -8,7 +8,15 @@ namespace
 {
 static constexpr unsigned long kGlobalHclWriteSpacingMs = 220UL;
 static unsigned long sGlobalHclWriteNextAllowedMs = 0UL;
-static constexpr unsigned long kRelativeDimRepeatMs = 120UL;
+
+static unsigned long relativeDimRepeatMs()
+{
+#ifdef ParamHUE_HUERelDimRepeatMs
+    return (unsigned long)ParamHUE_HUERelDimRepeatMs;
+#else
+    return 120UL;
+#endif
+}
 
 uint16_t stablePhaseOffsetMs(const String& id)
 {
@@ -84,7 +92,6 @@ void HueGatewayLight::begin(uint16_t koSwitch, uint16_t koBrightness, uint16_t k
     _koStatusBrightness = koStatusBrightness;
     _koStatusColorTemp = koStatusColorTemp;
     _koStatusColorRGB = koStatusColorRGB;
-    _koStatus = koStatusSwitch;  // Backward compatibility for older code paths.
     _initialized = true;
     
     Serial.printf("[HueGatewayLight] %s initialized - KO Switch:%d Brightness:%d Dimming:%d StatusSwitch:%d StatusBrightness:%d StatusColorTemp:%d StatusRGB:%d\n",
@@ -146,7 +153,7 @@ void HueGatewayLight::processKnxSwitch(bool value)
         HCL::InterpolatedValue hclValue = HCL::masterManager.getCurrentValue(_hclMasterNum);
         
         // Convert brightness percent (0-100) to Hue scale (0-254).
-        _brightness = (uint8_t)((hclValue.brightness * 254) / 100);
+        _brightness = static_cast<uint8_t>(roundf(hclValue.brightness * 254.0f / 100.0f));
         
         // Prime loop state for continuous HCL updates.
         _lastHCLUpdate = millis();
@@ -271,7 +278,7 @@ void HueGatewayLight::processKnxDimming(uint8_t control)
     _relativeDimHoldActive = true;
     _relativeDimHoldBrighter = brighter;
     _relativeDimHoldSteps = steps;
-    _relativeDimNextMs = nowMs + kRelativeDimRepeatMs;
+    _relativeDimNextMs = nowMs + relativeDimRepeatMs();
 
     // Use relative delta API when healthy, otherwise fallback to stable legacy path.
     if (_relativeDimCooldownUntilMs == 0 || nowMs >= _relativeDimCooldownUntilMs)
@@ -483,8 +490,9 @@ void HueGatewayLight::sendStatusToKnx()
     // Publish status to dedicated feedback KOs.
     // Hue 0-254 -> KNX 0-100%.
     // While switched off, always report 0% brightness on KNX status.
-        uint8_t statusBrightnessHue = _on ? _brightness : 0;
+    uint8_t statusBrightnessHue = _on ? _brightness : 0;
     uint8_t brightnessPercent = static_cast<uint8_t>(roundf((statusBrightnessHue / 254.0f) * 100.0f));
+    if (brightnessPercent > 100) brightnessPercent = 100;
     
     // KO Status Switch: DPT 1.001 (bool) - On/Off feedback.
     knx.getGroupObject(_koStatusSwitch).value(_on, Dpt(1, 1));
@@ -792,7 +800,7 @@ void HueGatewayLight::loop()
                 commandOk = true;
             }
 
-            _relativeDimNextMs = nowMs + (commandOk ? kRelativeDimRepeatMs : 120UL);
+            _relativeDimNextMs = nowMs + relativeDimRepeatMs();
         }
     }
 
@@ -862,7 +870,7 @@ void HueGatewayLight::loop()
     _lastHCLBrightness = hclValue.brightness;
     
     // Convert brightness percent (0-100) to Hue scale (0-254).
-    _brightness = (uint8_t)((hclValue.brightness * 254) / 100);
+    _brightness = static_cast<uint8_t>(roundf(hclValue.brightness * 254.0f / 100.0f));
     
     Serial.printf("[HueGatewayLight] %s - HCL Update: %dK → %dK, %d%% → %d%%\n",
                  _name.c_str(), previousKelvin, hclValue.kelvin,

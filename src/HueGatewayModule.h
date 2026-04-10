@@ -26,8 +26,8 @@ struct HueGatewayEventSensorUpdate;
  * It communicates with the Hue Bridge via Hue API v2 and exposes device
  * functions through KNX communication objects.
  * 
- * @version 0.3.7
- * @date 2026-03-21
+ * @version 0.3.9
+ * @date 2026-03-23
  */
 
 class HueGatewayModule : public OpenKNX::Module
@@ -149,6 +149,8 @@ private:
     uint8_t _consecutiveEmptyLightFetches;
     uint32_t _diagCounterEmptyLightFetches;
     unsigned long _lastValidLightFetchMs;
+    bool _biAutoDeletePending;             // behavior_instance SSE event seen, delete pending
+    unsigned long _biAutoDeleteTriggerMs;   // millis() when SSE event was first seen (debounce)
     bool _webScanRequested;
     bool _webScanInProgress;
     bool _networkConnectedLast;
@@ -204,6 +206,7 @@ private:
     uint16_t _hclLastPublishedKelvin[HCL::MasterManager::MAX_MASTERS];
     uint8_t _hclLastPublishedBrightness[HCL::MasterManager::MAX_MASTERS];
     bool _hclMasterValuesPublished[HCL::MasterManager::MAX_MASTERS];
+    unsigned long _hclLastPublishMs[HCL::MasterManager::MAX_MASTERS];
 
     // In-memory diagnostics (for WebUI support package export).
     std::vector<DiagnosticLogEntry> _diagLogRing;
@@ -239,6 +242,7 @@ private:
     void setupBridge();
     void setupDevices();
     void setupHCL();
+    void processBehaviorInstanceAutoDelete();
     void checkConnection();
     void refreshLightStatus();
     void applyEventStreamUpdates(const HueGatewayEventLightUpdate* updates, int updateCount);

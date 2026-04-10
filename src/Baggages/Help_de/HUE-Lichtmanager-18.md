@@ -49,9 +49,11 @@ Bis zu 10 Stützpunkte je Manager bei Kurventyp `FixedTime` oder `SunPosition`.
 
 Hinweise:
 - Bei `FixedTime` und `SunPosition` sind mindestens 2 gültige Zeit-Stützpunkte erforderlich.
+- Nicht alle 10 Stützpunkte müssen belegt werden; unbenutzte Einträge werden ignoriert.
 - Bei `Manual` sind Stützpunkte optional; wenn sie gesetzt werden, definieren sie Zeit + Helligkeit, die Farbtemperatur kommt aus dem Parameter **Manuelle Farbtemperatur**.
 - Bei `Manual` ohne Stützpunkte bleibt die Helligkeit konstant auf `100 %`, die Farbtemperatur auf dem konfigurierten manuellen Kelvin-Wert.
 - Bei `Astronomischer Sonnenstand` werden keine Stützpunkte verwendet; stattdessen werden Minimal- und Maximalwerte für Kelvin und Helligkeit genutzt.
+- Die letzte Zeit eines Tages gilt bis zum ersten Stützpunkt des nächsten Tages.
 
 Beispiel:
 - SP1 `06:00 / 3000K / 30%`
