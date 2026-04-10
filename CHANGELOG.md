@@ -16,7 +16,14 @@ Alle wesentlichen Änderungen an diesem Projekt werden in dieser Datei dokumenti
 - Dimm-Wiederholungsintervall präzisiert und Beta-Labels ergänzt.
 - ETS-Sichtbarkeit für Taster-Parameter und HCL-Parameter überarbeitet.
 
+### Geändert (Tester-Rückmeldung)
+- Kommunikationsobjekte „Soll-Helligkeit" und „Soll-Farbtemperatur" des Lichtmanagers in „Status-Soll-Helligkeit" und „Status-Soll-Farbtemperatur" umbenannt, um den Ausgangscharakter der Objekte klar zu kennzeichnen (LM 1–8, global und kanalweise).
+- DPT der Sperr-Eingangsobjekte von `DPST-1-1` (switch) auf `DPST-1-3` (disable/enable) geändert – gilt für globale LM-Sperre, LM 1–8 und kanalweise Sperre.
+- DPT der Sperr-Status-Objekte von `DPST-1-1` (switch) auf `DPST-1-11` (state) geändert.
+
 ### Behoben
+- Relatives Dimmen: Debounce-Schwelle von 100 ms auf 80 ms reduziert, damit Taster mit 80 ms Schrittrate nicht geblockt werden (experimentell)
+- Relatives Dimmen: Fehler-Cooldown erst nach 5 aufeinanderfolgenden HTTP-Fehlern (statt 3) und Dauer von 5 s auf 2 s verkürzt – verhindert mehrsekundige Dimmstopps bei transienten Bridge-Fehlern.
 - HCL-Update-Intervall für KNX-Bus-Sends wird nun korrekt berücksichtigt.
 - Jalousie-DPT-Mapping in ETS-Tasterobjekten korrigiert.
 - DPT 3.007 Dimm-Schritte werden konsistent kodiert.
