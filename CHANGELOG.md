@@ -2,7 +2,7 @@
 
 Alle wesentlichen Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 
-## [Unveröffentlicht 0.4.0]
+## [0.4.0] - 2026-04-10
 
 ### Hinzugefügt
 - Dedizierte Szenen-Aktionen für Hue-Taster ergänzt.
