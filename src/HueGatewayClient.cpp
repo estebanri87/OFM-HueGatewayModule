@@ -4,6 +4,7 @@
 #include <memory>
 #include <math.h>
 #include <esp_heap_caps.h>
+#include "OpenKNX.h"
 
 namespace
 {
@@ -42,15 +43,15 @@ void logHeapStats(const char* phase)
         ? static_cast<uint32_t>(((free8Bit - largest8Bit) * 100U) / free8Bit)
         : 0U;
 
-    Serial.printf("[HueGatewayClient] HEAP %s free=%lu min=%lu free8=%u largest8=%u intFree=%u intLargest=%u frag=%lu%%\n",
-                  phase,
-                  static_cast<unsigned long>(freeHeap),
-                  static_cast<unsigned long>(minFreeHeap),
-                  static_cast<unsigned>(free8Bit),
-                  static_cast<unsigned>(largest8Bit),
-                  static_cast<unsigned>(freeInternal),
-                  static_cast<unsigned>(largestInternal),
-                  static_cast<unsigned long>(fragPercent));
+    logDebug("HueGatewayClient", "HEAP %s free=%lu min=%lu free8=%u largest8=%u intFree=%u intLargest=%u frag=%lu%%",
+             phase,
+             static_cast<unsigned long>(freeHeap),
+             static_cast<unsigned long>(minFreeHeap),
+             static_cast<unsigned>(free8Bit),
+             static_cast<unsigned>(largest8Bit),
+             static_cast<unsigned>(freeInternal),
+             static_cast<unsigned>(largestInternal),
+             static_cast<unsigned long>(fragPercent));
 }
 
 bool extractResourceRef(JsonVariantConst refVar, String& outRid, String& outType)
@@ -137,7 +138,7 @@ bool HueGatewayClient::begin(const String& bridgeIP, const String& appKey)
 {
     if (bridgeIP.isEmpty() || appKey.isEmpty())
     {
-        Serial.println("[HueGatewayClient] ERROR: Invalid Bridge IP or App Key");
+        logError("HueGatewayClient", "Invalid Bridge IP or App Key");
         return false;
     }
     
@@ -157,7 +158,7 @@ bool HueGatewayClient::begin(const String& bridgeIP, const String& appKey)
     _eventLastDataMs = millis();
     _eventAutoRestartEnabled = true;
     
-    Serial.printf("[HueGatewayClient] Initialized - Bridge: %s\n", _bridgeIP.c_str());
+    logInfo("HueGatewayClient", "Initialized - Bridge: %s", _bridgeIP.c_str());
     return true;
 }
 
@@ -165,7 +166,7 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights, boo
 {
     if (!_initialized)
     {
-        Serial.println("[HueGatewayClient] ERROR: Not initialized");
+        logError("HueGatewayClient", "Not initialized");
         return 0;
     }
 
@@ -187,8 +188,7 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights, boo
 
     if (!isHttpSuccessStatus(statusCode))
     {
-        Serial.print("[HueGatewayClient] ERROR: GET lights failed - HTTP ");
-        Serial.println(statusCode);
+        logError("HueGatewayClient", "GET lights failed - HTTP %d", statusCode);
         return 0;
     }
 
@@ -284,10 +284,10 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights, boo
         const size_t zoneItems = zoneDoc["data"].is<JsonArrayConst>() ? zoneDoc["data"].as<JsonArrayConst>().size() : 0;
         if (locations.empty() && (roomItems > 0 || zoneItems > 0))
         {
-            Serial.printf("[HueGatewayClient] WARNING: No room/zone mapping created (roomItems=%u zoneItems=%u links=%u)\n",
-                        static_cast<unsigned>(roomItems),
-                        static_cast<unsigned>(zoneItems),
-                        static_cast<unsigned>(deviceLightLinks.size()));
+            logError("HueGatewayClient", "No room/zone mapping created (roomItems=%u zoneItems=%u links=%u)",
+                     static_cast<unsigned>(roomItems),
+                     static_cast<unsigned>(zoneItems),
+                     static_cast<unsigned>(deviceLightLinks.size()));
         }
 
             if (!locations.empty())
@@ -383,8 +383,7 @@ int HueGatewayClient::getLights(HueGatewayLightState* lights, int maxLights, boo
         count++;
     }
 
-    Serial.print("[HueGatewayClient] Found lights: ");
-    Serial.println(count);
+    logInfo("HueGatewayClient", "Found lights: %d", count);
     return count;
 }
 
@@ -411,7 +410,7 @@ int HueGatewayClient::getGroupedLights(HueGatewayLightState* groupedLights, int 
     int statusCode = httpGet("/clip/v2/resource/grouped_light", doc, &groupedLightFilterDoc);
     if (!isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] ERROR: GET grouped_light failed - HTTP %d\n", statusCode);
+        logError("HueGatewayClient", "GET grouped_light failed - HTTP %d", statusCode);
         return 0;
     }
 
@@ -470,7 +469,7 @@ int HueGatewayClient::getGroupedLights(HueGatewayLightState* groupedLights, int 
         count++;
     }
 
-    Serial.printf("[HueGatewayClient] Found grouped_light targets: %d\n", count);
+    logInfo("HueGatewayClient", "Found grouped_light targets: %d", count);
     return count;
 }
 
@@ -568,7 +567,7 @@ int HueGatewayClient::getAccessoryDevices(HueGatewayAccessoryDevice* devices, in
         count++;
     }
 
-    Serial.printf("[HueGatewayClient] Found accessory devices: %d\n", count);
+    logInfo("HueGatewayClient", "Found accessory devices: %d", count);
     return count;
 }
 
@@ -609,10 +608,10 @@ int HueGatewayClient::getScenes(HueGatewayScene* scenes, int maxScenes)
 
     fetchGroupNames("/clip/v2/resource/room", "");
     fetchGroupNames("/clip/v2/resource/zone", " (Zone)");
-    Serial.printf("[HueGatewayClient] Scene group mapping: %d room/zone entries\n", groupCount);
+    logDebug("HueGatewayClient", "Scene group mapping: %d room/zone entries", groupCount);
     for (int g = 0; g < groupCount; g++)
     {
-        Serial.printf("  room/zone %s -> %s\n", groupRids[g].c_str(), groupNames[g].c_str());
+        logDebug("HueGatewayClient", "  room/zone %s -> %s", groupRids[g].c_str(), groupNames[g].c_str());
     }
 
     // Fetch scenes
@@ -656,7 +655,7 @@ int HueGatewayClient::getScenes(HueGatewayScene* scenes, int maxScenes)
         count++;
     }
 
-    Serial.printf("[HueGatewayClient] Found scenes: %d\n", count);
+    logInfo("HueGatewayClient", "Found scenes: %d", count);
     return count;
 }
 
@@ -908,11 +907,11 @@ bool HueGatewayClient::setLightOnOff(const String& lightId, bool on)
 
     if (isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] Light %s -> %s\n", lightId.c_str(), on ? "ON" : "OFF");
+        logDebug("HueGatewayClient", "Light %s -> %s", lightId.c_str(), on ? "ON" : "OFF");
         return true;
     }
 
-    Serial.printf("[HueGatewayClient] ERROR: PUT failed - HTTP %d\n", statusCode);
+    logError("HueGatewayClient", "PUT light on/off failed - HTTP %d", statusCode);
     return false;
 }
 
@@ -933,11 +932,11 @@ bool HueGatewayClient::setGroupedLightOnOff(const String& groupedLightId, bool o
 
     if (isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] GroupedLight %s -> %s\n", groupedLightId.c_str(), on ? "ON" : "OFF");
+        logDebug("HueGatewayClient", "GroupedLight %s -> %s", groupedLightId.c_str(), on ? "ON" : "OFF");
         return true;
     }
 
-    Serial.printf("[HueGatewayClient] ERROR: PUT grouped_light on/off failed - HTTP %d\n", statusCode);
+    logError("HueGatewayClient", "PUT grouped_light on/off failed - HTTP %d", statusCode);
     return false;
 }
 
@@ -961,12 +960,12 @@ bool HueGatewayClient::setLightBrightness(const String& lightId, uint8_t brightn
     
     if (isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] Light %s -> Brightness: %d\n", lightId.c_str(), brightness);
+        logDebug("HueGatewayClient", "Light %s -> Brightness: %d", lightId.c_str(), brightness);
         return true;
     }
     else
     {
-        Serial.printf("[HueGatewayClient] ERROR: PUT brightness failed - HTTP %d\n", statusCode);
+        logError("HueGatewayClient", "PUT brightness failed - HTTP %d", statusCode);
         return false;
     }
 }
@@ -990,11 +989,11 @@ bool HueGatewayClient::setGroupedLightBrightness(const String& groupedLightId, u
 
     if (isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] GroupedLight %s -> Brightness: %d\n", groupedLightId.c_str(), brightness);
+        logDebug("HueGatewayClient", "GroupedLight %s -> Brightness: %d", groupedLightId.c_str(), brightness);
         return true;
     }
 
-    Serial.printf("[HueGatewayClient] ERROR: PUT grouped_light brightness failed - HTTP %d\n", statusCode);
+    logError("HueGatewayClient", "PUT grouped_light brightness failed - HTTP %d", statusCode);
     return false;
 }
 
@@ -1025,13 +1024,13 @@ bool HueGatewayClient::setLightState(const String& lightId, bool on, uint8_t bri
     
     if (isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] Light %s -> On:%d Bri:%d fade:%us\n", 
-                      lightId.c_str(), on, brightness, static_cast<unsigned>(fadeDurationSec));
+        logDebug("HueGatewayClient", "Light %s -> On:%d Bri:%d fade:%us",
+                 lightId.c_str(), on, brightness, static_cast<unsigned>(fadeDurationSec));
         return true;
     }
     else
     {
-        Serial.printf("[HueGatewayClient] ERROR: PUT state failed - HTTP %d\n", statusCode);
+        logError("HueGatewayClient", "PUT state failed - HTTP %d", statusCode);
         return false;
     }
 }
@@ -1063,12 +1062,12 @@ bool HueGatewayClient::setGroupedLightState(const String& groupedLightId, bool o
 
     if (isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] GroupedLight %s -> On:%d Bri:%d fade:%us\n",
-                      groupedLightId.c_str(), on, brightness, static_cast<unsigned>(fadeDurationSec));
+        logDebug("HueGatewayClient", "GroupedLight %s -> On:%d Bri:%d fade:%us",
+                 groupedLightId.c_str(), on, brightness, static_cast<unsigned>(fadeDurationSec));
         return true;
     }
 
-    Serial.printf("[HueGatewayClient] ERROR: PUT grouped_light state failed - HTTP %d\n", statusCode);
+    logError("HueGatewayClient", "PUT grouped_light state failed - HTTP %d", statusCode);
     return false;
 }
 
@@ -1108,15 +1107,12 @@ bool HueGatewayClient::setLightDimmingDelta(const String& lightId, bool brighter
 
     if (isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] Light %s -> Dimming delta: %s %u step(s) (%.1f%%)\n",
-                      lightId.c_str(),
-                      brighter ? "up" : "down",
-                      static_cast<unsigned>(steps),
-                      brightnessDeltaPct);
+        logDebug("HueGatewayClient", "Light %s -> Dimming delta: %s %u step(s) (%.1f%%)",
+                 lightId.c_str(), brighter ? "up" : "down", static_cast<unsigned>(steps), brightnessDeltaPct);
         return true;
     }
 
-    Serial.printf("[HueGatewayClient] ERROR: PUT dimming_delta failed - HTTP %d\n", statusCode);
+    logError("HueGatewayClient", "PUT dimming_delta failed - HTTP %d", statusCode);
     return false;
 }
 
@@ -1155,12 +1151,12 @@ bool HueGatewayClient::setGroupedLightDimmingDelta(const String& groupedLightId,
 
     if (isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] GroupedLight %s -> Dimming delta: %s %u step(s) (%.1f%%)\n",
-                      groupedLightId.c_str(), brighter ? "up" : "down", static_cast<unsigned>(steps), brightnessDeltaPct);
+        logDebug("HueGatewayClient", "GroupedLight %s -> Dimming delta: %s %u step(s) (%.1f%%)",
+                 groupedLightId.c_str(), brighter ? "up" : "down", static_cast<unsigned>(steps), brightnessDeltaPct);
         return true;
     }
 
-    Serial.printf("[HueGatewayClient] ERROR: PUT grouped_light dimming delta failed - HTTP %d\n", statusCode);
+    logError("HueGatewayClient", "PUT grouped_light dimming delta failed - HTTP %d", statusCode);
     return false;
 }
 
@@ -1181,11 +1177,11 @@ bool HueGatewayClient::stopLightDimming(const String& lightId)
 
     if (isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] Light %s -> Dimming stop\n", lightId.c_str());
+        logDebug("HueGatewayClient", "Light %s -> Dimming stop", lightId.c_str());
         return true;
     }
 
-    Serial.printf("[HueGatewayClient] ERROR: PUT dimming stop failed - HTTP %d\n", statusCode);
+    logError("HueGatewayClient", "PUT dimming stop failed - HTTP %d", statusCode);
     return false;
 }
 
@@ -1206,11 +1202,11 @@ bool HueGatewayClient::stopGroupedLightDimming(const String& groupedLightId)
 
     if (isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] GroupedLight %s -> Dimming STOP\n", groupedLightId.c_str());
+        logDebug("HueGatewayClient", "GroupedLight %s -> Dimming STOP", groupedLightId.c_str());
         return true;
     }
 
-    Serial.printf("[HueGatewayClient] ERROR: PUT grouped_light dimming stop failed - HTTP %d\n", statusCode);
+    logError("HueGatewayClient", "PUT grouped_light dimming stop failed - HTTP %d", statusCode);
     return false;
 }
 
@@ -1266,7 +1262,7 @@ bool HueGatewayClient::resolveGroupedLightForTarget(const String& endpoint, cons
     int statusCode = httpGet(endpoint, doc, &targetFilterDoc);
     if (!isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] ERROR: GET %s failed - HTTP %d\n", endpoint.c_str(), statusCode);
+        logError("HueGatewayClient", "GET %s failed - HTTP %d", endpoint.c_str(), statusCode);
         return false;
     }
 
@@ -1332,7 +1328,7 @@ int HueGatewayClient::getTargetsForEndpoint(const String& endpoint, HueGatewayTa
     int statusCode = httpGet(endpoint, doc, &targetFilterDoc);
     if (!isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] ERROR: GET %s failed - HTTP %d\n", endpoint.c_str(), statusCode);
+        logError("HueGatewayClient", "GET %s failed - HTTP %d", endpoint.c_str(), statusCode);
         return 0;
     }
 
@@ -1410,13 +1406,13 @@ bool HueGatewayClient::setLightStateWithColorTemp(const String& lightId, bool on
     
     if (isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] Light %s -> On:%d Bri:%d CT:%d fade:%ds\n", 
-                      lightId.c_str(), on, brightness, clampedMirek, fadeDurationSec);
+        logDebug("HueGatewayClient", "Light %s -> On:%d Bri:%d CT:%d fade:%ds",
+                 lightId.c_str(), on, brightness, clampedMirek, fadeDurationSec);
         return true;
     }
     else
     {
-        Serial.printf("[HueGatewayClient] ERROR: PUT state+CT failed - HTTP %d\n", statusCode);
+        logError("HueGatewayClient", "PUT state+CT failed - HTTP %d", statusCode);
         return false;
     }
 }
@@ -1458,12 +1454,12 @@ bool HueGatewayClient::setGroupedLightStateWithColorTemp(const String& groupedLi
 
     if (isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] GroupedLight %s -> On:%d Bri:%d CT:%d fade:%ds\n",
-                      groupedLightId.c_str(), on, brightness, clampedMirek, fadeDurationSec);
+        logDebug("HueGatewayClient", "GroupedLight %s -> On:%d Bri:%d CT:%d fade:%ds",
+                 groupedLightId.c_str(), on, brightness, clampedMirek, fadeDurationSec);
         return true;
     }
 
-    Serial.printf("[HueGatewayClient] ERROR: PUT grouped_light state+CT failed - HTTP %d\n", statusCode);
+    logError("HueGatewayClient", "PUT grouped_light state+CT failed - HTTP %d", statusCode);
     return false;
 }
 
@@ -1491,13 +1487,13 @@ bool HueGatewayClient::setLightColorTemperature(const String& lightId, uint16_t 
     
     if (isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] Light %s -> ColorTemp: %d mirek (%d K)\n", 
-                      lightId.c_str(), clampedMirek, mirekToKelvin(clampedMirek));
+        logDebug("HueGatewayClient", "Light %s -> ColorTemp: %d mirek (%d K)",
+                 lightId.c_str(), clampedMirek, mirekToKelvin(clampedMirek));
         return true;
     }
     else
     {
-        Serial.printf("[HueGatewayClient] ERROR: PUT color_temperature failed - HTTP %d\n", statusCode);
+        logError("HueGatewayClient", "PUT color_temperature failed - HTTP %d", statusCode);
         return false;
     }
 }
@@ -1523,12 +1519,12 @@ bool HueGatewayClient::setGroupedLightColorTemperature(const String& groupedLigh
 
     if (isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] GroupedLight %s -> ColorTemp: %d mirek (%d K)\n",
-                      groupedLightId.c_str(), clampedMirek, mirekToKelvin(clampedMirek));
+        logDebug("HueGatewayClient", "GroupedLight %s -> ColorTemp: %d mirek (%d K)",
+                 groupedLightId.c_str(), clampedMirek, mirekToKelvin(clampedMirek));
         return true;
     }
 
-    Serial.printf("[HueGatewayClient] ERROR: PUT grouped_light color_temperature failed - HTTP %d\n", statusCode);
+    logError("HueGatewayClient", "PUT grouped_light color_temperature failed - HTTP %d", statusCode);
     return false;
 }
 
@@ -1560,13 +1556,13 @@ bool HueGatewayClient::setLightColor(const String& lightId, float x, float y)
     
     if (isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] Light %s -> Color XY: (%.3f, %.3f)\n", 
-                      lightId.c_str(), clampedX, clampedY);
+        logDebug("HueGatewayClient", "Light %s -> Color XY: (%.3f, %.3f)",
+                 lightId.c_str(), clampedX, clampedY);
         return true;
     }
     else
     {
-        Serial.printf("[HueGatewayClient] ERROR: PUT color failed - HTTP %d\n", statusCode);
+        logError("HueGatewayClient", "PUT color failed - HTTP %d", statusCode);
         return false;
     }
 }
@@ -1596,12 +1592,12 @@ bool HueGatewayClient::setGroupedLightColor(const String& groupedLightId, float 
 
     if (isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] GroupedLight %s -> Color XY: (%.3f, %.3f)\n",
-                      groupedLightId.c_str(), clampedX, clampedY);
+        logDebug("HueGatewayClient", "GroupedLight %s -> Color XY: (%.3f, %.3f)",
+                 groupedLightId.c_str(), clampedX, clampedY);
         return true;
     }
 
-    Serial.printf("[HueGatewayClient] ERROR: PUT grouped_light color failed - HTTP %d\n", statusCode);
+    logError("HueGatewayClient", "PUT grouped_light color failed - HTTP %d", statusCode);
     return false;
 }
 
@@ -1622,11 +1618,11 @@ bool HueGatewayClient::recallHueScene(const String& sceneRID)
 
     if (isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] Scene %s recalled\n", sceneRID.c_str());
+        logInfo("HueGatewayClient", "Scene %s recalled", sceneRID.c_str());
         return true;
     }
 
-    Serial.printf("[HueGatewayClient] ERROR: Scene recall failed - HTTP %d\n", statusCode);
+    logError("HueGatewayClient", "Scene recall failed - HTTP %d", statusCode);
     return false;
 }
 
@@ -1640,8 +1636,8 @@ int HueGatewayClient::getDeviceServiceRids(const String& deviceId, HueGatewaySer
     int statusCode = httpGet(endpoint, doc);
     if (!isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] getDeviceServiceRids: HTTP %d for device %s\n",
-                      statusCode, deviceId.c_str());
+        logError("HueGatewayClient", "getDeviceServiceRids: HTTP %d for device %s",
+                 statusCode, deviceId.c_str());
         return 0;
     }
 
@@ -1667,8 +1663,8 @@ int HueGatewayClient::getDeviceServiceRids(const String& deviceId, HueGatewaySer
             break;
     }
 
-    Serial.printf("[HueGatewayClient] getDeviceServiceRids: device %s -> %d services\n",
-                  deviceId.c_str(), count);
+    logDebug("HueGatewayClient", "getDeviceServiceRids: device %s -> %d services",
+             deviceId.c_str(), count);
     return count;
 }
 
@@ -1700,7 +1696,7 @@ int HueGatewayClient::getBehaviorInstances(const String& deviceId, String* insta
     int statusCode = httpGet("/clip/v2/resource/behavior_instance", doc, &filterDoc, 3000, 50);
     if (!isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] getBehaviorInstances: HTTP %d (filtered)\n", statusCode);
+        logError("HueGatewayClient", "getBehaviorInstances: HTTP %d (filtered)", statusCode);
         if (debugInfo)
             *debugInfo = "httpFail=" + String(statusCode)
                 + " jsonErr=" + _diagStats.lastJsonError
@@ -1709,9 +1705,9 @@ int HueGatewayClient::getBehaviorInstances(const String& deviceId, String* insta
         return 0;
     }
 
-    Serial.printf("[HueGatewayClient] getBehaviorInstances: HTTP %d, docOverflow=%d, memUsed=%u/%u\n",
-                  statusCode, doc.overflowed() ? 1 : 0,
-                  (unsigned)doc.memoryUsage(), 16384u);
+    logDebug("HueGatewayClient", "getBehaviorInstances: HTTP %d, docOverflow=%d, memUsed=%u/%u",
+             statusCode, doc.overflowed() ? 1 : 0,
+             (unsigned)doc.memoryUsage(), 16384u);
 
     int count = 0;
     int totalInstances = 0;
@@ -1778,14 +1774,14 @@ int HueGatewayClient::getBehaviorInstances(const String& deviceId, String* insta
         if (id[0] != '\0')
         {
             instanceIds[count++] = String(id);
-            Serial.printf("[HueGatewayClient] behavior_instance match: %s for device %s\n",
-                          id, deviceId.c_str());
+            logDebug("HueGatewayClient", "behavior_instance match: %s for device %s",
+                     id, deviceId.c_str());
         }
     }
 
     // --- Debug: log summary ---
-    Serial.printf("[HueGatewayClient] getBehaviorInstances: device %s -> %d/%d instances (svc=%d)\n",
-                  deviceId.c_str(), count, totalInstances, svcCount);
+    logDebug("HueGatewayClient", "getBehaviorInstances: device %s -> %d/%d instances (svc=%d)",
+             deviceId.c_str(), count, totalInstances, svcCount);
 
     // Build debugInfo string for caller to put into RingLog
     if (debugInfo != nullptr)
@@ -1812,11 +1808,11 @@ bool HueGatewayClient::deleteBehaviorInstance(const String& instanceId)
 
     if (isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] behavior_instance %s deleted\n", instanceId.c_str());
+        logInfo("HueGatewayClient", "behavior_instance %s deleted", instanceId.c_str());
         return true;
     }
 
-    Serial.printf("[HueGatewayClient] ERROR: behavior_instance delete failed - HTTP %d\n", statusCode);
+    logError("HueGatewayClient", "behavior_instance delete failed - HTTP %d", statusCode);
     return false;
 }
 
@@ -1834,7 +1830,7 @@ bool HueGatewayClient::pingBridgeApiV2()
         return true;
     }
 
-    Serial.printf("[HueGatewayClient] Bridge API v2 ping failed - HTTP %d\n", statusCode);
+    logWarning("HueGatewayClient", "Bridge API v2 ping failed - HTTP %d", statusCode);
     return false;
 }
 
@@ -1857,9 +1853,9 @@ bool HueGatewayClient::startEventStream()
 
     if (!hasTlsInternalHeadroom())
     {
-        Serial.printf("[HueGatewayClient] EventStream deferred: insufficient internal TLS headroom (need free>=%lu, largest>=%lu)\n",
-                      static_cast<unsigned long>(kTlsMinInternalFreeBytes),
-                      static_cast<unsigned long>(kTlsMinInternalLargestBlockBytes));
+        logWarning("HueGatewayClient", "EventStream deferred: insufficient internal TLS headroom (need free>=%lu, largest>=%lu)",
+                   static_cast<unsigned long>(kTlsMinInternalFreeBytes),
+                   static_cast<unsigned long>(kTlsMinInternalLargestBlockBytes));
         logHeapStats("event-connect-deferred");
         return false;
     }
@@ -1867,12 +1863,12 @@ bool HueGatewayClient::startEventStream()
     stopEventStream();
 
     _eventClient.setTimeout(100);
-    Serial.printf("[HueGatewayClient] EventStream connecting to %s:443\n", _bridgeIP.c_str());
+    logInfo("HueGatewayClient", "EventStream connecting to %s:443", _bridgeIP.c_str());
     logHeapStats("before-event-connect");
     if (!_eventClient.connect(_bridgeIP.c_str(), 443))
     {
         _diagStats.eventConnectFail++;
-        Serial.println("[HueGatewayClient] EventStream connect failed");
+        logError("HueGatewayClient", "EventStream connect failed");
         logHeapStats("event-connect-failed");
         return false;
     }
@@ -1905,7 +1901,7 @@ void HueGatewayClient::stopEventStream()
     if (_eventClient.connected())
     {
         _diagStats.eventStopCount++;
-        Serial.println("[HueGatewayClient] EventStream stopping");
+        logInfo("HueGatewayClient", "EventStream stopping");
         _eventClient.stop();
     }
 }
@@ -1916,7 +1912,7 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
     {
         if (!_eventClient.connected())
         {
-            Serial.println("[HueGatewayClient] EventStream handshake failed: disconnected");
+            logError("HueGatewayClient", "EventStream handshake failed: disconnected");
             stopEventStream();
             return 0;
         }
@@ -1924,7 +1920,7 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
         if ((millis() - _eventHandshakeStartMs) > 3000UL && !_eventClient.available())
         {
             _diagStats.eventHandshakeTimeoutCount++;
-            Serial.println("[HueGatewayClient] EventStream header timeout");
+            logError("HueGatewayClient", "EventStream header timeout");
             stopEventStream();
             return 0;
         }
@@ -1936,12 +1932,12 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
 
         String statusLine = _eventClient.readStringUntil('\n');
         statusLine.trim();
-        Serial.printf("[HueGatewayClient] EventStream status: %s\n", statusLine.c_str());
+        logDebug("HueGatewayClient", "EventStream status: %s", statusLine.c_str());
         int statusCode = parseHttpStatusCode(statusLine);
         if (!isHttpSuccessStatus(statusCode))
         {
             _diagStats.eventHttpErrorCount++;
-            Serial.printf("[HueGatewayClient] EventStream HTTP error: %s\n", statusLine.c_str());
+            logError("HueGatewayClient", "EventStream HTTP error: %s", statusLine.c_str());
             stopEventStream();
             return 0;
         }
@@ -1967,7 +1963,7 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
         _eventDataBuffer = "";
         _eventStreamConnected = true;
         _diagStats.eventConnectOk++;
-        Serial.println("[HueGatewayClient] EventStream connected");
+        logInfo("HueGatewayClient", "EventStream connected");
     }
 
     if (!_eventStreamConnected || !_eventClient.connected() || updates == nullptr || maxUpdates <= 0)
@@ -1990,13 +1986,13 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
             _eventLineBuffer += ch;
             if (_eventLineBuffer.length() > kMaxEventLineChars)
             {
-                Serial.println("[HueGatewayClient] EventStream line exceeded limit, dropping line");
+                logWarning("HueGatewayClient", "EventStream line exceeded limit, dropping line");
                 _eventDropCount++;
                 _eventParseErrorStreak = min<uint8_t>(static_cast<uint8_t>(_eventParseErrorStreak + 1), static_cast<uint8_t>(10));
                 _eventLineBuffer = "";
                 if (_eventParseErrorStreak >= 3)
                 {
-                    Serial.println("[HueGatewayClient] EventStream parser unstable, forcing reconnect");
+                    logError("HueGatewayClient", "EventStream parser unstable, forcing reconnect");
                     stopEventStream();
                     return updateCount;
                 }
@@ -2015,7 +2011,7 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
                     _eventParseErrorStreak = min<uint8_t>(static_cast<uint8_t>(_eventParseErrorStreak + 1), static_cast<uint8_t>(10));
                     if (_eventParseErrorStreak >= 3)
                     {
-                        Serial.println("[HueGatewayClient] EventStream parse failures repeated, forcing reconnect");
+                        logError("HueGatewayClient", "EventStream parse failures repeated, forcing reconnect");
                         stopEventStream();
                         return updateCount;
                     }
@@ -2035,13 +2031,13 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
             _eventDataBuffer += dataPart;
             if (_eventDataBuffer.length() > kMaxEventPayloadChars)
             {
-                Serial.println("[HueGatewayClient] Event payload exceeded limit, dropping payload");
+                logWarning("HueGatewayClient", "Event payload exceeded limit, dropping payload");
                 _eventDropCount++;
                 _eventParseErrorStreak = min<uint8_t>(static_cast<uint8_t>(_eventParseErrorStreak + 1), static_cast<uint8_t>(10));
                 _eventDataBuffer = "";
                 if (_eventParseErrorStreak >= 3)
                 {
-                    Serial.println("[HueGatewayClient] EventStream payload drops repeated, forcing reconnect");
+                    logError("HueGatewayClient", "EventStream payload drops repeated, forcing reconnect");
                     stopEventStream();
                     return updateCount;
                 }
@@ -2054,18 +2050,18 @@ int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int m
     if (!_eventClient.connected())
     {
         _diagStats.eventDisconnectCount++;
-        Serial.println("[HueGatewayClient] EventStream disconnected");
+        logInfo("HueGatewayClient", "EventStream disconnected");
         stopEventStream();
     }
     else if (_eventStreamConnected && _eventLastDataMs != 0 && (millis() - _eventLastDataMs) > 180000UL)
     {
-        Serial.println("[HueGatewayClient] EventStream stale for >180s, reconnecting");
+        logWarning("HueGatewayClient", "EventStream stale for >180s, reconnecting");
         stopEventStream();
     }
 
     if (updateCount > 0)
     {
-        Serial.printf("[HueGatewayClient] EventStream parsed %d update(s)\n", updateCount);
+        logDebug("HueGatewayClient", "EventStream parsed %d update(s)", updateCount);
     }
 
     return updateCount;
@@ -2080,7 +2076,7 @@ int HueGatewayClient::parseEventPayload(const String& payload, HueGatewayEventLi
 
     if (payload.length() > kMaxEventPayloadChars)
     {
-        Serial.printf("[HueGatewayClient] Event payload too large: %u bytes\n", static_cast<unsigned>(payload.length()));
+        logError("HueGatewayClient", "Event payload too large: %u bytes", static_cast<unsigned>(payload.length()));
         return -1;
     }
 
@@ -2089,7 +2085,7 @@ int HueGatewayClient::parseEventPayload(const String& payload, HueGatewayEventLi
     DeserializationError error = deserializeJson(doc, payload);
     if (error)
     {
-        Serial.printf("[HueGatewayClient] Event payload JSON parse error: %s\n", error.c_str());
+        logError("HueGatewayClient", "Event payload JSON parse error: %s", error.c_str());
         return -1;
     }
 
@@ -2240,8 +2236,7 @@ float HueGatewayClient::relativeDimmingDeltaPercent(uint8_t steps)
 int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDocument* filterDoc, int timeoutMs, int nestingLimit)
 {
     String url = buildUrl(endpoint);
-    Serial.print("[HueGatewayClient] HTTP GET ");
-    Serial.println(url);
+    logDebug("HueGatewayClient", "HTTP GET %s", url.c_str());
     _diagStats.httpGetCount++;
     _diagStats.lastHttpMethod = "GET";
     _diagStats.lastHttpEndpoint = endpoint;
@@ -2253,7 +2248,7 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDoc
 
     if (eventWasActive && _eventAutoRestartEnabled && !hasTlsInternalHeadroom())
     {
-        Serial.println("[HueGatewayClient] Pausing EventStream for HTTPS GET (internal TLS headroom low)");
+        logWarning("HueGatewayClient", "Pausing EventStream for HTTPS GET (internal TLS headroom low)");
         _http.end();
         stopEventStream();
         _secureClient.stop();
@@ -2321,16 +2316,14 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDoc
         if (error)
         {
             _diagStats.lastJsonError = error.c_str();
-            Serial.printf("[HueGatewayClient] JSON parse error: %s contentLen=%d docMem=%u\n",
-                          error.c_str(), contentLength, (unsigned)doc.memoryUsage());
+            logError("HueGatewayClient", "JSON parse error: %s contentLen=%d docMem=%u",
+                     error.c_str(), contentLength, (unsigned)doc.memoryUsage());
             statusCode = -1;
         }
     }
     else
     {
-        Serial.print("[HueGatewayClient] HTTP GET failed (");
-        Serial.print(statusCode);
-        Serial.println(")");
+        logError("HueGatewayClient", "HTTP GET failed (%d)", statusCode);
         if (statusCode >= 0)
         {
             _diagStats.httpGetErrorCount++;
@@ -2343,11 +2336,11 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDoc
     {
         if (!hasTlsInternalHeadroom())
         {
-            Serial.println("[HueGatewayClient] EventStream restart deferred after HTTP GET (internal TLS headroom)");
+            logWarning("HueGatewayClient", "EventStream restart deferred after HTTP GET (internal TLS headroom)");
         }
         else if (!startEventStream())
         {
-            Serial.println("[HueGatewayClient] EventStream restart after HTTP GET failed");
+            logError("HueGatewayClient", "EventStream restart after HTTP GET failed");
         }
     }
 
@@ -2357,7 +2350,7 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDoc
 int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
 {
     String url = buildUrl(endpoint);
-    Serial.printf("[HueGatewayClient] HTTP PUT %s payload=%s\n", url.c_str(), payload.c_str());
+    logDebug("HueGatewayClient", "HTTP PUT %s payload=%s", url.c_str(), payload.c_str());
     _diagStats.httpPutCount++;
     _diagStats.lastHttpMethod = "PUT";
     _diagStats.lastHttpEndpoint = endpoint;
@@ -2367,7 +2360,7 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
 
     if (eventWasActive && _eventAutoRestartEnabled && !hasTlsInternalHeadroom())
     {
-        Serial.println("[HueGatewayClient] Pausing EventStream for HTTPS PUT (internal TLS headroom low)");
+        logWarning("HueGatewayClient", "Pausing EventStream for HTTPS PUT (internal TLS headroom low)");
         _http.end();
         stopEventStream();
         _secureClient.stop();
@@ -2413,7 +2406,7 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
             response = buf;
             if (bodyLen > 512) response += "...";
         }
-        Serial.printf("[HueGatewayClient] HTTP PUT failed (%d): %s\n", statusCode, response.c_str());
+        logError("HueGatewayClient", "HTTP PUT failed (%d): %s", statusCode, response.c_str());
     }
     
     _http.end();
@@ -2422,11 +2415,11 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
     {
         if (!hasTlsInternalHeadroom())
         {
-            Serial.println("[HueGatewayClient] EventStream restart deferred after HTTP PUT (internal TLS headroom)");
+            logWarning("HueGatewayClient", "EventStream restart deferred after HTTP PUT (internal TLS headroom)");
         }
         else if (!startEventStream())
         {
-            Serial.println("[HueGatewayClient] EventStream restart after HTTP PUT failed");
+            logError("HueGatewayClient", "EventStream restart after HTTP PUT failed");
         }
     }
 
@@ -2436,7 +2429,7 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
 int HueGatewayClient::httpDelete(const String& endpoint)
 {
     String url = buildUrl(endpoint);
-    Serial.printf("[HueGatewayClient] HTTP DELETE %s\n", url.c_str());
+    logDebug("HueGatewayClient", "HTTP DELETE %s", url.c_str());
     _diagStats.lastHttpMethod = "DELETE";
     _diagStats.lastHttpEndpoint = endpoint;
     _http.setTimeout(2000);
@@ -2445,7 +2438,7 @@ int HueGatewayClient::httpDelete(const String& endpoint)
 
     if (eventWasActive && _eventAutoRestartEnabled && !hasTlsInternalHeadroom())
     {
-        Serial.println("[HueGatewayClient] Pausing EventStream for HTTPS DELETE (internal TLS headroom low)");
+        logWarning("HueGatewayClient", "Pausing EventStream for HTTPS DELETE (internal TLS headroom low)");
         _http.end();
         stopEventStream();
         _secureClient.stop();
@@ -2471,7 +2464,7 @@ int HueGatewayClient::httpDelete(const String& endpoint)
     if (!isHttpSuccessStatus(statusCode))
     {
         String response = _http.getString();
-        Serial.printf("[HueGatewayClient] HTTP DELETE failed (%d): %s\n", statusCode, response.c_str());
+        logError("HueGatewayClient", "HTTP DELETE failed (%d): %s", statusCode, response.c_str());
     }
 
     _http.end();
@@ -2480,11 +2473,11 @@ int HueGatewayClient::httpDelete(const String& endpoint)
     {
         if (!hasTlsInternalHeadroom())
         {
-            Serial.println("[HueGatewayClient] EventStream restart deferred after HTTP DELETE (internal TLS headroom)");
+            logWarning("HueGatewayClient", "EventStream restart deferred after HTTP DELETE (internal TLS headroom)");
         }
         else if (!startEventStream())
         {
-            Serial.println("[HueGatewayClient] EventStream restart after HTTP DELETE failed");
+            logError("HueGatewayClient", "EventStream restart after HTTP DELETE failed");
         }
     }
 
@@ -2562,7 +2555,7 @@ bool HueGatewayClient::getMotionState(const String& motionRid, HueGatewayMotionS
     const int statusCode = httpGet(endpoint, doc);
     if (!isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] getMotionState failed HTTP %d\n", statusCode);
+        logError("HueGatewayClient", "getMotionState failed HTTP %d", statusCode);
         return false;
     }
 
@@ -2600,7 +2593,7 @@ bool HueGatewayClient::getContactState(const String& contactRid, HueGatewayConta
     const int statusCode = httpGet(endpoint, doc);
     if (!isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] getContactState failed HTTP %d\n", statusCode);
+        logError("HueGatewayClient", "getContactState failed HTTP %d", statusCode);
         return false;
     }
 
@@ -2751,7 +2744,7 @@ bool HueGatewayClient::getButtonState(const String& buttonRid, HueGatewayButtonS
     const int statusCode = httpGet(endpoint, doc);
     if (!isHttpSuccessStatus(statusCode))
     {
-        Serial.printf("[HueGatewayClient] getButtonState failed HTTP %d\n", statusCode);
+        logError("HueGatewayClient", "getButtonState failed HTTP %d", statusCode);
         return false;
     }
 
@@ -2834,14 +2827,14 @@ int HueGatewayClient::parseEventPayloadFull(const String& payload,
                     su.resourceId = String(id);
                     su.buttonIndex = item["metadata"]["control_id"] | 0;
                     su.buttonEventType = String(lastEvent);
-                    Serial.printf("[HueGatewayClient] SSE btn: rid=%s ctrl=%d event=%s\n",
-                                  id, su.buttonIndex, lastEvent);
+                    logDebug("HueGatewayClient", "SSE btn: rid=%s ctrl=%d event=%s",
+                             id, su.buttonIndex, lastEvent);
                 }
             }
             else if (strcmp(type, "behavior_instance") == 0)
             {
                 _behaviorInstanceEventPending = true;
-                Serial.printf("[HueGatewayClient] SSE behavior_instance event: id=%s\n", id);
+                logDebug("HueGatewayClient", "SSE behavior_instance event: id=%s", id);
             }
             else if (strcmp(type, "relative_rotary") == 0)
             {
@@ -2886,7 +2879,7 @@ int HueGatewayClient::pollEventStreamFull(HueGatewayEventLightUpdate* lightUpdat
     // Handshake-Timeout prüfen
     if (_eventHandshakePending && (millis() - _eventHandshakeStartMs) > 10000UL)
     {
-        Serial.println("[HueGatewayClient] EventStream handshake timeout");
+        logError("HueGatewayClient", "EventStream handshake timeout");
         _diagStats.eventHandshakeTimeoutCount++;
         stopEventStream();
         return 0;
@@ -2910,7 +2903,7 @@ int HueGatewayClient::pollEventStreamFull(HueGatewayEventLightUpdate* lightUpdat
                     _eventStreamConnected = true;
                     _eventHandshakePending = false;
                     _diagStats.eventConnectOk++;
-                    Serial.println("[HueGatewayClient] EventStream handshake complete");
+                    logInfo("HueGatewayClient", "EventStream handshake complete");
                 }
                 _eventLineBuffer = "";
             }
@@ -2970,7 +2963,7 @@ int HueGatewayClient::pollEventStreamFull(HueGatewayEventLightUpdate* lightUpdat
     if (!_eventClient.connected())
     {
         _diagStats.eventDisconnectCount++;
-        Serial.println("[HueGatewayClient] EventStream disconnected (full poll)");
+        logInfo("HueGatewayClient", "EventStream disconnected (full poll)");
         stopEventStream();
     }
 

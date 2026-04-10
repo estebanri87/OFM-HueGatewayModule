@@ -2,6 +2,7 @@
 
 #include "HueGatewayDevice.h"
 #include <knx.h>
+#include "OpenKNX.h"
 
 /**
  * @brief Hue switch/button channel (Taster/Schalter).
@@ -269,13 +270,13 @@ public:
             case RF::Wertgeber:
             case RF::Lamelle:
                 _rotaryValue = static_cast<uint8_t>(ko.value(Dpt(5, 1)));
-                Serial.printf("[HueGatewayButton] %s Rotary sync from KO -> %u\n",
-                              _name.c_str(), _rotaryValue);
+                logDebug("HueGatewayButton", "%s Rotary sync from KO -> %u",
+                         _name.c_str(), _rotaryValue);
                 break;
             case RF::Farbtemperatur:
                 _rotaryValue16 = static_cast<uint16_t>(ko.value(Dpt(7, 600)));
-                Serial.printf("[HueGatewayButton] %s Rotary CT sync from KO -> %u K\n",
-                              _name.c_str(), _rotaryValue16);
+                logDebug("HueGatewayButton", "%s Rotary CT sync from KO -> %u K",
+                         _name.c_str(), _rotaryValue16);
                 break;
             default:
                 // RF::Dimmen, RF::Lautstaerke use DPT 3.007 (relative) — no state to sync
@@ -303,8 +304,8 @@ public:
                 // Relative dimming — send step command. DPT 3.007 step code defines
                 // the number of intervals (100%/2^(code-1)), actuator stops on its own.
                 sendDpt3(_rotaryKo[0], up, _rotaryStepCode);
-                Serial.printf("[HueGatewayButton] %s - Rotary %s DPT3.007 code=%u(%s)\n",
-                              _name.c_str(), up ? "+" : "-", _rotaryStepCode, stepCodePct(_rotaryStepCode));
+                logDebug("HueGatewayButton", "%s - Rotary %s DPT3.007 code=%u(%s)",
+                         _name.c_str(), up ? "+" : "-", _rotaryStepCode, stepCodePct(_rotaryStepCode));
                 break;
             }
             case RF::Wertgeber:
@@ -315,8 +316,8 @@ public:
                 if (newVal > 254) newVal = 254;
                 _rotaryValue = static_cast<uint8_t>(newVal);
                 knx.getGroupObject(_rotaryKo[0]).value(_rotaryValue, Dpt(5, 1));
-                Serial.printf("[HueGatewayButton] %s - Rotary %s -> KNX DPT5 %u\n",
-                              _name.c_str(), up ? "+" : "-", _rotaryValue);
+                logDebug("HueGatewayButton", "%s - Rotary %s -> KNX DPT5 %u",
+                         _name.c_str(), up ? "+" : "-", _rotaryValue);
                 break;
             }
             case RF::Farbtemperatur:
@@ -328,8 +329,8 @@ public:
                 if (newVal > 6536) newVal = 6536;
                 _rotaryValue16 = static_cast<uint16_t>(newVal);
                 knx.getGroupObject(_rotaryKo[0]).value(_rotaryValue16, Dpt(7, 600));
-                Serial.printf("[HueGatewayButton] %s - Rotary CT %s -> KNX DPT7.600 %u K\n",
-                              _name.c_str(), up ? "+" : "-", _rotaryValue16);
+                logDebug("HueGatewayButton", "%s - Rotary CT %s -> KNX DPT7.600 %u K",
+                         _name.c_str(), up ? "+" : "-", _rotaryValue16);
                 break;
             }
         }
@@ -374,18 +375,18 @@ private:
                     case 0: // Toggle
                         cfg.state = !cfg.state;
                         knx.getGroupObject(ko).value(cfg.state, Dpt(1, 1));
-                        Serial.printf("[HueGatewayButton] %s btn%u Kurz Schalten toggle -> %d\n",
-                                      _name.c_str(), idx+1, cfg.state ? 1 : 0);
+                        logDebug("HueGatewayButton", "%s btn%u Kurz Schalten toggle -> %d",
+                                 _name.c_str(), idx+1, cfg.state ? 1 : 0);
                         break;
                     case 1: // Ein
                         cfg.state = true;
                         knx.getGroupObject(ko).value(true, Dpt(1, 1));
-                        Serial.printf("[HueGatewayButton] %s btn%u Kurz Schalten -> Ein\n", _name.c_str(), idx+1);
+                        logDebug("HueGatewayButton", "%s btn%u Kurz Schalten -> Ein", _name.c_str(), idx+1);
                         break;
                     case 2: // Aus
                         cfg.state = false;
                         knx.getGroupObject(ko).value(false, Dpt(1, 1));
-                        Serial.printf("[HueGatewayButton] %s btn%u Kurz Schalten -> Aus\n", _name.c_str(), idx+1);
+                        logDebug("HueGatewayButton", "%s btn%u Kurz Schalten -> Aus", _name.c_str(), idx+1);
                         break;
                 }
                 break;
@@ -394,8 +395,8 @@ private:
             {
                 const uint8_t step = dimEnumToStep(cfg.kurzDimStep);
                 sendDpt3(ko, cfg.kurzDimUp, step);
-                Serial.printf("[HueGatewayButton] %s btn%u Kurz Dimmen %s step=%u(%s)\n",
-                              _name.c_str(), idx+1, cfg.kurzDimUp ? "+" : "-", step, stepCodePct(step));
+                logDebug("HueGatewayButton", "%s btn%u Kurz Dimmen %s step=%u(%s)",
+                         _name.c_str(), idx+1, cfg.kurzDimUp ? "+" : "-", step, stepCodePct(step));
                 break;
             }
 
@@ -403,34 +404,34 @@ private:
             {
                 const uint8_t sceneVal = 0x80 | ((cfg.kurzSceneNr - 1) & 0x3F);
                 knx.getGroupObject(ko).value(sceneVal, Dpt(18, 1));
-                Serial.printf("[HueGatewayButton] %s btn%u Kurz Szene %u\n", _name.c_str(), idx+1, cfg.kurzSceneNr);
+                logDebug("HueGatewayButton", "%s btn%u Kurz Szene %u", _name.c_str(), idx+1, cfg.kurzSceneNr);
                 break;
             }
 
             case 4: // Schritt/Stop (DPT 1.007)
                 knx.getGroupObject(ko).value(cfg.kurzRichtung, Dpt(1, 7));
-                Serial.printf("[HueGatewayButton] %s btn%u Kurz Schritt %s\n",
-                              _name.c_str(), idx+1, cfg.kurzRichtung ? "Ab" : "Auf");
+                logDebug("HueGatewayButton", "%s btn%u Kurz Schritt %s",
+                         _name.c_str(), idx+1, cfg.kurzRichtung ? "Ab" : "Auf");
                 break;
 
             case 5: // Prozent (DPT 5.001)
                 knx.getGroupObject(ko).value(cfg.kurzProzent, Dpt(5, 1));
-                Serial.printf("[HueGatewayButton] %s btn%u Kurz Prozent %u%%\n", _name.c_str(), idx+1, cfg.kurzProzent);
+                logDebug("HueGatewayButton", "%s btn%u Kurz Prozent %u%%", _name.c_str(), idx+1, cfg.kurzProzent);
                 break;
 
             case 6: // Temperatur (DPT 9.001)
                 knx.getGroupObject(ko).value((float)cfg.kurzTemp, Dpt(9, 1));
-                Serial.printf("[HueGatewayButton] %s btn%u Kurz Temp %u°C\n", _name.c_str(), idx+1, cfg.kurzTemp);
+                logDebug("HueGatewayButton", "%s btn%u Kurz Temp %u\xC2\xB0C", _name.c_str(), idx+1, cfg.kurzTemp);
                 break;
 
             case 7: // 1-Byte (DPT 5.010)
                 knx.getGroupObject(ko).value(cfg.kurzByte, Dpt(5, 10));
-                Serial.printf("[HueGatewayButton] %s btn%u Kurz 1-Byte %u\n", _name.c_str(), idx+1, cfg.kurzByte);
+                logDebug("HueGatewayButton", "%s btn%u Kurz 1-Byte %u", _name.c_str(), idx+1, cfg.kurzByte);
                 break;
 
             case 8: // 2-Byte (DPT 7.001)
                 knx.getGroupObject(ko).value(cfg.kurzWord, Dpt(7, 1));
-                Serial.printf("[HueGatewayButton] %s btn%u Kurz 2-Byte %u\n", _name.c_str(), idx+1, cfg.kurzWord);
+                logDebug("HueGatewayButton", "%s btn%u Kurz 2-Byte %u", _name.c_str(), idx+1, cfg.kurzWord);
                 break;
         }
     }
@@ -447,16 +448,16 @@ private:
 
             case 1: // Schalten (DPT 1.001)
                 knx.getGroupObject(ko).value(!cfg.langSchaltwert, Dpt(1, 1));
-                Serial.printf("[HueGatewayButton] %s btn%u Lang Schalten -> %s\n",
-                              _name.c_str(), idx+1, cfg.langSchaltwert ? "Aus" : "Ein");
+                logDebug("HueGatewayButton", "%s btn%u Lang Schalten -> %s",
+                         _name.c_str(), idx+1, cfg.langSchaltwert ? "Aus" : "Ein");
                 break;
 
             case 2: // Dimmen Start/Stop (DPT 3.007) — start
             {
                 const uint8_t step = dimEnumToStep(cfg.langDimStep);
                 sendDpt3(ko, cfg.langDimUp, step);
-                Serial.printf("[HueGatewayButton] %s btn%u Lang Dimmen start %s step=%u(%s)\n",
-                              _name.c_str(), idx+1, cfg.langDimUp ? "+" : "-", step, stepCodePct(step));
+                logDebug("HueGatewayButton", "%s btn%u Lang Dimmen start %s step=%u(%s)",
+                         _name.c_str(), idx+1, cfg.langDimUp ? "+" : "-", step, stepCodePct(step));
                 break;
             }
 
@@ -464,40 +465,40 @@ private:
             {
                 const uint8_t sceneVal = 0x80 | ((cfg.langSceneNr - 1) & 0x3F);
                 knx.getGroupObject(ko).value(sceneVal, Dpt(18, 1));
-                Serial.printf("[HueGatewayButton] %s btn%u Lang Szene %u\n", _name.c_str(), idx+1, cfg.langSceneNr);
+                logDebug("HueGatewayButton", "%s btn%u Lang Szene %u", _name.c_str(), idx+1, cfg.langSceneNr);
                 break;
             }
 
             case 4: // Fahren (DPT 1.008)
                 knx.getGroupObject(ko).value(cfg.langRichtung, Dpt(1, 8));
-                Serial.printf("[HueGatewayButton] %s btn%u Lang Fahren %s\n",
-                              _name.c_str(), idx+1, cfg.langRichtung ? "Ab" : "Auf");
+                logDebug("HueGatewayButton", "%s btn%u Lang Fahren %s",
+                         _name.c_str(), idx+1, cfg.langRichtung ? "Ab" : "Auf");
                 break;
 
             case 5: // Prozent (DPT 5.001)
                 knx.getGroupObject(ko).value(cfg.langProzent, Dpt(5, 1));
-                Serial.printf("[HueGatewayButton] %s btn%u Lang Prozent %u%%\n", _name.c_str(), idx+1, cfg.langProzent);
+                logDebug("HueGatewayButton", "%s btn%u Lang Prozent %u%%", _name.c_str(), idx+1, cfg.langProzent);
                 break;
 
             case 6: // Temperatur (DPT 9.001)
                 knx.getGroupObject(ko).value((float)cfg.langTemp, Dpt(9, 1));
-                Serial.printf("[HueGatewayButton] %s btn%u Lang Temp %u°C\n", _name.c_str(), idx+1, cfg.langTemp);
+                logDebug("HueGatewayButton", "%s btn%u Lang Temp %u\xC2\xB0C", _name.c_str(), idx+1, cfg.langTemp);
                 break;
 
             case 7: // 1-Byte (DPT 5.010)
                 knx.getGroupObject(ko).value(cfg.langByte, Dpt(5, 10));
-                Serial.printf("[HueGatewayButton] %s btn%u Lang 1-Byte %u\n", _name.c_str(), idx+1, cfg.langByte);
+                logDebug("HueGatewayButton", "%s btn%u Lang 1-Byte %u", _name.c_str(), idx+1, cfg.langByte);
                 break;
 
             case 8: // 2-Byte (DPT 7.001)
                 knx.getGroupObject(ko).value(cfg.langWord, Dpt(7, 1));
-                Serial.printf("[HueGatewayButton] %s btn%u Lang 2-Byte %u\n", _name.c_str(), idx+1, cfg.langWord);
+                logDebug("HueGatewayButton", "%s btn%u Lang 2-Byte %u", _name.c_str(), idx+1, cfg.langWord);
                 break;
 
             case 9: // Schritt/Stop (DPT 1.007)
                 knx.getGroupObject(ko).value(cfg.langRichtung, Dpt(1, 7));
-                Serial.printf("[HueGatewayButton] %s btn%u Lang Schritt %s\n",
-                              _name.c_str(), idx+1, cfg.langRichtung ? "Ab" : "Auf");
+                logDebug("HueGatewayButton", "%s btn%u Lang Schritt %s",
+                         _name.c_str(), idx+1, cfg.langRichtung ? "Ab" : "Auf");
                 break;
         }
     }
@@ -512,7 +513,7 @@ private:
         if (cfg.langTyp == 2)
         {
             sendDpt3(ko, false, 0); // DPT 3.007 stop
-            Serial.printf("[HueGatewayButton] %s btn%u Lang Dimmen stop\n", _name.c_str(), idx+1);
+            logDebug("HueGatewayButton", "%s btn%u Lang Dimmen stop", _name.c_str(), idx+1);
         }
     }
 };
