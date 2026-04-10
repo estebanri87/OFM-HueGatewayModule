@@ -16,6 +16,10 @@ Alle wesentlichen Änderungen an diesem Projekt werden in dieser Datei dokumenti
 - Dimm-Wiederholungsintervall präzisiert und Beta-Labels ergänzt.
 - ETS-Sichtbarkeit für Taster-Parameter und HCL-Parameter überarbeitet.
 
+### Geändert (KO-Benennung)
+- ComObjectRef-Namen aller Kanal-Kommunikationsobjekte auf OpenKNX-Standard umgestellt: `"Hue %C% - {{0}}: …"` → `"{{0:Hue %C%}}: …"` (96 Objekte in templ.xml, 32 Objekte in share.xml).
+- Alle ComObject-FunctionTexts auf OpenKNX-Richtungsformat vereinheitlicht: `"Modulname: Eingang/Ausgang[, Qualifier]"` – gilt für alle 12 Kanalobjekte (templ.xml) sowie alle globalen und LM-1–8-Objekte (share.xml).
+
 ### Geändert (Tester-Rückmeldung)
 - Kommunikationsobjekte „Soll-Helligkeit" und „Soll-Farbtemperatur" des Lichtmanagers in „Status-Soll-Helligkeit" und „Status-Soll-Farbtemperatur" umbenannt, um den Ausgangscharakter der Objekte klar zu kennzeichnen (LM 1–8, global und kanalweise).
 - DPT der Sperr-Eingangsobjekte von `DPST-1-1` (switch) auf `DPST-1-3` (disable/enable) geändert – gilt für globale LM-Sperre, LM 1–8 und kanalweise Sperre.
