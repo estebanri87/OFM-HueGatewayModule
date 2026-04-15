@@ -253,10 +253,10 @@ void HueGatewayLight::processKnxDimming(uint8_t control)
         if (!stopOk)
         {
             _relativeDimErrorStreak = min<uint8_t>(static_cast<uint8_t>(_relativeDimErrorStreak + 1), static_cast<uint8_t>(10));
-            if (_relativeDimErrorStreak >= 3)
+            if (_relativeDimErrorStreak >= 5)
             {
-                _relativeDimCooldownUntilMs = nowMs + 5000UL;
-                Serial.printf("[HueGatewayLight] %s - Relative dimming disabled for 5s after stop errors\n", _name.c_str());
+                _relativeDimCooldownUntilMs = nowMs + 2000UL;
+                Serial.printf("[HueGatewayLight] %s - Relative dimming disabled for 2s after stop errors\n", _name.c_str());
             }
         }
         else
@@ -269,7 +269,7 @@ void HueGatewayLight::processKnxDimming(uint8_t control)
 
     // Debounce very fast telegram bursts to reduce API pressure.
     // STOP telegrams are intentionally excluded so key release is never suppressed.
-    if ((nowMs - _lastRelativeDimCmdMs) < 100UL)
+    if ((nowMs - _lastRelativeDimCmdMs) < 80UL)
     {
         return;
     }
@@ -297,10 +297,10 @@ void HueGatewayLight::processKnxDimming(uint8_t control)
         }
 
         _relativeDimErrorStreak = min<uint8_t>(static_cast<uint8_t>(_relativeDimErrorStreak + 1), static_cast<uint8_t>(10));
-        if (_relativeDimErrorStreak >= 3)
+        if (_relativeDimErrorStreak >= 5)
         {
-            _relativeDimCooldownUntilMs = nowMs + 5000UL;
-            Serial.printf("[HueGatewayLight] %s - Relative dimming disabled for 5s, falling back to legacy\n", _name.c_str());
+            _relativeDimCooldownUntilMs = nowMs + 2000UL;
+            Serial.printf("[HueGatewayLight] %s - Relative dimming disabled for 2s, falling back to legacy\n", _name.c_str());
         }
     }
 
@@ -788,9 +788,9 @@ void HueGatewayLight::loop()
                 else
                 {
                     _relativeDimErrorStreak = min<uint8_t>(static_cast<uint8_t>(_relativeDimErrorStreak + 1), static_cast<uint8_t>(10));
-                    if (_relativeDimErrorStreak >= 3)
+                    if (_relativeDimErrorStreak >= 5)
                     {
-                        _relativeDimCooldownUntilMs = nowMs + 5000UL;
+                        _relativeDimCooldownUntilMs = nowMs + 2000UL;
                     }
                 }
             }
