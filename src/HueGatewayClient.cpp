@@ -125,6 +125,11 @@ HueGatewayClient::HueGatewayClient()
     , _eventAutoRestartEnabled(true)
     , _behaviorInstanceEventPending(false)
     , _diagStats{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", ""}
+    , _eventConnectPending(false)
+    , _eventConnectDone(false)
+    , _eventConnectOk(false)
+    , _eventConnectAbort(false)
+    , _eventConnectTask(nullptr)
 {
 }
 
@@ -1851,6 +1856,11 @@ bool HueGatewayClient::startEventStream()
         return true;
     }
 
+    if (_eventConnectPending)
+    {
+        return true;
+    }
+
     if (!hasTlsInternalHeadroom())
     {
         logWarning("HueGatewayClient", "EventStream deferred: insufficient internal TLS headroom (need free>=%lu, largest>=%lu)",
@@ -1863,15 +1873,119 @@ bool HueGatewayClient::startEventStream()
     stopEventStream();
 
     _eventClient.setTimeout(100);
-    logInfo("HueGatewayClient", "EventStream connecting to %s:443", _bridgeIP.c_str());
+    logInfo("HueGatewayClient", "EventStream async connecting to %s:443", _bridgeIP.c_str());
     logHeapStats("before-event-connect");
-    if (!_eventClient.connect(_bridgeIP.c_str(), 443))
+
+    _eventConnectPending = true;
+    _eventConnectDone    = false;
+    _eventConnectOk      = false;
+    _eventConnectAbort   = false;
+
+    BaseType_t result = xTaskCreatePinnedToCore(
+        sEventStreamConnectTask,
+        "hue-esc",
+        kEventConnectStackSize,
+        this,
+        1,
+        &_eventConnectTask,
+        0
+    );
+
+    if (result != pdPASS)
     {
+        _eventConnectPending = false;
+        _eventConnectTask    = nullptr;
         _diagStats.eventConnectFail++;
-        logError("HueGatewayClient", "EventStream connect failed");
-        logHeapStats("event-connect-failed");
+        logError("HueGatewayClient", "EventStream connect task creation failed");
+        logHeapStats("event-connect-task-failed");
         return false;
     }
+
+    return true;
+}
+
+void HueGatewayClient::stopEventStream()
+{
+    if (_eventConnectPending)
+    {
+        _eventConnectAbort = true;
+        const unsigned long waitStart = millis();
+        while (_eventConnectPending && (millis() - waitStart < 2000UL))
+        {
+            vTaskDelay(pdMS_TO_TICKS(5));
+        }
+        if (_eventConnectPending)
+        {
+            logWarning("HueGatewayClient", "EventStream connect task abort timed out");
+            _eventConnectPending = false;
+        }
+    }
+    else
+    {
+        if (_eventClient.connected())
+        {
+            _diagStats.eventStopCount++;
+            logInfo("HueGatewayClient", "EventStream stopping");
+            _eventClient.stop();
+        }
+    }
+
+    _eventConnectDone      = false;
+    _eventStreamConnected  = false;
+    _eventHandshakePending = false;
+    _eventHandshakeStartMs = 0;
+    _eventParseErrorStreak = 0;
+    _eventLineBuffer       = "";
+    _eventDataBuffer       = "";
+}
+
+// Async EventStream connect — FreeRTOS task (runs on Core 0)
+
+void HueGatewayClient::sEventStreamConnectTask(void* param)
+{
+    HueGatewayClient* self = static_cast<HueGatewayClient*>(param);
+
+    bool ok = self->_eventClient.connect(self->_bridgeIP.c_str(), 443);
+
+    if (self->_eventConnectAbort)
+    {
+        if (ok)
+        {
+            self->_eventClient.stop();
+        }
+        ok = false;
+    }
+
+    self->_eventConnectOk      = ok;
+    self->_eventConnectDone    = true;
+    self->_eventConnectPending = false;
+    self->_eventConnectTask    = nullptr;
+    vTaskDelete(nullptr);
+}
+
+void HueGatewayClient::checkEventStreamConnect()
+{
+    if (!_eventConnectDone)
+    {
+        return;
+    }
+
+    _eventConnectDone = false;
+
+    if (_eventConnectAbort)
+    {
+        return;
+    }
+
+    if (!_eventConnectOk)
+    {
+        _diagStats.eventConnectFail++;
+        logError("HueGatewayClient", "Async EventStream connect failed");
+        logHeapStats("event-connect-failed");
+        return;
+    }
+
+    logInfo("HueGatewayClient", "EventStream handshake complete");
 
     _eventClient.printf("GET /eventstream/clip/v2 HTTP/1.1\r\n");
     _eventClient.printf("Host: %s\r\n", _bridgeIP.c_str());
@@ -1881,29 +1995,11 @@ bool HueGatewayClient::startEventStream()
 
     _eventHandshakePending = true;
     _eventHandshakeStartMs = millis();
-    _eventLastDataMs = _eventHandshakeStartMs;
+    _eventLastDataMs       = _eventHandshakeStartMs;
     _eventParseErrorStreak = 0;
-    _eventStreamConnected = false;
-    _eventLineBuffer = "";
-    _eventDataBuffer = "";
-
-    return true;
-}
-
-void HueGatewayClient::stopEventStream()
-{
-    _eventStreamConnected = false;
-    _eventHandshakePending = false;
-    _eventHandshakeStartMs = 0;
-    _eventParseErrorStreak = 0;
-    _eventLineBuffer = "";
-    _eventDataBuffer = "";
-    if (_eventClient.connected())
-    {
-        _diagStats.eventStopCount++;
-        logInfo("HueGatewayClient", "EventStream stopping");
-        _eventClient.stop();
-    }
+    _eventStreamConnected  = false;
+    _eventLineBuffer       = "";
+    _eventDataBuffer       = "";
 }
 
 int HueGatewayClient::pollEventStream(HueGatewayEventLightUpdate* updates, int maxUpdates)
@@ -2243,7 +2339,7 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDoc
     _diagStats.lastJsonError = "";
     _diagStats.lastContentLength = -1;
     _http.setTimeout(timeoutMs);
-    const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected) && _eventClient.connected();
+    const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected || _eventConnectPending);
     bool eventPausedForGet = false;
 
     if (eventWasActive && _eventAutoRestartEnabled && !hasTlsInternalHeadroom())
@@ -2332,17 +2428,8 @@ int HueGatewayClient::httpGet(const String& endpoint, JsonDocument& doc, JsonDoc
     
     _http.end();
 
-    if (eventPausedForGet)
-    {
-        if (!hasTlsInternalHeadroom())
-        {
-            logWarning("HueGatewayClient", "EventStream restart deferred after HTTP GET (internal TLS headroom)");
-        }
-        else if (!startEventStream())
-        {
-            logError("HueGatewayClient", "EventStream restart after HTTP GET failed");
-        }
-    }
+    // EventStream restart is handled by the module loop via startEventStream()/checkEventStreamConnect().
+    (void)eventPausedForGet;
 
     return statusCode;
 }
@@ -2355,7 +2442,7 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
     _diagStats.lastHttpMethod = "PUT";
     _diagStats.lastHttpEndpoint = endpoint;
     _http.setTimeout(2000);
-    const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected) && _eventClient.connected();
+    const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected || _eventConnectPending);
     bool eventPausedForPut = false;
 
     if (eventWasActive && _eventAutoRestartEnabled && !hasTlsInternalHeadroom())
@@ -2411,17 +2498,8 @@ int HueGatewayClient::httpPut(const String& endpoint, const String& payload)
     
     _http.end();
 
-    if (eventPausedForPut)
-    {
-        if (!hasTlsInternalHeadroom())
-        {
-            logWarning("HueGatewayClient", "EventStream restart deferred after HTTP PUT (internal TLS headroom)");
-        }
-        else if (!startEventStream())
-        {
-            logError("HueGatewayClient", "EventStream restart after HTTP PUT failed");
-        }
-    }
+    // EventStream restart is handled by the module loop via startEventStream()/checkEventStreamConnect().
+    (void)eventPausedForPut;
 
     return statusCode;
 }
@@ -2433,7 +2511,7 @@ int HueGatewayClient::httpDelete(const String& endpoint)
     _diagStats.lastHttpMethod = "DELETE";
     _diagStats.lastHttpEndpoint = endpoint;
     _http.setTimeout(2000);
-    const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected) && _eventClient.connected();
+    const bool eventWasActive = (_eventHandshakePending || _eventStreamConnected || _eventConnectPending);
     bool eventPausedForDelete = false;
 
     if (eventWasActive && _eventAutoRestartEnabled && !hasTlsInternalHeadroom())
@@ -2469,17 +2547,8 @@ int HueGatewayClient::httpDelete(const String& endpoint)
 
     _http.end();
 
-    if (eventPausedForDelete)
-    {
-        if (!hasTlsInternalHeadroom())
-        {
-            logWarning("HueGatewayClient", "EventStream restart deferred after HTTP DELETE (internal TLS headroom)");
-        }
-        else if (!startEventStream())
-        {
-            logError("HueGatewayClient", "EventStream restart after HTTP DELETE failed");
-        }
-    }
+    // EventStream restart is handled by the module loop via startEventStream()/checkEventStreamConnect().
+    (void)eventPausedForDelete;
 
     return statusCode;
 }

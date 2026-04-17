@@ -275,6 +275,8 @@ public:
     bool startEventStream();
     void stopEventStream();
     bool isEventStreamConnected() { return _eventStreamConnected && _eventClient.connected(); }
+    bool isEventStreamConnectPending() const { return _eventConnectPending; }
+    void checkEventStreamConnect();
     void setEventStreamAutoRestartEnabled(bool enabled) { _eventAutoRestartEnabled = enabled; }
     bool isEventStreamAutoRestartEnabled() const { return _eventAutoRestartEnabled; }
     int pollEventStream(HueGatewayEventLightUpdate* updates, int maxUpdates);
@@ -429,6 +431,15 @@ private:
     String _eventLineBuffer;
     String _eventDataBuffer;
     DiagnosticsStats _diagStats;
+
+    // Async EventStream connect (FreeRTOS task on Core 0)
+    volatile bool _eventConnectPending;
+    volatile bool _eventConnectDone;
+    volatile bool _eventConnectOk;
+    volatile bool _eventConnectAbort;
+    TaskHandle_t _eventConnectTask;
+    static constexpr uint32_t kEventConnectStackSize = 12288u;
+    static void sEventStreamConnectTask(void* param);
 
     struct LightLocation
     {
