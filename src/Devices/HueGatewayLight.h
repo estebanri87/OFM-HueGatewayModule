@@ -145,6 +145,8 @@ public:
     void setHCLChannelLock(bool lockActive) override { _hclChannelLockActive = lockActive; }
     bool isHCLChannelLocked() const override { return _hclChannelLockActive; }
 
+    static unsigned long globalHclWriteNextAllowedMs();
+
     /**
     * @brief Sets ETS light type (0=switch,1=dimm,2=ct,3=rgb).
      */
