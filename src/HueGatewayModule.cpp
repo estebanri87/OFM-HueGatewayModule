@@ -997,7 +997,9 @@ void HueGatewayModule::loop()
         }
         else
         {
-            if (!_client->isEventStreamConnected())
+            _client->checkEventStreamConnect();
+
+            if (!_client->isEventStreamConnected() && !_client->isEventStreamConnectPending())
             {
                 if (suppressEventStreamRetryForSetup)
                 {
@@ -1025,6 +1027,7 @@ void HueGatewayModule::loop()
 
                         if (_eventStreamPauseUntilMs == 0
                             && bridgeHealthyForEventstream
+                            && (now >= HueGatewayLight::globalHclWriteNextAllowedMs())
                             && (now - _lastEventStreamRetryMs >= _eventStreamRetryBackoffMs))
                         {
                             _lastEventStreamRetryMs = now;
@@ -1238,7 +1241,8 @@ void HueGatewayModule::loop()
     if (now - _lastRefreshTickMs >= 1000)
     {
         _lastRefreshTickMs = now;
-        if (!(_client && _client->isEventStreamConnected()))
+        if (!(_client && (_client->isEventStreamConnected() || _client->isEventStreamConnectPending()))
+            && (now >= HueGatewayLight::globalHclWriteNextAllowedMs()))
         {
             if (!fallbackActiveLogged)
             {
