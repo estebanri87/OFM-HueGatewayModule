@@ -2,6 +2,36 @@
 
 Alle wesentlichen Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 
+## [0.4.1] - 2026-04-20
+
+### Hinzugefügt
+- **Saison-Profil für Lichtmanager 1–8** (ETS + Runtime):
+  - Neuer Parameter „Saison-Profil" je Lichtmanager mit vier Modi:
+    - `Standard` – immer Winter-Profil aktiv
+    - `Automatisch (Sommer/Winterzeit)` – nutzt System-DST-Flag; optionaler DST-Offset-Tage-Parameter für abweichende Regionen
+    - `Festes Datum` – konfigurierbares Sommerfenster (Sommerstart/Sommerende je Monat+Tag); unterstützt Jahreswechsel-Übergang (Südhalbkugel)
+    - `Per Kommunikationsobjekt` – KO „Saison" schaltet Sommer/Winter zur Laufzeit
+  - `HCL::Master`: zweiter Stützpunkt-Array (`_setpointsSummer`), `setIsSummer()`, `setSummerSetpoint()`, `sortSummerSetpoints()`; Interpolation und Bereichsberechnung nutzen automatisch das aktive Profil
+  - Hilfedatei `HUE-HCL-Saison-KO.md` ergänzt
+- Neue Baggage-Dateien: `HUE-Hue-Ziel-Geraete-ID.md`, `HUE-Hue-Ziel-Light-Room-Zone-ID.md`
+
+### Geändert
+- ETS-Taster-Parametrierung: Gewerk-basiertes Modell durch DPT-Typ-Dispatch ersetzt – Kurz- und Langdruck wählen direkt den gewünschten DPT (Schalten, Dimmen relativ, Szenennummer, Schritt/Stop, Prozentwert, Temperaturwert, 1-Byte-Wert, 2-Byte-Wert).
+- Drehregler-Funktion: Optionen korrigiert auf Dimmen (DPT 3.007), Wertgeber (DPT 5.001), Lautstärke (DPT 3.007), Farbtemperatur (DPT 7.600); veraltete Option „Lamelle (DPT 5.001)" entfernt.
+- Szenen-Slots A–H: Benennung von „Szene 1..8" auf „Szene A..H" vereinheitlicht.
+- Baggage-Dateien überarbeitet: HUE-Drehregler, HUE-HCL-Manager-18, HUE-HCL-Sperre-global(-Status), HUE-Kanal, HUE-Lichtmanager-18, HUE-TasterSchalter-Konfiguration, HUE-Taste-Kurzdruck, HUE-Taste-Langdruck, HUE-Szenensteuerung, HUE-Inbetriebnahme-Checkliste, HUE-Projektierungsbeispiele, HUE-Haeufige-Fehler-und-Loesungen, HUE-Naechste-Schritte-nach-dem-Pairing, HUE-Hue-Lampen-ID-UUID, HUE-Hue-Ziel-Geraete-ID-oder-Name, HUE-Hue-Ziel-Light-Room-Zone-ID-oder-Name
+
+### Entfernt (Baggages)
+- `HUE-Taste-Gewerk.md` (Gewerk-Modell nicht mehr vorhanden)
+- `HUE-HCL-Entsperren-Trigger.md`, `HUE-HCL-Manager-Auswahl.md`, `HUE-HCL-Manager-Zuordnung.md`, `HUE-HCL-Manager.md`
+- `HUE-HCL-Sperre-Lichtmanager-18-Status.md`, `HUE-HCL-Sperre-Manager-14-Status.md`, `HUE-HCL-Sperre-Manager-18-Status.md`
+- `HUE-HCL-Sperre-kanal-spezifisch.md`, `HUE-HCL-Sperre-kanal-spezifisch-Status-HCL-Sperre.md`
+- `HUE-HCL-Status-Helligkeit-Soll-Farbtemperatur-Soll.md`, `HUE-Human-Centric-Lighting-HCL.md`
+- `HUE-Rueckfallstrategie-nach-HCL-Sperre.md`, `HUE-Status-KOs-je-HCL-Manager.md`
+
+### Dokumentation
+- Applikationsbeschreibung überarbeitet: Taste-Kurzdruck/-Langdruck als vollständige DPT-Tabellen mit Sub-Parametern dokumentiert; Drehregler-Funktion korrigiert; Szenen A–H aktualisiert; Beispielkonfigurationen ohne veraltete Gewerk-Referenzen.
+
 ## [0.4.0] - 2026-04-17
 
 ### Hinzugefügt
