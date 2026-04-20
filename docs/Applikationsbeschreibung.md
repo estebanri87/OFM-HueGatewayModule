@@ -371,6 +371,23 @@ Empfehlung:
 - Für produktive Projekte bevorzugt die ID (RID) eintragen.
 - Namen nur bei eindeutiger Benennung verwenden.
 
+<!-- DOC HelpContext="Hue-Ziel-Light-Room-Zone-ID-oder-Name" -->
+Primäres Zielfeld für alle Zieltypen. Akzeptiert sowohl eine numerische ID (RID) als auch einen eindeutigen Namen.
+
+Verwenden Sie je nach Zieltyp:
+- Light-ID oder Light-Name
+- Room-ID oder Room-Name
+- Zone-ID oder Zone-Name
+
+Ermittlung über:
+- Webinterface: `http://<IP-des-OpenKNX-Geräts>/openknx/hue/scan`
+- Konsole: `hue scan`
+
+Empfehlung:
+- Für produktive Projekte bevorzugt die ID (RID) eintragen.
+- Namen nur bei eindeutiger Benennung verwenden.
+<!-- DOCEND -->
+
 <!-- DOC -->
 ### Hue Ziel (Geräte-ID)
 
@@ -393,6 +410,24 @@ Empfehlung:
 
 Hinweis:
 - Im Unterschied zu **Hue Ziel (Light-/Room-/Zone-ID)** wird hier kein Raum/Zone-Ziel aufgelöst, sondern ein konkretes Hue-Gerät adressiert.
+
+<!-- DOC HelpContext="Hue-Ziel-Geraete-ID-oder-Name" -->
+Zielfeld für direkte Gerätezuordnung. Akzeptiert sowohl eine numerische Geräte-ID (RID) als auch einen eindeutigen Gerätenamen.
+
+Gerätetypen:
+- Bewegungsmelder
+- Taster/Schalter
+- Kontaktsensor
+- Steckdose
+
+Ermittlung über:
+- Webinterface: `http://<IP-des-OpenKNX-Geräts>/openknx/hue/scan`
+- Konsole: `hue scan`
+
+Empfehlung:
+- Für produktive Projekte bevorzugt die ID (RID) eintragen.
+- Namen nur bei eindeutiger Benennung verwenden.
+<!-- DOCEND -->
 
 <!-- DOC -->
 ### Hue Lampen-ID (UUID)
@@ -521,95 +556,62 @@ Empfehlung: **Deaktivieren**, wenn die Hue-Leuchten vollständig über KNX geste
 
 #### 2-Tasten-Dimmer
 
-- Taste 1: Gewerk `Licht`
-- Kurzdruck: Schalten
-- Langdruck: Dimmen
-- Taste 2: Gewerk `Licht`
-- Kurzdruck: Schalten
-- Langdruck: Dimmen
+- Taste 1: Kurzdruck = **Schalten (DPT 1.001)**, Langdruck = **Dimmen Start/Stop (DPT 3.007)**
+- Taste 2: Kurzdruck = **Schalten (DPT 1.001)**, Langdruck = **Dimmen Start/Stop (DPT 3.007)**
 
 Geeignet für kompakte Wandtaster mit Auf/Ab-Logik.
 
 #### 4-Tasten-Szenentaster
 
-- Taste 1-4: Gewerk `Licht`
-- Kurzdruck: Szene abrufen
-- Optional Langdruck: Zusatzfunktion oder deaktiviert
+- Taste 1–4: Kurzdruck = **Szenennummer (DPT 18.001)**, Langdruck = **Kein Langdruck**
 
 Geeignet für Raumsteuerungen mit fester Szenenzuordnung wie `Arbeiten`, `Entspannen`, `Abend`, `Aus`.
 
 #### Jalousie-Taster
 
-- Gewerk `Jalousie`
-- Kurzdruck: Stop / Lamellen
-- Langdruck: Auf / Ab
+- Kurzdruck = **Schritt/Stop (DPT 1.007)** (Richtung: Auf oder Ab)
+- Langdruck = **Fahren (DPT 1.008)** (Richtung: Auf oder Ab)
 
-Sinnvoll, wenn ein Hue-Taster nicht für Licht, sondern für eine KNX-Funktion im Raum genutzt werden soll.
-
-#### Auswahl des Gewerks
-
-Wählen Sie das Gewerk passend zur gewünschten KNX-Funktion. Die sichtbaren Parameter und Kommunikationsobjekte passen sich automatisch an. Wenn eine Taste unerwartete Objekte zeigt, ist meist das falsche Gewerk ausgewählt.
-
-<!-- DOC -->
-### Taste Gewerk
-
-Legt das Gewerk (die Funktion) einer Taste fest. Je nach gewähltem Gewerk werden unterschiedliche Kurz- und Langdruck-Optionen eingeblendet:
-
-| Gewerk | Beschreibung |
-|---|---|
-| **Licht** | Schalten oder Szene (Kurzdruck), Dimmen (Langdruck) |
-| **Jalousie** | Lamellensteuerung (Kurzdruck), Behangsteuerung (Langdruck) |
-| **Medien** | Play/Pause (Kurzdruck), Lautstärke (Langdruck) |
-| **Generisch** | Zwei frei belegbare KNX-Objekte (A = Kurzdruck, B = Langdruck) |
+Sinnvoll, wenn ein Hue-Taster nicht für Licht, sondern für eine KNX-Jalousie-Funktion genutzt werden soll.
 
 <!-- DOC -->
 ### Taste Kurzdruck
 
-Bestimmt die Aktion beim kurzen Tastendruck. Die verfügbaren Optionen hängen vom Gewerk ab:
+Bestimmt die Aktion beim kurzen Tastendruck. Je nach Wahl werden zusätzliche Sub-Parameter eingeblendet:
 
-**Gewerk Licht:**
-- **Kein Kurzdruck**: Kurzdruck ohne KNX-Aktion (sinnvoll z. B. für reine Dimmtaster)
-- **Schalten**: Togglet den Schaltzustand (EIN/AUS wechselnd). Standardwert.
-- **Szene abrufen**: Ruft eine KNX-Szene ab (DPT 17.001). Die Szenennummer wird unterhalb eingeblendet.
+| Option | DPT | Sub-Parameter |
+|---|---|---|
+| **Keine Aktion** | — | — |
+| **Schalten** | DPT 1.001 | **Schaltwert**: Toggle / Ein / Aus |
+| **Dimmen relativ** | DPT 3.007 | **Richtung** (Heller / Dunkler), **Schrittweite** (2–25 %) |
+| **Szenennummer** | DPT 18.001 | **Szenennummer** (1..64) |
+| **Schritt/Stop** | DPT 1.007 | **Richtung** (Auf / Ab) |
+| **Prozentwert** | DPT 5.001 | **Prozentwert** (0..100 %) |
+| **Temperaturwert** | DPT 9.001 | **Temperatur** (5..40 °C) |
+| **1-Byte Wert** | DPT 5.010 | **Wert** (0..255) |
+| **2-Byte Wert** | DPT 7.001 | **Wert** (0..65535) |
 
-**Gewerk Jalousie:**
-- **Kein Kurzdruck**: Kurzdruck ohne KNX-Aktion
-- **Lamelle Auf/Stop**: Sendet `Auf`-Befehl (DPT 1.008)
-- **Lamelle Ab/Stop**: Sendet `Ab`-Befehl (DPT 1.008)
-
-**Gewerk Medien:**
-- **Play/Pause**: Togglet Play/Pause (DPT 1.001)
-
-**Gewerk Generisch:**
-- **Objekt A**: Sendet auf das primäre KO (DPT 1.001)
-
-Hinweis: Bei **Kein Kurzdruck** wird für diese Taste kein Kurzdruck-KO in ETS eingeblendet.
+Hinweis: Bei **Keine Aktion** wird für diese Taste kein Kurzdruck-KO in ETS eingeblendet.
 
 <!-- DOC -->
 ### Taste Langdruck
 
-Bestimmt die Aktion beim langen Tastendruck. Optionen je Gewerk:
+Bestimmt die Aktion beim langen Tastendruck. Je nach Wahl werden zusätzliche Sub-Parameter eingeblendet:
 
-**Gewerk Licht:**
-- **Kein Langdruck**: Kein Langdruck-KO, kein Dimm-Verhalten
-- **Heller dimmen**: Sendet relatives Dimmen `heller` (DPT 3.007)
-- **Dunkler dimmen**: Sendet relatives Dimmen `dunkler` (DPT 3.007)
+| Option | DPT | Sub-Parameter |
+|---|---|---|
+| **Kein Langdruck** | — | — |
+| **Schalten** | DPT 1.001 | **Schaltwert**: Ein / Aus |
+| **Dimmen Start/Stop** | DPT 3.007 | **Richtung** (Heller / Dunkler), **Schrittweite** (2–25 %) |
+| **Szenennummer** | DPT 18.001 | **Szenennummer** (1..64) |
+| **Fahren** | DPT 1.008 | **Richtung** (Auf / Ab) |
+| **Schritt/Stop** | DPT 1.007 | **Richtung** (Auf / Ab) |
+| **Prozentwert** | DPT 5.001 | **Prozentwert** (0..100 %) |
+| **Temperaturwert** | DPT 9.001 | **Temperatur** (5..40 °C) |
+| **1-Byte Wert** | DPT 5.010 | **Wert** (0..255) |
+| **2-Byte Wert** | DPT 7.001 | **Wert** (0..65535) |
 
-Hinweis: Ist Kurzdruck = **Szene abrufen**, ist kein Langdruck möglich (Szenen-Taste hat keinen Langdruck-Modus).
-
-**Gewerk Jalousie:**
-- **Kein Langdruck**: Keine Behangsteuerung
-- **Behang Auf**: Sendet `Auf`-Befehl (DPT 1.007)
-- **Behang Ab**: Sendet `Ab`-Befehl (DPT 1.007)
-
-**Gewerk Medien:**
-- **Kein Langdruck**: Keine Lautstärkesteuerung
-- **Lauter**: Sendet relatives Dimmen `heller` (repurposed, DPT 3.007)
-- **Leiser**: Sendet relatives Dimmen `dunkler` (repurposed, DPT 3.007)
-
-**Gewerk Generisch:**
-- **Kein Langdruck**: Kein Sekundär-KO
-- **Objekt B**: Sendet auf das sekundäre KO (DPT 1.001)
+Hinweis: Bei **Kein Langdruck** wird für diese Taste kein Langdruck-KO in ETS eingeblendet.
 
 <!-- DOC -->
 ### Drehregler
@@ -617,7 +619,11 @@ Hinweis: Ist Kurzdruck = **Szene abrufen**, ist kein Langdruck möglich (Szenen-
 Wenn der Hue-Schalter über einen Drehregler verfügt (z. B. Hue Tap Dial):
 
 - **Drehregler vorhanden**: Aktiviert die Drehregler-Konfiguration
-- **Funktion**: Legt fest, ob der Drehregler **Helligkeit absolut**, **Helligkeit relativ** oder **Farbtemperatur** steuert
+- **Funktion**: Legt fest, welche KNX-Funktion der Drehregler auslöst:
+  - **Dimmen** (DPT 3.007): Relatives Dimmen
+  - **Wertgeber** (DPT 5.001): Absoluter Prozentwert
+  - **Lautstärke** (DPT 3.007): Lautstärkeregelung (relatives Dimmen auf Medien-KO)
+  - **Farbtemperatur** (DPT 7.600): Farbtemperatur in Kelvin
 - **Schrittweite (%)**: Prozentwert je Rastschritt (Standardwert: 5 %)
 
 <!-- DOC -->
@@ -713,7 +719,7 @@ Legt fest, ob das Szenen-KO auch Speicherbefehle (DPT 18.001, Bit 7 = 1) auswert
 - **Deaktiviert**: Nur Abruf (DPT 17.001-kompatibel, Bit 7 wird ignoriert)
 - **Aktiviert**: Abruf und Speichern (DPT 18.001); ein Speicherbefehl sichert den aktuellen Istzustand in den jeweiligen Slot
 
-#### Szene 1..8 (Slots)
+#### Szene A..H (Slots)
 
 Jeder Slot kann unabhängig parametriert werden. Ist die **Szenennummer** auf `0` (inaktiv) gesetzt, wird der Slot ignoriert.
 
@@ -885,6 +891,25 @@ Kanal-Sperre
 
 Eine aktive Kanal-Sperre übersteuert also immer die managerbezogene und die globale Sperre. Das ist gewollt, damit einzelne Kanäle nach einer Szene oder einem Sonderbetrieb gezielt aus der HCL-Führung herausgenommen werden können, ohne andere Kanäle desselben Lichtmanagers zu beeinflussen.
 
+<!-- DOC HelpContext="HCL-Sperre-global" -->
+Sperrt die automatische Ausgabe aller Lichtmanager (HCL-Bereich).
+
+Optionen:
+- **Rückfallzeit nach Sperre** (inkl. Tageswechsel, `kein Rückfall` möglich)
+- **Rückfallstrategie nach Sperre**: wirkt für globale, manager-spezifische und kanal-spezifische Sperren
+
+KOs:
+- `Sperre (global)` (Eingang)
+- `Status Sperre` (Ausgang)
+<!-- DOCEND -->
+
+<!-- DOC HelpContext="HCL-Sperre-global-Status-HCL-Sperre" -->
+Globale HCL-Sperre inkl. Statusrückmeldung.
+
+- KO `Sperre (global)` (Eingang): Setzt die globale HCL-Sperre für alle Lichtmanager.
+- KO `Status Sperre` (Ausgang): Gibt den aktuellen HCL-Sperrstatus zurück.
+<!-- DOCEND -->
+
 <!-- DOC -->
 ### Rückfallstrategie nach Sperre
 
@@ -918,6 +943,16 @@ Hinweise:
 
 <!-- DOC -->
 ### Lichtmanager 1..8
+
+<!-- DOC HelpContext="HCL-Manager-18" -->
+Jeder Lichtmanager 1..8 besitzt identischen Aufbau (HCL-Konfiguration):
+
+- **Bezeichnung**: Freie ETS-Bezeichnung des Lichtmanagers.
+- **Lichtmanager Sperre (spezifisch)**: Sperrt nur den jeweiligen Manager.
+- **Erweiterte Kurve**: Kurventyp `FixedTime`, `SunPosition`, `Manual` oder `Astronomischer Sonnenstand`.
+- **Stützpunkte**: Bis zu 10 Stützpunkte je Manager (bei `FixedTime` oder `SunPosition`).
+- **Saison-Profil**: Optionale Sommer-/Winter-Stützpunkte (Modus `Standard`, `Auto-DST`, `Festes Datum` oder `Per Objekt`).
+<!-- DOCEND -->
 
 Jeder Manager besitzt identischen Aufbau:
 
@@ -981,6 +1016,62 @@ Beispiel:
 
 Praxisregel:
 - `Aktualisierungsintervall`, `Überblendzeit` und `Slew-Rate` gemeinsam abstimmen, damit Übergänge ruhig bleiben.
+
+#### Saison-Profil
+
+Das Saison-Profil ermöglicht es, für jeden Lichtmanager zwei voneinander unabhängige Stützpunkt-Sätze zu hinterlegen: einen für **Sommer** und einen für **Winter**. Der Lichtmanager wechselt automatisch oder auf KNX-Befehl zwischen den beiden Profilen.
+
+**Hintergrund**: Im Sommer steht die Sonne bei Sonnenuntergang (z. B. 19:00 Uhr) noch hoch, der Himmel ist hell und das Auge nimmt warmes Licht als „zu gelb" wahr. Im Winter hingegen ist die Dämmerung um dieselbe Uhrzeit längst abgeschlossen — warmes Licht fühlt sich natürlicher an. Mit dem Saison-Profil können beide Situationen optimal parametriert werden, ohne zwei separate Lichtmanager anlegen zu müssen.
+
+##### Saison-Modus
+
+Der Parameter **Saison-Modus** legt fest, wie der Wechsel zwischen Sommer- und Winter-Stützpunkten ausgelöst wird:
+
+| Modus | Beschreibung |
+|---|---|
+| **Standard** | Immer Winter-Stützpunkte aktiv. Sommer-Stützpunkte werden ignoriert. |
+| **Auto-DST** | Automatischer Wechsel anhand der mitteleuropäischen Sommerzeit (MESZ). Sommer = letzter Sonntag März bis letzter Sonntag Oktober. Kein ETS-Eingriff nötig. |
+| **Festes Datum** | Sommer gilt zwischen zwei konfigurierbaren Daten (Tag+Monat). Ermöglicht individuelle Anpassung an lokale Verhältnisse oder persönliche Präferenzen. |
+| **Per Objekt** | Das KNX-Kommunikationsobjekt **LM x: Sommer aktiv** steuert den Wechsel. Ermöglicht externe Steuerung z. B. über einen Kalender-Aktor oder eine Logik. |
+
+Bei Modus **Standard** sind keine Sommer-Stützpunkte erforderlich; die Spalten werden in ETS ausgeblendet.
+
+##### Parameter bei Modus „Festes Datum"
+
+- **Sommer Start (Tag)** / **Sommer Start (Monat)**: Beginn des Sommerprofils (inklusiv).
+- **Sommer Ende (Tag)** / **Sommer Ende (Monat)**: Ende des Sommerprofils (inklusiv).
+- **DST-Offset (Tage)**: Optionaler Vorlauf/Nachlauf in Tagen (Bereich `-30..+30`, Standard `0`).
+
+Beispiel: Start `01.04.`, Ende `31.10.` entspricht grob der MESZ — identisch mit Auto-DST, aber manuell justierbar.
+
+##### Sommer-Stützpunkte
+
+Bei aktivem Saison-Modus (nicht `Standard`) erscheint in ETS für jeden Stützpunkt eine zweite Spalte:
+
+| Spalte | Beschreibung |
+|---|---|
+| **Sommer Aktiv** | Checkbox: Stützpunkt im Sommer-Profil verwenden. Inaktive Stützpunkte werden ignoriert. |
+| **Sommer Kelvin** | Farbtemperatur für diesen Stützpunkt im Sommer (2000–6500 K). |
+| **Sommer Helligkeit** | Helligkeit für diesen Stützpunkt im Sommer (0–100 %). |
+
+Zeit und Sichtbarkeit des Stützpunkts bleiben für beide Profile gleich — nur Kelvin und Helligkeit werden saisonal überschrieben.
+
+Hinweise:
+- Nicht alle Stützpunkte müssen einen Sommer-Wert haben. Stützpunkte mit deaktiviertem **Sommer Aktiv** werden im Sommer-Profil übersprungen.
+- Im Sommer-Profil müssen mindestens 2 aktive Stützpunkte vorhanden sein (bei Kurventyp `FixedTime` oder `SunPosition`), sonst fällt der Manager auf das Winter-Profil zurück.
+
+##### KO: LM x: Sommer aktiv (nur Modus „Per Objekt")
+
+<!-- DOC HelpContext="HCL-Saison-KO" -->
+Kommunikationsobjekt **LM x: Sommer aktiv** (Eingang, 1 Bit, DPT 1.001).
+
+Nur sichtbar wenn der Saison-Modus des Lichtmanagers auf **Per Objekt** eingestellt ist.
+
+- Wert `1` = Sommer-Stützpunkte aktiv
+- Wert `0` = Winter-Stützpunkte aktiv (Standard)
+
+Bei den anderen Saison-Modi (Standard, Auto-DST, Festes Datum) wechselt der Manager automatisch; dieses KO ist dann nicht sichtbar.
+<!-- DOCEND -->
 
 ### Lichtmanager-Konfiguration übertragen (ConfigTransfer)
 
@@ -1166,6 +1257,20 @@ Sichtbar nur wenn **Szenensteuerung aktivieren** am Kanal gesetzt ist.
 - Polling: 5..15 s
 - Hinweis: Wirkung abhängig von Fähigkeiten der enthaltenen Leuchten
 
+### Beispiel 6: Lichtmanager mit Saison-Profil (Auto-DST)
+- Lampentyp: Farbtemperatur
+- Lichtmanager: 1
+- Saison-Modus: Auto-DST
+- Winter-Stützpunkte: SP1 `06:30 / 3000K / 30%`, SP2 `12:00 / 5000K / 80%`, SP3 `19:00 / 2700K / 60%`, SP4 `22:00 / 2200K / 20%`
+- Sommer-Stützpunkte (SP1–SP4 jeweils Sommer Aktiv = Ja): SP1 `06:30 / 4000K / 40%`, SP2 `12:00 / 5500K / 90%`, SP3 `19:00 / 3800K / 70%`, SP4 `22:00 / 2700K / 25%`
+- Hinweis: Im Sommer ist SP3 um 19 Uhr deutlich kühler (3800K statt 2700K), weil das Umgebungslicht noch hell ist.
+
+### Beispiel 7: Saison-Umschaltung per KNX-Logik (Modus „Per Objekt")
+- Saison-Modus: Per Objekt
+- KO `LM 1: Sommer aktiv` mit Ausgang einer Logik verbinden, die aus Datum/Uhrzeit den Sommer erkennt
+- Oder: KO an einen Taster hängen, der manuell zwischen Sommer/Winter umschaltet
+- Vorteil: Vollständige externe Kontrolle; z. B. auch Zwischensaison-Profile möglich
+
 <!-- DOC -->
 ## Häufige Fehler und Lösungen
 
@@ -1217,6 +1322,13 @@ Sichtbar nur wenn **Szenensteuerung aktivieren** am Kanal gesetzt ist.
 - `Szene speichern` nur aktivieren, wenn Speicherbefehle wirklich genutzt werden.
 - Für Steckdosen sind keine Szenen verfügbar.
 
+### Saison-Profil schaltet nicht um
+- Saison-Modus ist `Standard`? → dann sind Sommer-Stützpunkte absichtlich deaktiviert.
+- Bei Modus `Festes Datum`: Start- und Ende-Datum korrekt eingetragen? Datum liegt im aktiven Bereich?
+- Bei Modus `Auto-DST`: Systemzeit korrekt? DST-Erkennung setzt korrekte Uhrzeit voraus.
+- Bei Modus `Per Objekt`: KO `LM x: Sommer aktiv` mit GA verbunden und Wert `1` gesendet?
+- Im Sommer-Profil mindestens 2 Stützpunkte mit **Sommer Aktiv = Ja** vorhanden (bei `FixedTime`/`SunPosition`)?
+
 <!-- DOC -->
 ## Inbetriebnahme-Checkliste
 
@@ -1233,6 +1345,7 @@ Sichtbar nur wenn **Szenensteuerung aktivieren** am Kanal gesetzt ist.
 - Szenensteuerung: Szenennummern, Aktionen, Preset-Werte und optionales Speichern geprüft
 - Bei Szene + Lichtmanager: Verhalten nach Aus-Befehl bzw. Entsperren verifiziert
 - Bei Taster/Schalter: Gewerk, Kurz-/Langdruck und Native-Hue-Aktion geprüft
+- Bei aktivem Saison-Profil: Saison-Modus gewählt, Sommer-Stützpunkte eingetragen, Umschaltung im laufenden Betrieb verifiziert
 
 <!-- DOC -->
 ## Lizenz und Haftung
