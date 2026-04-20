@@ -1,13 +1,12 @@
-﻿### Hue Ziel (Geräte-ID oder Name)
+﻿### Hue-Ziel-Geraete-ID-oder-Name
 
-Zielfeld für Gerätetypen, die direkt auf ein einzelnes Hue-Gerät zeigen, insbesondere:
+Zielfeld für direkte Gerätezuordnung. Akzeptiert sowohl eine numerische Geräte-ID (RID) als auch einen eindeutigen Gerätenamen.
 
+Gerätetypen:
 - Bewegungsmelder
 - Taster/Schalter
 - Kontaktsensor
 - Steckdose
-
-Verwenden Sie hier die von der Hue Bridge gemeldete Geräte-ID oder einen eindeutigen Gerätenamen.
 
 Ermittlung über:
 - Webinterface: `http://<IP-des-OpenKNX-Geräts>/openknx/hue/scan`
@@ -16,7 +15,3 @@ Ermittlung über:
 Empfehlung:
 - Für produktive Projekte bevorzugt die ID (RID) eintragen.
 - Namen nur bei eindeutiger Benennung verwenden.
-
-Hinweis:
-- Im Unterschied zu **Hue Ziel (Light-/Room-/Zone-ID oder Name)** wird hier kein Raum/Zone-Ziel aufgelöst, sondern ein konkretes Hue-Gerät adressiert.
-

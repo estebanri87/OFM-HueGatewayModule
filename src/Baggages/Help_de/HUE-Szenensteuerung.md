@@ -13,24 +13,13 @@ Legt fest, ob das Szenen-KO auch Speicherbefehle (DPT 18.001, Bit 7 = 1) auswert
 - **Deaktiviert**: Nur Abruf (DPT 17.001-kompatibel, Bit 7 wird ignoriert)
 - **Aktiviert**: Abruf und Speichern (DPT 18.001); ein Speicherbefehl sichert den aktuellen Istzustand in den jeweiligen Slot
 
-#### Szene 1..8 (Slots)
+#### Szene A..H (Slots)
 
 Jeder Slot kann unabhängig parametriert werden. Ist die **Szenennummer** auf `0` (inaktiv) gesetzt, wird der Slot ignoriert.
 
 **Szenennummer**: KNX-Szenennummer 1..64 (entspricht Bit 0..5 im DPT, also KNX-intern 0..63)
 
-**Aktion**: Legt fest, was beim Abruf dieser Szene passiert. Die verfügbaren Optionen hängen vom **Lampentyp** des Kanals ab:
-
-| Aktion | Beschreibung | Lampentyp |
-|---|---|---|
-| Ausschalten | Licht aus | alle |
-| Einschalten | Licht ein (letzte Helligkeit) | alle |
-| Helligkeit setzen | Ein + Helligkeitswert | Dimmbar, CT, RGB |
-| Farbtemperatur setzen | Ein + CT-Wert | CT, RGB |
-| Helligkeit + Farbtemperatur | Ein + Helligkeit + CT | CT, RGB |
-| Farbe (RGB) setzen | Ein + RGB-Wert | RGB |
-| Helligkeit + Farbe (RGB) | Ein + Helligkeit + RGB | RGB |
-| Hue Szene abrufen | Ruft eine Hue-Szene per RID ab | alle (außer Steckdose) |
+**Aktion**: Legt fest, was beim Abruf dieser Szene passiert. Die verfügbaren Optionen hängen vom **Lampentyp** des Kanals ab.
 
 **Helligkeit**: Prozentwert 0..100 % (wird bei Aktionen mit Helligkeit verwendet)
 
