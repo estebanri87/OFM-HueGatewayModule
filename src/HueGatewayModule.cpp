@@ -125,6 +125,33 @@ static String formatMinutesToClock(uint16_t minutes)
     return String(timeBuffer);
 }
 
+static bool isDateInSummerRange(uint8_t month, uint8_t day,
+                                uint8_t startMonth, uint8_t startDay,
+                                uint8_t endMonth, uint8_t endDay)
+{
+    if (startMonth == endMonth && startDay == endDay)
+    {
+        Serial.println("[HCL] Saison-Datum: Start == End, verwende Winter");
+        return false;
+    }
+
+    // Encode as day-of-year approximation using month*32+day for comparison
+    const uint16_t cur   = static_cast<uint16_t>(month)      * 32u + day;
+    const uint16_t start = static_cast<uint16_t>(startMonth) * 32u + startDay;
+    const uint16_t end   = static_cast<uint16_t>(endMonth)   * 32u + endDay;
+
+    if (end > start)
+    {
+        // Normal case: summer within one calendar year (e.g. Apr – Oct)
+        return cur >= start && cur <= end;
+    }
+    else
+    {
+        // Wrap-around: summer spans year boundary (e.g. Nov – Mar, southern hemisphere)
+        return cur >= start || cur <= end;
+    }
+}
+
 static bool buildFixedInterpolationDebug(const HCL::Master* master, uint16_t currentMinutes, HclFixedInterpolationDebug& debug)
 {
     debug = HclFixedInterpolationDebug();
@@ -918,6 +945,114 @@ void HueGatewayModule::loop()
     if (hasTime) {
         uint16_t currentMinutes = timeinfo.tm_hour * 60 + timeinfo.tm_min;
         int16_t currentDayOfYear = static_cast<int16_t>(timeinfo.tm_yday + 1);
+
+        // Update isSummer for each HCL master based on configured season mode
+        auto updateMasterSeason = [&](uint8_t masterNumber, uint8_t seasonMode, int8_t dstOffsetDays,
+                                      uint8_t summerStartMonth, uint8_t summerStartDay,
+                                      uint8_t summerEndMonth, uint8_t summerEndDay) {
+            HCL::Master* master = HCL::masterManager.getMaster(masterNumber);
+            if (!master) return;
+            if (seasonMode == 0) {
+                master->setIsSummer(false);
+            } else if (seasonMode == 1) {
+                if (dstOffsetDays != 0) {
+                    struct tm timeCopy = timeinfo;
+                    time_t shifted = mktime(&timeCopy) - (static_cast<int64_t>(dstOffsetDays) * 86400LL);
+                    struct tm shiftedTm;
+                    localtime_r(&shifted, &shiftedTm);
+                    master->setIsSummer(shiftedTm.tm_isdst == 1);
+                } else {
+                    master->setIsSummer(timeinfo.tm_isdst == 1);
+                }
+            } else if (seasonMode == 2) {
+                master->setIsSummer(isDateInSummerRange(
+                    static_cast<uint8_t>(timeinfo.tm_mon + 1), static_cast<uint8_t>(timeinfo.tm_mday),
+                    summerStartMonth, summerStartDay, summerEndMonth, summerEndDay));
+            }
+            // Mode 3: KO handler calls master->setIsSummer() directly, nothing to do here
+        };
+
+        #if defined(ParamHUE_HCLM1SeasonMode) && defined(ParamHUE_HCLM1SummerStartMonth)
+        updateMasterSeason(1, ParamHUE_HCLM1SeasonMode,
+            #ifdef ParamHUE_HCLM1DSTOffsetDays
+            static_cast<int8_t>(ParamHUE_HCLM1DSTOffsetDays),
+            #else
+            0,
+            #endif
+            ParamHUE_HCLM1SummerStartMonth, ParamHUE_HCLM1SummerStartDay,
+            ParamHUE_HCLM1SummerEndMonth, ParamHUE_HCLM1SummerEndDay);
+        #endif
+        #if defined(ParamHUE_HCLM2SeasonMode) && defined(ParamHUE_HCLM2SummerStartMonth)
+        updateMasterSeason(2, ParamHUE_HCLM2SeasonMode,
+            #ifdef ParamHUE_HCLM2DSTOffsetDays
+            static_cast<int8_t>(ParamHUE_HCLM2DSTOffsetDays),
+            #else
+            0,
+            #endif
+            ParamHUE_HCLM2SummerStartMonth, ParamHUE_HCLM2SummerStartDay,
+            ParamHUE_HCLM2SummerEndMonth, ParamHUE_HCLM2SummerEndDay);
+        #endif
+        #if defined(ParamHUE_HCLM3SeasonMode) && defined(ParamHUE_HCLM3SummerStartMonth)
+        updateMasterSeason(3, ParamHUE_HCLM3SeasonMode,
+            #ifdef ParamHUE_HCLM3DSTOffsetDays
+            static_cast<int8_t>(ParamHUE_HCLM3DSTOffsetDays),
+            #else
+            0,
+            #endif
+            ParamHUE_HCLM3SummerStartMonth, ParamHUE_HCLM3SummerStartDay,
+            ParamHUE_HCLM3SummerEndMonth, ParamHUE_HCLM3SummerEndDay);
+        #endif
+        #if defined(ParamHUE_HCLM4SeasonMode) && defined(ParamHUE_HCLM4SummerStartMonth)
+        updateMasterSeason(4, ParamHUE_HCLM4SeasonMode,
+            #ifdef ParamHUE_HCLM4DSTOffsetDays
+            static_cast<int8_t>(ParamHUE_HCLM4DSTOffsetDays),
+            #else
+            0,
+            #endif
+            ParamHUE_HCLM4SummerStartMonth, ParamHUE_HCLM4SummerStartDay,
+            ParamHUE_HCLM4SummerEndMonth, ParamHUE_HCLM4SummerEndDay);
+        #endif
+        #if defined(ParamHUE_HCLM5SeasonMode) && defined(ParamHUE_HCLM5SummerStartMonth)
+        updateMasterSeason(5, ParamHUE_HCLM5SeasonMode,
+            #ifdef ParamHUE_HCLM5DSTOffsetDays
+            static_cast<int8_t>(ParamHUE_HCLM5DSTOffsetDays),
+            #else
+            0,
+            #endif
+            ParamHUE_HCLM5SummerStartMonth, ParamHUE_HCLM5SummerStartDay,
+            ParamHUE_HCLM5SummerEndMonth, ParamHUE_HCLM5SummerEndDay);
+        #endif
+        #if defined(ParamHUE_HCLM6SeasonMode) && defined(ParamHUE_HCLM6SummerStartMonth)
+        updateMasterSeason(6, ParamHUE_HCLM6SeasonMode,
+            #ifdef ParamHUE_HCLM6DSTOffsetDays
+            static_cast<int8_t>(ParamHUE_HCLM6DSTOffsetDays),
+            #else
+            0,
+            #endif
+            ParamHUE_HCLM6SummerStartMonth, ParamHUE_HCLM6SummerStartDay,
+            ParamHUE_HCLM6SummerEndMonth, ParamHUE_HCLM6SummerEndDay);
+        #endif
+        #if defined(ParamHUE_HCLM7SeasonMode) && defined(ParamHUE_HCLM7SummerStartMonth)
+        updateMasterSeason(7, ParamHUE_HCLM7SeasonMode,
+            #ifdef ParamHUE_HCLM7DSTOffsetDays
+            static_cast<int8_t>(ParamHUE_HCLM7DSTOffsetDays),
+            #else
+            0,
+            #endif
+            ParamHUE_HCLM7SummerStartMonth, ParamHUE_HCLM7SummerStartDay,
+            ParamHUE_HCLM7SummerEndMonth, ParamHUE_HCLM7SummerEndDay);
+        #endif
+        #if defined(ParamHUE_HCLM8SeasonMode) && defined(ParamHUE_HCLM8SummerStartMonth)
+        updateMasterSeason(8, ParamHUE_HCLM8SeasonMode,
+            #ifdef ParamHUE_HCLM8DSTOffsetDays
+            static_cast<int8_t>(ParamHUE_HCLM8DSTOffsetDays),
+            #else
+            0,
+            #endif
+            ParamHUE_HCLM8SummerStartMonth, ParamHUE_HCLM8SummerStartDay,
+            ParamHUE_HCLM8SummerEndMonth, ParamHUE_HCLM8SummerEndDay);
+        #endif
+
         HCL::masterManager.loop(currentMinutes, currentDayOfYear);
     }
 
@@ -997,7 +1132,9 @@ void HueGatewayModule::loop()
         }
         else
         {
-            if (!_client->isEventStreamConnected())
+            _client->checkEventStreamConnect();
+
+            if (!_client->isEventStreamConnected() && !_client->isEventStreamConnectPending())
             {
                 if (suppressEventStreamRetryForSetup)
                 {
@@ -1025,6 +1162,7 @@ void HueGatewayModule::loop()
 
                         if (_eventStreamPauseUntilMs == 0
                             && bridgeHealthyForEventstream
+                            && (now >= HueGatewayLight::globalHclWriteNextAllowedMs())
                             && (now - _lastEventStreamRetryMs >= _eventStreamRetryBackoffMs))
                         {
                             _lastEventStreamRetryMs = now;
@@ -1238,7 +1376,8 @@ void HueGatewayModule::loop()
     if (now - _lastRefreshTickMs >= 1000)
     {
         _lastRefreshTickMs = now;
-        if (!(_client && _client->isEventStreamConnected()))
+        if (!(_client && (_client->isEventStreamConnected() || _client->isEventStreamConnectPending()))
+            && (now >= HueGatewayLight::globalHclWriteNextAllowedMs()))
         {
             if (!fallbackActiveLogged)
             {
@@ -1392,6 +1531,47 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
             if (koNumber == hclMasterKos[i].ko)
             {
                 setHclManagerLock(hclMasterKos[i].master, ko.value(Dpt(1, 1)), "KO");
+                return;
+            }
+        }
+    }
+
+    {
+        struct HclSummerKoEntry { uint16_t ko; uint8_t master; };
+        static const HclSummerKoEntry hclSummerKos[] = {
+#ifdef HUE_KoHUEHCLM1SummerActive
+            { HUE_KoHUEHCLM1SummerActive, 1 },
+#endif
+#ifdef HUE_KoHUEHCLM2SummerActive
+            { HUE_KoHUEHCLM2SummerActive, 2 },
+#endif
+#ifdef HUE_KoHUEHCLM3SummerActive
+            { HUE_KoHUEHCLM3SummerActive, 3 },
+#endif
+#ifdef HUE_KoHUEHCLM4SummerActive
+            { HUE_KoHUEHCLM4SummerActive, 4 },
+#endif
+#ifdef HUE_KoHUEHCLM5SummerActive
+            { HUE_KoHUEHCLM5SummerActive, 5 },
+#endif
+#ifdef HUE_KoHUEHCLM6SummerActive
+            { HUE_KoHUEHCLM6SummerActive, 6 },
+#endif
+#ifdef HUE_KoHUEHCLM7SummerActive
+            { HUE_KoHUEHCLM7SummerActive, 7 },
+#endif
+#ifdef HUE_KoHUEHCLM8SummerActive
+            { HUE_KoHUEHCLM8SummerActive, 8 },
+#endif
+            { 0, 0 } // sentinel
+        };
+        for (size_t i = 0; hclSummerKos[i].master != 0; i++)
+        {
+            if (koNumber == hclSummerKos[i].ko)
+            {
+                HCL::Master* master = HCL::masterManager.getMaster(hclSummerKos[i].master);
+                if (master)
+                    master->setIsSummer(ko.value(Dpt(1, 1)));
                 return;
             }
         }
@@ -3869,7 +4049,7 @@ void HueGatewayModule::setupHCL()
                                   const char* const (&times)[10],
                                   const uint16_t (&kelvins)[10],
                                   const uint8_t (&brightnesses)[10],
-                                  uint8_t setpointCount) {
+                                  const bool (&active)[10]) {
         HCL::Master* master = HCL::masterManager.getMaster(masterNumber);
         if (!master)
         {
@@ -3877,27 +4057,20 @@ void HueGatewayModule::setupHCL()
             return;
         }
 
-        if (setpointCount < 1)
-        {
-            setpointCount = 1;
-        }
-        if (setpointCount > 10)
-        {
-            setpointCount = 10;
-        }
-
-        // Reset all slots so lowering the configured count disables trailing setpoints.
+        // Reset all slots so inactive setpoints don't carry old data.
         for (int i = 0; i < 10; i++)
         {
             master->setSetpoint(i, HCL::Setpoint(0xFFFF, 4000, 100));
         }
 
-        Serial.printf("[HueGatewayModule] Loading HCL Master %u setpoints (max %u)...\n",
-                      masterNumber,
-                      static_cast<unsigned>(setpointCount));
+        Serial.printf("[HueGatewayModule] Loading HCL Master %u setpoints...\n", masterNumber);
 
-        for (int i = 0; i < setpointCount; i++)
+        for (int i = 0; i < 10; i++)
         {
+            if (!active[i])
+            {
+                continue;
+            }
             uint16_t minutes = HCL::Setpoint::parseTime(times[i]);
             if (minutes == 0xFFFF)
             {
@@ -3913,6 +4086,37 @@ void HueGatewayModule::setupHCL()
         Serial.printf("[HueGatewayModule] HCL Master %u loaded with %d valid setpoints\n",
                       masterNumber,
                       master->getValidSetpointCount());
+    };
+
+    auto loadMasterSummerSetpoints = [](uint8_t masterNumber,
+                                        const char* const (&times)[10],
+                                        const uint16_t (&summerKelvins)[10],
+                                        const uint8_t (&summerBrightnesses)[10],
+                                        const bool (&active)[10]) {
+        HCL::Master* master = HCL::masterManager.getMaster(masterNumber);
+        if (!master)
+        {
+            return;
+        }
+
+        for (int i = 0; i < 10; i++)
+        {
+            if (!active[i])
+            {
+                master->setSummerSetpoint(i, HCL::Setpoint(0xFFFF, 4000, 100));
+                continue;
+            }
+            uint16_t minutes = HCL::Setpoint::parseTime(times[i]);
+            if (minutes == 0xFFFF)
+            {
+                master->setSummerSetpoint(i, HCL::Setpoint(0xFFFF, 4000, 100));
+                continue;
+            }
+            master->setSummerSetpoint(i, HCL::Setpoint(minutes, summerKelvins[i], summerBrightnesses[i]));
+        }
+
+        master->sortSummerSetpoints();
+        Serial.printf("[HueGatewayModule] HCL Master %u summer setpoints loaded\n", masterNumber);
     };
 
     auto applyMasterAdvanced = [](uint8_t masterNumber,
@@ -4196,11 +4400,37 @@ void HueGatewayModule::setupHCL()
             ParamHUE_HCLM1SP3Brightness, ParamHUE_HCLM1SP4Brightness, ParamHUE_HCLM1SP5Brightness,
             ParamHUE_HCLM1SP6Brightness, ParamHUE_HCLM1SP7Brightness, ParamHUE_HCLM1SP8Brightness, ParamHUE_HCLM1SP9Brightness
         };
-        uint8_t setpointCount = 10;
-        #ifdef ParamHUE_HCLM1SetpointCount
-        setpointCount = ParamHUE_HCLM1SetpointCount;
+        const bool active[10] = {
+            #if defined(ParamHUE_HCLM1SP0Active) && defined(ParamHUE_HCLM1SP9Active)
+            ParamHUE_HCLM1SP0Active != 0, ParamHUE_HCLM1SP1Active != 0,
+            ParamHUE_HCLM1SP2Active != 0, ParamHUE_HCLM1SP3Active != 0,
+            ParamHUE_HCLM1SP4Active != 0, ParamHUE_HCLM1SP5Active != 0,
+            ParamHUE_HCLM1SP6Active != 0, ParamHUE_HCLM1SP7Active != 0,
+            ParamHUE_HCLM1SP8Active != 0, ParamHUE_HCLM1SP9Active != 0,
+            #else
+            true, true, true, true, true, true, true, true, true, true,
+            #endif
+        };
+        loadMasterSetpoints(1, times, kelvins, brightnesses, active);
+        #if defined(ParamHUE_HCLM1SeasonMode) && defined(ParamHUE_HCLM1SP0SummerKelvin)
+        if (ParamHUE_HCLM1SeasonMode != 0) {
+            const uint16_t summerKelvins[10] = {
+                ParamHUE_HCLM1SP0SummerKelvin, ParamHUE_HCLM1SP1SummerKelvin,
+                ParamHUE_HCLM1SP2SummerKelvin, ParamHUE_HCLM1SP3SummerKelvin,
+                ParamHUE_HCLM1SP4SummerKelvin, ParamHUE_HCLM1SP5SummerKelvin,
+                ParamHUE_HCLM1SP6SummerKelvin, ParamHUE_HCLM1SP7SummerKelvin,
+                ParamHUE_HCLM1SP8SummerKelvin, ParamHUE_HCLM1SP9SummerKelvin
+            };
+            const uint8_t summerBrightnesses[10] = {
+                ParamHUE_HCLM1SP0SummerBrightness, ParamHUE_HCLM1SP1SummerBrightness,
+                ParamHUE_HCLM1SP2SummerBrightness, ParamHUE_HCLM1SP3SummerBrightness,
+                ParamHUE_HCLM1SP4SummerBrightness, ParamHUE_HCLM1SP5SummerBrightness,
+                ParamHUE_HCLM1SP6SummerBrightness, ParamHUE_HCLM1SP7SummerBrightness,
+                ParamHUE_HCLM1SP8SummerBrightness, ParamHUE_HCLM1SP9SummerBrightness
+            };
+            loadMasterSummerSetpoints(1, times, summerKelvins, summerBrightnesses, active);
+        }
         #endif
-        loadMasterSetpoints(1, times, kelvins, brightnesses, setpointCount);
 
         #ifdef ParamHUE_HCLM1CurveType
         applyMasterAdvanced(
@@ -4247,11 +4477,37 @@ void HueGatewayModule::setupHCL()
             ParamHUE_HCLM2SP3Brightness, ParamHUE_HCLM2SP4Brightness, ParamHUE_HCLM2SP5Brightness,
             ParamHUE_HCLM2SP6Brightness, ParamHUE_HCLM2SP7Brightness, ParamHUE_HCLM2SP8Brightness, ParamHUE_HCLM2SP9Brightness
         };
-        uint8_t setpointCount = 10;
-        #ifdef ParamHUE_HCLM2SetpointCount
-        setpointCount = ParamHUE_HCLM2SetpointCount;
+        const bool active[10] = {
+            #if defined(ParamHUE_HCLM2SP0Active) && defined(ParamHUE_HCLM2SP9Active)
+            ParamHUE_HCLM2SP0Active != 0, ParamHUE_HCLM2SP1Active != 0,
+            ParamHUE_HCLM2SP2Active != 0, ParamHUE_HCLM2SP3Active != 0,
+            ParamHUE_HCLM2SP4Active != 0, ParamHUE_HCLM2SP5Active != 0,
+            ParamHUE_HCLM2SP6Active != 0, ParamHUE_HCLM2SP7Active != 0,
+            ParamHUE_HCLM2SP8Active != 0, ParamHUE_HCLM2SP9Active != 0,
+            #else
+            true, true, true, true, true, true, true, true, true, true,
+            #endif
+        };
+        loadMasterSetpoints(2, times, kelvins, brightnesses, active);
+        #if defined(ParamHUE_HCLM2SeasonMode) && defined(ParamHUE_HCLM2SP0SummerKelvin)
+        if (ParamHUE_HCLM2SeasonMode != 0) {
+            const uint16_t summerKelvins[10] = {
+                ParamHUE_HCLM2SP0SummerKelvin, ParamHUE_HCLM2SP1SummerKelvin,
+                ParamHUE_HCLM2SP2SummerKelvin, ParamHUE_HCLM2SP3SummerKelvin,
+                ParamHUE_HCLM2SP4SummerKelvin, ParamHUE_HCLM2SP5SummerKelvin,
+                ParamHUE_HCLM2SP6SummerKelvin, ParamHUE_HCLM2SP7SummerKelvin,
+                ParamHUE_HCLM2SP8SummerKelvin, ParamHUE_HCLM2SP9SummerKelvin
+            };
+            const uint8_t summerBrightnesses[10] = {
+                ParamHUE_HCLM2SP0SummerBrightness, ParamHUE_HCLM2SP1SummerBrightness,
+                ParamHUE_HCLM2SP2SummerBrightness, ParamHUE_HCLM2SP3SummerBrightness,
+                ParamHUE_HCLM2SP4SummerBrightness, ParamHUE_HCLM2SP5SummerBrightness,
+                ParamHUE_HCLM2SP6SummerBrightness, ParamHUE_HCLM2SP7SummerBrightness,
+                ParamHUE_HCLM2SP8SummerBrightness, ParamHUE_HCLM2SP9SummerBrightness
+            };
+            loadMasterSummerSetpoints(2, times, summerKelvins, summerBrightnesses, active);
+        }
         #endif
-        loadMasterSetpoints(2, times, kelvins, brightnesses, setpointCount);
 
         #ifdef ParamHUE_HCLM2CurveType
         applyMasterAdvanced(
@@ -4298,11 +4554,37 @@ void HueGatewayModule::setupHCL()
             ParamHUE_HCLM3SP3Brightness, ParamHUE_HCLM3SP4Brightness, ParamHUE_HCLM3SP5Brightness,
             ParamHUE_HCLM3SP6Brightness, ParamHUE_HCLM3SP7Brightness, ParamHUE_HCLM3SP8Brightness, ParamHUE_HCLM3SP9Brightness
         };
-        uint8_t setpointCount = 10;
-        #ifdef ParamHUE_HCLM3SetpointCount
-        setpointCount = ParamHUE_HCLM3SetpointCount;
+        const bool active[10] = {
+            #if defined(ParamHUE_HCLM3SP0Active) && defined(ParamHUE_HCLM3SP9Active)
+            ParamHUE_HCLM3SP0Active != 0, ParamHUE_HCLM3SP1Active != 0,
+            ParamHUE_HCLM3SP2Active != 0, ParamHUE_HCLM3SP3Active != 0,
+            ParamHUE_HCLM3SP4Active != 0, ParamHUE_HCLM3SP5Active != 0,
+            ParamHUE_HCLM3SP6Active != 0, ParamHUE_HCLM3SP7Active != 0,
+            ParamHUE_HCLM3SP8Active != 0, ParamHUE_HCLM3SP9Active != 0,
+            #else
+            true, true, true, true, true, true, true, true, true, true,
+            #endif
+        };
+        loadMasterSetpoints(3, times, kelvins, brightnesses, active);
+        #if defined(ParamHUE_HCLM3SeasonMode) && defined(ParamHUE_HCLM3SP0SummerKelvin)
+        if (ParamHUE_HCLM3SeasonMode != 0) {
+            const uint16_t summerKelvins[10] = {
+                ParamHUE_HCLM3SP0SummerKelvin, ParamHUE_HCLM3SP1SummerKelvin,
+                ParamHUE_HCLM3SP2SummerKelvin, ParamHUE_HCLM3SP3SummerKelvin,
+                ParamHUE_HCLM3SP4SummerKelvin, ParamHUE_HCLM3SP5SummerKelvin,
+                ParamHUE_HCLM3SP6SummerKelvin, ParamHUE_HCLM3SP7SummerKelvin,
+                ParamHUE_HCLM3SP8SummerKelvin, ParamHUE_HCLM3SP9SummerKelvin
+            };
+            const uint8_t summerBrightnesses[10] = {
+                ParamHUE_HCLM3SP0SummerBrightness, ParamHUE_HCLM3SP1SummerBrightness,
+                ParamHUE_HCLM3SP2SummerBrightness, ParamHUE_HCLM3SP3SummerBrightness,
+                ParamHUE_HCLM3SP4SummerBrightness, ParamHUE_HCLM3SP5SummerBrightness,
+                ParamHUE_HCLM3SP6SummerBrightness, ParamHUE_HCLM3SP7SummerBrightness,
+                ParamHUE_HCLM3SP8SummerBrightness, ParamHUE_HCLM3SP9SummerBrightness
+            };
+            loadMasterSummerSetpoints(3, times, summerKelvins, summerBrightnesses, active);
+        }
         #endif
-        loadMasterSetpoints(3, times, kelvins, brightnesses, setpointCount);
 
         #ifdef ParamHUE_HCLM3CurveType
         applyMasterAdvanced(
@@ -4349,11 +4631,37 @@ void HueGatewayModule::setupHCL()
             ParamHUE_HCLM4SP3Brightness, ParamHUE_HCLM4SP4Brightness, ParamHUE_HCLM4SP5Brightness,
             ParamHUE_HCLM4SP6Brightness, ParamHUE_HCLM4SP7Brightness, ParamHUE_HCLM4SP8Brightness, ParamHUE_HCLM4SP9Brightness
         };
-        uint8_t setpointCount = 10;
-        #ifdef ParamHUE_HCLM4SetpointCount
-        setpointCount = ParamHUE_HCLM4SetpointCount;
+        const bool active[10] = {
+            #if defined(ParamHUE_HCLM4SP0Active) && defined(ParamHUE_HCLM4SP9Active)
+            ParamHUE_HCLM4SP0Active != 0, ParamHUE_HCLM4SP1Active != 0,
+            ParamHUE_HCLM4SP2Active != 0, ParamHUE_HCLM4SP3Active != 0,
+            ParamHUE_HCLM4SP4Active != 0, ParamHUE_HCLM4SP5Active != 0,
+            ParamHUE_HCLM4SP6Active != 0, ParamHUE_HCLM4SP7Active != 0,
+            ParamHUE_HCLM4SP8Active != 0, ParamHUE_HCLM4SP9Active != 0,
+            #else
+            true, true, true, true, true, true, true, true, true, true,
+            #endif
+        };
+        loadMasterSetpoints(4, times, kelvins, brightnesses, active);
+        #if defined(ParamHUE_HCLM4SeasonMode) && defined(ParamHUE_HCLM4SP0SummerKelvin)
+        if (ParamHUE_HCLM4SeasonMode != 0) {
+            const uint16_t summerKelvins[10] = {
+                ParamHUE_HCLM4SP0SummerKelvin, ParamHUE_HCLM4SP1SummerKelvin,
+                ParamHUE_HCLM4SP2SummerKelvin, ParamHUE_HCLM4SP3SummerKelvin,
+                ParamHUE_HCLM4SP4SummerKelvin, ParamHUE_HCLM4SP5SummerKelvin,
+                ParamHUE_HCLM4SP6SummerKelvin, ParamHUE_HCLM4SP7SummerKelvin,
+                ParamHUE_HCLM4SP8SummerKelvin, ParamHUE_HCLM4SP9SummerKelvin
+            };
+            const uint8_t summerBrightnesses[10] = {
+                ParamHUE_HCLM4SP0SummerBrightness, ParamHUE_HCLM4SP1SummerBrightness,
+                ParamHUE_HCLM4SP2SummerBrightness, ParamHUE_HCLM4SP3SummerBrightness,
+                ParamHUE_HCLM4SP4SummerBrightness, ParamHUE_HCLM4SP5SummerBrightness,
+                ParamHUE_HCLM4SP6SummerBrightness, ParamHUE_HCLM4SP7SummerBrightness,
+                ParamHUE_HCLM4SP8SummerBrightness, ParamHUE_HCLM4SP9SummerBrightness
+            };
+            loadMasterSummerSetpoints(4, times, summerKelvins, summerBrightnesses, active);
+        }
         #endif
-        loadMasterSetpoints(4, times, kelvins, brightnesses, setpointCount);
 
         #ifdef ParamHUE_HCLM4CurveType
         applyMasterAdvanced(
@@ -4400,11 +4708,37 @@ void HueGatewayModule::setupHCL()
             ParamHUE_HCLM5SP3Brightness, ParamHUE_HCLM5SP4Brightness, ParamHUE_HCLM5SP5Brightness,
             ParamHUE_HCLM5SP6Brightness, ParamHUE_HCLM5SP7Brightness, ParamHUE_HCLM5SP8Brightness, ParamHUE_HCLM5SP9Brightness
         };
-        uint8_t setpointCount = 10;
-        #ifdef ParamHUE_HCLM5SetpointCount
-        setpointCount = ParamHUE_HCLM5SetpointCount;
+        const bool active[10] = {
+            #if defined(ParamHUE_HCLM5SP0Active) && defined(ParamHUE_HCLM5SP9Active)
+            ParamHUE_HCLM5SP0Active != 0, ParamHUE_HCLM5SP1Active != 0,
+            ParamHUE_HCLM5SP2Active != 0, ParamHUE_HCLM5SP3Active != 0,
+            ParamHUE_HCLM5SP4Active != 0, ParamHUE_HCLM5SP5Active != 0,
+            ParamHUE_HCLM5SP6Active != 0, ParamHUE_HCLM5SP7Active != 0,
+            ParamHUE_HCLM5SP8Active != 0, ParamHUE_HCLM5SP9Active != 0,
+            #else
+            true, true, true, true, true, true, true, true, true, true,
+            #endif
+        };
+        loadMasterSetpoints(5, times, kelvins, brightnesses, active);
+        #if defined(ParamHUE_HCLM5SeasonMode) && defined(ParamHUE_HCLM5SP0SummerKelvin)
+        if (ParamHUE_HCLM5SeasonMode != 0) {
+            const uint16_t summerKelvins[10] = {
+                ParamHUE_HCLM5SP0SummerKelvin, ParamHUE_HCLM5SP1SummerKelvin,
+                ParamHUE_HCLM5SP2SummerKelvin, ParamHUE_HCLM5SP3SummerKelvin,
+                ParamHUE_HCLM5SP4SummerKelvin, ParamHUE_HCLM5SP5SummerKelvin,
+                ParamHUE_HCLM5SP6SummerKelvin, ParamHUE_HCLM5SP7SummerKelvin,
+                ParamHUE_HCLM5SP8SummerKelvin, ParamHUE_HCLM5SP9SummerKelvin
+            };
+            const uint8_t summerBrightnesses[10] = {
+                ParamHUE_HCLM5SP0SummerBrightness, ParamHUE_HCLM5SP1SummerBrightness,
+                ParamHUE_HCLM5SP2SummerBrightness, ParamHUE_HCLM5SP3SummerBrightness,
+                ParamHUE_HCLM5SP4SummerBrightness, ParamHUE_HCLM5SP5SummerBrightness,
+                ParamHUE_HCLM5SP6SummerBrightness, ParamHUE_HCLM5SP7SummerBrightness,
+                ParamHUE_HCLM5SP8SummerBrightness, ParamHUE_HCLM5SP9SummerBrightness
+            };
+            loadMasterSummerSetpoints(5, times, summerKelvins, summerBrightnesses, active);
+        }
         #endif
-        loadMasterSetpoints(5, times, kelvins, brightnesses, setpointCount);
 
         #ifdef ParamHUE_HCLM5CurveType
         applyMasterAdvanced(
@@ -4451,11 +4785,37 @@ void HueGatewayModule::setupHCL()
             ParamHUE_HCLM6SP3Brightness, ParamHUE_HCLM6SP4Brightness, ParamHUE_HCLM6SP5Brightness,
             ParamHUE_HCLM6SP6Brightness, ParamHUE_HCLM6SP7Brightness, ParamHUE_HCLM6SP8Brightness, ParamHUE_HCLM6SP9Brightness
         };
-        uint8_t setpointCount = 10;
-        #ifdef ParamHUE_HCLM6SetpointCount
-        setpointCount = ParamHUE_HCLM6SetpointCount;
+        const bool active[10] = {
+            #if defined(ParamHUE_HCLM6SP0Active) && defined(ParamHUE_HCLM6SP9Active)
+            ParamHUE_HCLM6SP0Active != 0, ParamHUE_HCLM6SP1Active != 0,
+            ParamHUE_HCLM6SP2Active != 0, ParamHUE_HCLM6SP3Active != 0,
+            ParamHUE_HCLM6SP4Active != 0, ParamHUE_HCLM6SP5Active != 0,
+            ParamHUE_HCLM6SP6Active != 0, ParamHUE_HCLM6SP7Active != 0,
+            ParamHUE_HCLM6SP8Active != 0, ParamHUE_HCLM6SP9Active != 0,
+            #else
+            true, true, true, true, true, true, true, true, true, true,
+            #endif
+        };
+        loadMasterSetpoints(6, times, kelvins, brightnesses, active);
+        #if defined(ParamHUE_HCLM6SeasonMode) && defined(ParamHUE_HCLM6SP0SummerKelvin)
+        if (ParamHUE_HCLM6SeasonMode != 0) {
+            const uint16_t summerKelvins[10] = {
+                ParamHUE_HCLM6SP0SummerKelvin, ParamHUE_HCLM6SP1SummerKelvin,
+                ParamHUE_HCLM6SP2SummerKelvin, ParamHUE_HCLM6SP3SummerKelvin,
+                ParamHUE_HCLM6SP4SummerKelvin, ParamHUE_HCLM6SP5SummerKelvin,
+                ParamHUE_HCLM6SP6SummerKelvin, ParamHUE_HCLM6SP7SummerKelvin,
+                ParamHUE_HCLM6SP8SummerKelvin, ParamHUE_HCLM6SP9SummerKelvin
+            };
+            const uint8_t summerBrightnesses[10] = {
+                ParamHUE_HCLM6SP0SummerBrightness, ParamHUE_HCLM6SP1SummerBrightness,
+                ParamHUE_HCLM6SP2SummerBrightness, ParamHUE_HCLM6SP3SummerBrightness,
+                ParamHUE_HCLM6SP4SummerBrightness, ParamHUE_HCLM6SP5SummerBrightness,
+                ParamHUE_HCLM6SP6SummerBrightness, ParamHUE_HCLM6SP7SummerBrightness,
+                ParamHUE_HCLM6SP8SummerBrightness, ParamHUE_HCLM6SP9SummerBrightness
+            };
+            loadMasterSummerSetpoints(6, times, summerKelvins, summerBrightnesses, active);
+        }
         #endif
-        loadMasterSetpoints(6, times, kelvins, brightnesses, setpointCount);
 
         #ifdef ParamHUE_HCLM6CurveType
         applyMasterAdvanced(
@@ -4502,11 +4862,37 @@ void HueGatewayModule::setupHCL()
             ParamHUE_HCLM7SP3Brightness, ParamHUE_HCLM7SP4Brightness, ParamHUE_HCLM7SP5Brightness,
             ParamHUE_HCLM7SP6Brightness, ParamHUE_HCLM7SP7Brightness, ParamHUE_HCLM7SP8Brightness, ParamHUE_HCLM7SP9Brightness
         };
-        uint8_t setpointCount = 10;
-        #ifdef ParamHUE_HCLM7SetpointCount
-        setpointCount = ParamHUE_HCLM7SetpointCount;
+        const bool active[10] = {
+            #if defined(ParamHUE_HCLM7SP0Active) && defined(ParamHUE_HCLM7SP9Active)
+            ParamHUE_HCLM7SP0Active != 0, ParamHUE_HCLM7SP1Active != 0,
+            ParamHUE_HCLM7SP2Active != 0, ParamHUE_HCLM7SP3Active != 0,
+            ParamHUE_HCLM7SP4Active != 0, ParamHUE_HCLM7SP5Active != 0,
+            ParamHUE_HCLM7SP6Active != 0, ParamHUE_HCLM7SP7Active != 0,
+            ParamHUE_HCLM7SP8Active != 0, ParamHUE_HCLM7SP9Active != 0,
+            #else
+            true, true, true, true, true, true, true, true, true, true,
+            #endif
+        };
+        loadMasterSetpoints(7, times, kelvins, brightnesses, active);
+        #if defined(ParamHUE_HCLM7SeasonMode) && defined(ParamHUE_HCLM7SP0SummerKelvin)
+        if (ParamHUE_HCLM7SeasonMode != 0) {
+            const uint16_t summerKelvins[10] = {
+                ParamHUE_HCLM7SP0SummerKelvin, ParamHUE_HCLM7SP1SummerKelvin,
+                ParamHUE_HCLM7SP2SummerKelvin, ParamHUE_HCLM7SP3SummerKelvin,
+                ParamHUE_HCLM7SP4SummerKelvin, ParamHUE_HCLM7SP5SummerKelvin,
+                ParamHUE_HCLM7SP6SummerKelvin, ParamHUE_HCLM7SP7SummerKelvin,
+                ParamHUE_HCLM7SP8SummerKelvin, ParamHUE_HCLM7SP9SummerKelvin
+            };
+            const uint8_t summerBrightnesses[10] = {
+                ParamHUE_HCLM7SP0SummerBrightness, ParamHUE_HCLM7SP1SummerBrightness,
+                ParamHUE_HCLM7SP2SummerBrightness, ParamHUE_HCLM7SP3SummerBrightness,
+                ParamHUE_HCLM7SP4SummerBrightness, ParamHUE_HCLM7SP5SummerBrightness,
+                ParamHUE_HCLM7SP6SummerBrightness, ParamHUE_HCLM7SP7SummerBrightness,
+                ParamHUE_HCLM7SP8SummerBrightness, ParamHUE_HCLM7SP9SummerBrightness
+            };
+            loadMasterSummerSetpoints(7, times, summerKelvins, summerBrightnesses, active);
+        }
         #endif
-        loadMasterSetpoints(7, times, kelvins, brightnesses, setpointCount);
 
         #ifdef ParamHUE_HCLM7CurveType
         applyMasterAdvanced(
@@ -4553,11 +4939,37 @@ void HueGatewayModule::setupHCL()
             ParamHUE_HCLM8SP3Brightness, ParamHUE_HCLM8SP4Brightness, ParamHUE_HCLM8SP5Brightness,
             ParamHUE_HCLM8SP6Brightness, ParamHUE_HCLM8SP7Brightness, ParamHUE_HCLM8SP8Brightness, ParamHUE_HCLM8SP9Brightness
         };
-        uint8_t setpointCount = 10;
-        #ifdef ParamHUE_HCLM8SetpointCount
-        setpointCount = ParamHUE_HCLM8SetpointCount;
+        const bool active[10] = {
+            #if defined(ParamHUE_HCLM8SP0Active) && defined(ParamHUE_HCLM8SP9Active)
+            ParamHUE_HCLM8SP0Active != 0, ParamHUE_HCLM8SP1Active != 0,
+            ParamHUE_HCLM8SP2Active != 0, ParamHUE_HCLM8SP3Active != 0,
+            ParamHUE_HCLM8SP4Active != 0, ParamHUE_HCLM8SP5Active != 0,
+            ParamHUE_HCLM8SP6Active != 0, ParamHUE_HCLM8SP7Active != 0,
+            ParamHUE_HCLM8SP8Active != 0, ParamHUE_HCLM8SP9Active != 0,
+            #else
+            true, true, true, true, true, true, true, true, true, true,
+            #endif
+        };
+        loadMasterSetpoints(8, times, kelvins, brightnesses, active);
+        #if defined(ParamHUE_HCLM8SeasonMode) && defined(ParamHUE_HCLM8SP0SummerKelvin)
+        if (ParamHUE_HCLM8SeasonMode != 0) {
+            const uint16_t summerKelvins[10] = {
+                ParamHUE_HCLM8SP0SummerKelvin, ParamHUE_HCLM8SP1SummerKelvin,
+                ParamHUE_HCLM8SP2SummerKelvin, ParamHUE_HCLM8SP3SummerKelvin,
+                ParamHUE_HCLM8SP4SummerKelvin, ParamHUE_HCLM8SP5SummerKelvin,
+                ParamHUE_HCLM8SP6SummerKelvin, ParamHUE_HCLM8SP7SummerKelvin,
+                ParamHUE_HCLM8SP8SummerKelvin, ParamHUE_HCLM8SP9SummerKelvin
+            };
+            const uint8_t summerBrightnesses[10] = {
+                ParamHUE_HCLM8SP0SummerBrightness, ParamHUE_HCLM8SP1SummerBrightness,
+                ParamHUE_HCLM8SP2SummerBrightness, ParamHUE_HCLM8SP3SummerBrightness,
+                ParamHUE_HCLM8SP4SummerBrightness, ParamHUE_HCLM8SP5SummerBrightness,
+                ParamHUE_HCLM8SP6SummerBrightness, ParamHUE_HCLM8SP7SummerBrightness,
+                ParamHUE_HCLM8SP8SummerBrightness, ParamHUE_HCLM8SP9SummerBrightness
+            };
+            loadMasterSummerSetpoints(8, times, summerKelvins, summerBrightnesses, active);
+        }
         #endif
-        loadMasterSetpoints(8, times, kelvins, brightnesses, setpointCount);
 
         #ifdef ParamHUE_HCLM8CurveType
         applyMasterAdvanced(

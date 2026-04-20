@@ -2,7 +2,7 @@
 
 Alle wesentlichen Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 
-## [0.4.0] - 2026-04-10
+## [0.4.0] - 2026-04-17
 
 ### Hinzugefügt
 - Dedizierte Szenen-Aktionen für Hue-Taster ergänzt.
@@ -26,7 +26,10 @@ Alle wesentlichen Änderungen an diesem Projekt werden in dieser Datei dokumenti
 - DPT der Sperr-Status-Objekte von `DPST-1-1` (switch) auf `DPST-1-11` (state) geändert.
 
 ### Behoben
-- Relatives Dimmen: Debounce-Schwelle von 100 ms auf 80 ms reduziert, damit Taster mit 80 ms Schrittrate nicht geblockt werden (experimentell)
+- HCL-Updates: EventStream-TLS-Connect erfolgt jetzt asynchron via FreeRTOS-Task auf Core 0. Der Arduino-Loop auf Core 1 blockiert nicht mehr während des TLS-Handshakes (~1-3s reduziert auf ~800ms).
+- HCL-Updates: EventStream-Retry und Polling-Fallback werden während des aktiven HCL-Schreibfensters (220ms nach PUT-Abschluss) zurückgestellt, um unnötige Stop/Start-Zyklen bei mehreren aufeinanderfolgenden HCL-PUTs zu vermeiden.
+- Polling-Fallback: Startet nicht mehr während eines laufenden async EventStream-Connects, verhindert TLS-Speicher-OOM-Kollision zwischen Core 0 und Core 1.
+- HCL-Spacing-Gate: Wird jetzt nach dem blockierenden PUT gesetzt (statt davor), damit das volle 220ms-Fenster ab PUT-Abschluss gilt.
 - Relatives Dimmen: Fehler-Cooldown erst nach 5 aufeinanderfolgenden HTTP-Fehlern (statt 3) und Dauer von 5 s auf 2 s verkürzt – verhindert mehrsekundige Dimmstopps bei transienten Bridge-Fehlern.
 - HCL-Update-Intervall für KNX-Bus-Sends wird nun korrekt berücksichtigt.
 - Jalousie-DPT-Mapping in ETS-Tasterobjekten korrigiert.

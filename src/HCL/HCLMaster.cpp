@@ -9,7 +9,12 @@ Master::Master() {
     for (uint8_t i = 0; i < MAX_SETPOINTS; i++) {
         _setpoints[i] = Setpoint();
         _setpoints[i].timeMinutes = 0xFFFF; // Mark as invalid
+        _setpointsSummer[i] = Setpoint();
+        _setpointsSummer[i].timeMinutes = 0xFFFF; // Mark as invalid
     }
+
+    _hasSummerSetpoints = false;
+    _isSummer = false;
 
     _curveType = CurveType::FixedTime;
     _manualKelvin = 4000;
@@ -58,13 +63,7 @@ const Setpoint* Master::getSetpoint(uint8_t index) const {
 }
 
 uint8_t Master::getValidSetpointCount() const {
-    uint8_t count = 0;
-    for (uint8_t i = 0; i < MAX_SETPOINTS; i++) {
-        if (_setpoints[i].timeMinutes < 1440) {
-            count++;
-        }
-    }
-    return count;
+    return countValidInArray(_setpoints);
 }
 
 void Master::sortSetpoints() {
@@ -80,8 +79,31 @@ void Master::sortSetpoints() {
     }
 }
 
-bool Master::findInterpolationPoints(uint16_t currentTime, uint8_t& prevIndex, uint8_t& nextIndex) const {
-    uint8_t validCount = getValidSetpointCount();
+bool Master::setSummerSetpoint(uint8_t index, const Setpoint& setpoint) {
+    if (index >= MAX_SETPOINTS) {
+        return false;
+    }
+    _setpointsSummer[index] = setpoint;
+    if (setpoint.kelvin != 0xFFFF && setpoint.timeMinutes < 1440) {
+        _hasSummerSetpoints = true;
+    }
+    return true;
+}
+
+void Master::sortSummerSetpoints() {
+    for (uint8_t i = 0; i < MAX_SETPOINTS - 1; i++) {
+        for (uint8_t j = 0; j < MAX_SETPOINTS - i - 1; j++) {
+            if (_setpointsSummer[j].timeMinutes > _setpointsSummer[j + 1].timeMinutes) {
+                Setpoint temp = _setpointsSummer[j];
+                _setpointsSummer[j] = _setpointsSummer[j + 1];
+                _setpointsSummer[j + 1] = temp;
+            }
+        }
+    }
+}
+
+bool Master::findInterpolationPoints(const Setpoint* arr, uint16_t currentTime, uint8_t& prevIndex, uint8_t& nextIndex) const {
+    uint8_t validCount = countValidInArray(arr);
     if (validCount < 2) {
         return false;
     }
@@ -91,7 +113,7 @@ bool Master::findInterpolationPoints(uint16_t currentTime, uint8_t& prevIndex, u
     uint8_t lastValid = 0xFF;
     
     for (uint8_t i = 0; i < MAX_SETPOINTS; i++) {
-        if (_setpoints[i].timeMinutes < 1440) {
+        if (arr[i].timeMinutes < 1440) {
             if (firstValid == 0xFF) {
                 firstValid = i;
             }
@@ -104,11 +126,11 @@ bool Master::findInterpolationPoints(uint16_t currentTime, uint8_t& prevIndex, u
     nextIndex = firstValid;
     
     for (uint8_t i = firstValid; i < MAX_SETPOINTS; i++) {
-        if (_setpoints[i].timeMinutes >= 1440) {
+        if (arr[i].timeMinutes >= 1440) {
             continue; // Skip invalid setpoints
         }
         
-        if (_setpoints[i].timeMinutes <= currentTime) {
+        if (arr[i].timeMinutes <= currentTime) {
             prevIndex = i;
         } else {
             nextIndex = i;
@@ -117,7 +139,7 @@ bool Master::findInterpolationPoints(uint16_t currentTime, uint8_t& prevIndex, u
     }
     
     // Handle wraparound: if we're after the last setpoint, next is first
-    if (currentTime > _setpoints[lastValid].timeMinutes) {
+    if (currentTime > arr[lastValid].timeMinutes) {
         prevIndex = lastValid;
         nextIndex = firstValid;
     }
@@ -128,14 +150,16 @@ bool Master::findInterpolationPoints(uint16_t currentTime, uint8_t& prevIndex, u
 InterpolatedValue Master::calculateFixedTimeValue(uint16_t currentTimeMinutes) const {
     InterpolatedValue result;
     
+    const Setpoint* arr = (_isSummer && _hasSummerSetpoints) ? _setpointsSummer : _setpoints;
+
     uint8_t prevIdx, nextIdx;
-    if (!findInterpolationPoints(currentTimeMinutes, prevIdx, nextIdx)) {
+    if (!findInterpolationPoints(arr, currentTimeMinutes, prevIdx, nextIdx)) {
         // Not enough setpoints - return default
         return result;
     }
     
-    const Setpoint& prev = _setpoints[prevIdx];
-    const Setpoint& next = _setpoints[nextIdx];
+    const Setpoint& prev = arr[prevIdx];
+    const Setpoint& next = arr[nextIdx];
     
     // Calculate time difference and interpolation factor
     int32_t timeDiff;
@@ -173,7 +197,7 @@ InterpolatedValue Master::calculateFixedTimeValue(uint16_t currentTimeMinutes) c
     return result;
 }
 
-void Master::getSetpointRanges(uint16_t& minKelvin, uint16_t& maxKelvin, uint8_t& minBrightness, uint8_t& maxBrightness) const {
+void Master::getSetpointRanges(const Setpoint* arr, uint16_t& minKelvin, uint16_t& maxKelvin, uint8_t& minBrightness, uint8_t& maxBrightness) const {
     minKelvin = 2700;
     maxKelvin = 6500;
     minBrightness = 0;
@@ -181,22 +205,32 @@ void Master::getSetpointRanges(uint16_t& minKelvin, uint16_t& maxKelvin, uint8_t
 
     bool found = false;
     for (uint8_t i = 0; i < MAX_SETPOINTS; i++) {
-        if (_setpoints[i].timeMinutes >= 1440) {
+        if (arr[i].timeMinutes >= 1440) {
             continue;
         }
 
         if (!found) {
-            minKelvin = maxKelvin = _setpoints[i].kelvin;
-            minBrightness = maxBrightness = _setpoints[i].brightness;
+            minKelvin = maxKelvin = arr[i].kelvin;
+            minBrightness = maxBrightness = arr[i].brightness;
             found = true;
             continue;
         }
 
-        minKelvin = min(minKelvin, _setpoints[i].kelvin);
-        maxKelvin = max(maxKelvin, _setpoints[i].kelvin);
-        minBrightness = min(minBrightness, _setpoints[i].brightness);
-        maxBrightness = max(maxBrightness, _setpoints[i].brightness);
+        minKelvin = min(minKelvin, arr[i].kelvin);
+        maxKelvin = max(maxKelvin, arr[i].kelvin);
+        minBrightness = min(minBrightness, arr[i].brightness);
+        maxBrightness = max(maxBrightness, arr[i].brightness);
     }
+}
+
+uint8_t Master::countValidInArray(const Setpoint* arr) {
+    uint8_t count = 0;
+    for (uint8_t i = 0; i < MAX_SETPOINTS; i++) {
+        if (arr[i].timeMinutes < 1440) {
+            count++;
+        }
+    }
+    return count;
 }
 
 InterpolatedValue Master::calculateSunPositionValue(uint16_t currentTimeMinutes) const {
@@ -206,7 +240,8 @@ InterpolatedValue Master::calculateSunPositionValue(uint16_t currentTimeMinutes)
     uint16_t maxKelvin;
     uint8_t minBrightness;
     uint8_t maxBrightness;
-    getSetpointRanges(minKelvin, maxKelvin, minBrightness, maxBrightness);
+    const Setpoint* arr = (_isSummer && _hasSummerSetpoints) ? _setpointsSummer : _setpoints;
+    getSetpointRanges(arr, minKelvin, maxKelvin, minBrightness, maxBrightness);
 
     int32_t sunrise = static_cast<int32_t>(_sunriseMinutes) + _sunriseOffsetMin;
     int32_t sunset = static_cast<int32_t>(_sunsetMinutes) + _sunsetOffsetMin;

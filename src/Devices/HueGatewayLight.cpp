@@ -81,6 +81,8 @@ HueGatewayLight::~HueGatewayLight()
 {
 }
 
+unsigned long HueGatewayLight::globalHclWriteNextAllowedMs() { return sGlobalHclWriteNextAllowedMs; }
+
 void HueGatewayLight::begin(uint16_t koSwitch, uint16_t koBrightness, uint16_t koDimming,
                             uint16_t koStatusSwitch, uint16_t koStatusBrightness,
                             uint16_t koStatusColorTemp, uint16_t koStatusColorRGB)
@@ -863,8 +865,6 @@ void HueGatewayLight::loop()
         return;
     }
 
-    sGlobalHclWriteNextAllowedMs = now + kGlobalHclWriteSpacingMs;
-    
     // Apply changed values and publish update.
     _lastHCLUpdate = now;
     _lastHCLBrightness = hclValue.brightness;
@@ -887,4 +887,9 @@ void HueGatewayLight::loop()
     {
         sendToHue();
     }
+
+    // Set spacing gate AFTER the blocking PUT so the gate covers the full
+    // 220 ms window after completion.  This keeps the EventStream retry
+    // deferred while further HCL writes for other lights are still pending.
+    sGlobalHclWriteNextAllowedMs = millis() + kGlobalHclWriteSpacingMs;
 }

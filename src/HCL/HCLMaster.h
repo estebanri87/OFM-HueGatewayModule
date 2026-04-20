@@ -103,6 +103,10 @@ public:
      * @brief Sort setpoints by time (ascending)
      */
     void sortSetpoints();
+
+    bool setSummerSetpoint(uint8_t index, const Setpoint& setpoint);
+    void sortSummerSetpoints();
+    void setIsSummer(bool isSummer) { _isSummer = isSummer; }
     
     /**
      * @brief Check whether the configured curve can produce valid output
@@ -121,6 +125,9 @@ public:
     
 private:
     Setpoint _setpoints[MAX_SETPOINTS];
+    Setpoint _setpointsSummer[MAX_SETPOINTS];
+    bool _hasSummerSetpoints;
+    bool _isSummer;
     CurveType _curveType;
     uint16_t _manualKelvin;
     uint16_t _appliedKelvin;
@@ -153,13 +160,14 @@ private:
      * @param nextIndex Output: index of next setpoint
      * @return true if found, false if not enough setpoints
      */
-    bool findInterpolationPoints(uint16_t currentTime, uint8_t& prevIndex, uint8_t& nextIndex) const;
+    static uint8_t countValidInArray(const Setpoint* arr);
+    bool findInterpolationPoints(const Setpoint* arr, uint16_t currentTime, uint8_t& prevIndex, uint8_t& nextIndex) const;
     InterpolatedValue calculateFixedTimeValue(uint16_t currentTimeMinutes) const;
     InterpolatedValue calculateSunPositionValue(uint16_t currentTimeMinutes) const;
     InterpolatedValue calculateManualValue(uint16_t currentTimeMinutes) const;
     InterpolatedValue calculateAstronomicalValue(uint16_t currentTimeMinutes, int16_t dayOfYear) const;
     void applySlew(uint16_t targetKelvin, uint32_t currentTimeMs);
-    void getSetpointRanges(uint16_t& minKelvin, uint16_t& maxKelvin, uint8_t& minBrightness, uint8_t& maxBrightness) const;
+    void getSetpointRanges(const Setpoint* arr, uint16_t& minKelvin, uint16_t& maxKelvin, uint8_t& minBrightness, uint8_t& maxBrightness) const;
 };
 
 } // namespace HCL

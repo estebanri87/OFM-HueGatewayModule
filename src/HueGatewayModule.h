@@ -26,8 +26,8 @@ struct HueGatewayEventSensorUpdate;
  * It communicates with the Hue Bridge via Hue API v2 and exposes device
  * functions through KNX communication objects.
  * 
- * @version 0.3.9
- * @date 2026-03-23
+ * @version 0.4.0
+ * @date 2026-04-16
  */
 
 class HueGatewayModule : public OpenKNX::Module
