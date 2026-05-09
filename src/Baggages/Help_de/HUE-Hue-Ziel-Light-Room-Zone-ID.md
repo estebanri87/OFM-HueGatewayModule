@@ -1,6 +1,6 @@
-﻿### Hue-Ziel-Light-Room-Zone-ID-oder-Name
+﻿### Hue Ziel (Light-/Room-/Zone-ID)
 
-Primäres Zielfeld für alle Zieltypen. Akzeptiert sowohl eine numerische ID (RID) als auch einen eindeutigen Namen.
+Primäres Zielfeld für alle Zieltypen.
 
 Verwenden Sie je nach Zieltyp:
 - Light-ID oder Light-Name
@@ -14,3 +14,4 @@ Ermittlung über:
 Empfehlung:
 - Für produktive Projekte bevorzugt die ID (RID) eintragen.
 - Namen nur bei eindeutiger Benennung verwenden.
+

@@ -8,7 +8,7 @@
 - Pairing-Fenster abgelaufen → neu triggern und Link-Button erneut drücken.
 
 ### Hue-Ziel reagiert nicht
-- Zieltyp und **Hue Ziel (Light-/Room-/Zone-ID oder Name)** prüfen.
+- Zieltyp und **Hue Ziel (Light-/Room-/Zone-ID)** prüfen.
 - Bei Legacy-Projektierung zusätzlich **Hue Lampen-ID (UUID)** prüfen.
 - Kanal deaktiviert?
 - Sync-Richtung passend?
@@ -47,4 +47,11 @@
 - Richtige Szenennummer im Slot hinterlegt?
 - `Szene speichern` nur aktivieren, wenn Speicherbefehle wirklich genutzt werden.
 - Für Steckdosen sind keine Szenen verfügbar.
+
+### Saison-Profil schaltet nicht um
+- Saison-Modus ist `Standard`? → dann sind Sommer-Stützpunkte absichtlich deaktiviert.
+- Bei Modus `Festes Datum`: Start- und Ende-Datum korrekt eingetragen? Datum liegt im aktiven Bereich?
+- Bei Modus `Auto-DST`: Systemzeit korrekt? DST-Erkennung setzt korrekte Uhrzeit voraus.
+- Bei Modus `Per Objekt`: KO `LM x: Sommer aktiv` mit GA verbunden und Wert `1` gesendet?
+- Im Sommer-Profil mindestens 2 Stützpunkte mit **Sommer Aktiv = Ja** vorhanden (bei `FixedTime`/`SunPosition`)?
 

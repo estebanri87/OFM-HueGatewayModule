@@ -2,7 +2,7 @@
 
 Legacy-/Fallback-Feld für bestehende Projektierungen.
 
-Für neue Projektierungen bitte **Hue Ziel (Light-/Room-/Zone-ID oder Name)** verwenden.
+Für neue Projektierungen bitte **Hue Ziel (Light-/Room-/Zone-ID)** verwenden.
 
 Gilt nur für Zieltyp **Licht**.
 
