@@ -1,11 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <?xml-model href="../../../../Organization/knxprod-support/knx_project_20/knx-editor.xsd" type="application/xml" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <KNX xmlns:op="http://github.com/OpenKNX/OpenKNXproducer" xmlns="http://knx.org/xml/project/20" CreatedBy="KNX MT" ToolVersion="5.1.255.16695">
   
   <ManufacturerData>
     <Manufacturer RefId="M-00FA">
       <ApplicationPrograms>
-        <ApplicationProgram Id="%AID%" ApplicationNumber="102" ApplicationVersion="21" ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Hue Bridge Module" LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="de" DynamicTableManagement="false" Linkable="true" MinEtsVersion="5.0">
+        <ApplicationProgram Id="%AID%" ApplicationNumber="102" ApplicationVersion="22" ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Hue Bridge Module" LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="de" DynamicTableManagement="false" Linkable="true" MinEtsVersion="5.0">
           
           <Static>
             <ParameterTypes>
@@ -541,6 +541,65 @@
                 </TypeRestriction>
               </ParameterType>
 
+
+              <ParameterType Id="%AID%_PT-HUEHCLAdaptiveMode" Name="HUEHCLAdaptiveMode">
+                <TypeRestriction Base="Value" SizeInBit="8" UIHint="DropDown">
+                  <Enumeration Text="Deaktiviert" Value="0" Id="%ENID%" />
+                  <Enumeration Text="Tageslicht-Kompensation (Open-Loop)" Value="1" Id="%ENID%" />
+                  <Enumeration Text="Konstantlichtregelung (Closed-Loop)" Value="2" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+
+              <ParameterType Id="%AID%_PT-HUEHCLAdaptiveActiveMode" Name="HUEHCLAdaptiveActiveMode">
+                <TypeRestriction Base="Value" SizeInBit="8" UIHint="DropDown">
+                  <Enumeration Text="Immer aktiv" Value="0" Id="%ENID%" />
+                  <Enumeration Text="Nur tagsüber (per KO)" Value="1" Id="%ENID%" />
+                  <Enumeration Text="Nach Uhrzeit" Value="2" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+
+              <ParameterType Id="%AID%_PT-HUEHCLAdaptiveDayNightPolarity" Name="HUEHCLAdaptiveDayNightPolarity">
+                <TypeRestriction Base="Value" SizeInBit="8" UIHint="DropDown">
+                  <Enumeration Text="KO-Wert 1 = Tag" Value="0" Id="%ENID%" />
+                  <Enumeration Text="KO-Wert 1 = Nacht" Value="1" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+
+              <ParameterType Id="%AID%_PT-HUEHCLAdaptiveMaxLux" Name="HUEHCLAdaptiveMaxLux">
+                <TypeNumber SizeInBit="16" Type="unsignedInt" minInclusive="100" maxInclusive="65000" />
+              </ParameterType>
+
+              <ParameterType Id="%AID%_PT-HUEHCLAdaptiveStrength" Name="HUEHCLAdaptiveStrength">
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="100" />
+              </ParameterType>
+
+              <ParameterType Id="%AID%_PT-HUEHCLAdaptiveCeilToHCL" Name="HUEHCLAdaptiveCeilToHCL">
+                <TypeRestriction Base="Value" SizeInBit="8" UIHint="DropDown">
+                  <Enumeration Text="Nein" Value="0" Id="%ENID%" />
+                  <Enumeration Text="Ja" Value="1" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+
+              <ParameterType Id="%AID%_PT-HUEHCLAdaptiveKp" Name="HUEHCLAdaptiveKp">
+                <TypeRestriction Base="Value" SizeInBit="8" UIHint="DropDown">
+                  <Enumeration Text="0.5 (langsam, stabil)" Value="0" Id="%ENID%" />
+                  <Enumeration Text="1.0 (Standardwert)" Value="1" Id="%ENID%" />
+                  <Enumeration Text="1.5 (schnellere Reaktion)" Value="2" Id="%ENID%" />
+                  <Enumeration Text="2.0 (aggressiv)" Value="3" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+
+              <ParameterType Id="%AID%_PT-HUEHCLAdaptiveDeadband" Name="HUEHCLAdaptiveDeadband">
+                <TypeNumber SizeInBit="16" Type="unsignedInt" minInclusive="0" maxInclusive="5000" />
+              </ParameterType>
+
+              <ParameterType Id="%AID%_PT-HUEHCLAdaptivePercent" Name="HUEHCLAdaptivePercent">
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="100" />
+              </ParameterType>
+
+              <ParameterType Id="%AID%_PT-HUEHCLAdaptiveTimeout" Name="HUEHCLAdaptiveTimeout">
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="60" />
+              </ParameterType>
             </ParameterTypes>
             
             <Parameters>
@@ -1524,6 +1583,126 @@
               <Parameter Id="%AID%_P-%TT%80333" Name="HCLM8SP7SummerBrightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="SP7 Sommer-Helligkeit" Value="100" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2017" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-%TT%80334" Name="HCLM8SP8SummerBrightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="SP8 Sommer-Helligkeit" Value="100" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2018" BitOffset="0" /></Parameter>
               <Parameter Id="%AID%_P-%TT%80335" Name="HCLM8SP9SummerBrightness" ParameterType="%AID%_PT-HUEHCLBrightnessPercent" Text="SP9 Sommer-Helligkeit" Value="100" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2019" BitOffset="0" /></Parameter>
+
+              <!-- Adaptive Helligkeit Parameter Lichtmanager 1 -->
+              <Parameter Id="%AID%_P-%TT%10401" Name="HCLM1AdaptiveMode" ParameterType="%AID%_PT-HUEHCLAdaptiveMode" Text="Adaptive Helligkeit (Modus)" Value="0"><Memory CodeSegment="%MID%" Offset="2245" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%10402" Name="HCLM1AdaptiveActiveMode" ParameterType="%AID%_PT-HUEHCLAdaptiveActiveMode" Text="Aktivierung" Value="0"><Memory CodeSegment="%MID%" Offset="2246" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%10403" Name="HCLM1AdaptiveCeilToHCL" ParameterType="%AID%_PT-HUEHCLAdaptiveCeilToHCL" Text="Auf HCL-Wert begrenzen" Value="1"><Memory CodeSegment="%MID%" Offset="2247" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%10404" Name="HCLM1AdaptiveMaxLux" ParameterType="%AID%_PT-HUEHCLAdaptiveMaxLux" Text="Skalierungsmaximum" Value="1000" SuffixText=" Lux"><Memory CodeSegment="%MID%" Offset="2248" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%10405" Name="HCLM1AdaptiveMinBrightness" ParameterType="%AID%_PT-HUEHCLAdaptivePercent" Text="Mindesthelligkeit" Value="5" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2250" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%10406" Name="HCLM1AdaptiveSensorTimeout" ParameterType="%AID%_PT-HUEHCLAdaptiveTimeout" Text="Sensor-Timeout (0=aus)" Value="5" SuffixText=" min"><Memory CodeSegment="%MID%" Offset="2251" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%10407" Name="HCLM1AdaptiveMinChange" ParameterType="%AID%_PT-HUEHCLAdaptivePercent" Text="Mindestschrittgröße" Value="2" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2252" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%10408" Name="HCLM1AdaptiveStrength" ParameterType="%AID%_PT-HUEHCLAdaptiveStrength" Text="Kompensationsstärke" Value="80" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2253" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%10409" Name="HCLM1AdaptiveKp" ParameterType="%AID%_PT-HUEHCLAdaptiveKp" Text="P-Faktor" Value="1"><Memory CodeSegment="%MID%" Offset="2254" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%10410" Name="HCLM1AdaptiveDeadband" ParameterType="%AID%_PT-HUEHCLAdaptiveDeadband" Text="Totband" Value="50" SuffixText=" Lux"><Memory CodeSegment="%MID%" Offset="2255" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%10411" Name="HCLM1AdaptiveStartTime" ParameterType="%AID%_PT-HUEHCLTime" Text="Startzeit" Value="06:00"><Memory CodeSegment="%MID%" Offset="2257" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%10412" Name="HCLM1AdaptiveEndTime" ParameterType="%AID%_PT-HUEHCLTime" Text="Endzeit" Value="22:00"><Memory CodeSegment="%MID%" Offset="2262" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%10413" Name="HCLM1AdaptiveDayNightPolarity" ParameterType="%AID%_PT-HUEHCLAdaptiveDayNightPolarity" Text="Tag/Nacht-Polarität" Value="0"><Memory CodeSegment="%MID%" Offset="2267" BitOffset="0" /></Parameter>
+
+              <!-- Adaptive Helligkeit Parameter Lichtmanager 2 -->
+              <Parameter Id="%AID%_P-%TT%20401" Name="HCLM2AdaptiveMode" ParameterType="%AID%_PT-HUEHCLAdaptiveMode" Text="Adaptive Helligkeit (Modus)" Value="0"><Memory CodeSegment="%MID%" Offset="2268" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%20402" Name="HCLM2AdaptiveActiveMode" ParameterType="%AID%_PT-HUEHCLAdaptiveActiveMode" Text="Aktivierung" Value="0"><Memory CodeSegment="%MID%" Offset="2269" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%20403" Name="HCLM2AdaptiveCeilToHCL" ParameterType="%AID%_PT-HUEHCLAdaptiveCeilToHCL" Text="Auf HCL-Wert begrenzen" Value="1"><Memory CodeSegment="%MID%" Offset="2270" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%20404" Name="HCLM2AdaptiveMaxLux" ParameterType="%AID%_PT-HUEHCLAdaptiveMaxLux" Text="Skalierungsmaximum" Value="1000" SuffixText=" Lux"><Memory CodeSegment="%MID%" Offset="2271" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%20405" Name="HCLM2AdaptiveMinBrightness" ParameterType="%AID%_PT-HUEHCLAdaptivePercent" Text="Mindesthelligkeit" Value="5" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2273" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%20406" Name="HCLM2AdaptiveSensorTimeout" ParameterType="%AID%_PT-HUEHCLAdaptiveTimeout" Text="Sensor-Timeout (0=aus)" Value="5" SuffixText=" min"><Memory CodeSegment="%MID%" Offset="2274" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%20407" Name="HCLM2AdaptiveMinChange" ParameterType="%AID%_PT-HUEHCLAdaptivePercent" Text="Mindestschrittgröße" Value="2" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2275" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%20408" Name="HCLM2AdaptiveStrength" ParameterType="%AID%_PT-HUEHCLAdaptiveStrength" Text="Kompensationsstärke" Value="80" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2276" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%20409" Name="HCLM2AdaptiveKp" ParameterType="%AID%_PT-HUEHCLAdaptiveKp" Text="P-Faktor" Value="1"><Memory CodeSegment="%MID%" Offset="2277" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%20410" Name="HCLM2AdaptiveDeadband" ParameterType="%AID%_PT-HUEHCLAdaptiveDeadband" Text="Totband" Value="50" SuffixText=" Lux"><Memory CodeSegment="%MID%" Offset="2278" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%20411" Name="HCLM2AdaptiveStartTime" ParameterType="%AID%_PT-HUEHCLTime" Text="Startzeit" Value="06:00"><Memory CodeSegment="%MID%" Offset="2280" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%20412" Name="HCLM2AdaptiveEndTime" ParameterType="%AID%_PT-HUEHCLTime" Text="Endzeit" Value="22:00"><Memory CodeSegment="%MID%" Offset="2285" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%20413" Name="HCLM2AdaptiveDayNightPolarity" ParameterType="%AID%_PT-HUEHCLAdaptiveDayNightPolarity" Text="Tag/Nacht-Polarität" Value="0"><Memory CodeSegment="%MID%" Offset="2290" BitOffset="0" /></Parameter>
+
+              <!-- Adaptive Helligkeit Parameter Lichtmanager 3 -->
+              <Parameter Id="%AID%_P-%TT%30401" Name="HCLM3AdaptiveMode" ParameterType="%AID%_PT-HUEHCLAdaptiveMode" Text="Adaptive Helligkeit (Modus)" Value="0"><Memory CodeSegment="%MID%" Offset="2291" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%30402" Name="HCLM3AdaptiveActiveMode" ParameterType="%AID%_PT-HUEHCLAdaptiveActiveMode" Text="Aktivierung" Value="0"><Memory CodeSegment="%MID%" Offset="2292" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%30403" Name="HCLM3AdaptiveCeilToHCL" ParameterType="%AID%_PT-HUEHCLAdaptiveCeilToHCL" Text="Auf HCL-Wert begrenzen" Value="1"><Memory CodeSegment="%MID%" Offset="2293" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%30404" Name="HCLM3AdaptiveMaxLux" ParameterType="%AID%_PT-HUEHCLAdaptiveMaxLux" Text="Skalierungsmaximum" Value="1000" SuffixText=" Lux"><Memory CodeSegment="%MID%" Offset="2294" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%30405" Name="HCLM3AdaptiveMinBrightness" ParameterType="%AID%_PT-HUEHCLAdaptivePercent" Text="Mindesthelligkeit" Value="5" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2296" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%30406" Name="HCLM3AdaptiveSensorTimeout" ParameterType="%AID%_PT-HUEHCLAdaptiveTimeout" Text="Sensor-Timeout (0=aus)" Value="5" SuffixText=" min"><Memory CodeSegment="%MID%" Offset="2297" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%30407" Name="HCLM3AdaptiveMinChange" ParameterType="%AID%_PT-HUEHCLAdaptivePercent" Text="Mindestschrittgröße" Value="2" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2298" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%30408" Name="HCLM3AdaptiveStrength" ParameterType="%AID%_PT-HUEHCLAdaptiveStrength" Text="Kompensationsstärke" Value="80" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2299" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%30409" Name="HCLM3AdaptiveKp" ParameterType="%AID%_PT-HUEHCLAdaptiveKp" Text="P-Faktor" Value="1"><Memory CodeSegment="%MID%" Offset="2300" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%30410" Name="HCLM3AdaptiveDeadband" ParameterType="%AID%_PT-HUEHCLAdaptiveDeadband" Text="Totband" Value="50" SuffixText=" Lux"><Memory CodeSegment="%MID%" Offset="2301" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%30411" Name="HCLM3AdaptiveStartTime" ParameterType="%AID%_PT-HUEHCLTime" Text="Startzeit" Value="06:00"><Memory CodeSegment="%MID%" Offset="2303" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%30412" Name="HCLM3AdaptiveEndTime" ParameterType="%AID%_PT-HUEHCLTime" Text="Endzeit" Value="22:00"><Memory CodeSegment="%MID%" Offset="2308" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%30413" Name="HCLM3AdaptiveDayNightPolarity" ParameterType="%AID%_PT-HUEHCLAdaptiveDayNightPolarity" Text="Tag/Nacht-Polarität" Value="0"><Memory CodeSegment="%MID%" Offset="2313" BitOffset="0" /></Parameter>
+
+              <!-- Adaptive Helligkeit Parameter Lichtmanager 4 -->
+              <Parameter Id="%AID%_P-%TT%40401" Name="HCLM4AdaptiveMode" ParameterType="%AID%_PT-HUEHCLAdaptiveMode" Text="Adaptive Helligkeit (Modus)" Value="0"><Memory CodeSegment="%MID%" Offset="2314" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%40402" Name="HCLM4AdaptiveActiveMode" ParameterType="%AID%_PT-HUEHCLAdaptiveActiveMode" Text="Aktivierung" Value="0"><Memory CodeSegment="%MID%" Offset="2315" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%40403" Name="HCLM4AdaptiveCeilToHCL" ParameterType="%AID%_PT-HUEHCLAdaptiveCeilToHCL" Text="Auf HCL-Wert begrenzen" Value="1"><Memory CodeSegment="%MID%" Offset="2316" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%40404" Name="HCLM4AdaptiveMaxLux" ParameterType="%AID%_PT-HUEHCLAdaptiveMaxLux" Text="Skalierungsmaximum" Value="1000" SuffixText=" Lux"><Memory CodeSegment="%MID%" Offset="2317" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%40405" Name="HCLM4AdaptiveMinBrightness" ParameterType="%AID%_PT-HUEHCLAdaptivePercent" Text="Mindesthelligkeit" Value="5" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2319" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%40406" Name="HCLM4AdaptiveSensorTimeout" ParameterType="%AID%_PT-HUEHCLAdaptiveTimeout" Text="Sensor-Timeout (0=aus)" Value="5" SuffixText=" min"><Memory CodeSegment="%MID%" Offset="2320" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%40407" Name="HCLM4AdaptiveMinChange" ParameterType="%AID%_PT-HUEHCLAdaptivePercent" Text="Mindestschrittgröße" Value="2" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2321" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%40408" Name="HCLM4AdaptiveStrength" ParameterType="%AID%_PT-HUEHCLAdaptiveStrength" Text="Kompensationsstärke" Value="80" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2322" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%40409" Name="HCLM4AdaptiveKp" ParameterType="%AID%_PT-HUEHCLAdaptiveKp" Text="P-Faktor" Value="1"><Memory CodeSegment="%MID%" Offset="2323" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%40410" Name="HCLM4AdaptiveDeadband" ParameterType="%AID%_PT-HUEHCLAdaptiveDeadband" Text="Totband" Value="50" SuffixText=" Lux"><Memory CodeSegment="%MID%" Offset="2324" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%40411" Name="HCLM4AdaptiveStartTime" ParameterType="%AID%_PT-HUEHCLTime" Text="Startzeit" Value="06:00"><Memory CodeSegment="%MID%" Offset="2326" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%40412" Name="HCLM4AdaptiveEndTime" ParameterType="%AID%_PT-HUEHCLTime" Text="Endzeit" Value="22:00"><Memory CodeSegment="%MID%" Offset="2331" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%40413" Name="HCLM4AdaptiveDayNightPolarity" ParameterType="%AID%_PT-HUEHCLAdaptiveDayNightPolarity" Text="Tag/Nacht-Polarität" Value="0"><Memory CodeSegment="%MID%" Offset="2336" BitOffset="0" /></Parameter>
+
+              <!-- Adaptive Helligkeit Parameter Lichtmanager 5 -->
+              <Parameter Id="%AID%_P-%TT%50401" Name="HCLM5AdaptiveMode" ParameterType="%AID%_PT-HUEHCLAdaptiveMode" Text="Adaptive Helligkeit (Modus)" Value="0"><Memory CodeSegment="%MID%" Offset="2337" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%50402" Name="HCLM5AdaptiveActiveMode" ParameterType="%AID%_PT-HUEHCLAdaptiveActiveMode" Text="Aktivierung" Value="0"><Memory CodeSegment="%MID%" Offset="2338" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%50403" Name="HCLM5AdaptiveCeilToHCL" ParameterType="%AID%_PT-HUEHCLAdaptiveCeilToHCL" Text="Auf HCL-Wert begrenzen" Value="1"><Memory CodeSegment="%MID%" Offset="2339" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%50404" Name="HCLM5AdaptiveMaxLux" ParameterType="%AID%_PT-HUEHCLAdaptiveMaxLux" Text="Skalierungsmaximum" Value="1000" SuffixText=" Lux"><Memory CodeSegment="%MID%" Offset="2340" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%50405" Name="HCLM5AdaptiveMinBrightness" ParameterType="%AID%_PT-HUEHCLAdaptivePercent" Text="Mindesthelligkeit" Value="5" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2342" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%50406" Name="HCLM5AdaptiveSensorTimeout" ParameterType="%AID%_PT-HUEHCLAdaptiveTimeout" Text="Sensor-Timeout (0=aus)" Value="5" SuffixText=" min"><Memory CodeSegment="%MID%" Offset="2343" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%50407" Name="HCLM5AdaptiveMinChange" ParameterType="%AID%_PT-HUEHCLAdaptivePercent" Text="Mindestschrittgröße" Value="2" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2344" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%50408" Name="HCLM5AdaptiveStrength" ParameterType="%AID%_PT-HUEHCLAdaptiveStrength" Text="Kompensationsstärke" Value="80" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2345" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%50409" Name="HCLM5AdaptiveKp" ParameterType="%AID%_PT-HUEHCLAdaptiveKp" Text="P-Faktor" Value="1"><Memory CodeSegment="%MID%" Offset="2346" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%50410" Name="HCLM5AdaptiveDeadband" ParameterType="%AID%_PT-HUEHCLAdaptiveDeadband" Text="Totband" Value="50" SuffixText=" Lux"><Memory CodeSegment="%MID%" Offset="2347" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%50411" Name="HCLM5AdaptiveStartTime" ParameterType="%AID%_PT-HUEHCLTime" Text="Startzeit" Value="06:00"><Memory CodeSegment="%MID%" Offset="2349" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%50412" Name="HCLM5AdaptiveEndTime" ParameterType="%AID%_PT-HUEHCLTime" Text="Endzeit" Value="22:00"><Memory CodeSegment="%MID%" Offset="2354" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%50413" Name="HCLM5AdaptiveDayNightPolarity" ParameterType="%AID%_PT-HUEHCLAdaptiveDayNightPolarity" Text="Tag/Nacht-Polarität" Value="0"><Memory CodeSegment="%MID%" Offset="2359" BitOffset="0" /></Parameter>
+
+              <!-- Adaptive Helligkeit Parameter Lichtmanager 6 -->
+              <Parameter Id="%AID%_P-%TT%60401" Name="HCLM6AdaptiveMode" ParameterType="%AID%_PT-HUEHCLAdaptiveMode" Text="Adaptive Helligkeit (Modus)" Value="0"><Memory CodeSegment="%MID%" Offset="2360" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%60402" Name="HCLM6AdaptiveActiveMode" ParameterType="%AID%_PT-HUEHCLAdaptiveActiveMode" Text="Aktivierung" Value="0"><Memory CodeSegment="%MID%" Offset="2361" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%60403" Name="HCLM6AdaptiveCeilToHCL" ParameterType="%AID%_PT-HUEHCLAdaptiveCeilToHCL" Text="Auf HCL-Wert begrenzen" Value="1"><Memory CodeSegment="%MID%" Offset="2362" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%60404" Name="HCLM6AdaptiveMaxLux" ParameterType="%AID%_PT-HUEHCLAdaptiveMaxLux" Text="Skalierungsmaximum" Value="1000" SuffixText=" Lux"><Memory CodeSegment="%MID%" Offset="2363" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%60405" Name="HCLM6AdaptiveMinBrightness" ParameterType="%AID%_PT-HUEHCLAdaptivePercent" Text="Mindesthelligkeit" Value="5" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2365" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%60406" Name="HCLM6AdaptiveSensorTimeout" ParameterType="%AID%_PT-HUEHCLAdaptiveTimeout" Text="Sensor-Timeout (0=aus)" Value="5" SuffixText=" min"><Memory CodeSegment="%MID%" Offset="2366" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%60407" Name="HCLM6AdaptiveMinChange" ParameterType="%AID%_PT-HUEHCLAdaptivePercent" Text="Mindestschrittgröße" Value="2" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2367" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%60408" Name="HCLM6AdaptiveStrength" ParameterType="%AID%_PT-HUEHCLAdaptiveStrength" Text="Kompensationsstärke" Value="80" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2368" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%60409" Name="HCLM6AdaptiveKp" ParameterType="%AID%_PT-HUEHCLAdaptiveKp" Text="P-Faktor" Value="1"><Memory CodeSegment="%MID%" Offset="2369" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%60410" Name="HCLM6AdaptiveDeadband" ParameterType="%AID%_PT-HUEHCLAdaptiveDeadband" Text="Totband" Value="50" SuffixText=" Lux"><Memory CodeSegment="%MID%" Offset="2370" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%60411" Name="HCLM6AdaptiveStartTime" ParameterType="%AID%_PT-HUEHCLTime" Text="Startzeit" Value="06:00"><Memory CodeSegment="%MID%" Offset="2372" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%60412" Name="HCLM6AdaptiveEndTime" ParameterType="%AID%_PT-HUEHCLTime" Text="Endzeit" Value="22:00"><Memory CodeSegment="%MID%" Offset="2377" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%60413" Name="HCLM6AdaptiveDayNightPolarity" ParameterType="%AID%_PT-HUEHCLAdaptiveDayNightPolarity" Text="Tag/Nacht-Polarität" Value="0"><Memory CodeSegment="%MID%" Offset="2382" BitOffset="0" /></Parameter>
+
+              <!-- Adaptive Helligkeit Parameter Lichtmanager 7 -->
+              <Parameter Id="%AID%_P-%TT%70401" Name="HCLM7AdaptiveMode" ParameterType="%AID%_PT-HUEHCLAdaptiveMode" Text="Adaptive Helligkeit (Modus)" Value="0"><Memory CodeSegment="%MID%" Offset="2383" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%70402" Name="HCLM7AdaptiveActiveMode" ParameterType="%AID%_PT-HUEHCLAdaptiveActiveMode" Text="Aktivierung" Value="0"><Memory CodeSegment="%MID%" Offset="2384" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%70403" Name="HCLM7AdaptiveCeilToHCL" ParameterType="%AID%_PT-HUEHCLAdaptiveCeilToHCL" Text="Auf HCL-Wert begrenzen" Value="1"><Memory CodeSegment="%MID%" Offset="2385" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%70404" Name="HCLM7AdaptiveMaxLux" ParameterType="%AID%_PT-HUEHCLAdaptiveMaxLux" Text="Skalierungsmaximum" Value="1000" SuffixText=" Lux"><Memory CodeSegment="%MID%" Offset="2386" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%70405" Name="HCLM7AdaptiveMinBrightness" ParameterType="%AID%_PT-HUEHCLAdaptivePercent" Text="Mindesthelligkeit" Value="5" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2388" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%70406" Name="HCLM7AdaptiveSensorTimeout" ParameterType="%AID%_PT-HUEHCLAdaptiveTimeout" Text="Sensor-Timeout (0=aus)" Value="5" SuffixText=" min"><Memory CodeSegment="%MID%" Offset="2389" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%70407" Name="HCLM7AdaptiveMinChange" ParameterType="%AID%_PT-HUEHCLAdaptivePercent" Text="Mindestschrittgröße" Value="2" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2390" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%70408" Name="HCLM7AdaptiveStrength" ParameterType="%AID%_PT-HUEHCLAdaptiveStrength" Text="Kompensationsstärke" Value="80" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2391" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%70409" Name="HCLM7AdaptiveKp" ParameterType="%AID%_PT-HUEHCLAdaptiveKp" Text="P-Faktor" Value="1"><Memory CodeSegment="%MID%" Offset="2392" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%70410" Name="HCLM7AdaptiveDeadband" ParameterType="%AID%_PT-HUEHCLAdaptiveDeadband" Text="Totband" Value="50" SuffixText=" Lux"><Memory CodeSegment="%MID%" Offset="2393" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%70411" Name="HCLM7AdaptiveStartTime" ParameterType="%AID%_PT-HUEHCLTime" Text="Startzeit" Value="06:00"><Memory CodeSegment="%MID%" Offset="2395" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%70412" Name="HCLM7AdaptiveEndTime" ParameterType="%AID%_PT-HUEHCLTime" Text="Endzeit" Value="22:00"><Memory CodeSegment="%MID%" Offset="2400" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%70413" Name="HCLM7AdaptiveDayNightPolarity" ParameterType="%AID%_PT-HUEHCLAdaptiveDayNightPolarity" Text="Tag/Nacht-Polarität" Value="0"><Memory CodeSegment="%MID%" Offset="2405" BitOffset="0" /></Parameter>
+
+              <!-- Adaptive Helligkeit Parameter Lichtmanager 8 -->
+              <Parameter Id="%AID%_P-%TT%80401" Name="HCLM8AdaptiveMode" ParameterType="%AID%_PT-HUEHCLAdaptiveMode" Text="Adaptive Helligkeit (Modus)" Value="0"><Memory CodeSegment="%MID%" Offset="2406" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%80402" Name="HCLM8AdaptiveActiveMode" ParameterType="%AID%_PT-HUEHCLAdaptiveActiveMode" Text="Aktivierung" Value="0"><Memory CodeSegment="%MID%" Offset="2407" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%80403" Name="HCLM8AdaptiveCeilToHCL" ParameterType="%AID%_PT-HUEHCLAdaptiveCeilToHCL" Text="Auf HCL-Wert begrenzen" Value="1"><Memory CodeSegment="%MID%" Offset="2408" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%80404" Name="HCLM8AdaptiveMaxLux" ParameterType="%AID%_PT-HUEHCLAdaptiveMaxLux" Text="Skalierungsmaximum" Value="1000" SuffixText=" Lux"><Memory CodeSegment="%MID%" Offset="2409" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%80405" Name="HCLM8AdaptiveMinBrightness" ParameterType="%AID%_PT-HUEHCLAdaptivePercent" Text="Mindesthelligkeit" Value="5" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2411" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%80406" Name="HCLM8AdaptiveSensorTimeout" ParameterType="%AID%_PT-HUEHCLAdaptiveTimeout" Text="Sensor-Timeout (0=aus)" Value="5" SuffixText=" min"><Memory CodeSegment="%MID%" Offset="2412" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%80407" Name="HCLM8AdaptiveMinChange" ParameterType="%AID%_PT-HUEHCLAdaptivePercent" Text="Mindestschrittgröße" Value="2" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2413" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%80408" Name="HCLM8AdaptiveStrength" ParameterType="%AID%_PT-HUEHCLAdaptiveStrength" Text="Kompensationsstärke" Value="80" SuffixText=" %"><Memory CodeSegment="%MID%" Offset="2414" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%80409" Name="HCLM8AdaptiveKp" ParameterType="%AID%_PT-HUEHCLAdaptiveKp" Text="P-Faktor" Value="1"><Memory CodeSegment="%MID%" Offset="2415" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%80410" Name="HCLM8AdaptiveDeadband" ParameterType="%AID%_PT-HUEHCLAdaptiveDeadband" Text="Totband" Value="50" SuffixText=" Lux"><Memory CodeSegment="%MID%" Offset="2416" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%80411" Name="HCLM8AdaptiveStartTime" ParameterType="%AID%_PT-HUEHCLTime" Text="Startzeit" Value="06:00"><Memory CodeSegment="%MID%" Offset="2418" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%80412" Name="HCLM8AdaptiveEndTime" ParameterType="%AID%_PT-HUEHCLTime" Text="Endzeit" Value="22:00"><Memory CodeSegment="%MID%" Offset="2423" BitOffset="0" /></Parameter>
+              <Parameter Id="%AID%_P-%TT%80413" Name="HCLM8AdaptiveDayNightPolarity" ParameterType="%AID%_PT-HUEHCLAdaptiveDayNightPolarity" Text="Tag/Nacht-Polarität" Value="0"><Memory CodeSegment="%MID%" Offset="2428" BitOffset="0" /></Parameter>
             </Parameters>
             
             <ParameterRefs>
@@ -2250,6 +2429,126 @@
               <ParameterRef Id="%AID%_P-%TT%80333_R-%TT%8033301" RefId="%AID%_P-%TT%80333" />
               <ParameterRef Id="%AID%_P-%TT%80334_R-%TT%8033401" RefId="%AID%_P-%TT%80334" />
               <ParameterRef Id="%AID%_P-%TT%80335_R-%TT%8033501" RefId="%AID%_P-%TT%80335" />
+
+              <!-- Adaptive ParameterRefs LM1 -->
+              <ParameterRef Id="%AID%_P-%TT%10401_R-%TT%1040101" RefId="%AID%_P-%TT%10401" />
+              <ParameterRef Id="%AID%_P-%TT%10402_R-%TT%1040201" RefId="%AID%_P-%TT%10402" />
+              <ParameterRef Id="%AID%_P-%TT%10403_R-%TT%1040301" RefId="%AID%_P-%TT%10403" />
+              <ParameterRef Id="%AID%_P-%TT%10404_R-%TT%1040401" RefId="%AID%_P-%TT%10404" />
+              <ParameterRef Id="%AID%_P-%TT%10405_R-%TT%1040501" RefId="%AID%_P-%TT%10405" />
+              <ParameterRef Id="%AID%_P-%TT%10406_R-%TT%1040601" RefId="%AID%_P-%TT%10406" />
+              <ParameterRef Id="%AID%_P-%TT%10407_R-%TT%1040701" RefId="%AID%_P-%TT%10407" />
+              <ParameterRef Id="%AID%_P-%TT%10408_R-%TT%1040801" RefId="%AID%_P-%TT%10408" />
+              <ParameterRef Id="%AID%_P-%TT%10409_R-%TT%1040901" RefId="%AID%_P-%TT%10409" />
+              <ParameterRef Id="%AID%_P-%TT%10410_R-%TT%1041001" RefId="%AID%_P-%TT%10410" />
+              <ParameterRef Id="%AID%_P-%TT%10411_R-%TT%1041101" RefId="%AID%_P-%TT%10411" />
+              <ParameterRef Id="%AID%_P-%TT%10412_R-%TT%1041201" RefId="%AID%_P-%TT%10412" />
+              <ParameterRef Id="%AID%_P-%TT%10413_R-%TT%1041301" RefId="%AID%_P-%TT%10413" />
+
+              <!-- Adaptive ParameterRefs LM2 -->
+              <ParameterRef Id="%AID%_P-%TT%20401_R-%TT%2040101" RefId="%AID%_P-%TT%20401" />
+              <ParameterRef Id="%AID%_P-%TT%20402_R-%TT%2040201" RefId="%AID%_P-%TT%20402" />
+              <ParameterRef Id="%AID%_P-%TT%20403_R-%TT%2040301" RefId="%AID%_P-%TT%20403" />
+              <ParameterRef Id="%AID%_P-%TT%20404_R-%TT%2040401" RefId="%AID%_P-%TT%20404" />
+              <ParameterRef Id="%AID%_P-%TT%20405_R-%TT%2040501" RefId="%AID%_P-%TT%20405" />
+              <ParameterRef Id="%AID%_P-%TT%20406_R-%TT%2040601" RefId="%AID%_P-%TT%20406" />
+              <ParameterRef Id="%AID%_P-%TT%20407_R-%TT%2040701" RefId="%AID%_P-%TT%20407" />
+              <ParameterRef Id="%AID%_P-%TT%20408_R-%TT%2040801" RefId="%AID%_P-%TT%20408" />
+              <ParameterRef Id="%AID%_P-%TT%20409_R-%TT%2040901" RefId="%AID%_P-%TT%20409" />
+              <ParameterRef Id="%AID%_P-%TT%20410_R-%TT%2041001" RefId="%AID%_P-%TT%20410" />
+              <ParameterRef Id="%AID%_P-%TT%20411_R-%TT%2041101" RefId="%AID%_P-%TT%20411" />
+              <ParameterRef Id="%AID%_P-%TT%20412_R-%TT%2041201" RefId="%AID%_P-%TT%20412" />
+              <ParameterRef Id="%AID%_P-%TT%20413_R-%TT%2041301" RefId="%AID%_P-%TT%20413" />
+
+              <!-- Adaptive ParameterRefs LM3 -->
+              <ParameterRef Id="%AID%_P-%TT%30401_R-%TT%3040101" RefId="%AID%_P-%TT%30401" />
+              <ParameterRef Id="%AID%_P-%TT%30402_R-%TT%3040201" RefId="%AID%_P-%TT%30402" />
+              <ParameterRef Id="%AID%_P-%TT%30403_R-%TT%3040301" RefId="%AID%_P-%TT%30403" />
+              <ParameterRef Id="%AID%_P-%TT%30404_R-%TT%3040401" RefId="%AID%_P-%TT%30404" />
+              <ParameterRef Id="%AID%_P-%TT%30405_R-%TT%3040501" RefId="%AID%_P-%TT%30405" />
+              <ParameterRef Id="%AID%_P-%TT%30406_R-%TT%3040601" RefId="%AID%_P-%TT%30406" />
+              <ParameterRef Id="%AID%_P-%TT%30407_R-%TT%3040701" RefId="%AID%_P-%TT%30407" />
+              <ParameterRef Id="%AID%_P-%TT%30408_R-%TT%3040801" RefId="%AID%_P-%TT%30408" />
+              <ParameterRef Id="%AID%_P-%TT%30409_R-%TT%3040901" RefId="%AID%_P-%TT%30409" />
+              <ParameterRef Id="%AID%_P-%TT%30410_R-%TT%3041001" RefId="%AID%_P-%TT%30410" />
+              <ParameterRef Id="%AID%_P-%TT%30411_R-%TT%3041101" RefId="%AID%_P-%TT%30411" />
+              <ParameterRef Id="%AID%_P-%TT%30412_R-%TT%3041201" RefId="%AID%_P-%TT%30412" />
+              <ParameterRef Id="%AID%_P-%TT%30413_R-%TT%3041301" RefId="%AID%_P-%TT%30413" />
+
+              <!-- Adaptive ParameterRefs LM4 -->
+              <ParameterRef Id="%AID%_P-%TT%40401_R-%TT%4040101" RefId="%AID%_P-%TT%40401" />
+              <ParameterRef Id="%AID%_P-%TT%40402_R-%TT%4040201" RefId="%AID%_P-%TT%40402" />
+              <ParameterRef Id="%AID%_P-%TT%40403_R-%TT%4040301" RefId="%AID%_P-%TT%40403" />
+              <ParameterRef Id="%AID%_P-%TT%40404_R-%TT%4040401" RefId="%AID%_P-%TT%40404" />
+              <ParameterRef Id="%AID%_P-%TT%40405_R-%TT%4040501" RefId="%AID%_P-%TT%40405" />
+              <ParameterRef Id="%AID%_P-%TT%40406_R-%TT%4040601" RefId="%AID%_P-%TT%40406" />
+              <ParameterRef Id="%AID%_P-%TT%40407_R-%TT%4040701" RefId="%AID%_P-%TT%40407" />
+              <ParameterRef Id="%AID%_P-%TT%40408_R-%TT%4040801" RefId="%AID%_P-%TT%40408" />
+              <ParameterRef Id="%AID%_P-%TT%40409_R-%TT%4040901" RefId="%AID%_P-%TT%40409" />
+              <ParameterRef Id="%AID%_P-%TT%40410_R-%TT%4041001" RefId="%AID%_P-%TT%40410" />
+              <ParameterRef Id="%AID%_P-%TT%40411_R-%TT%4041101" RefId="%AID%_P-%TT%40411" />
+              <ParameterRef Id="%AID%_P-%TT%40412_R-%TT%4041201" RefId="%AID%_P-%TT%40412" />
+              <ParameterRef Id="%AID%_P-%TT%40413_R-%TT%4041301" RefId="%AID%_P-%TT%40413" />
+
+              <!-- Adaptive ParameterRefs LM5 -->
+              <ParameterRef Id="%AID%_P-%TT%50401_R-%TT%5040101" RefId="%AID%_P-%TT%50401" />
+              <ParameterRef Id="%AID%_P-%TT%50402_R-%TT%5040201" RefId="%AID%_P-%TT%50402" />
+              <ParameterRef Id="%AID%_P-%TT%50403_R-%TT%5040301" RefId="%AID%_P-%TT%50403" />
+              <ParameterRef Id="%AID%_P-%TT%50404_R-%TT%5040401" RefId="%AID%_P-%TT%50404" />
+              <ParameterRef Id="%AID%_P-%TT%50405_R-%TT%5040501" RefId="%AID%_P-%TT%50405" />
+              <ParameterRef Id="%AID%_P-%TT%50406_R-%TT%5040601" RefId="%AID%_P-%TT%50406" />
+              <ParameterRef Id="%AID%_P-%TT%50407_R-%TT%5040701" RefId="%AID%_P-%TT%50407" />
+              <ParameterRef Id="%AID%_P-%TT%50408_R-%TT%5040801" RefId="%AID%_P-%TT%50408" />
+              <ParameterRef Id="%AID%_P-%TT%50409_R-%TT%5040901" RefId="%AID%_P-%TT%50409" />
+              <ParameterRef Id="%AID%_P-%TT%50410_R-%TT%5041001" RefId="%AID%_P-%TT%50410" />
+              <ParameterRef Id="%AID%_P-%TT%50411_R-%TT%5041101" RefId="%AID%_P-%TT%50411" />
+              <ParameterRef Id="%AID%_P-%TT%50412_R-%TT%5041201" RefId="%AID%_P-%TT%50412" />
+              <ParameterRef Id="%AID%_P-%TT%50413_R-%TT%5041301" RefId="%AID%_P-%TT%50413" />
+
+              <!-- Adaptive ParameterRefs LM6 -->
+              <ParameterRef Id="%AID%_P-%TT%60401_R-%TT%6040101" RefId="%AID%_P-%TT%60401" />
+              <ParameterRef Id="%AID%_P-%TT%60402_R-%TT%6040201" RefId="%AID%_P-%TT%60402" />
+              <ParameterRef Id="%AID%_P-%TT%60403_R-%TT%6040301" RefId="%AID%_P-%TT%60403" />
+              <ParameterRef Id="%AID%_P-%TT%60404_R-%TT%6040401" RefId="%AID%_P-%TT%60404" />
+              <ParameterRef Id="%AID%_P-%TT%60405_R-%TT%6040501" RefId="%AID%_P-%TT%60405" />
+              <ParameterRef Id="%AID%_P-%TT%60406_R-%TT%6040601" RefId="%AID%_P-%TT%60406" />
+              <ParameterRef Id="%AID%_P-%TT%60407_R-%TT%6040701" RefId="%AID%_P-%TT%60407" />
+              <ParameterRef Id="%AID%_P-%TT%60408_R-%TT%6040801" RefId="%AID%_P-%TT%60408" />
+              <ParameterRef Id="%AID%_P-%TT%60409_R-%TT%6040901" RefId="%AID%_P-%TT%60409" />
+              <ParameterRef Id="%AID%_P-%TT%60410_R-%TT%6041001" RefId="%AID%_P-%TT%60410" />
+              <ParameterRef Id="%AID%_P-%TT%60411_R-%TT%6041101" RefId="%AID%_P-%TT%60411" />
+              <ParameterRef Id="%AID%_P-%TT%60412_R-%TT%6041201" RefId="%AID%_P-%TT%60412" />
+              <ParameterRef Id="%AID%_P-%TT%60413_R-%TT%6041301" RefId="%AID%_P-%TT%60413" />
+
+              <!-- Adaptive ParameterRefs LM7 -->
+              <ParameterRef Id="%AID%_P-%TT%70401_R-%TT%7040101" RefId="%AID%_P-%TT%70401" />
+              <ParameterRef Id="%AID%_P-%TT%70402_R-%TT%7040201" RefId="%AID%_P-%TT%70402" />
+              <ParameterRef Id="%AID%_P-%TT%70403_R-%TT%7040301" RefId="%AID%_P-%TT%70403" />
+              <ParameterRef Id="%AID%_P-%TT%70404_R-%TT%7040401" RefId="%AID%_P-%TT%70404" />
+              <ParameterRef Id="%AID%_P-%TT%70405_R-%TT%7040501" RefId="%AID%_P-%TT%70405" />
+              <ParameterRef Id="%AID%_P-%TT%70406_R-%TT%7040601" RefId="%AID%_P-%TT%70406" />
+              <ParameterRef Id="%AID%_P-%TT%70407_R-%TT%7040701" RefId="%AID%_P-%TT%70407" />
+              <ParameterRef Id="%AID%_P-%TT%70408_R-%TT%7040801" RefId="%AID%_P-%TT%70408" />
+              <ParameterRef Id="%AID%_P-%TT%70409_R-%TT%7040901" RefId="%AID%_P-%TT%70409" />
+              <ParameterRef Id="%AID%_P-%TT%70410_R-%TT%7041001" RefId="%AID%_P-%TT%70410" />
+              <ParameterRef Id="%AID%_P-%TT%70411_R-%TT%7041101" RefId="%AID%_P-%TT%70411" />
+              <ParameterRef Id="%AID%_P-%TT%70412_R-%TT%7041201" RefId="%AID%_P-%TT%70412" />
+              <ParameterRef Id="%AID%_P-%TT%70413_R-%TT%7041301" RefId="%AID%_P-%TT%70413" />
+
+              <!-- Adaptive ParameterRefs LM8 -->
+              <ParameterRef Id="%AID%_P-%TT%80401_R-%TT%8040101" RefId="%AID%_P-%TT%80401" />
+              <ParameterRef Id="%AID%_P-%TT%80402_R-%TT%8040201" RefId="%AID%_P-%TT%80402" />
+              <ParameterRef Id="%AID%_P-%TT%80403_R-%TT%8040301" RefId="%AID%_P-%TT%80403" />
+              <ParameterRef Id="%AID%_P-%TT%80404_R-%TT%8040401" RefId="%AID%_P-%TT%80404" />
+              <ParameterRef Id="%AID%_P-%TT%80405_R-%TT%8040501" RefId="%AID%_P-%TT%80405" />
+              <ParameterRef Id="%AID%_P-%TT%80406_R-%TT%8040601" RefId="%AID%_P-%TT%80406" />
+              <ParameterRef Id="%AID%_P-%TT%80407_R-%TT%8040701" RefId="%AID%_P-%TT%80407" />
+              <ParameterRef Id="%AID%_P-%TT%80408_R-%TT%8040801" RefId="%AID%_P-%TT%80408" />
+              <ParameterRef Id="%AID%_P-%TT%80409_R-%TT%8040901" RefId="%AID%_P-%TT%80409" />
+              <ParameterRef Id="%AID%_P-%TT%80410_R-%TT%8041001" RefId="%AID%_P-%TT%80410" />
+              <ParameterRef Id="%AID%_P-%TT%80411_R-%TT%8041101" RefId="%AID%_P-%TT%80411" />
+              <ParameterRef Id="%AID%_P-%TT%80412_R-%TT%8041201" RefId="%AID%_P-%TT%80412" />
+              <ParameterRef Id="%AID%_P-%TT%80413_R-%TT%8041301" RefId="%AID%_P-%TT%80413" />
             </ParameterRefs>
             
             <ComObjectTable>
@@ -2307,6 +2606,30 @@
               <ComObject Id="%AID%_O-%TT%00043" Name="HUEHCLM6SummerActive" Text="LM 6: Sommer aktiv" Number="42" FunctionText="LM 6: Eingang, Sommer=1" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Enabled" DatapointType="DPST-1-1" />
               <ComObject Id="%AID%_O-%TT%00044" Name="HUEHCLM7SummerActive" Text="LM 7: Sommer aktiv" Number="43" FunctionText="LM 7: Eingang, Sommer=1" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Enabled" DatapointType="DPST-1-1" />
               <ComObject Id="%AID%_O-%TT%00045" Name="HUEHCLM8SummerActive" Text="LM 8: Sommer aktiv" Number="44" FunctionText="LM 8: Eingang, Sommer=1" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Enabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%000046" Name="HUEHCLM1AmbientLux" Text="LM 1: Umgebungslicht (Lux)" Number="45" FunctionText="LM 1: Eingang Umgebungslicht" ObjectSize="2 Bytes" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-9-4" />
+              <ComObject Id="%AID%_O-%TT%000047" Name="HUEHCLM1DayNight" Text="LM 1: Tag/Nacht" Number="46" FunctionText="LM 1: Eingang Tag/Nacht" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Enabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%000048" Name="HUEHCLM1AdaptiveActive" Text="LM 1: Adaptive Helligkeit aktiv" Number="47" FunctionText="LM 1: Status Adaptive aktiv" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-11" />
+              <ComObject Id="%AID%_O-%TT%000049" Name="HUEHCLM2AmbientLux" Text="LM 2: Umgebungslicht (Lux)" Number="48" FunctionText="LM 2: Eingang Umgebungslicht" ObjectSize="2 Bytes" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-9-4" />
+              <ComObject Id="%AID%_O-%TT%000050" Name="HUEHCLM2DayNight" Text="LM 2: Tag/Nacht" Number="49" FunctionText="LM 2: Eingang Tag/Nacht" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Enabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%000051" Name="HUEHCLM2AdaptiveActive" Text="LM 2: Adaptive Helligkeit aktiv" Number="50" FunctionText="LM 2: Status Adaptive aktiv" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-11" />
+              <ComObject Id="%AID%_O-%TT%000052" Name="HUEHCLM3AmbientLux" Text="LM 3: Umgebungslicht (Lux)" Number="51" FunctionText="LM 3: Eingang Umgebungslicht" ObjectSize="2 Bytes" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-9-4" />
+              <ComObject Id="%AID%_O-%TT%000053" Name="HUEHCLM3DayNight" Text="LM 3: Tag/Nacht" Number="52" FunctionText="LM 3: Eingang Tag/Nacht" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Enabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%000054" Name="HUEHCLM3AdaptiveActive" Text="LM 3: Adaptive Helligkeit aktiv" Number="53" FunctionText="LM 3: Status Adaptive aktiv" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-11" />
+              <ComObject Id="%AID%_O-%TT%000055" Name="HUEHCLM4AmbientLux" Text="LM 4: Umgebungslicht (Lux)" Number="54" FunctionText="LM 4: Eingang Umgebungslicht" ObjectSize="2 Bytes" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-9-4" />
+              <ComObject Id="%AID%_O-%TT%000056" Name="HUEHCLM4DayNight" Text="LM 4: Tag/Nacht" Number="55" FunctionText="LM 4: Eingang Tag/Nacht" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Enabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%000057" Name="HUEHCLM4AdaptiveActive" Text="LM 4: Adaptive Helligkeit aktiv" Number="56" FunctionText="LM 4: Status Adaptive aktiv" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-11" />
+              <ComObject Id="%AID%_O-%TT%000058" Name="HUEHCLM5AmbientLux" Text="LM 5: Umgebungslicht (Lux)" Number="57" FunctionText="LM 5: Eingang Umgebungslicht" ObjectSize="2 Bytes" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-9-4" />
+              <ComObject Id="%AID%_O-%TT%000059" Name="HUEHCLM5DayNight" Text="LM 5: Tag/Nacht" Number="58" FunctionText="LM 5: Eingang Tag/Nacht" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Enabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%000060" Name="HUEHCLM5AdaptiveActive" Text="LM 5: Adaptive Helligkeit aktiv" Number="59" FunctionText="LM 5: Status Adaptive aktiv" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-11" />
+              <ComObject Id="%AID%_O-%TT%000061" Name="HUEHCLM6AmbientLux" Text="LM 6: Umgebungslicht (Lux)" Number="60" FunctionText="LM 6: Eingang Umgebungslicht" ObjectSize="2 Bytes" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-9-4" />
+              <ComObject Id="%AID%_O-%TT%000062" Name="HUEHCLM6DayNight" Text="LM 6: Tag/Nacht" Number="61" FunctionText="LM 6: Eingang Tag/Nacht" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Enabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%000063" Name="HUEHCLM6AdaptiveActive" Text="LM 6: Adaptive Helligkeit aktiv" Number="62" FunctionText="LM 6: Status Adaptive aktiv" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-11" />
+              <ComObject Id="%AID%_O-%TT%000064" Name="HUEHCLM7AmbientLux" Text="LM 7: Umgebungslicht (Lux)" Number="63" FunctionText="LM 7: Eingang Umgebungslicht" ObjectSize="2 Bytes" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-9-4" />
+              <ComObject Id="%AID%_O-%TT%000065" Name="HUEHCLM7DayNight" Text="LM 7: Tag/Nacht" Number="64" FunctionText="LM 7: Eingang Tag/Nacht" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Enabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%000066" Name="HUEHCLM7AdaptiveActive" Text="LM 7: Adaptive Helligkeit aktiv" Number="65" FunctionText="LM 7: Status Adaptive aktiv" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-11" />
+              <ComObject Id="%AID%_O-%TT%000067" Name="HUEHCLM8AmbientLux" Text="LM 8: Umgebungslicht (Lux)" Number="66" FunctionText="LM 8: Eingang Umgebungslicht" ObjectSize="2 Bytes" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-9-4" />
+              <ComObject Id="%AID%_O-%TT%000068" Name="HUEHCLM8DayNight" Text="LM 8: Tag/Nacht" Number="67" FunctionText="LM 8: Eingang Tag/Nacht" ObjectSize="1 Bit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Enabled" ReadOnInitFlag="Enabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%000069" Name="HUEHCLM8AdaptiveActive" Text="LM 8: Adaptive Helligkeit aktiv" Number="68" FunctionText="LM 8: Status Adaptive aktiv" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-11" />
             </ComObjectTable>
             
             <ComObjectRefs>
@@ -2355,6 +2678,30 @@
               <ComObjectRef Id="%AID%_O-%TT%00043_R-%TT%0004301" RefId="%AID%_O-%TT%00043" Text="{{0:LM 6}}: Sommer aktiv" TextParameterRefId="%AID%_P-%TT%60100_R-%TT%6010001" />
               <ComObjectRef Id="%AID%_O-%TT%00044_R-%TT%0004401" RefId="%AID%_O-%TT%00044" Text="{{0:LM 7}}: Sommer aktiv" TextParameterRefId="%AID%_P-%TT%70100_R-%TT%7010001" />
               <ComObjectRef Id="%AID%_O-%TT%00045_R-%TT%0004501" RefId="%AID%_O-%TT%00045" Text="{{0:LM 8}}: Sommer aktiv" TextParameterRefId="%AID%_P-%TT%80100_R-%TT%8010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000046_R-%TT%00004601" RefId="%AID%_O-%TT%000046" Text="{{0:LM 1}}: Umgebungslicht (Lux)" TextParameterRefId="%AID%_P-%TT%10100_R-%TT%1010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000047_R-%TT%00004701" RefId="%AID%_O-%TT%000047" Text="{{0:LM 1}}: Tag/Nacht" TextParameterRefId="%AID%_P-%TT%10100_R-%TT%1010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000048_R-%TT%00004801" RefId="%AID%_O-%TT%000048" Text="{{0:LM 1}}: Adaptive Helligkeit aktiv" TextParameterRefId="%AID%_P-%TT%10100_R-%TT%1010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000049_R-%TT%00004901" RefId="%AID%_O-%TT%000049" Text="{{0:LM 2}}: Umgebungslicht (Lux)" TextParameterRefId="%AID%_P-%TT%20100_R-%TT%2010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000050_R-%TT%00005001" RefId="%AID%_O-%TT%000050" Text="{{0:LM 2}}: Tag/Nacht" TextParameterRefId="%AID%_P-%TT%20100_R-%TT%2010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000051_R-%TT%00005101" RefId="%AID%_O-%TT%000051" Text="{{0:LM 2}}: Adaptive Helligkeit aktiv" TextParameterRefId="%AID%_P-%TT%20100_R-%TT%2010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000052_R-%TT%00005201" RefId="%AID%_O-%TT%000052" Text="{{0:LM 3}}: Umgebungslicht (Lux)" TextParameterRefId="%AID%_P-%TT%30100_R-%TT%3010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000053_R-%TT%00005301" RefId="%AID%_O-%TT%000053" Text="{{0:LM 3}}: Tag/Nacht" TextParameterRefId="%AID%_P-%TT%30100_R-%TT%3010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000054_R-%TT%00005401" RefId="%AID%_O-%TT%000054" Text="{{0:LM 3}}: Adaptive Helligkeit aktiv" TextParameterRefId="%AID%_P-%TT%30100_R-%TT%3010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000055_R-%TT%00005501" RefId="%AID%_O-%TT%000055" Text="{{0:LM 4}}: Umgebungslicht (Lux)" TextParameterRefId="%AID%_P-%TT%40100_R-%TT%4010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000056_R-%TT%00005601" RefId="%AID%_O-%TT%000056" Text="{{0:LM 4}}: Tag/Nacht" TextParameterRefId="%AID%_P-%TT%40100_R-%TT%4010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000057_R-%TT%00005701" RefId="%AID%_O-%TT%000057" Text="{{0:LM 4}}: Adaptive Helligkeit aktiv" TextParameterRefId="%AID%_P-%TT%40100_R-%TT%4010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000058_R-%TT%00005801" RefId="%AID%_O-%TT%000058" Text="{{0:LM 5}}: Umgebungslicht (Lux)" TextParameterRefId="%AID%_P-%TT%50100_R-%TT%5010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000059_R-%TT%00005901" RefId="%AID%_O-%TT%000059" Text="{{0:LM 5}}: Tag/Nacht" TextParameterRefId="%AID%_P-%TT%50100_R-%TT%5010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000060_R-%TT%00006001" RefId="%AID%_O-%TT%000060" Text="{{0:LM 5}}: Adaptive Helligkeit aktiv" TextParameterRefId="%AID%_P-%TT%50100_R-%TT%5010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000061_R-%TT%00006101" RefId="%AID%_O-%TT%000061" Text="{{0:LM 6}}: Umgebungslicht (Lux)" TextParameterRefId="%AID%_P-%TT%60100_R-%TT%6010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000062_R-%TT%00006201" RefId="%AID%_O-%TT%000062" Text="{{0:LM 6}}: Tag/Nacht" TextParameterRefId="%AID%_P-%TT%60100_R-%TT%6010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000063_R-%TT%00006301" RefId="%AID%_O-%TT%000063" Text="{{0:LM 6}}: Adaptive Helligkeit aktiv" TextParameterRefId="%AID%_P-%TT%60100_R-%TT%6010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000064_R-%TT%00006401" RefId="%AID%_O-%TT%000064" Text="{{0:LM 7}}: Umgebungslicht (Lux)" TextParameterRefId="%AID%_P-%TT%70100_R-%TT%7010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000065_R-%TT%00006501" RefId="%AID%_O-%TT%000065" Text="{{0:LM 7}}: Tag/Nacht" TextParameterRefId="%AID%_P-%TT%70100_R-%TT%7010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000066_R-%TT%00006601" RefId="%AID%_O-%TT%000066" Text="{{0:LM 7}}: Adaptive Helligkeit aktiv" TextParameterRefId="%AID%_P-%TT%70100_R-%TT%7010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000067_R-%TT%00006701" RefId="%AID%_O-%TT%000067" Text="{{0:LM 8}}: Umgebungslicht (Lux)" TextParameterRefId="%AID%_P-%TT%80100_R-%TT%8010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000068_R-%TT%00006801" RefId="%AID%_O-%TT%000068" Text="{{0:LM 8}}: Tag/Nacht" TextParameterRefId="%AID%_P-%TT%80100_R-%TT%8010001" />
+              <ComObjectRef Id="%AID%_O-%TT%000069_R-%TT%00006901" RefId="%AID%_O-%TT%000069" Text="{{0:LM 8}}: Adaptive Helligkeit aktiv" TextParameterRefId="%AID%_P-%TT%80100_R-%TT%8010001" />
             </ComObjectRefs>
           
           </Static>
@@ -2518,6 +2865,7 @@
                               <ComObjectRefRef RefId="%AID%_O-%TT%00006_R-%TT%0000601" />
                             </when>
                           </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM1LockLine" Text="" UIHint="HorizontalRuler" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM1Lock" Text="Lichtmanager Sperre (spezifisch)" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-%TT%00045_R-%TT%0004501" />
                           <choose ParamRefId="%AID%_P-%TT%00045_R-%TT%0004501">
@@ -2535,6 +2883,7 @@
                               <ParameterRefRef RefId="%AID%_P-%TT%00061_R-%TT%0006101" IndentLevel="1" />
                             </when>
                           </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM1AdvancedLine" Text="" UIHint="HorizontalRuler" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM1Advanced" Text="Erweiterte Kurve" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1410201_R-141020101" />
                           <ParameterRefRef RefId="%AID%_P-1410202_R-141020201" />
@@ -2561,7 +2910,8 @@
                               <ParameterRefRef RefId="%AID%_P-1410211_R-141021101" IndentLevel="1" />
                             </when>
                             <when test="!=3">
-                                                            <ParameterSeparator Id="%AID%_PS-HUEHCLM1SeasonTitle" Text="Saison-Profil" UIHint="Headline" />
+                                                            <ParameterSeparator Id="%AID%_PS-HUEHCLM1SeasonLine" Text="" UIHint="HorizontalRuler" />
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM1SeasonTitle" Text="Saison-Profil" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-1410300_R-141030001" />
                               <choose ParamRefId="%AID%_P-1410300_R-141030001">
                                 <when test="1"><ParameterRefRef RefId="%AID%_P-1410301_R-141030101" IndentLevel="1" /></when>
@@ -2573,6 +2923,7 @@
                                 </when>
                                 <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%00038_R-%TT%0003801" HelpContext="HUE-HCL-Saison-KO" /></when>
                               </choose>
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM1SPLine" Text="" UIHint="HorizontalRuler" />
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM1SPTitle" Text="Stützpunkte" UIHint="Headline" />
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM1InfoTime" Text="Stützpunkte müssen in chronologisch aufsteigender Reihenfolge definiert werden." UIHint="Information" />
                               <choose ParamRefId="%AID%_P-1410300_R-141030001">
@@ -2734,6 +3085,43 @@
                               </choose>
                             </when>
                           </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM1AdaptiveLine" Text="" UIHint="HorizontalRuler" />
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM1AdaptiveTitle" Text="Adaptive Helligkeit" UIHint="Headline" HelpContext="HUE-HCL-Adaptive-Helligkeit" />
+                          <ParameterRefRef RefId="%AID%_P-%TT%10401_R-%TT%1040101" HelpContext="HUE-HCL-Adaptive-Modus" />
+                          <choose ParamRefId="%AID%_P-%TT%10401_R-%TT%1040101">
+                            <when test="!=0">
+                              <ParameterRefRef RefId="%AID%_P-%TT%10402_R-%TT%1040201" HelpContext="HUE-HCL-Adaptive-Aktivierung" />
+                              <choose ParamRefId="%AID%_P-%TT%10402_R-%TT%1040201">
+                                <when test="!=0">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%10413_R-%TT%1041301" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Polaritaet" />
+                                </when>
+                              </choose>
+                              <choose ParamRefId="%AID%_P-%TT%10402_R-%TT%1040201">
+                                <when test="2">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%10411_R-%TT%1041101" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Zeitfenster" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%10412_R-%TT%1041201" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Zeitfenster" />
+                                </when>
+                              </choose>
+                              <choose ParamRefId="%AID%_P-%TT%10401_R-%TT%1040101">
+                                <when test="1">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%10404_R-%TT%1040401" HelpContext="HUE-HCL-Adaptive-Skalierungsmaximum" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%10408_R-%TT%1040801" HelpContext="HUE-HCL-Adaptive-Staerke" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%10403_R-%TT%1040301" HelpContext="HUE-HCL-Adaptive-CeilToHCL" />
+                                </when>
+                                <when test="2">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%10409_R-%TT%1040901" HelpContext="HUE-HCL-Adaptive-Kp" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%10410_R-%TT%1041001" HelpContext="HUE-HCL-Adaptive-Totband" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%10403_R-%TT%1040301" HelpContext="HUE-HCL-Adaptive-CeilToHCL" />
+                                </when>
+                              </choose>
+                              <ParameterRefRef RefId="%AID%_P-%TT%10405_R-%TT%1040501" HelpContext="HUE-HCL-Adaptive-Mindesthelligkeit" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%10406_R-%TT%1040601" HelpContext="HUE-HCL-Adaptive-Timeout" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%10407_R-%TT%1040701" HelpContext="HUE-HCL-Adaptive-Mindestschritt" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000046_R-%TT%00004601" HelpContext="HUE-HCL-Adaptive-KOs" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000047_R-%TT%00004701" HelpContext="HUE-HCL-Adaptive-KOs" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000048_R-%TT%00004801" HelpContext="HUE-HCL-Adaptive-KOs" />
+                            </when>
+                          </choose>
                         </ParameterBlock>
                       </when>
                     </choose>
@@ -2751,6 +3139,7 @@
                               <ComObjectRefRef RefId="%AID%_O-1400008_R-140000801" />
                             </when>
                           </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM2LockLine" Text="" UIHint="HorizontalRuler" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM2Lock" Text="Lichtmanager Sperre (spezifisch)" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-%TT%00046_R-%TT%0004601" />
                           <choose ParamRefId="%AID%_P-%TT%00046_R-%TT%0004601">
@@ -2768,6 +3157,7 @@
                               <ParameterRefRef RefId="%AID%_P-%TT%00062_R-%TT%0006201" IndentLevel="1" />
                             </when>
                           </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM2AdvancedLine" Text="" UIHint="HorizontalRuler" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM2Advanced" Text="Erweiterte Kurve" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1420201_R-142020101" />
                           <ParameterRefRef RefId="%AID%_P-1420202_R-142020201" />
@@ -2794,7 +3184,8 @@
                               <ParameterRefRef RefId="%AID%_P-1420211_R-142021101" IndentLevel="1" />
                             </when>
                             <when test="!=3">
-                                                            <ParameterSeparator Id="%AID%_PS-HUEHCLM2SeasonTitle" Text="Saison-Profil" UIHint="Headline" />
+                                                            <ParameterSeparator Id="%AID%_PS-HUEHCLM2SeasonLine" Text="" UIHint="HorizontalRuler" />
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM2SeasonTitle" Text="Saison-Profil" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-1420300_R-142030001" />
                               <choose ParamRefId="%AID%_P-1420300_R-142030001">
                                 <when test="1"><ParameterRefRef RefId="%AID%_P-1420301_R-142030101" IndentLevel="1" /></when>
@@ -2806,6 +3197,7 @@
                                 </when>
                                 <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%00039_R-%TT%0003901" HelpContext="HUE-HCL-Saison-KO" /></when>
                               </choose>
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM2SPLine" Text="" UIHint="HorizontalRuler" />
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM2SPTitle" Text="Stützpunkte" UIHint="Headline" />
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM2InfoTime" Text="Stützpunkte müssen in chronologisch aufsteigender Reihenfolge definiert werden." UIHint="Information" />
                               <choose ParamRefId="%AID%_P-1420300_R-142030001">
@@ -2967,6 +3359,43 @@
                               </choose>
                             </when>
                           </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM2AdaptiveLine" Text="" UIHint="HorizontalRuler" />
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM2AdaptiveTitle" Text="Adaptive Helligkeit" UIHint="Headline" HelpContext="HUE-HCL-Adaptive-Helligkeit" />
+                          <ParameterRefRef RefId="%AID%_P-%TT%20401_R-%TT%2040101" HelpContext="HUE-HCL-Adaptive-Modus" />
+                          <choose ParamRefId="%AID%_P-%TT%20401_R-%TT%2040101">
+                            <when test="!=0">
+                              <ParameterRefRef RefId="%AID%_P-%TT%20402_R-%TT%2040201" HelpContext="HUE-HCL-Adaptive-Aktivierung" />
+                              <choose ParamRefId="%AID%_P-%TT%20402_R-%TT%2040201">
+                                <when test="!=0">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%20413_R-%TT%2041301" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Polaritaet" />
+                                </when>
+                              </choose>
+                              <choose ParamRefId="%AID%_P-%TT%20402_R-%TT%2040201">
+                                <when test="2">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%20411_R-%TT%2041101" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Zeitfenster" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%20412_R-%TT%2041201" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Zeitfenster" />
+                                </when>
+                              </choose>
+                              <choose ParamRefId="%AID%_P-%TT%20401_R-%TT%2040101">
+                                <when test="1">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%20404_R-%TT%2040401" HelpContext="HUE-HCL-Adaptive-Skalierungsmaximum" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%20408_R-%TT%2040801" HelpContext="HUE-HCL-Adaptive-Staerke" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%20403_R-%TT%2040301" HelpContext="HUE-HCL-Adaptive-CeilToHCL" />
+                                </when>
+                                <when test="2">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%20409_R-%TT%2040901" HelpContext="HUE-HCL-Adaptive-Kp" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%20410_R-%TT%2041001" HelpContext="HUE-HCL-Adaptive-Totband" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%20403_R-%TT%2040301" HelpContext="HUE-HCL-Adaptive-CeilToHCL" />
+                                </when>
+                              </choose>
+                              <ParameterRefRef RefId="%AID%_P-%TT%20405_R-%TT%2040501" HelpContext="HUE-HCL-Adaptive-Mindesthelligkeit" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%20406_R-%TT%2040601" HelpContext="HUE-HCL-Adaptive-Timeout" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%20407_R-%TT%2040701" HelpContext="HUE-HCL-Adaptive-Mindestschritt" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000049_R-%TT%00004901" HelpContext="HUE-HCL-Adaptive-KOs" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000050_R-%TT%00005001" HelpContext="HUE-HCL-Adaptive-KOs" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000051_R-%TT%00005101" HelpContext="HUE-HCL-Adaptive-KOs" />
+                            </when>
+                          </choose>
                         </ParameterBlock>
                       </when>
                     </choose>
@@ -2984,6 +3413,7 @@
                               <ComObjectRefRef RefId="%AID%_O-1400010_R-140001001" />
                             </when>
                           </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM3LockLine" Text="" UIHint="HorizontalRuler" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM3Lock" Text="Lichtmanager Sperre (spezifisch)" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-%TT%00047_R-%TT%0004701" />
                           <choose ParamRefId="%AID%_P-%TT%00047_R-%TT%0004701">
@@ -3001,6 +3431,7 @@
                               <ParameterRefRef RefId="%AID%_P-%TT%00063_R-%TT%0006301" IndentLevel="1" />
                             </when>
                           </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM3AdvancedLine" Text="" UIHint="HorizontalRuler" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM3Advanced" Text="Erweiterte Kurve" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1430201_R-143020101" />
                           <ParameterRefRef RefId="%AID%_P-1430202_R-143020201" />
@@ -3019,7 +3450,8 @@
                           </choose>
                           <choose ParamRefId="%AID%_P-1430201_R-143020101">
                             <when test="!=3">
-                                                            <ParameterSeparator Id="%AID%_PS-HUEHCLM3SeasonTitle" Text="Saison-Profil" UIHint="Headline" />
+                                                            <ParameterSeparator Id="%AID%_PS-HUEHCLM3SeasonLine" Text="" UIHint="HorizontalRuler" />
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM3SeasonTitle" Text="Saison-Profil" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-1430300_R-143030001" />
                               <choose ParamRefId="%AID%_P-1430300_R-143030001">
                                 <when test="1"><ParameterRefRef RefId="%AID%_P-1430301_R-143030101" IndentLevel="1" /></when>
@@ -3031,6 +3463,7 @@
                                 </when>
                                 <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%00040_R-%TT%0004001" HelpContext="HUE-HCL-Saison-KO" /></when>
                               </choose>
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM3SPLine" Text="" UIHint="HorizontalRuler" />
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM3SPTitle" Text="Stützpunkte" UIHint="Headline" />
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM3InfoTime" Text="Stützpunkte müssen in chronologisch aufsteigender Reihenfolge definiert werden." UIHint="Information" />
                               <choose ParamRefId="%AID%_P-1430300_R-143030001">
@@ -3200,6 +3633,43 @@
                               <ParameterRefRef RefId="%AID%_P-1430211_R-143021101" IndentLevel="1" />
                             </when>
                           </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM3AdaptiveLine" Text="" UIHint="HorizontalRuler" />
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM3AdaptiveTitle" Text="Adaptive Helligkeit" UIHint="Headline" HelpContext="HUE-HCL-Adaptive-Helligkeit" />
+                          <ParameterRefRef RefId="%AID%_P-%TT%30401_R-%TT%3040101" HelpContext="HUE-HCL-Adaptive-Modus" />
+                          <choose ParamRefId="%AID%_P-%TT%30401_R-%TT%3040101">
+                            <when test="!=0">
+                              <ParameterRefRef RefId="%AID%_P-%TT%30402_R-%TT%3040201" HelpContext="HUE-HCL-Adaptive-Aktivierung" />
+                              <choose ParamRefId="%AID%_P-%TT%30402_R-%TT%3040201">
+                                <when test="!=0">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%30413_R-%TT%3041301" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Polaritaet" />
+                                </when>
+                              </choose>
+                              <choose ParamRefId="%AID%_P-%TT%30402_R-%TT%3040201">
+                                <when test="2">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%30411_R-%TT%3041101" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Zeitfenster" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%30412_R-%TT%3041201" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Zeitfenster" />
+                                </when>
+                              </choose>
+                              <choose ParamRefId="%AID%_P-%TT%30401_R-%TT%3040101">
+                                <when test="1">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%30404_R-%TT%3040401" HelpContext="HUE-HCL-Adaptive-Skalierungsmaximum" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%30408_R-%TT%3040801" HelpContext="HUE-HCL-Adaptive-Staerke" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%30403_R-%TT%3040301" HelpContext="HUE-HCL-Adaptive-CeilToHCL" />
+                                </when>
+                                <when test="2">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%30409_R-%TT%3040901" HelpContext="HUE-HCL-Adaptive-Kp" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%30410_R-%TT%3041001" HelpContext="HUE-HCL-Adaptive-Totband" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%30403_R-%TT%3040301" HelpContext="HUE-HCL-Adaptive-CeilToHCL" />
+                                </when>
+                              </choose>
+                              <ParameterRefRef RefId="%AID%_P-%TT%30405_R-%TT%3040501" HelpContext="HUE-HCL-Adaptive-Mindesthelligkeit" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%30406_R-%TT%3040601" HelpContext="HUE-HCL-Adaptive-Timeout" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%30407_R-%TT%3040701" HelpContext="HUE-HCL-Adaptive-Mindestschritt" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000052_R-%TT%00005201" HelpContext="HUE-HCL-Adaptive-KOs" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000053_R-%TT%00005301" HelpContext="HUE-HCL-Adaptive-KOs" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000054_R-%TT%00005401" HelpContext="HUE-HCL-Adaptive-KOs" />
+                            </when>
+                          </choose>
                         </ParameterBlock>
                       </when>
                     </choose>
@@ -3217,6 +3687,7 @@
                               <ComObjectRefRef RefId="%AID%_O-1400012_R-140001201" />
                             </when>
                           </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM4LockLine" Text="" UIHint="HorizontalRuler" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM4Lock" Text="Lichtmanager Sperre (spezifisch)" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-%TT%00048_R-%TT%0004801" />
                           <choose ParamRefId="%AID%_P-%TT%00048_R-%TT%0004801">
@@ -3234,6 +3705,7 @@
                               <ParameterRefRef RefId="%AID%_P-%TT%00064_R-%TT%0006401" IndentLevel="1" />
                             </when>
                           </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM4AdvancedLine" Text="" UIHint="HorizontalRuler" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM4Advanced" Text="Erweiterte Kurve" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-1440201_R-144020101" />
                           <ParameterRefRef RefId="%AID%_P-1440202_R-144020201" />
@@ -3252,7 +3724,8 @@
                           </choose>
                           <choose ParamRefId="%AID%_P-1440201_R-144020101">
                             <when test="!=3">
-                                                            <ParameterSeparator Id="%AID%_PS-HUEHCLM4SeasonTitle" Text="Saison-Profil" UIHint="Headline" />
+                                                            <ParameterSeparator Id="%AID%_PS-HUEHCLM4SeasonLine" Text="" UIHint="HorizontalRuler" />
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM4SeasonTitle" Text="Saison-Profil" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-1440300_R-144030001" />
                               <choose ParamRefId="%AID%_P-1440300_R-144030001">
                                 <when test="1"><ParameterRefRef RefId="%AID%_P-1440301_R-144030101" IndentLevel="1" /></when>
@@ -3264,6 +3737,7 @@
                                 </when>
                                 <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%00041_R-%TT%0004101" HelpContext="HUE-HCL-Saison-KO" /></when>
                               </choose>
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM4SPLine" Text="" UIHint="HorizontalRuler" />
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM4SPTitle" Text="Stützpunkte" UIHint="Headline" />
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM4InfoTime" Text="Stützpunkte müssen in chronologisch aufsteigender Reihenfolge definiert werden." UIHint="Information" />
                               <choose ParamRefId="%AID%_P-1440300_R-144030001">
@@ -3433,6 +3907,43 @@
                               <ParameterRefRef RefId="%AID%_P-1440211_R-144021101" IndentLevel="1" />
                             </when>
                           </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM4AdaptiveLine" Text="" UIHint="HorizontalRuler" />
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM4AdaptiveTitle" Text="Adaptive Helligkeit" UIHint="Headline" HelpContext="HUE-HCL-Adaptive-Helligkeit" />
+                          <ParameterRefRef RefId="%AID%_P-%TT%40401_R-%TT%4040101" HelpContext="HUE-HCL-Adaptive-Modus" />
+                          <choose ParamRefId="%AID%_P-%TT%40401_R-%TT%4040101">
+                            <when test="!=0">
+                              <ParameterRefRef RefId="%AID%_P-%TT%40402_R-%TT%4040201" HelpContext="HUE-HCL-Adaptive-Aktivierung" />
+                              <choose ParamRefId="%AID%_P-%TT%40402_R-%TT%4040201">
+                                <when test="!=0">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%40413_R-%TT%4041301" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Polaritaet" />
+                                </when>
+                              </choose>
+                              <choose ParamRefId="%AID%_P-%TT%40402_R-%TT%4040201">
+                                <when test="2">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%40411_R-%TT%4041101" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Zeitfenster" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%40412_R-%TT%4041201" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Zeitfenster" />
+                                </when>
+                              </choose>
+                              <choose ParamRefId="%AID%_P-%TT%40401_R-%TT%4040101">
+                                <when test="1">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%40404_R-%TT%4040401" HelpContext="HUE-HCL-Adaptive-Skalierungsmaximum" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%40408_R-%TT%4040801" HelpContext="HUE-HCL-Adaptive-Staerke" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%40403_R-%TT%4040301" HelpContext="HUE-HCL-Adaptive-CeilToHCL" />
+                                </when>
+                                <when test="2">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%40409_R-%TT%4040901" HelpContext="HUE-HCL-Adaptive-Kp" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%40410_R-%TT%4041001" HelpContext="HUE-HCL-Adaptive-Totband" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%40403_R-%TT%4040301" HelpContext="HUE-HCL-Adaptive-CeilToHCL" />
+                                </when>
+                              </choose>
+                              <ParameterRefRef RefId="%AID%_P-%TT%40405_R-%TT%4040501" HelpContext="HUE-HCL-Adaptive-Mindesthelligkeit" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%40406_R-%TT%4040601" HelpContext="HUE-HCL-Adaptive-Timeout" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%40407_R-%TT%4040701" HelpContext="HUE-HCL-Adaptive-Mindestschritt" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000055_R-%TT%00005501" HelpContext="HUE-HCL-Adaptive-KOs" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000056_R-%TT%00005601" HelpContext="HUE-HCL-Adaptive-KOs" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000057_R-%TT%00005701" HelpContext="HUE-HCL-Adaptive-KOs" />
+                            </when>
+                          </choose>
                         </ParameterBlock>
                       </when>
                     </choose>
@@ -3451,6 +3962,7 @@
                               <ComObjectRefRef RefId="%AID%_O-%TT%00022_R-%TT%0002201" />
                             </when>
                           </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM5LockLine" Text="" UIHint="HorizontalRuler" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM5Lock" Text="Lichtmanager Sperre (spezifisch)" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-%TT%00049_R-%TT%0004901" />
                           <choose ParamRefId="%AID%_P-%TT%00049_R-%TT%0004901">
@@ -3468,6 +3980,7 @@
                               <ParameterRefRef RefId="%AID%_P-%TT%00065_R-%TT%0006501" IndentLevel="1" />
                             </when>
                           </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM5AdvancedLine" Text="" UIHint="HorizontalRuler" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM5Advanced" Text="Erweiterte Kurve" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-%TT%50201_R-%TT%5020101" />
                           <ParameterRefRef RefId="%AID%_P-%TT%50202_R-%TT%5020201" />
@@ -3486,7 +3999,8 @@
                           </choose>
                           <choose ParamRefId="%AID%_P-%TT%50201_R-%TT%5020101">
                             <when test="!=3">
-                                                            <ParameterSeparator Id="%AID%_PS-HUEHCLM5SeasonTitle" Text="Saison-Profil" UIHint="Headline" />
+                                                            <ParameterSeparator Id="%AID%_PS-HUEHCLM5SeasonLine" Text="" UIHint="HorizontalRuler" />
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM5SeasonTitle" Text="Saison-Profil" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-1450300_R-145030001" />
                               <choose ParamRefId="%AID%_P-1450300_R-145030001">
                                 <when test="1"><ParameterRefRef RefId="%AID%_P-1450301_R-145030101" IndentLevel="1" /></when>
@@ -3498,6 +4012,7 @@
                                 </when>
                                 <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%00042_R-%TT%0004201" HelpContext="HUE-HCL-Saison-KO" /></when>
                               </choose>
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM5SPLine" Text="" UIHint="HorizontalRuler" />
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM5SPTitle" Text="Stützpunkte" UIHint="Headline" />
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM5InfoTime" Text="Stützpunkte müssen in chronologisch aufsteigender Reihenfolge definiert werden." UIHint="Information" />
                               <choose ParamRefId="%AID%_P-1450300_R-145030001">
@@ -3667,6 +4182,43 @@
                               <ParameterRefRef RefId="%AID%_P-%TT%50211_R-%TT%5021101" IndentLevel="1" />
                             </when>
                           </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM5AdaptiveLine" Text="" UIHint="HorizontalRuler" />
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM5AdaptiveTitle" Text="Adaptive Helligkeit" UIHint="Headline" HelpContext="HUE-HCL-Adaptive-Helligkeit" />
+                          <ParameterRefRef RefId="%AID%_P-%TT%50401_R-%TT%5040101" HelpContext="HUE-HCL-Adaptive-Modus" />
+                          <choose ParamRefId="%AID%_P-%TT%50401_R-%TT%5040101">
+                            <when test="!=0">
+                              <ParameterRefRef RefId="%AID%_P-%TT%50402_R-%TT%5040201" HelpContext="HUE-HCL-Adaptive-Aktivierung" />
+                              <choose ParamRefId="%AID%_P-%TT%50402_R-%TT%5040201">
+                                <when test="!=0">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%50413_R-%TT%5041301" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Polaritaet" />
+                                </when>
+                              </choose>
+                              <choose ParamRefId="%AID%_P-%TT%50402_R-%TT%5040201">
+                                <when test="2">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%50411_R-%TT%5041101" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Zeitfenster" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%50412_R-%TT%5041201" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Zeitfenster" />
+                                </when>
+                              </choose>
+                              <choose ParamRefId="%AID%_P-%TT%50401_R-%TT%5040101">
+                                <when test="1">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%50404_R-%TT%5040401" HelpContext="HUE-HCL-Adaptive-Skalierungsmaximum" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%50408_R-%TT%5040801" HelpContext="HUE-HCL-Adaptive-Staerke" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%50403_R-%TT%5040301" HelpContext="HUE-HCL-Adaptive-CeilToHCL" />
+                                </when>
+                                <when test="2">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%50409_R-%TT%5040901" HelpContext="HUE-HCL-Adaptive-Kp" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%50410_R-%TT%5041001" HelpContext="HUE-HCL-Adaptive-Totband" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%50403_R-%TT%5040301" HelpContext="HUE-HCL-Adaptive-CeilToHCL" />
+                                </when>
+                              </choose>
+                              <ParameterRefRef RefId="%AID%_P-%TT%50405_R-%TT%5040501" HelpContext="HUE-HCL-Adaptive-Mindesthelligkeit" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%50406_R-%TT%5040601" HelpContext="HUE-HCL-Adaptive-Timeout" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%50407_R-%TT%5040701" HelpContext="HUE-HCL-Adaptive-Mindestschritt" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000058_R-%TT%00005801" HelpContext="HUE-HCL-Adaptive-KOs" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000059_R-%TT%00005901" HelpContext="HUE-HCL-Adaptive-KOs" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000060_R-%TT%00006001" HelpContext="HUE-HCL-Adaptive-KOs" />
+                            </when>
+                          </choose>
                         </ParameterBlock>
                       </when>
                     </choose>
@@ -3685,6 +4237,7 @@
                               <ComObjectRefRef RefId="%AID%_O-%TT%00024_R-%TT%0002401" />
                             </when>
                           </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM6LockLine" Text="" UIHint="HorizontalRuler" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM6Lock" Text="Lichtmanager Sperre (spezifisch)" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-%TT%00050_R-%TT%0005001" />
                           <choose ParamRefId="%AID%_P-%TT%00050_R-%TT%0005001">
@@ -3702,6 +4255,7 @@
                               <ParameterRefRef RefId="%AID%_P-%TT%00066_R-%TT%0006601" IndentLevel="1" />
                             </when>
                           </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM6AdvancedLine" Text="" UIHint="HorizontalRuler" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM6Advanced" Text="Erweiterte Kurve" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-%TT%60201_R-%TT%6020101" />
                           <ParameterRefRef RefId="%AID%_P-%TT%60202_R-%TT%6020201" />
@@ -3720,7 +4274,8 @@
                           </choose>
                           <choose ParamRefId="%AID%_P-%TT%60201_R-%TT%6020101">
                             <when test="!=3">
-                                                            <ParameterSeparator Id="%AID%_PS-HUEHCLM6SeasonTitle" Text="Saison-Profil" UIHint="Headline" />
+                                                            <ParameterSeparator Id="%AID%_PS-HUEHCLM6SeasonLine" Text="" UIHint="HorizontalRuler" />
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM6SeasonTitle" Text="Saison-Profil" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-1460300_R-146030001" />
                               <choose ParamRefId="%AID%_P-1460300_R-146030001">
                                 <when test="1"><ParameterRefRef RefId="%AID%_P-1460301_R-146030101" IndentLevel="1" /></when>
@@ -3732,6 +4287,7 @@
                                 </when>
                                 <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%00043_R-%TT%0004301" HelpContext="HUE-HCL-Saison-KO" /></when>
                               </choose>
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM6SPLine" Text="" UIHint="HorizontalRuler" />
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM6SPTitle" Text="Stützpunkte" UIHint="Headline" />
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM6InfoTime" Text="Stützpunkte müssen in chronologisch aufsteigender Reihenfolge definiert werden." UIHint="Information" />
                               <choose ParamRefId="%AID%_P-1460300_R-146030001">
@@ -3901,6 +4457,43 @@
                               <ParameterRefRef RefId="%AID%_P-%TT%60211_R-%TT%6021101" IndentLevel="1" />
                             </when>
                           </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM6AdaptiveLine" Text="" UIHint="HorizontalRuler" />
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM6AdaptiveTitle" Text="Adaptive Helligkeit" UIHint="Headline" HelpContext="HUE-HCL-Adaptive-Helligkeit" />
+                          <ParameterRefRef RefId="%AID%_P-%TT%60401_R-%TT%6040101" HelpContext="HUE-HCL-Adaptive-Modus" />
+                          <choose ParamRefId="%AID%_P-%TT%60401_R-%TT%6040101">
+                            <when test="!=0">
+                              <ParameterRefRef RefId="%AID%_P-%TT%60402_R-%TT%6040201" HelpContext="HUE-HCL-Adaptive-Aktivierung" />
+                              <choose ParamRefId="%AID%_P-%TT%60402_R-%TT%6040201">
+                                <when test="!=0">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%60413_R-%TT%6041301" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Polaritaet" />
+                                </when>
+                              </choose>
+                              <choose ParamRefId="%AID%_P-%TT%60402_R-%TT%6040201">
+                                <when test="2">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%60411_R-%TT%6041101" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Zeitfenster" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%60412_R-%TT%6041201" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Zeitfenster" />
+                                </when>
+                              </choose>
+                              <choose ParamRefId="%AID%_P-%TT%60401_R-%TT%6040101">
+                                <when test="1">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%60404_R-%TT%6040401" HelpContext="HUE-HCL-Adaptive-Skalierungsmaximum" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%60408_R-%TT%6040801" HelpContext="HUE-HCL-Adaptive-Staerke" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%60403_R-%TT%6040301" HelpContext="HUE-HCL-Adaptive-CeilToHCL" />
+                                </when>
+                                <when test="2">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%60409_R-%TT%6040901" HelpContext="HUE-HCL-Adaptive-Kp" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%60410_R-%TT%6041001" HelpContext="HUE-HCL-Adaptive-Totband" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%60403_R-%TT%6040301" HelpContext="HUE-HCL-Adaptive-CeilToHCL" />
+                                </when>
+                              </choose>
+                              <ParameterRefRef RefId="%AID%_P-%TT%60405_R-%TT%6040501" HelpContext="HUE-HCL-Adaptive-Mindesthelligkeit" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%60406_R-%TT%6040601" HelpContext="HUE-HCL-Adaptive-Timeout" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%60407_R-%TT%6040701" HelpContext="HUE-HCL-Adaptive-Mindestschritt" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000061_R-%TT%00006101" HelpContext="HUE-HCL-Adaptive-KOs" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000062_R-%TT%00006201" HelpContext="HUE-HCL-Adaptive-KOs" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000063_R-%TT%00006301" HelpContext="HUE-HCL-Adaptive-KOs" />
+                            </when>
+                          </choose>
                         </ParameterBlock>
                       </when>
                     </choose>
@@ -3919,6 +4512,7 @@
                               <ComObjectRefRef RefId="%AID%_O-%TT%00026_R-%TT%0002601" />
                             </when>
                           </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM7LockLine" Text="" UIHint="HorizontalRuler" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM7Lock" Text="Lichtmanager Sperre (spezifisch)" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-%TT%00051_R-%TT%0005101" />
                           <choose ParamRefId="%AID%_P-%TT%00051_R-%TT%0005101">
@@ -3936,6 +4530,7 @@
                               <ParameterRefRef RefId="%AID%_P-%TT%00067_R-%TT%0006701" IndentLevel="1" />
                             </when>
                           </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM7AdvancedLine" Text="" UIHint="HorizontalRuler" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM7Advanced" Text="Erweiterte Kurve" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-%TT%70201_R-%TT%7020101" />
                           <ParameterRefRef RefId="%AID%_P-%TT%70202_R-%TT%7020201" />
@@ -3954,7 +4549,8 @@
                           </choose>
                           <choose ParamRefId="%AID%_P-%TT%70201_R-%TT%7020101">
                             <when test="!=3">
-                                                            <ParameterSeparator Id="%AID%_PS-HUEHCLM7SeasonTitle" Text="Saison-Profil" UIHint="Headline" />
+                                                            <ParameterSeparator Id="%AID%_PS-HUEHCLM7SeasonLine" Text="" UIHint="HorizontalRuler" />
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM7SeasonTitle" Text="Saison-Profil" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-1470300_R-147030001" />
                               <choose ParamRefId="%AID%_P-1470300_R-147030001">
                                 <when test="1"><ParameterRefRef RefId="%AID%_P-1470301_R-147030101" IndentLevel="1" /></when>
@@ -3966,6 +4562,7 @@
                                 </when>
                                 <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%00044_R-%TT%0004401" HelpContext="HUE-HCL-Saison-KO" /></when>
                               </choose>
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM7SPLine" Text="" UIHint="HorizontalRuler" />
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM7SPTitle" Text="Stützpunkte" UIHint="Headline" />
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM7InfoTime" Text="Stützpunkte müssen in chronologisch aufsteigender Reihenfolge definiert werden." UIHint="Information" />
                               <choose ParamRefId="%AID%_P-1470300_R-147030001">
@@ -4135,6 +4732,43 @@
                               <ParameterRefRef RefId="%AID%_P-%TT%70211_R-%TT%7021101" IndentLevel="1" />
                             </when>
                           </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM7AdaptiveLine" Text="" UIHint="HorizontalRuler" />
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM7AdaptiveTitle" Text="Adaptive Helligkeit" UIHint="Headline" HelpContext="HUE-HCL-Adaptive-Helligkeit" />
+                          <ParameterRefRef RefId="%AID%_P-%TT%70401_R-%TT%7040101" HelpContext="HUE-HCL-Adaptive-Modus" />
+                          <choose ParamRefId="%AID%_P-%TT%70401_R-%TT%7040101">
+                            <when test="!=0">
+                              <ParameterRefRef RefId="%AID%_P-%TT%70402_R-%TT%7040201" HelpContext="HUE-HCL-Adaptive-Aktivierung" />
+                              <choose ParamRefId="%AID%_P-%TT%70402_R-%TT%7040201">
+                                <when test="!=0">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%70413_R-%TT%7041301" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Polaritaet" />
+                                </when>
+                              </choose>
+                              <choose ParamRefId="%AID%_P-%TT%70402_R-%TT%7040201">
+                                <when test="2">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%70411_R-%TT%7041101" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Zeitfenster" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%70412_R-%TT%7041201" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Zeitfenster" />
+                                </when>
+                              </choose>
+                              <choose ParamRefId="%AID%_P-%TT%70401_R-%TT%7040101">
+                                <when test="1">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%70404_R-%TT%7040401" HelpContext="HUE-HCL-Adaptive-Skalierungsmaximum" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%70408_R-%TT%7040801" HelpContext="HUE-HCL-Adaptive-Staerke" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%70403_R-%TT%7040301" HelpContext="HUE-HCL-Adaptive-CeilToHCL" />
+                                </when>
+                                <when test="2">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%70409_R-%TT%7040901" HelpContext="HUE-HCL-Adaptive-Kp" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%70410_R-%TT%7041001" HelpContext="HUE-HCL-Adaptive-Totband" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%70403_R-%TT%7040301" HelpContext="HUE-HCL-Adaptive-CeilToHCL" />
+                                </when>
+                              </choose>
+                              <ParameterRefRef RefId="%AID%_P-%TT%70405_R-%TT%7040501" HelpContext="HUE-HCL-Adaptive-Mindesthelligkeit" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%70406_R-%TT%7040601" HelpContext="HUE-HCL-Adaptive-Timeout" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%70407_R-%TT%7040701" HelpContext="HUE-HCL-Adaptive-Mindestschritt" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000064_R-%TT%00006401" HelpContext="HUE-HCL-Adaptive-KOs" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000065_R-%TT%00006501" HelpContext="HUE-HCL-Adaptive-KOs" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000066_R-%TT%00006601" HelpContext="HUE-HCL-Adaptive-KOs" />
+                            </when>
+                          </choose>
                         </ParameterBlock>
                       </when>
                     </choose>
@@ -4153,6 +4787,7 @@
                               <ComObjectRefRef RefId="%AID%_O-%TT%00028_R-%TT%0002801" />
                             </when>
                           </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM8LockLine" Text="" UIHint="HorizontalRuler" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM8Lock" Text="Lichtmanager Sperre (spezifisch)" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-%TT%00052_R-%TT%0005201" />
                           <choose ParamRefId="%AID%_P-%TT%00052_R-%TT%0005201">
@@ -4170,6 +4805,7 @@
                               <ParameterRefRef RefId="%AID%_P-%TT%00068_R-%TT%0006801" IndentLevel="1" />
                             </when>
                           </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM8AdvancedLine" Text="" UIHint="HorizontalRuler" />
                           <ParameterSeparator Id="%AID%_PS-HUEHCLM8Advanced" Text="Erweiterte Kurve" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_P-%TT%80201_R-%TT%8020101" />
                           <ParameterRefRef RefId="%AID%_P-%TT%80202_R-%TT%8020201" />
@@ -4188,7 +4824,8 @@
                           </choose>
                           <choose ParamRefId="%AID%_P-%TT%80201_R-%TT%8020101">
                             <when test="!=3">
-                                                            <ParameterSeparator Id="%AID%_PS-HUEHCLM8SeasonTitle" Text="Saison-Profil" UIHint="Headline" />
+                                                            <ParameterSeparator Id="%AID%_PS-HUEHCLM8SeasonLine" Text="" UIHint="HorizontalRuler" />
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM8SeasonTitle" Text="Saison-Profil" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-1480300_R-148030001" />
                               <choose ParamRefId="%AID%_P-1480300_R-148030001">
                                 <when test="1"><ParameterRefRef RefId="%AID%_P-1480301_R-148030101" IndentLevel="1" /></when>
@@ -4200,6 +4837,7 @@
                                 </when>
                                 <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%00045_R-%TT%0004501" HelpContext="HUE-HCL-Saison-KO" /></when>
                               </choose>
+                              <ParameterSeparator Id="%AID%_PS-HUEHCLM8SPLine" Text="" UIHint="HorizontalRuler" />
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM8SPTitle" Text="Stützpunkte" UIHint="Headline" />
                               <ParameterSeparator Id="%AID%_PS-HUEHCLM8InfoTime" Text="Stützpunkte müssen in chronologisch aufsteigender Reihenfolge definiert werden." UIHint="Information" />
                               <choose ParamRefId="%AID%_P-1480300_R-148030001">
@@ -4367,6 +5005,43 @@
                               <ParameterRefRef RefId="%AID%_P-%TT%80209_R-%TT%8020901" IndentLevel="1" />
                               <ParameterRefRef RefId="%AID%_P-%TT%80210_R-%TT%8021001" IndentLevel="1" />
                               <ParameterRefRef RefId="%AID%_P-%TT%80211_R-%TT%8021101" IndentLevel="1" />
+                            </when>
+                          </choose>
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM8AdaptiveLine" Text="" UIHint="HorizontalRuler" />
+                          <ParameterSeparator Id="%AID%_PS-HUEHCLM8AdaptiveTitle" Text="Adaptive Helligkeit" UIHint="Headline" HelpContext="HUE-HCL-Adaptive-Helligkeit" />
+                          <ParameterRefRef RefId="%AID%_P-%TT%80401_R-%TT%8040101" HelpContext="HUE-HCL-Adaptive-Modus" />
+                          <choose ParamRefId="%AID%_P-%TT%80401_R-%TT%8040101">
+                            <when test="!=0">
+                              <ParameterRefRef RefId="%AID%_P-%TT%80402_R-%TT%8040201" HelpContext="HUE-HCL-Adaptive-Aktivierung" />
+                              <choose ParamRefId="%AID%_P-%TT%80402_R-%TT%8040201">
+                                <when test="!=0">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%80413_R-%TT%8041301" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Polaritaet" />
+                                </when>
+                              </choose>
+                              <choose ParamRefId="%AID%_P-%TT%80402_R-%TT%8040201">
+                                <when test="2">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%80411_R-%TT%8041101" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Zeitfenster" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%80412_R-%TT%8041201" IndentLevel="1" HelpContext="HUE-HCL-Adaptive-Zeitfenster" />
+                                </when>
+                              </choose>
+                              <choose ParamRefId="%AID%_P-%TT%80401_R-%TT%8040101">
+                                <when test="1">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%80404_R-%TT%8040401" HelpContext="HUE-HCL-Adaptive-Skalierungsmaximum" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%80408_R-%TT%8040801" HelpContext="HUE-HCL-Adaptive-Staerke" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%80403_R-%TT%8040301" HelpContext="HUE-HCL-Adaptive-CeilToHCL" />
+                                </when>
+                                <when test="2">
+                                  <ParameterRefRef RefId="%AID%_P-%TT%80409_R-%TT%8040901" HelpContext="HUE-HCL-Adaptive-Kp" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%80410_R-%TT%8041001" HelpContext="HUE-HCL-Adaptive-Totband" />
+                                  <ParameterRefRef RefId="%AID%_P-%TT%80403_R-%TT%8040301" HelpContext="HUE-HCL-Adaptive-CeilToHCL" />
+                                </when>
+                              </choose>
+                              <ParameterRefRef RefId="%AID%_P-%TT%80405_R-%TT%8040501" HelpContext="HUE-HCL-Adaptive-Mindesthelligkeit" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%80406_R-%TT%8040601" HelpContext="HUE-HCL-Adaptive-Timeout" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%80407_R-%TT%8040701" HelpContext="HUE-HCL-Adaptive-Mindestschritt" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000067_R-%TT%00006701" HelpContext="HUE-HCL-Adaptive-KOs" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000068_R-%TT%00006801" HelpContext="HUE-HCL-Adaptive-KOs" />
+                              <ComObjectRefRef RefId="%AID%_O-%TT%000069_R-%TT%00006901" HelpContext="HUE-HCL-Adaptive-KOs" />
                             </when>
                           </choose>
                         </ParameterBlock>
