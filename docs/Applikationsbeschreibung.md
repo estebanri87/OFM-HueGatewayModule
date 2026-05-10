@@ -47,87 +47,68 @@ Eine Prüfung auf bestimmte Modell- oder Herstellernamen findet nicht statt – 
 
 ### Gerätekategorien im Modul
 
-| ETS-Gerätetyp | Hue API v2 Ressource | Erkennung | KNX-Funktionen |
-|---|---|---|---|
-| **Licht** | `light` | Alle Light-Ressourcen ohne Steckdosen-Archetype | Schalten, Dimmen, Farbtemperatur, RGB (je nach Fähigkeit) | Ja |
-| **Steckdose** | `light` + Archetype enthält *plug*, *socket* oder *outlet* | Archetype-Substring-Prüfung | Schalten Ein/Aus |
-| **Taster/Schalter** | `button`, `relative_rotary` | Service-Typ einer Geräte-Ressource | Tastenereignisse (Kurz-/Langdruck), Drehregler |
-| **Bewegungsmelder** | `motion` | Service-Typ einer Geräte-Ressource | Präsenz, optional Temperatur, Helligkeit, Batterie |
-| **Kontaktsensor** | `contact_sensor` | Service-Typ einer Geräte-Ressource | Kontaktstatus, optional Manipulation, Temperatur, Batterie | 
-| **Raum/Zone** | `grouped_light` | Aggregierte Lichtressource eines Raumes oder einer Zone | Schalten, Dimmen, Farbtemperatur, RGB (je nach enthaltenen Leuchten) | 
+- **Licht** (`light`): Alle Light-Ressourcen ohne Steckdosen-Archetype — Schalten, Dimmen, Farbtemperatur, RGB (je nach Fähigkeit)
+- **Steckdose** (`light` + Archetype enthält *plug*, *socket* oder *outlet*): Archetype-Substring-Prüfung — Schalten Ein/Aus
+- **Taster/Schalter** (`button`, `relative_rotary`): Service-Typ einer Geräte-Ressource — Tastenereignisse (Kurz-/Langdruck), Drehregler
+- **Bewegungsmelder** (`motion`): Service-Typ einer Geräte-Ressource — Präsenz, optional Temperatur, Helligkeit, Batterie
+- **Kontaktsensor** (`contact_sensor`): Service-Typ einer Geräte-Ressource — Kontaktstatus, optional Manipulation, Temperatur, Batterie
+- **Raum/Zone** (`grouped_light`): Aggregierte Lichtressource eines Raumes oder einer Zone — Schalten, Dimmen, Farbtemperatur, RGB (je nach enthaltenen Leuchten)
 
 Die Fähigkeiten einer Leuchte (dimmbar, Farbtemperatur, Farbe) werden automatisch anhand der von der Bridge gemeldeten JSON-Felder erkannt:
 
-| Lampentyp in ETS | Voraussetzung auf Bridge-Seite |
-|---|---|
-| Ein/Aus | Nur `on/off`-Feld vorhanden |
-| Dimmbar | `dimming`-Feld vorhanden | 
-| Farbtemperatur | `color_temperature`-Feld vorhanden (Mirek 153–500) |
-| Farbe (RGB) | `color`-Feld vorhanden (CIE 1931 XY) | 
+- **Ein/Aus**: Nur `on/off`-Feld vorhanden
+- **Dimmbar**: `dimming`-Feld vorhanden
+- **Farbtemperatur**: `color_temperature`-Feld vorhanden (Mirek 153–500)
+- **Farbe (RGB)**: `color`-Feld vorhanden (CIE 1931 XY)
 
 ### Philips Hue Produkte (Signify)
 
 #### Leuchten
 
-| Produktreihe | Typ | Lampentyp in ETS | Getestet |
-|---|---|---|---|
-| Hue White | E27, E14, GU10, A19, BR30, PAR38 | Dimmbar | Ja  |
-| Hue White Ambiance | E27, E14, GU10, A19, BR30, Lightstrip | Farbtemperatur | Ja |
-| Hue White and Color Ambiance | E27, E14, GU10, A19, BR30, Lightstrip Plus | Farbe (RGB) | Ja |
-| Hue Filament | ST64, G93, G125, A60, ST72, T75 | Farbtemperatur | Nein |
-| Hue Lightguide | Ellipse, Triangle, Globe | Farbe (RGB) | Nein |
-| Hue Gradient Lightstrip | Lightstrip, Signe Tisch-/Stehleuchte, Tube | Farbe (RGB) | Ja |
-| Hue Play | Light Bar | Farbe (RGB) | Nein |
-| Hue Go | Portable | Farbe (RGB) | Nein |
-| Hue Iris | Tischleuchte | Farbe (RGB) | Nein |
-| Hue Bloom | Tischleuchte | Farbe (RGB) | Nein |
-| Hue Centura | Einbaustrahler | Farbe (RGB) | Nein |
-| Hue Fugato | Deckenstrahler | Farbe (RGB) | Nein |
-| Hue Perifo | Schienensystem | Farbe (RGB) | Nein |
-| Hue Xamento | Badezimmer-Einbaustrahler | Farbe (RGB) | Nein |
-| Hue Aurelle | Deckenleuchte (Panel) | Farbtemperatur | Ja |
-| Hue Being, Fair, Still | Deckenleuchten | Farbtemperatur | Nein |
-| Hue Cher, enrave | Pendelleuchten | Farbtemperatur | Nein |
-| Hue Outdoor (Lily, Calla, Appear, Nyro, Impress, Econic, Resonate, Attract, Lucca, Turaco, Daylo) | Außenleuchten | je nach Modell: Farbtemperatur oder Farbe (RGB) | Nein |
+- Hue White (E27, E14, GU10, A19, BR30, PAR38): Dimmbar — Ja
+- Hue White Ambiance (E27, E14, GU10, A19, BR30, Lightstrip): Farbtemperatur — Ja
+- Hue White and Color Ambiance (E27, E14, GU10, A19, BR30, Lightstrip Plus): Farbe (RGB) — Ja
+- Hue Filament (ST64, G93, G125, A60, ST72, T75): Farbtemperatur — Nein
+- Hue Lightguide (Ellipse, Triangle, Globe): Farbe (RGB) — Nein
+- Hue Gradient Lightstrip (Lightstrip, Signe Tisch-/Stehleuchte, Tube): Farbe (RGB) — Ja
+- Hue Play (Light Bar): Farbe (RGB) — Nein
+- Hue Go (Portable): Farbe (RGB) — Nein
+- Hue Iris, Bloom (Tischleuchten): Farbe (RGB) — Nein
+- Hue Centura, Fugato, Perifo, Xamento (Einbau-/Decken-/Schienensysteme): Farbe (RGB) — Nein
+- Hue Aurelle (Deckenleuchte Panel): Farbtemperatur — Ja
+- Hue Being, Fair, Still, Cher, enrave (Decken-/Pendelleuchten): Farbtemperatur — Nein
+- Hue Outdoor (Lily, Calla, Appear, Nyro, Impress, Econic u.a.): je nach Modell Farbtemperatur oder Farbe (RGB) — Nein
 
 #### Smart Plugs
 
-| Produkt | Archetype | Lampentyp | Getestet |
-|---|---|---|---|
-| Hue Smart Plug (EU ) | `hue_siren` / `plug` | Steckdose (Ein/Aus) | Nein |
+- Hue Smart Plug (EU): Archetype `plug` — Steckdose (Ein/Aus) — Nein
 
 #### Sensoren
 
-| Produkt | Hue API Ressource | Zusatzdaten | Getestet |
-|---|---|---|---|
-| Hue Motion Sensor (Indoor) | `motion` | Temperatur, Helligkeit, Batterie | Nein |
-| Hue Outdoor Sensor | `motion` | Temperatur, Helligkeit, Batterie | Nein |
-| Hue Secure Contact Sensor | `contact_sensor` | Temperatur, Manipulation, Batterie | Nein |
+- Hue Motion Sensor (Indoor): `motion`, Zusatzdaten: Temperatur, Helligkeit, Batterie — Nein
+- Hue Outdoor Sensor: `motion`, Zusatzdaten: Temperatur, Helligkeit, Batterie — Nein
+- Hue Secure Contact Sensor: `contact_sensor`, Zusatzdaten: Temperatur, Manipulation, Batterie — Nein
 
 #### Taster und Schalter
 
-| Produkt | Tasten | Drehregler | Hue API Ressource | Getestet |
-|---|---|---|---|---|
-| Hue Dimmer Switch (V1/V2) | 4 | – | `button` | Ja |
-| Hue Tap Dial Switch | 4 | 1 | `button` + `relative_rotary` | Ja |
-| Hue Wall Switch Module | 2 | – | `button` | Nein |
-| Hue Tap Mini | 4 | – | `button` | Nein |
+- Hue Dimmer Switch (V1/V2): 4 Tasten, `button` — Ja
+- Hue Tap Dial Switch: 4 Tasten + 1 Drehregler, `button` + `relative_rotary` — Ja
+- Hue Wall Switch Module: 2 Tasten, `button` — Nein
+- Hue Tap Mini: 4 Tasten, `button` — Nein
 
 ### Friends of Hue (Zigbee Green Power)
 
 Friends-of-Hue-Schalter werden vom Modul als **Taster/Schalter** mit `button`-Ressourcen erkannt.
 
-| Hersteller | Produkt | Tasten | Getestet |
-|---|---|---|---|
-| Busch-Jaeger | Friends of Hue (1-fach, 2-fach) | 1–4 | Nein |
-| Gira | Friends of Hue (1-fach, 2-fach) | 1–4 | Nein |
-| JUNG | Friends of Hue (1-fach, 2-fach) | 1–4 | Nein |
-| Niko | Friends of Hue (1-fach, 2-fach) | 1–4 | Nein |
-| Vimar | Friends of Hue | 1–4 | Nein |
-| Feller | Friends of Hue (Schweiz) | 1–4 | Nein |
-| illumra | EnOcean/Zigbee Green Power Schalter | 1–4 | Nein |
-| Senic / Nuimo | Friends of Hue Smart Switch | 1–4 | Nein |
-| RunLessWire | Friends of Hue Click | 1–4 | Nein |
+- Busch-Jaeger Friends of Hue (1-fach, 2-fach): 1–4 Tasten — Nein
+- Gira Friends of Hue (1-fach, 2-fach): 1–4 Tasten — Nein
+- JUNG Friends of Hue (1-fach, 2-fach): 1–4 Tasten — Nein
+- Niko Friends of Hue (1-fach, 2-fach): 1–4 Tasten — Nein
+- Vimar Friends of Hue: 1–4 Tasten — Nein
+- Feller Friends of Hue (Schweiz): 1–4 Tasten — Nein
+- illumra EnOcean/Zigbee Green Power Schalter: 1–4 Tasten — Nein
+- Senic / Nuimo Friends of Hue Smart Switch: 1–4 Tasten — Nein
+- RunLessWire Friends of Hue Click: 1–4 Tasten — Nein
 
 ### Drittanbieter-Leuchten und -Steckdosen
 
@@ -139,23 +120,19 @@ Nach erfolgreicher Kopplung an der Bridge werden sie vom Modul wie native Hue-Le
 
 #### Leuchten
 
-| Hersteller | Beispiele | Hue-Bridge-Kompatibilität | Lampentyp | Getestet |
-|---|---|---|---|---|
-| innr | E27, E14, GU10, LED-Strips, Deckenleuchten | ✓ offiziell | je nach Modell: Dimmbar / CT / RGB | Nein |
-| IKEA TRÅDFRI (DIRIGERA) | E27, E14, GU10, LED-Panels | erfahrungsgemäß (Touchlink) | je nach Modell: Dimmbar / CT / RGB | Nein |
-| OSRAM/LEDVANCE Smart+ | E27, E14, GU10, LED-Strips (ältere ZLL-Modelle) | teilweise | je nach Modell: Dimmbar / CT / RGB | Nein |
-| Müller-Licht tint | E27, E14, GU10, LED-Panels | teilweise | je nach Modell: Dimmbar / CT | Nein |
-| GLEDOPTO | Zigbee LED-Controller (RGB, RGBW, CCT) | erfahrungsgemäß | CT / RGB | Nein |
-| Sengled | Smart LED Bulbs (E27, BR30) | teilweise | Dimmbar / CT | Nein |
-| Paulmann | SmartHome Zigbee Leuchtmittel | teilweise | je nach Modell: Dimmbar / CT | Nein |
+- innr (E27, E14, GU10, LED-Strips, Deckenleuchten): ✓ offiziell, je nach Modell Dimmbar / CT / RGB — Nein
+- IKEA TRÅDFRI / DIRIGERA (E27, E14, GU10, LED-Panels): erfahrungsgemäß (Touchlink), je nach Modell Dimmbar / CT / RGB — Nein
+- OSRAM/LEDVANCE Smart+ (E27, E14, GU10, LED-Strips ältere ZLL-Modelle): teilweise, je nach Modell Dimmbar / CT / RGB — Nein
+- Müller-Licht tint (E27, E14, GU10, LED-Panels): teilweise, je nach Modell Dimmbar / CT — Nein
+- GLEDOPTO (Zigbee LED-Controller RGB, RGBW, CCT): erfahrungsgemäß, CT / RGB — Nein
+- Sengled (Smart LED Bulbs E27, BR30): teilweise, Dimmbar / CT — Nein
+- Paulmann (SmartHome Zigbee Leuchtmittel): teilweise, je nach Modell Dimmbar / CT — Nein
 
 #### Steckdosen
 
-| Hersteller | Produkt | Hue-Bridge-Kompatibilität | Archetype | Getestet |
-|---|---|---|---|---|
-| innr | Smart Plug (SP 120, SP 220, SP 224) | ✓ offiziell | `plug` | Nein |
-| OSRAM/LEDVANCE | Smart+ Plug | teilweise | `plug` | Nein |
-| IKEA TRÅDFRI | ASKVADER Steckdose | erfahrungsgemäß (Touchlink) | `plug` | Nein |
+- innr Smart Plug (SP 120, SP 220, SP 224): ✓ offiziell, Archetype `plug` — Nein
+- OSRAM/LEDVANCE Smart+ Plug: teilweise, Archetype `plug` — Nein
+- IKEA TRÅDFRI ASKVADER Steckdose: erfahrungsgemäß (Touchlink), Archetype `plug` — Nein
 
 ### Hinweise zur Gerätekompatibilität
 
@@ -453,13 +430,11 @@ Wichtig: Die UUID muss je Kanal exakt zur gewünschten Leuchte passen.
 
 Legt fest, welche Art von Hue-Gerät der Kanal steuert. Je nach Gerätetyp werden unterschiedliche Parameter und KOs sichtbar:
 
-| Gerätetyp | Beschreibung | Verfügbare Funktionen |
-|---|---|---|
-| **Licht** | Hue-Leuchte (On/Off, Dimmbar, CT, RGB) | Schalten, Dimmen, CT, RGB, Szenen, HCL |
-| **Steckdose** | Smart Plug | Schalten |
-| **Taster/Schalter** | Hue-Schalter mit Tasten | KOs je Taste (Kurz/Lang), Drehregler |
-| **Bewegungsmelder** | Hue-Bewegungssensor | Präsenz-KO, optional Lux/Temperatur |
-| **Kontaktsensor** | Hue-Tür-/Fensterkontakt | Kontakt-KO |
+- **Licht**: Hue-Leuchte (On/Off, Dimmbar, CT, RGB) — Schalten, Dimmen, CT, RGB, Szenen, HCL
+- **Steckdose**: Smart Plug — Schalten
+- **Taster/Schalter**: Hue-Schalter mit Tasten — KOs je Taste (Kurz/Lang), Drehregler
+- **Bewegungsmelder**: Hue-Bewegungssensor — Präsenz-KO, optional Lux/Temperatur
+- **Kontaktsensor**: Hue-Tür-/Fensterkontakt — Kontakt-KO
 
 <!-- DOC -->
 ### Optionale Kommunikationsobjekte
@@ -579,17 +554,15 @@ Sinnvoll, wenn ein Hue-Taster nicht für Licht, sondern für eine KNX-Jalousie-F
 
 Bestimmt die Aktion beim kurzen Tastendruck. Je nach Wahl werden zusätzliche Sub-Parameter eingeblendet:
 
-| Option | DPT | Sub-Parameter |
-|---|---|---|
-| **Keine Aktion** | — | — |
-| **Schalten** | DPT 1.001 | **Schaltwert**: Toggle / Ein / Aus |
-| **Dimmen relativ** | DPT 3.007 | **Richtung** (Heller / Dunkler), **Schrittweite** (2–25 %) |
-| **Szenennummer** | DPT 18.001 | **Szenennummer** (1..64) |
-| **Schritt/Stop** | DPT 1.007 | **Richtung** (Auf / Ab) |
-| **Prozentwert** | DPT 5.001 | **Prozentwert** (0..100 %) |
-| **Temperaturwert** | DPT 9.001 | **Temperatur** (5..40 °C) |
-| **1-Byte Wert** | DPT 5.010 | **Wert** (0..255) |
-| **2-Byte Wert** | DPT 7.001 | **Wert** (0..65535) |
+- **Keine Aktion**: kein KNX-Telegramm, kein Kurzdruck-KO in ETS
+- **Schalten** (DPT 1.001): Sub-Parameter „Schaltwert": Toggle / Ein / Aus
+- **Dimmen relativ** (DPT 3.007): Sub-Parameter „Richtung" (Heller / Dunkler), „Schrittweite" (2–25 %)
+- **Szenennummer** (DPT 18.001): Sub-Parameter „Szenennummer" (1..64)
+- **Schritt/Stop** (DPT 1.007): Sub-Parameter „Richtung" (Auf / Ab)
+- **Prozentwert** (DPT 5.001): Sub-Parameter „Prozentwert" (0..100 %)
+- **Temperaturwert** (DPT 9.001): Sub-Parameter „Temperatur" (5..40 °C)
+- **1-Byte Wert** (DPT 5.010): Sub-Parameter „Wert" (0..255)
+- **2-Byte Wert** (DPT 7.001): Sub-Parameter „Wert" (0..65535)
 
 Hinweis: Bei **Keine Aktion** wird für diese Taste kein Kurzdruck-KO in ETS eingeblendet.
 
@@ -598,18 +571,16 @@ Hinweis: Bei **Keine Aktion** wird für diese Taste kein Kurzdruck-KO in ETS ein
 
 Bestimmt die Aktion beim langen Tastendruck. Je nach Wahl werden zusätzliche Sub-Parameter eingeblendet:
 
-| Option | DPT | Sub-Parameter |
-|---|---|---|
-| **Kein Langdruck** | — | — |
-| **Schalten** | DPT 1.001 | **Schaltwert**: Ein / Aus |
-| **Dimmen Start/Stop** | DPT 3.007 | **Richtung** (Heller / Dunkler), **Schrittweite** (2–25 %) |
-| **Szenennummer** | DPT 18.001 | **Szenennummer** (1..64) |
-| **Fahren** | DPT 1.008 | **Richtung** (Auf / Ab) |
-| **Schritt/Stop** | DPT 1.007 | **Richtung** (Auf / Ab) |
-| **Prozentwert** | DPT 5.001 | **Prozentwert** (0..100 %) |
-| **Temperaturwert** | DPT 9.001 | **Temperatur** (5..40 °C) |
-| **1-Byte Wert** | DPT 5.010 | **Wert** (0..255) |
-| **2-Byte Wert** | DPT 7.001 | **Wert** (0..65535) |
+- **Kein Langdruck**: kein KNX-Telegramm, kein Langdruck-KO in ETS
+- **Schalten** (DPT 1.001): Sub-Parameter „Schaltwert": Ein / Aus
+- **Dimmen Start/Stop** (DPT 3.007): Sub-Parameter „Richtung" (Heller / Dunkler), „Schrittweite" (2–25 %)
+- **Szenennummer** (DPT 18.001): Sub-Parameter „Szenennummer" (1..64)
+- **Fahren** (DPT 1.008): Sub-Parameter „Richtung" (Auf / Ab)
+- **Schritt/Stop** (DPT 1.007): Sub-Parameter „Richtung" (Auf / Ab)
+- **Prozentwert** (DPT 5.001): Sub-Parameter „Prozentwert" (0..100 %)
+- **Temperaturwert** (DPT 9.001): Sub-Parameter „Temperatur" (5..40 °C)
+- **1-Byte Wert** (DPT 5.010): Sub-Parameter „Wert" (0..255)
+- **2-Byte Wert** (DPT 7.001): Sub-Parameter „Wert" (0..65535)
 
 Hinweis: Bei **Kein Langdruck** wird für diese Taste kein Langdruck-KO in ETS eingeblendet.
 
@@ -952,6 +923,7 @@ Jeder Lichtmanager 1..8 besitzt identischen Aufbau (HCL-Konfiguration):
 - **Erweiterte Kurve**: Kurventyp `FixedTime`, `SunPosition`, `Manual` oder `Astronomischer Sonnenstand`.
 - **Stützpunkte**: Bis zu 10 Stützpunkte je Manager (bei `FixedTime` oder `SunPosition`).
 - **Saison-Profil**: Optionale Sommer-/Winter-Stützpunkte (Modus `Standard`, `Auto-DST`, `Festes Datum` oder `Per Objekt`).
+- **Adaptive Helligkeit**: Optionale Tageslicht-Kompensation (Open-Loop) oder Konstantlichtregelung (Closed-Loop) per Helligkeitssensor.
 <!-- DOCEND -->
 
 Jeder Manager besitzt identischen Aufbau:
@@ -1071,6 +1043,175 @@ Nur sichtbar wenn der Saison-Modus des Lichtmanagers auf **Per Objekt** eingeste
 - Wert `0` = Winter-Stützpunkte aktiv (Standard)
 
 Bei den anderen Saison-Modi (Standard, Auto-DST, Festes Datum) wechselt der Manager automatisch; dieses KO ist dann nicht sichtbar.
+<!-- DOCEND -->
+
+#### Adaptive Helligkeit
+
+<!-- DOC HelpContext="HCL-Adaptive-Helligkeit" -->
+Passt die Soll-Helligkeit automatisch an das Umgebungslicht an. Voraussetzung ist ein Helligkeitssensor, der seinen Messwert per KO sendet.
+
+Verfügbare Modi:
+- **Aus**: Keine adaptive Regelung — Lichtmanager arbeitet nur nach HCL-Kurve.
+- **Tageslicht-Kompensation (Open-Loop)**: Misst das aktuelle Umgebungslicht und zieht es vom HCL-Sollwert ab. Je heller es draußen ist, desto weniger Kunstlicht wird eingeschaltet. Einfach und stabil, empfohlen für die meisten Räume.
+- **Konstantlichtregelung (Closed-Loop)**: Vergleicht den Sensorwert fortlaufend mit dem HCL-Sollwert und korrigiert die Leuchten laufend nach bis beide übereinstimmen. Geeignet wenn eine sehr genaue Beleuchtungsstärke erforderlich ist (z. B. Arbeitsplatz nach DIN EN 12464).
+<!-- DOCEND -->
+
+##### Adaptive Helligkeit (Modus)
+
+<!-- DOC HelpContext="HCL-Adaptive-Modus" -->
+Wählt den Betriebsmodus der adaptiven Helligkeitsregelung:
+
+- **Deaktiviert**: Keine adaptive Regelung — Lichtmanager arbeitet nur nach HCL-Kurve.
+- **Tageslicht-Kompensation (Open-Loop)**: Der Sensor misst das aktuelle Umgebungslicht (Lux). Dieses wird vom HCL-Sollwert abgezogen: viel Tageslicht → Kunstlicht wird reduziert, wenig Tageslicht → Kunstlicht bleibt hoch. Es gibt keine Rückkopplung — der berechnete Wert wird direkt ausgegeben, ohne zu prüfen ob das Ergebnis wirklich stimmt. Das macht den Modus einfach, stabil und für die meisten Räume ausreichend.
+- **Konstantlichtregelung (Closed-Loop)**: Der Regler vergleicht den aktuellen Sensorwert laufend mit dem HCL-Sollwert und passt die Leuchten so lange nach, bis beide übereinstimmen. Im Gegensatz zu Open-Loop wird also nicht einmalig berechnet sondern fortlaufend korrigiert. Das ergibt eine präzisere Regelung, erfordert aber sorgfältige Parametrierung (Kp, Totband) damit der Regler nicht schwingt. Empfohlen für Bereiche mit genauer Beleuchtungsanforderung.
+<!-- DOCEND -->
+
+##### Aktivierung
+
+<!-- DOC HelpContext="HCL-Adaptive-Aktivierung" -->
+Steuert, wann die adaptive Regelung aktiv ist:
+
+- **Immer aktiv**: Regelung läuft unabhängig von Tageszeit.
+- **Nur tagsüber (per KO)**: Regelung ist nur aktiv, wenn das KO „Tag/Nacht" den Tageswert meldet. Polarität konfigurierbar mit „Tag/Nacht-Polarität".
+- **Nach Uhrzeit**: Regelung ist nur innerhalb des konfigurierten Zeitfensters aktiv (Startzeit / Endzeit).
+<!-- DOCEND -->
+
+##### Tag/Nacht-Polarität
+
+<!-- DOC HelpContext="HCL-Adaptive-Polaritaet" -->
+Legt fest, welcher KO-Wert „Tag" bedeutet. Nur sichtbar bei Aktivierung = „Nur tagsüber (per KO)".
+
+- **1 = Tag, 0 = Nacht** (Standard): KO-Wert `1` aktiviert die Regelung.
+- **0 = Tag, 1 = Nacht**: KO-Wert `0` aktiviert die Regelung.
+
+Passend zur Polarität des sendenden Gerätes einstellen (z. B. Präsenzmelder, Zeitschaltuhr, Logikbaustein).
+<!-- DOCEND -->
+
+##### Startzeit / Endzeit
+
+<!-- DOC HelpContext="HCL-Adaptive-Zeitfenster" -->
+Definiert das Zeitfenster, in dem die adaptive Regelung aktiv ist. Nur sichtbar bei Aktivierung = „Nach Uhrzeit".
+
+- **Startzeit**: Beginn der aktiven Phase (HH:MM).
+- **Endzeit**: Ende der aktiven Phase (HH:MM).
+
+Außerhalb des Zeitfensters ist die adaptive Regelung pausiert; der Lichtmanager folgt nur der HCL-Kurve.
+<!-- DOCEND -->
+
+##### Skalierungsmaximum
+
+<!-- DOC HelpContext="HCL-Adaptive-Skalierungsmaximum" -->
+Gibt den maximalen Lux-Wert des Sensors an, bei dem die Regelung vollständig ausgesteuert ist. Dieser Parameter muss auf den tatsächlichen Messbereich des verwendeten Sensors abgestimmt werden — er ist kein Raumtyp-Richtwert, sondern ein Sensor-Kennwert.
+
+**Wie der Wert verwendet wird:**
+
+- *Open-Loop*: Bei Sensorwert ≥ Skalierungsmaximum wird die Helligkeit maximal reduziert (auf Mindesthelligkeit). Dazwischen wird linear skaliert.
+- *Closed-Loop*: Das Skalierungsmaximum rechnet den HCL-Sollwert (%) in einen Lux-Zielwert um: `Ziel-Lux = HCL-Sollwert% × Skalierungsmaximum`. Der Regler arbeitet auf diesen Zielwert hin.
+
+**Beispiel mit einem Innensensor (max. 1000 Lux):**
+
+Skalierungsmaximum = 1000 Lux, HCL-Sollwert = 80 %, Sensorwert = 500 Lux, Stärke = 80 %:
+- Open-Loop: `80% × (1 − 500/1000 × 0,8) = 80% × 0,6 = 48%`
+- Closed-Loop: Ziel = 800 Lux, Ist = 500 Lux → Regler erhöht die Helligkeit
+
+**Beispiel mit einem Außensensor (max. 50.000 Lux):**
+
+Wird ein Außensensor verwendet, muss das Skalierungsmaximum entsprechend hoch eingestellt werden.
+Skalierungsmaximum = 1000 Lux, Sensorwert = 50.000 Lux → Sensorwert weit über Maximum → Helligkeit fällt sofort auf Mindesthelligkeit, völlig unabhängig vom HCL-Profil. Das ist in diesem Fall falsch.
+Korrekt wäre Skalierungsmaximum = 50.000 Lux, damit der Sensor seinen vollen Bereich nutzt.
+
+**Orientierungswerte je Sensortyp:**
+
+- Einfacher Innensensor (bis 1.000 Lux): 500–1.000 Lux
+- Hochwertiger Innensensor (bis 10.000 Lux): 1.000–5.000 Lux
+- Außensensor / Dachsensor (bis 100.000 Lux): 20.000–65.000 Lux
+<!-- DOCEND -->
+
+##### Kompensationsstärke
+
+<!-- DOC HelpContext="HCL-Adaptive-Staerke" -->
+*(Nur bei Tageslicht-Kompensation, Open-Loop)*
+
+Prozentualer Anteil, mit dem die Helligkeitsreduktion auf den HCL-Sollwert angewendet wird.
+
+- **100 %**: Volle Kompensation — bei Skalierungsmaximum wird auf die Mindesthelligkeit abgesenkt.
+- **50 %**: Halbe Kompensation — sanfterer Eingriff ins HCL-Profil.
+
+Bei 0 % ist die Regelung wirkungslos; in dem Fall stattdessen Modus „Aus" verwenden.
+<!-- DOCEND -->
+
+##### Auf HCL-Wert begrenzen
+
+<!-- DOC HelpContext="HCL-Adaptive-CeilToHCL" -->
+*(Nur bei Konstantlichtregelung, Closed-Loop)*
+
+- **Ja**: Die geregelte Helligkeit überschreitet nie den aktuellen HCL-Sollwert. Tageslicht „ersetzt" das Kunstlicht, die Leuchte wird nie heller als der HCL-Sollwert.
+- **Nein**: Regelung kann auch über den HCL-Sollwert hinausgehen (z. B. für reine Lux-Regelung ohne HCL-Bezug).
+
+Empfehlung: **Ja**, um ungewolltes Aufhellen bei schlechten Lichtverhältnissen zu verhindern.
+<!-- DOCEND -->
+
+##### P-Faktor (Kp)
+
+<!-- DOC HelpContext="HCL-Adaptive-Kp" -->
+*(Nur bei Konstantlichtregelung, Closed-Loop)*
+
+Proportionalverstärkung des Reglers. Höhere Werte reagieren schneller, können aber bei trägen Sensoren instabil werden:
+
+- **0.5**: Langsame, sehr stabile Regelung
+- **1.0**: Standardwert, ausgewogen
+- **1.5**: Schnellere Reaktion
+- **2.0**: Aggressiv, nur bei stabilen Sensoren empfohlen
+
+Empfehlung: Mit `1.0` beginnen und bei Bedarf anpassen.
+<!-- DOCEND -->
+
+##### Totband
+
+<!-- DOC HelpContext="HCL-Adaptive-Totband" -->
+*(Nur bei Konstantlichtregelung, Closed-Loop)*
+
+Minimale Abweichung in Lux zwischen Soll- und Istwert, ab der der Regler eingreift. Verhindert ständiges Nachregeln bei kleinen Schwankungen des Sensors.
+
+Empfehlung: 30–80 Lux je nach Sensorgenauigkeit. Bei sehr empfindlichen Sensoren eher höher wählen.
+<!-- DOCEND -->
+
+##### Mindesthelligkeit
+
+<!-- DOC HelpContext="HCL-Adaptive-Mindesthelligkeit" -->
+Untergrenze der Helligkeitsreduktion durch die adaptive Regelung. Die Helligkeit wird nie unter diesen Wert gesenkt, auch wenn das Umgebungslicht das Skalierungsmaximum überschreitet.
+
+Verhindert, dass der Raum bei sehr hellem Tageslicht vollständig dunkel geregelt wird.
+<!-- DOCEND -->
+
+##### Sensor-Timeout (0=aus)
+
+<!-- DOC HelpContext="HCL-Adaptive-Timeout" -->
+Maximale Zeit in Minuten ohne neuen Lux-Messwert, bevor der Sensor als ausgefallen gilt und die adaptive Regelung pausiert wird. Nach Ablauf folgt der Lichtmanager wieder nur der HCL-Kurve.
+
+- `0` = kein Timeout (nicht empfohlen — bei Sensorausfall bleibt die letzte Reduktion dauerhaft aktiv).
+- Empfehlung: 5–15 Minuten, abhängig vom Sendeintervall des Sensors.
+<!-- DOCEND -->
+
+##### Mindestschrittgröße
+
+<!-- DOC HelpContext="HCL-Adaptive-Mindestschritt" -->
+Minimale Helligkeitsänderung in Prozent, die der Regler tatsächlich ausführen muss. Berechnete Korrekturen unterhalb dieses Schwellwerts werden ignoriert.
+
+Verhindert Flackern bei sehr kleinen, rauschbedingten Korrekturen. Empfehlung: 1–3 %.
+<!-- DOCEND -->
+
+##### Kommunikationsobjekte der adaptiven Regelung
+
+<!-- DOC HelpContext="HCL-Adaptive-KOs" -->
+Kommunikationsobjekte für die adaptive Helligkeit je Lichtmanager:
+
+- **Helligkeitssensor (Lux)** (Eingang, DPT 9.004): Umgebungslichtstärke vom Sensor
+- **Tag/Nacht** (Eingang, DPT 1.001): Aktivierungssignal (Polarität konfigurierbar)
+- **Adaptive Helligkeit aktiv** (Ausgang, DPT 1.011): Status: Regelung aktuell aktiv
+
+Das KO „Tag/Nacht" ist nur sichtbar, wenn Aktivierung = „Nur tagsüber (per KO)".
+Das KO „Adaptive Helligkeit aktiv" meldet, ob die Regelung gerade eingreift (z. B. für Logiken oder Visualisierung).
 <!-- DOCEND -->
 
 ### Lichtmanager-Konfiguration übertragen (ConfigTransfer)
