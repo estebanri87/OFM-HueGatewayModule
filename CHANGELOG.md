@@ -2,6 +2,18 @@
 
 Alle wesentlichen Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 
+## [0.4.2] - 2026-05-08
+
+### Hinzugefügt
+- **Adaptive Helligkeit (Tageslicht-Kompensation / Konstantlichtregelung)** für alle 8 Lichtmanager:
+  - Neuer Modus je LM: `Aus` / `Tageslicht-Kompensation (Open-Loop)` / `Konstantlichtregelung (Closed-Loop)`
+  - Neuer KO: **Helligkeitssensor (DPT 9.004)** – Lux-Istwert-Eingang
+  - Neuer KO: **Tag/Nacht (DPT 1.001)** – Aktivierungssteuerung per Tageszeit
+  - Neuer KO: **Adaptive Helligkeit aktiv (DPT 1.011)** – Status-Ausgang
+  - Konfigurierbar: Skalierungsmaximum, Mindesthelligkeit, Kompensationsstärke (Open-Loop),
+    P-Faktor / Totband / Auf-HCL-Wert-begrenzen (Closed-Loop), Sensor-Timeout,
+    Mindestschrittgröße, Aktivierungszeitraum (immer / tagsüber / nach Uhrzeit)
+
 ## [0.4.1] - 2026-04-20
 
 ### Hinzugefügt
