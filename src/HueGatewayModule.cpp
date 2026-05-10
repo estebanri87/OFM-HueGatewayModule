@@ -1577,6 +1577,120 @@ void HueGatewayModule::processInputKo(GroupObject& ko)
         }
     }
 
+    // === Adaptive Helligkeit: Lux-Eingang (DPT 9.004) ===
+    {
+        struct HclLuxKoEntry { uint16_t ko; uint8_t master; };
+        static const HclLuxKoEntry hclLuxKos[] = {
+#ifdef HUE_KoHUEHCLM1AmbientLux
+            { HUE_KoHUEHCLM1AmbientLux, 1 },
+#endif
+#ifdef HUE_KoHUEHCLM2AmbientLux
+            { HUE_KoHUEHCLM2AmbientLux, 2 },
+#endif
+#ifdef HUE_KoHUEHCLM3AmbientLux
+            { HUE_KoHUEHCLM3AmbientLux, 3 },
+#endif
+#ifdef HUE_KoHUEHCLM4AmbientLux
+            { HUE_KoHUEHCLM4AmbientLux, 4 },
+#endif
+#ifdef HUE_KoHUEHCLM5AmbientLux
+            { HUE_KoHUEHCLM5AmbientLux, 5 },
+#endif
+#ifdef HUE_KoHUEHCLM6AmbientLux
+            { HUE_KoHUEHCLM6AmbientLux, 6 },
+#endif
+#ifdef HUE_KoHUEHCLM7AmbientLux
+            { HUE_KoHUEHCLM7AmbientLux, 7 },
+#endif
+#ifdef HUE_KoHUEHCLM8AmbientLux
+            { HUE_KoHUEHCLM8AmbientLux, 8 },
+#endif
+            { 0, 0 }
+        };
+        for (size_t i = 0; hclLuxKos[i].master != 0; i++)
+        {
+            if (koNumber == hclLuxKos[i].ko)
+            {
+                const float lux = ko.value(Dpt(9, 4));
+                HCL::masterManager.setMasterAmbientLux(hclLuxKos[i].master, lux);
+                // Status-KO "Adaptive aktiv" nach Lux-Update senden
+                {
+                    const uint8_t mn = hclLuxKos[i].master;
+                    const bool active = HCL::masterManager.isMasterAdaptiveActive(mn);
+                    switch (mn) {
+#ifdef HUE_KoHUEHCLM1AdaptiveActive
+                        case 1: knx.getGroupObject(HUE_KoHUEHCLM1AdaptiveActive).value(active, Dpt(1, 11)); break;
+#endif
+#ifdef HUE_KoHUEHCLM2AdaptiveActive
+                        case 2: knx.getGroupObject(HUE_KoHUEHCLM2AdaptiveActive).value(active, Dpt(1, 11)); break;
+#endif
+#ifdef HUE_KoHUEHCLM3AdaptiveActive
+                        case 3: knx.getGroupObject(HUE_KoHUEHCLM3AdaptiveActive).value(active, Dpt(1, 11)); break;
+#endif
+#ifdef HUE_KoHUEHCLM4AdaptiveActive
+                        case 4: knx.getGroupObject(HUE_KoHUEHCLM4AdaptiveActive).value(active, Dpt(1, 11)); break;
+#endif
+#ifdef HUE_KoHUEHCLM5AdaptiveActive
+                        case 5: knx.getGroupObject(HUE_KoHUEHCLM5AdaptiveActive).value(active, Dpt(1, 11)); break;
+#endif
+#ifdef HUE_KoHUEHCLM6AdaptiveActive
+                        case 6: knx.getGroupObject(HUE_KoHUEHCLM6AdaptiveActive).value(active, Dpt(1, 11)); break;
+#endif
+#ifdef HUE_KoHUEHCLM7AdaptiveActive
+                        case 7: knx.getGroupObject(HUE_KoHUEHCLM7AdaptiveActive).value(active, Dpt(1, 11)); break;
+#endif
+#ifdef HUE_KoHUEHCLM8AdaptiveActive
+                        case 8: knx.getGroupObject(HUE_KoHUEHCLM8AdaptiveActive).value(active, Dpt(1, 11)); break;
+#endif
+                        default: break;
+                    }
+                }
+                return;
+            }
+        }
+    }
+
+    // === Adaptive Helligkeit: Tag/Nacht-Eingang (DPT 1.001) ===
+    {
+        struct HclDayNightKoEntry { uint16_t ko; uint8_t master; };
+        static const HclDayNightKoEntry hclDayNightKos[] = {
+#ifdef HUE_KoHUEHCLM1DayNight
+            { HUE_KoHUEHCLM1DayNight, 1 },
+#endif
+#ifdef HUE_KoHUEHCLM2DayNight
+            { HUE_KoHUEHCLM2DayNight, 2 },
+#endif
+#ifdef HUE_KoHUEHCLM3DayNight
+            { HUE_KoHUEHCLM3DayNight, 3 },
+#endif
+#ifdef HUE_KoHUEHCLM4DayNight
+            { HUE_KoHUEHCLM4DayNight, 4 },
+#endif
+#ifdef HUE_KoHUEHCLM5DayNight
+            { HUE_KoHUEHCLM5DayNight, 5 },
+#endif
+#ifdef HUE_KoHUEHCLM6DayNight
+            { HUE_KoHUEHCLM6DayNight, 6 },
+#endif
+#ifdef HUE_KoHUEHCLM7DayNight
+            { HUE_KoHUEHCLM7DayNight, 7 },
+#endif
+#ifdef HUE_KoHUEHCLM8DayNight
+            { HUE_KoHUEHCLM8DayNight, 8 },
+#endif
+            { 0, 0 }
+        };
+        for (size_t i = 0; hclDayNightKos[i].master != 0; i++)
+        {
+            if (koNumber == hclDayNightKos[i].ko)
+            {
+                const bool isDaytime = ko.value(Dpt(1, 1));
+                HCL::masterManager.setMasterDaytime(hclDayNightKos[i].master, isDaytime);
+                return;
+            }
+        }
+    }
+
     if (koNumber < HUE_KoBlockOffset)
     {
         return;
@@ -4992,6 +5106,119 @@ void HueGatewayModule::setupHCL()
     }
     #endif
     
+    // === Adaptive Helligkeit – Konfiguration pro Master laden ===
+    {
+        auto loadMasterAdaptiveConfig = [](uint8_t masterNumber,
+                                           uint8_t mode,
+                                           uint8_t activeMode,
+                                           uint8_t ceilToHCL,
+                                           uint16_t maxLux,
+                                           uint8_t minBrightness,
+                                           uint8_t sensorTimeout,
+                                           uint8_t minChange,
+                                           uint8_t strength,
+                                           uint8_t kpEnum,
+                                           uint16_t deadband,
+                                           const uint8_t* startTimeRaw,
+                                           const uint8_t* endTimeRaw,
+                                           uint8_t dayNightPolarity) {
+            HCL::Master* master = HCL::masterManager.getMaster(masterNumber);
+            if (!master) return;
+            HCL::AdaptiveConfig cfg;
+            cfg.mode               = static_cast<HCL::AdaptiveMode>(mode);
+            cfg.activeMode         = static_cast<HCL::AdaptiveActiveMode>(activeMode);
+            cfg.ceilToHCL          = (ceilToHCL != 0);
+            cfg.maxLux             = maxLux;
+            cfg.minBrightness      = minBrightness;
+            cfg.sensorTimeoutMinutes = sensorTimeout;
+            cfg.minChangePercent   = minChange;
+            cfg.strength           = strength;
+            const float kpValues[] = {0.5f, 1.0f, 1.5f, 2.0f};
+            cfg.kp                 = (kpEnum < 4) ? kpValues[kpEnum] : 1.0f;
+            cfg.deadbandLux        = deadband;
+            const String startStr  = readFixedTimeParam(startTimeRaw);
+            const String endStr    = readFixedTimeParam(endTimeRaw);
+            cfg.activeStartMinutes = HCL::Setpoint::parseTime(startStr.c_str());
+            cfg.activeEndMinutes   = HCL::Setpoint::parseTime(endStr.c_str());
+            if (cfg.activeStartMinutes == 0xFFFF) cfg.activeStartMinutes = 360;
+            if (cfg.activeEndMinutes   == 0xFFFF) cfg.activeEndMinutes   = 1320;
+            cfg.dayNightPolarity   = (dayNightPolarity != 0);
+            master->setAdaptiveConfig(cfg);
+        };
+        #if defined(ParamHUE_HCLM1AdaptiveMode)
+        loadMasterAdaptiveConfig(1, ParamHUE_HCLM1AdaptiveMode, ParamHUE_HCLM1AdaptiveActiveMode,
+            ParamHUE_HCLM1AdaptiveCeilToHCL, ParamHUE_HCLM1AdaptiveMaxLux,
+            ParamHUE_HCLM1AdaptiveMinBrightness, ParamHUE_HCLM1AdaptiveSensorTimeout,
+            ParamHUE_HCLM1AdaptiveMinChange, ParamHUE_HCLM1AdaptiveStrength,
+            ParamHUE_HCLM1AdaptiveKp, ParamHUE_HCLM1AdaptiveDeadband,
+            knx.paramData(HUE_HCLM1AdaptiveStartTime), knx.paramData(HUE_HCLM1AdaptiveEndTime),
+            ParamHUE_HCLM1AdaptiveDayNightPolarity);
+        #endif
+        #if defined(ParamHUE_HCLM2AdaptiveMode)
+        loadMasterAdaptiveConfig(2, ParamHUE_HCLM2AdaptiveMode, ParamHUE_HCLM2AdaptiveActiveMode,
+            ParamHUE_HCLM2AdaptiveCeilToHCL, ParamHUE_HCLM2AdaptiveMaxLux,
+            ParamHUE_HCLM2AdaptiveMinBrightness, ParamHUE_HCLM2AdaptiveSensorTimeout,
+            ParamHUE_HCLM2AdaptiveMinChange, ParamHUE_HCLM2AdaptiveStrength,
+            ParamHUE_HCLM2AdaptiveKp, ParamHUE_HCLM2AdaptiveDeadband,
+            knx.paramData(HUE_HCLM2AdaptiveStartTime), knx.paramData(HUE_HCLM2AdaptiveEndTime),
+            ParamHUE_HCLM2AdaptiveDayNightPolarity);
+        #endif
+        #if defined(ParamHUE_HCLM3AdaptiveMode)
+        loadMasterAdaptiveConfig(3, ParamHUE_HCLM3AdaptiveMode, ParamHUE_HCLM3AdaptiveActiveMode,
+            ParamHUE_HCLM3AdaptiveCeilToHCL, ParamHUE_HCLM3AdaptiveMaxLux,
+            ParamHUE_HCLM3AdaptiveMinBrightness, ParamHUE_HCLM3AdaptiveSensorTimeout,
+            ParamHUE_HCLM3AdaptiveMinChange, ParamHUE_HCLM3AdaptiveStrength,
+            ParamHUE_HCLM3AdaptiveKp, ParamHUE_HCLM3AdaptiveDeadband,
+            knx.paramData(HUE_HCLM3AdaptiveStartTime), knx.paramData(HUE_HCLM3AdaptiveEndTime),
+            ParamHUE_HCLM3AdaptiveDayNightPolarity);
+        #endif
+        #if defined(ParamHUE_HCLM4AdaptiveMode)
+        loadMasterAdaptiveConfig(4, ParamHUE_HCLM4AdaptiveMode, ParamHUE_HCLM4AdaptiveActiveMode,
+            ParamHUE_HCLM4AdaptiveCeilToHCL, ParamHUE_HCLM4AdaptiveMaxLux,
+            ParamHUE_HCLM4AdaptiveMinBrightness, ParamHUE_HCLM4AdaptiveSensorTimeout,
+            ParamHUE_HCLM4AdaptiveMinChange, ParamHUE_HCLM4AdaptiveStrength,
+            ParamHUE_HCLM4AdaptiveKp, ParamHUE_HCLM4AdaptiveDeadband,
+            knx.paramData(HUE_HCLM4AdaptiveStartTime), knx.paramData(HUE_HCLM4AdaptiveEndTime),
+            ParamHUE_HCLM4AdaptiveDayNightPolarity);
+        #endif
+        #if defined(ParamHUE_HCLM5AdaptiveMode)
+        loadMasterAdaptiveConfig(5, ParamHUE_HCLM5AdaptiveMode, ParamHUE_HCLM5AdaptiveActiveMode,
+            ParamHUE_HCLM5AdaptiveCeilToHCL, ParamHUE_HCLM5AdaptiveMaxLux,
+            ParamHUE_HCLM5AdaptiveMinBrightness, ParamHUE_HCLM5AdaptiveSensorTimeout,
+            ParamHUE_HCLM5AdaptiveMinChange, ParamHUE_HCLM5AdaptiveStrength,
+            ParamHUE_HCLM5AdaptiveKp, ParamHUE_HCLM5AdaptiveDeadband,
+            knx.paramData(HUE_HCLM5AdaptiveStartTime), knx.paramData(HUE_HCLM5AdaptiveEndTime),
+            ParamHUE_HCLM5AdaptiveDayNightPolarity);
+        #endif
+        #if defined(ParamHUE_HCLM6AdaptiveMode)
+        loadMasterAdaptiveConfig(6, ParamHUE_HCLM6AdaptiveMode, ParamHUE_HCLM6AdaptiveActiveMode,
+            ParamHUE_HCLM6AdaptiveCeilToHCL, ParamHUE_HCLM6AdaptiveMaxLux,
+            ParamHUE_HCLM6AdaptiveMinBrightness, ParamHUE_HCLM6AdaptiveSensorTimeout,
+            ParamHUE_HCLM6AdaptiveMinChange, ParamHUE_HCLM6AdaptiveStrength,
+            ParamHUE_HCLM6AdaptiveKp, ParamHUE_HCLM6AdaptiveDeadband,
+            knx.paramData(HUE_HCLM6AdaptiveStartTime), knx.paramData(HUE_HCLM6AdaptiveEndTime),
+            ParamHUE_HCLM6AdaptiveDayNightPolarity);
+        #endif
+        #if defined(ParamHUE_HCLM7AdaptiveMode)
+        loadMasterAdaptiveConfig(7, ParamHUE_HCLM7AdaptiveMode, ParamHUE_HCLM7AdaptiveActiveMode,
+            ParamHUE_HCLM7AdaptiveCeilToHCL, ParamHUE_HCLM7AdaptiveMaxLux,
+            ParamHUE_HCLM7AdaptiveMinBrightness, ParamHUE_HCLM7AdaptiveSensorTimeout,
+            ParamHUE_HCLM7AdaptiveMinChange, ParamHUE_HCLM7AdaptiveStrength,
+            ParamHUE_HCLM7AdaptiveKp, ParamHUE_HCLM7AdaptiveDeadband,
+            knx.paramData(HUE_HCLM7AdaptiveStartTime), knx.paramData(HUE_HCLM7AdaptiveEndTime),
+            ParamHUE_HCLM7AdaptiveDayNightPolarity);
+        #endif
+        #if defined(ParamHUE_HCLM8AdaptiveMode)
+        loadMasterAdaptiveConfig(8, ParamHUE_HCLM8AdaptiveMode, ParamHUE_HCLM8AdaptiveActiveMode,
+            ParamHUE_HCLM8AdaptiveCeilToHCL, ParamHUE_HCLM8AdaptiveMaxLux,
+            ParamHUE_HCLM8AdaptiveMinBrightness, ParamHUE_HCLM8AdaptiveSensorTimeout,
+            ParamHUE_HCLM8AdaptiveMinChange, ParamHUE_HCLM8AdaptiveStrength,
+            ParamHUE_HCLM8AdaptiveKp, ParamHUE_HCLM8AdaptiveDeadband,
+            knx.paramData(HUE_HCLM8AdaptiveStartTime), knx.paramData(HUE_HCLM8AdaptiveEndTime),
+            ParamHUE_HCLM8AdaptiveDayNightPolarity);
+        #endif
+    }
+
     HCL::masterManager.setup();
     publishHclMasterValues();
     Serial.println("[HueGatewayModule] HCL setup complete");

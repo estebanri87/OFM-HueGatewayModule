@@ -113,6 +113,11 @@ public:
      * @brief Get time until next update in milliseconds
      */
     uint32_t getTimeUntilNextUpdate() const;
+
+    // --- Adaptive Helligkeit ---
+    void setMasterAmbientLux(uint8_t masterNum, float lux);
+    void setMasterDaytime(uint8_t masterNum, bool isDaytime);
+    bool isMasterAdaptiveActive(uint8_t masterNum) const;
     
 private:
     Master _masters[MAX_MASTERS];

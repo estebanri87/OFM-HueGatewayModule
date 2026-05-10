@@ -12,6 +12,34 @@ enum class CurveType : uint8_t {
     Astronomical = 3
 };
 
+enum class AdaptiveMode : uint8_t {
+    Disabled = 0,
+    OpenLoop = 1,   // Proportionale Kompensation: helle Umgebung → weniger Licht
+    ClosedLoop = 2  // P-Regler: Umgebungshelligkeit auf Sollwert regeln
+};
+
+enum class AdaptiveActiveMode : uint8_t {
+    Always = 0,    // Immer aktiv
+    DayOnly = 1,   // Nur wenn Tag/Nacht-KO = Tag
+    TimeRange = 2  // Nur innerhalb definierter Uhrzeit
+};
+
+struct AdaptiveConfig {
+    AdaptiveMode mode = AdaptiveMode::Disabled;
+    AdaptiveActiveMode activeMode = AdaptiveActiveMode::Always;
+    uint8_t strength = 80;             // OpenLoop: Kompensationsstärke 0-100%
+    uint16_t maxLux = 1000;            // Skalierungsmaximum in Lux
+    uint8_t minBrightness = 5;         // Mindestausgabe 0-100%
+    float kp = 1.0f;                   // ClosedLoop: Proportionalfaktor
+    uint16_t activeStartMinutes = 360; // TimeRange: Start (Minuten seit Mitternacht)
+    uint16_t activeEndMinutes = 1320;  // TimeRange: Ende (Minuten seit Mitternacht)
+    bool ceilToHCL = true;             // Ausgabe auf HCL-Wert gedeckelt
+    bool dayNightPolarity = false;     // false: KO-Wert 1=Tag; true: KO-Wert 1=Nacht
+    uint16_t deadbandLux = 50;         // ClosedLoop: Totband in Lux
+    uint8_t sensorTimeoutMinutes = 5;  // Failsafe: Rückfall nach X Minuten (0=deaktiviert)
+    uint8_t minChangePercent = 2;      // Mindestschrittgröße in %
+};
+
 /**
  * @brief Manages a single HCL Master with up to 10 setpoints
  * 
@@ -85,6 +113,13 @@ public:
     void setSlewRateKelvinPerMinute(uint16_t kelvinPerMinute) { _slewRateKelvinPerMinute = kelvinPerMinute; }
     uint16_t getSlewRateKelvinPerMinute() const { return _slewRateKelvinPerMinute; }
     uint16_t getAppliedKelvin() const { return _appliedKelvin; }
+
+    // --- Adaptive Helligkeit ---
+    void setAdaptiveConfig(const AdaptiveConfig& config) { _adaptiveConfig = config; }
+    const AdaptiveConfig& getAdaptiveConfig() const { return _adaptiveConfig; }
+    void setAmbientLux(float lux);
+    void setDaytime(bool isDaytime) { _isDaytime = isDaytime; }
+    bool isAdaptiveCurrentlyActive(uint16_t currentTimeMinutes, uint32_t nowMs) const;
     
     /**
      * @brief Calculate interpolated value for current time
@@ -145,6 +180,15 @@ private:
     uint16_t _astroMaxKelvin;
     uint8_t _astroMinBrightness;
     uint8_t _astroMaxBrightness;
+
+    // --- Adaptive Helligkeit ---
+    AdaptiveConfig _adaptiveConfig;
+    float _ambientLux = 0.0f;
+    bool _isDaytime = true;
+    uint32_t _lastLuxReceiveMs = 0;
+    uint8_t _lastSentBrightness = 255; // 255 = noch kein Wert gesendet
+    float _luxFilterBuffer[3] = {0.0f, 0.0f, 0.0f};
+    uint8_t _luxFilterIndex = 0;
     
     /**
      * @brief Linear interpolation between two values
@@ -168,6 +212,11 @@ private:
     InterpolatedValue calculateAstronomicalValue(uint16_t currentTimeMinutes, int16_t dayOfYear) const;
     void applySlew(uint16_t targetKelvin, uint32_t currentTimeMs);
     void getSetpointRanges(const Setpoint* arr, uint16_t& minKelvin, uint16_t& maxKelvin, uint8_t& minBrightness, uint8_t& maxBrightness) const;
+
+    // --- Adaptive Helligkeit (privat) ---
+    bool isSensorValid(uint32_t nowMs) const;
+    float getFilteredLux() const;
+    InterpolatedValue applyAdaptiveBrightness(InterpolatedValue val, uint16_t currentTimeMinutes, uint32_t nowMs);
 };
 
 } // namespace HCL

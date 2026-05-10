@@ -419,7 +419,107 @@ InterpolatedValue Master::calculateValue(uint16_t currentTimeMinutes, uint32_t c
 
     applySlew(target.kelvin, currentTimeMs);
     target.kelvin = _appliedKelvin;
-    return target;
+    return applyAdaptiveBrightness(target, currentTimeMinutes, currentTimeMs);
+}
+
+void Master::setAmbientLux(float lux) {
+    if (lux < 0.0f) lux = 0.0f;
+    _luxFilterBuffer[_luxFilterIndex] = lux;
+    _luxFilterIndex = (_luxFilterIndex + 1) % 3;
+    _ambientLux = lux;
+    _lastLuxReceiveMs = millis();
+}
+
+bool Master::isSensorValid(uint32_t nowMs) const {
+    if (_adaptiveConfig.sensorTimeoutMinutes == 0) return true;
+    if (_lastLuxReceiveMs == 0) return false;
+    uint32_t timeoutMs = static_cast<uint32_t>(_adaptiveConfig.sensorTimeoutMinutes) * 60000UL;
+    return (nowMs - _lastLuxReceiveMs) < timeoutMs;
+}
+
+float Master::getFilteredLux() const {
+    float sum = 0.0f;
+    for (uint8_t i = 0; i < 3; i++) {
+        sum += _luxFilterBuffer[i];
+    }
+    return sum / 3.0f;
+}
+
+bool Master::isAdaptiveCurrentlyActive(uint16_t currentTimeMinutes, uint32_t nowMs) const {
+    if (_adaptiveConfig.mode == AdaptiveMode::Disabled) return false;
+    if (!isSensorValid(nowMs)) return false;
+
+    switch (_adaptiveConfig.activeMode) {
+        case AdaptiveActiveMode::Always:
+            return true;
+        case AdaptiveActiveMode::DayOnly: {
+            bool isDay = _adaptiveConfig.dayNightPolarity ? !_isDaytime : _isDaytime;
+            return isDay;
+        }
+        case AdaptiveActiveMode::TimeRange: {
+            uint16_t s = _adaptiveConfig.activeStartMinutes;
+            uint16_t e = _adaptiveConfig.activeEndMinutes;
+            if (s <= e) {
+                return currentTimeMinutes >= s && currentTimeMinutes < e;
+            } else {
+                // Mitternachts-Wrap
+                return currentTimeMinutes >= s || currentTimeMinutes < e;
+            }
+        }
+        default:
+            return false;
+    }
+}
+
+InterpolatedValue Master::applyAdaptiveBrightness(InterpolatedValue val, uint16_t currentTimeMinutes, uint32_t nowMs) {
+    if (!isAdaptiveCurrentlyActive(currentTimeMinutes, nowMs)) {
+        _lastSentBrightness = val.brightness;
+        return val;
+    }
+
+    float filteredLux = getFilteredLux();
+    uint8_t output = val.brightness;
+
+    if (_adaptiveConfig.mode == AdaptiveMode::OpenLoop) {
+        float maxLux = static_cast<float>(_adaptiveConfig.maxLux);
+        if (maxLux < 1.0f) maxLux = 1.0f;
+        float ambientNorm = filteredLux / maxLux;
+        if (ambientNorm > 1.0f) ambientNorm = 1.0f;
+        float raw = static_cast<float>(val.brightness) * (1.0f - ambientNorm * (_adaptiveConfig.strength / 100.0f));
+        output = static_cast<uint8_t>(constrain(static_cast<int>(raw + 0.5f), _adaptiveConfig.minBrightness, 100));
+
+    } else if (_adaptiveConfig.mode == AdaptiveMode::ClosedLoop) {
+        float maxLux = static_cast<float>(_adaptiveConfig.maxLux);
+        if (maxLux < 1.0f) maxLux = 1.0f;
+        float targetLux = (static_cast<float>(val.brightness) / 100.0f) * maxLux;
+
+        float error = filteredLux - targetLux;
+        if (error < 0.0f) error = -error;
+
+        if (error < static_cast<float>(_adaptiveConfig.deadbandLux)) {
+            // Totband: kein Update
+            if (_lastSentBrightness == 255) {
+                _lastSentBrightness = val.brightness;
+            }
+            return {val.kelvin, _lastSentBrightness};
+        }
+
+        float errorNorm = (targetLux - filteredLux) / maxLux;
+        float raw = static_cast<float>(val.brightness) + _adaptiveConfig.kp * errorNorm * 100.0f;
+        uint8_t ceiling = _adaptiveConfig.ceilToHCL ? val.brightness : 100;
+        output = static_cast<uint8_t>(constrain(static_cast<int>(raw + 0.5f), _adaptiveConfig.minBrightness, ceiling));
+    }
+
+    // Mindestschrittgröße
+    if (_lastSentBrightness != 255) {
+        uint8_t diff = (output > _lastSentBrightness) ? (output - _lastSentBrightness) : (_lastSentBrightness - output);
+        if (diff < _adaptiveConfig.minChangePercent) {
+            return {val.kelvin, _lastSentBrightness};
+        }
+    }
+
+    _lastSentBrightness = output;
+    return {val.kelvin, output};
 }
 
 } // namespace HCL
