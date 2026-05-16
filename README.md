@@ -4,7 +4,7 @@ OpenKNX Funktionsmodul zur Integration von Philips Hue Geräten in KNX-Systeme.
 
 ## Status
 
-🧪 **Beta-Kandidat** - Version 0.2.x
+🧪 **Beta**
 
 ### Bekannte Einschränkungen
 

@@ -108,4 +108,22 @@ void MasterManager::updateCurrentValues(uint16_t currentTimeMinutes, int16_t day
     }
 }
 
+void MasterManager::setMasterAmbientLux(uint8_t masterNum, float lux) {
+    if (masterNum < 1 || masterNum > MAX_MASTERS) return;
+    _masters[masterNum - 1].setAmbientLux(lux);
+    forceUpdate();
+}
+
+void MasterManager::setMasterDaytime(uint8_t masterNum, bool isDaytime) {
+    if (masterNum < 1 || masterNum > MAX_MASTERS) return;
+    _masters[masterNum - 1].setDaytime(isDaytime);
+}
+
+bool MasterManager::isMasterAdaptiveActive(uint8_t masterNum) const {
+    if (masterNum < 1 || masterNum > MAX_MASTERS) return false;
+    uint32_t now = millis();
+    // Aktuelle Uhrzeit nicht vorhanden → konservativ aus _lastTimeMinutes lesen
+    return _masters[masterNum - 1].isAdaptiveCurrentlyActive(_lastTimeMinutes, now);
+}
+
 } // namespace HCL
