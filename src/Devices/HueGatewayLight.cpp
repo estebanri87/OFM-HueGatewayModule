@@ -3,6 +3,11 @@
 #include <knx.h>
 #include <math.h>
 
+#if __has_include("LightManagerModule.h")
+#include "LightManagerModule.h"
+#define HUEGATEWAY_LIGHT_HAS_LIGHTMANAGER 1
+#endif
+
 namespace
 {
 static constexpr unsigned long kGlobalHclWriteSpacingMs = 220UL;
@@ -83,6 +88,10 @@ HueGatewayLight::HueGatewayLight(const String& lightId, const String& name, HueG
 
 HueGatewayLight::~HueGatewayLight()
 {
+#ifdef HUEGATEWAY_LIGHT_HAS_LIGHTMANAGER
+    // Auto-deregister from LightManager so it never dereferences a dangling pointer.
+    openknxLightManagerModule.unregisterOutput(this);
+#endif
 }
 
 unsigned long HueGatewayLight::globalHclWriteNextAllowedMs() { return sGlobalHclWriteNextAllowedMs; }
@@ -161,6 +170,10 @@ void HueGatewayLight::processKnxSwitch(bool value)
     }
     
     // On switch-on with HCL assignment, apply the last pushed HCL value.
+    // Note: the flag is intentionally NOT cleared after consumption, because
+    // LightManagerModule only pushes new values when they CHANGE. For constant
+    // HCL setpoints (e.g. 2400 K / 50 % over the whole day) we would otherwise
+    // miss applying the HCL value on subsequent switch-on events.
     if (value
         && _hclMasterNum > 0
         && _hclMasterNum <= kMaxHclMasters
@@ -168,7 +181,6 @@ void HueGatewayLight::processKnxSwitch(bool value)
         && _hclValuePending) {
         const uint16_t kelvin = _pendingHclKelvin;
         const uint8_t brightness = _pendingHclBrightness;
-        _hclValuePending = false;
 
         // Convert brightness percent (0-100) to Hue scale (0-254).
         _brightness = static_cast<uint8_t>(roundf(brightness * 254.0f / 100.0f));

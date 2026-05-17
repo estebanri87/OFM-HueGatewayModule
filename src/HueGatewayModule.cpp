@@ -3619,11 +3619,22 @@ void HueGatewayModule::setupDevices()
         setupLight->setLightType(effectiveLightType);
 
         uint8_t hclMaster = ParamHUE_CHHCLMaster;
-        if (hclMaster > 8)
+        if (hclMaster > HCL::MasterManager::MAX_MASTERS)
         {
             hclMaster = 0;
         }
         _devices[ch]->setHCLMaster(hclMaster);
+
+#ifdef HUEGATEWAY_HAS_LIGHTMANAGER
+        // Register/unregister with LightManagerModule so HCL setpoints are pushed
+        // to this light. unregister first ensures clean state when the master changes
+        // or setupDevices() runs again.
+        openknxLightManagerModule.unregisterOutput(setupLight);
+        if (hclMaster > 0)
+        {
+            openknxLightManagerModule.registerOutput(hclMaster, setupLight);
+        }
+#endif
 
         _hclChannelLockFallbackMode[ch] = static_cast<uint8_t>(HclLockFallbackMode::None);
         #ifdef ParamHUE_CHHCLLockFallback
