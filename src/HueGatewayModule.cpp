@@ -93,18 +93,6 @@ static void logSetupTlsHeadroom(const char* phase)
                   static_cast<unsigned>(kSetupMinInternalLargestBlockBytes));
 }
 
-static String readFixedTimeParam(const uint8_t* rawTime)
-{
-    if (rawTime == nullptr || rawTime[0] == '\0')
-    {
-        return String("");
-    }
-
-    char buffer[6] = {0, 0, 0, 0, 0, 0};
-    memcpy(buffer, rawTime, 5);
-    return String(buffer);
-}
-
 struct HclFixedInterpolationDebug
 {
     bool valid = false;
@@ -2225,29 +2213,16 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
         Serial.println("\nHCL Status:");
         Serial.println("---------------------------------");
 
-        #ifdef ParamHUE_HUEHCLEnable
-        const bool hclEnabled = (ParamHUE_HUEHCLEnable != 0);
+        const bool hclEnabled = HCL::masterManager.isEnabled();
         Serial.printf("Enabled: %s\n", hclEnabled ? "Yes" : "No");
-        #else
-        const bool hclEnabled = false;
-        Serial.println("Enabled: No");
-        #endif
 
         if (hclEnabled)
         {
-            #ifdef ParamHUE_HUEHCLMasterCount
-            const uint8_t masterCount = ParamHUE_HUEHCLMasterCount;
-            #else
-            const uint8_t masterCount = 0;
-            #endif
-
-            #ifdef ParamHUE_HUEHCLUpdateInterval
-            Serial.printf("Update interval: %us\n", static_cast<unsigned>(ParamHUE_HUEHCLUpdateInterval));
-            #endif
-
-            #ifdef ParamHUE_HUEHCLFadeDuration
-            Serial.printf("Fade duration: %us\n", static_cast<unsigned>(ParamHUE_HUEHCLFadeDuration));
-            #endif
+            const uint8_t masterCount = HCL::masterManager.getMasterCount();
+            Serial.printf("Update interval: %us\n",
+                          static_cast<unsigned>(HCL::masterManager.getUpdateInterval()));
+            Serial.printf("Fade duration: %us\n",
+                          static_cast<unsigned>(HCL::masterManager.getFadeDuration()));
 
             for (uint8_t masterNumber = 1; masterNumber <= HCL::MasterManager::MAX_MASTERS; masterNumber++)
             {
@@ -2269,130 +2244,23 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
                               static_cast<unsigned>(current.brightness),
                               static_cast<unsigned>(master->getValidSetpointCount()));
 
-                uint8_t curveTypeValue = 0;
-                uint16_t slewRate = 0;
-                uint16_t manualKelvin = 4000;
-                String sunrise = "";
-                String sunset = "";
-                int16_t sunriseOffset = 0;
-                int16_t sunsetOffset = 0;
-
-                switch (masterNumber)
-                {
-                    case 1:
-                        #ifdef ParamHUE_HCLM1CurveType
-                        curveTypeValue = ParamHUE_HCLM1CurveType;
-                        slewRate = ParamHUE_HCLM1SlewRate;
-                        manualKelvin = ParamHUE_HCLM1ManualKelvin;
-                        sunrise = readFixedTimeParam(ParamHUE_HCLM1Sunrise);
-                        sunset = readFixedTimeParam(ParamHUE_HCLM1Sunset);
-                        sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM1SunriseOffset);
-                        sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM1SunsetOffset);
-                        #endif
-                        break;
-                    case 2:
-                        #ifdef ParamHUE_HCLM2CurveType
-                        curveTypeValue = ParamHUE_HCLM2CurveType;
-                        slewRate = ParamHUE_HCLM2SlewRate;
-                        manualKelvin = ParamHUE_HCLM2ManualKelvin;
-                        sunrise = readFixedTimeParam(ParamHUE_HCLM2Sunrise);
-                        sunset = readFixedTimeParam(ParamHUE_HCLM2Sunset);
-                        sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM2SunriseOffset);
-                        sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM2SunsetOffset);
-                        #endif
-                        break;
-                    case 3:
-                        #ifdef ParamHUE_HCLM3CurveType
-                        curveTypeValue = ParamHUE_HCLM3CurveType;
-                        slewRate = ParamHUE_HCLM3SlewRate;
-                        manualKelvin = ParamHUE_HCLM3ManualKelvin;
-                        sunrise = readFixedTimeParam(ParamHUE_HCLM3Sunrise);
-                        sunset = readFixedTimeParam(ParamHUE_HCLM3Sunset);
-                        sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM3SunriseOffset);
-                        sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM3SunsetOffset);
-                        #endif
-                        break;
-                    case 4:
-                        #ifdef ParamHUE_HCLM4CurveType
-                        curveTypeValue = ParamHUE_HCLM4CurveType;
-                        slewRate = ParamHUE_HCLM4SlewRate;
-                        manualKelvin = ParamHUE_HCLM4ManualKelvin;
-                        sunrise = readFixedTimeParam(ParamHUE_HCLM4Sunrise);
-                        sunset = readFixedTimeParam(ParamHUE_HCLM4Sunset);
-                        sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM4SunriseOffset);
-                        sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM4SunsetOffset);
-                        #endif
-                        break;
-                    case 5:
-                        #ifdef ParamHUE_HCLM5CurveType
-                        curveTypeValue = ParamHUE_HCLM5CurveType;
-                        slewRate = ParamHUE_HCLM5SlewRate;
-                        manualKelvin = ParamHUE_HCLM5ManualKelvin;
-                        sunrise = reinterpret_cast<const char*>(ParamHUE_HCLM5Sunrise);
-                        sunset = reinterpret_cast<const char*>(ParamHUE_HCLM5Sunset);
-                        sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM5SunriseOffset);
-                        sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM5SunsetOffset);
-                        #endif
-                        break;
-                    case 6:
-                        #ifdef ParamHUE_HCLM6CurveType
-                        curveTypeValue = ParamHUE_HCLM6CurveType;
-                        slewRate = ParamHUE_HCLM6SlewRate;
-                        manualKelvin = ParamHUE_HCLM6ManualKelvin;
-                        sunrise = reinterpret_cast<const char*>(ParamHUE_HCLM6Sunrise);
-                        sunset = reinterpret_cast<const char*>(ParamHUE_HCLM6Sunset);
-                        sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM6SunriseOffset);
-                        sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM6SunsetOffset);
-                        #endif
-                        break;
-                    case 7:
-                        #ifdef ParamHUE_HCLM7CurveType
-                        curveTypeValue = ParamHUE_HCLM7CurveType;
-                        slewRate = ParamHUE_HCLM7SlewRate;
-                        manualKelvin = ParamHUE_HCLM7ManualKelvin;
-                        sunrise = reinterpret_cast<const char*>(ParamHUE_HCLM7Sunrise);
-                        sunset = reinterpret_cast<const char*>(ParamHUE_HCLM7Sunset);
-                        sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM7SunriseOffset);
-                        sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM7SunsetOffset);
-                        #endif
-                        break;
-                    case 8:
-                        #ifdef ParamHUE_HCLM8CurveType
-                        curveTypeValue = ParamHUE_HCLM8CurveType;
-                        slewRate = ParamHUE_HCLM8SlewRate;
-                        manualKelvin = ParamHUE_HCLM8ManualKelvin;
-                        sunrise = reinterpret_cast<const char*>(ParamHUE_HCLM8Sunrise);
-                        sunset = reinterpret_cast<const char*>(ParamHUE_HCLM8Sunset);
-                        sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM8SunriseOffset);
-                        sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM8SunsetOffset);
-                        #endif
-                        break;
-                    default:
-                        break;
-                }
-
+                const uint8_t curveTypeValue = static_cast<uint8_t>(master->getCurveType());
                 const char* curveText = "FixedTime";
-                if (curveTypeValue == 1)
-                {
-                    curveText = "SunWindow";
-                }
-                else if (curveTypeValue == 2)
-                {
-                    curveText = "Manual";
-                }
-                else if (curveTypeValue == 3)
-                {
-                    curveText = "Astronomical";
-                }
+                if (curveTypeValue == 1) curveText = "SunWindow";
+                else if (curveTypeValue == 2) curveText = "Manual";
+                else if (curveTypeValue == 3) curveText = "Astronomical";
+
+                String sunrise = master->hasSunTimes() ? formatMinutesToClock(master->getSunriseMinutes()) : String("--:--");
+                String sunset  = master->hasSunTimes() ? formatMinutesToClock(master->getSunsetMinutes())  : String("--:--");
 
                 Serial.printf("    curve=%s slew=%uK/min manual=%uK sun=%s/%s offset=%d/%d applied=%uK\n",
                               curveText,
-                              static_cast<unsigned>(slewRate),
-                              static_cast<unsigned>(manualKelvin),
+                              static_cast<unsigned>(master->getSlewRateKelvinPerMinute()),
+                              static_cast<unsigned>(master->getManualKelvin()),
                               sunrise.c_str(),
                               sunset.c_str(),
-                              static_cast<int>(sunriseOffset),
-                              static_cast<int>(sunsetOffset),
+                              static_cast<int>(master->getSunriseOffsetMin()),
+                              static_cast<int>(master->getSunsetOffsetMin()),
                               static_cast<unsigned>(master->getAppliedKelvin()));
             }
         }
@@ -2408,13 +2276,8 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
         Serial.println("Hue HCL Diagnostics");
         Serial.println("=================================");
 
-        #ifdef ParamHUE_HUEHCLEnable
-        const bool hclEnabled = (ParamHUE_HUEHCLEnable != 0);
+        const bool hclEnabled = HCL::masterManager.isEnabled();
         Serial.printf("Enabled: %s\n", hclEnabled ? "Yes" : "No");
-        #else
-        const bool hclEnabled = false;
-        Serial.println("Enabled: No");
-        #endif
 
         if (!hclEnabled)
         {
@@ -2423,21 +2286,12 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
             return true;
         }
 
-        #ifdef ParamHUE_HUEHCLMasterCount
-        const uint8_t masterCount = ParamHUE_HUEHCLMasterCount;
+        const uint8_t masterCount = HCL::masterManager.getMasterCount();
         Serial.printf("Master count: %u\n", static_cast<unsigned>(masterCount));
-        #else
-        const uint8_t masterCount = 0;
-        Serial.println("Master count: 0");
-        #endif
-
-        #ifdef ParamHUE_HUEHCLUpdateInterval
-        Serial.printf("Update interval: %us\n", static_cast<unsigned>(ParamHUE_HUEHCLUpdateInterval));
-        #endif
-
-        #ifdef ParamHUE_HUEHCLFadeDuration
-        Serial.printf("Fade duration: %us\n", static_cast<unsigned>(ParamHUE_HUEHCLFadeDuration));
-        #endif
+        Serial.printf("Update interval: %us\n",
+                      static_cast<unsigned>(HCL::masterManager.getUpdateInterval()));
+        Serial.printf("Fade duration: %us\n",
+                      static_cast<unsigned>(HCL::masterManager.getFadeDuration()));
 
         for (uint8_t masterNumber = 1; masterNumber <= HCL::MasterManager::MAX_MASTERS; masterNumber++)
         {
@@ -2460,130 +2314,23 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
                           static_cast<unsigned>(master->getValidSetpointCount()),
                           static_cast<unsigned>(master->getAppliedKelvin()));
 
-            uint8_t curveTypeValue = 0;
-            uint16_t slewRate = 0;
-            uint16_t manualKelvin = 4000;
-            String sunrise = "";
-            String sunset = "";
-            int16_t sunriseOffset = 0;
-            int16_t sunsetOffset = 0;
-
-            switch (masterNumber)
-            {
-                case 1:
-                    #ifdef ParamHUE_HCLM1CurveType
-                    curveTypeValue = ParamHUE_HCLM1CurveType;
-                    slewRate = ParamHUE_HCLM1SlewRate;
-                    manualKelvin = ParamHUE_HCLM1ManualKelvin;
-                    sunrise = readFixedTimeParam(ParamHUE_HCLM1Sunrise);
-                    sunset = readFixedTimeParam(ParamHUE_HCLM1Sunset);
-                    sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM1SunriseOffset);
-                    sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM1SunsetOffset);
-                    #endif
-                    break;
-                case 2:
-                    #ifdef ParamHUE_HCLM2CurveType
-                    curveTypeValue = ParamHUE_HCLM2CurveType;
-                    slewRate = ParamHUE_HCLM2SlewRate;
-                    manualKelvin = ParamHUE_HCLM2ManualKelvin;
-                    sunrise = readFixedTimeParam(ParamHUE_HCLM2Sunrise);
-                    sunset = readFixedTimeParam(ParamHUE_HCLM2Sunset);
-                    sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM2SunriseOffset);
-                    sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM2SunsetOffset);
-                    #endif
-                    break;
-                case 3:
-                    #ifdef ParamHUE_HCLM3CurveType
-                    curveTypeValue = ParamHUE_HCLM3CurveType;
-                    slewRate = ParamHUE_HCLM3SlewRate;
-                    manualKelvin = ParamHUE_HCLM3ManualKelvin;
-                    sunrise = readFixedTimeParam(ParamHUE_HCLM3Sunrise);
-                    sunset = readFixedTimeParam(ParamHUE_HCLM3Sunset);
-                    sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM3SunriseOffset);
-                    sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM3SunsetOffset);
-                    #endif
-                    break;
-                case 4:
-                    #ifdef ParamHUE_HCLM4CurveType
-                    curveTypeValue = ParamHUE_HCLM4CurveType;
-                    slewRate = ParamHUE_HCLM4SlewRate;
-                    manualKelvin = ParamHUE_HCLM4ManualKelvin;
-                    sunrise = readFixedTimeParam(ParamHUE_HCLM4Sunrise);
-                    sunset = readFixedTimeParam(ParamHUE_HCLM4Sunset);
-                    sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM4SunriseOffset);
-                    sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM4SunsetOffset);
-                    #endif
-                    break;
-                case 5:
-                    #ifdef ParamHUE_HCLM5CurveType
-                    curveTypeValue = ParamHUE_HCLM5CurveType;
-                    slewRate = ParamHUE_HCLM5SlewRate;
-                    manualKelvin = ParamHUE_HCLM5ManualKelvin;
-                    sunrise = reinterpret_cast<const char*>(ParamHUE_HCLM5Sunrise);
-                    sunset = reinterpret_cast<const char*>(ParamHUE_HCLM5Sunset);
-                    sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM5SunriseOffset);
-                    sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM5SunsetOffset);
-                    #endif
-                    break;
-                case 6:
-                    #ifdef ParamHUE_HCLM6CurveType
-                    curveTypeValue = ParamHUE_HCLM6CurveType;
-                    slewRate = ParamHUE_HCLM6SlewRate;
-                    manualKelvin = ParamHUE_HCLM6ManualKelvin;
-                    sunrise = reinterpret_cast<const char*>(ParamHUE_HCLM6Sunrise);
-                    sunset = reinterpret_cast<const char*>(ParamHUE_HCLM6Sunset);
-                    sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM6SunriseOffset);
-                    sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM6SunsetOffset);
-                    #endif
-                    break;
-                case 7:
-                    #ifdef ParamHUE_HCLM7CurveType
-                    curveTypeValue = ParamHUE_HCLM7CurveType;
-                    slewRate = ParamHUE_HCLM7SlewRate;
-                    manualKelvin = ParamHUE_HCLM7ManualKelvin;
-                    sunrise = reinterpret_cast<const char*>(ParamHUE_HCLM7Sunrise);
-                    sunset = reinterpret_cast<const char*>(ParamHUE_HCLM7Sunset);
-                    sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM7SunriseOffset);
-                    sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM7SunsetOffset);
-                    #endif
-                    break;
-                case 8:
-                    #ifdef ParamHUE_HCLM8CurveType
-                    curveTypeValue = ParamHUE_HCLM8CurveType;
-                    slewRate = ParamHUE_HCLM8SlewRate;
-                    manualKelvin = ParamHUE_HCLM8ManualKelvin;
-                    sunrise = reinterpret_cast<const char*>(ParamHUE_HCLM8Sunrise);
-                    sunset = reinterpret_cast<const char*>(ParamHUE_HCLM8Sunset);
-                    sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM8SunriseOffset);
-                    sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM8SunsetOffset);
-                    #endif
-                    break;
-                default:
-                    break;
-            }
-
+            const uint8_t curveTypeValue = static_cast<uint8_t>(master->getCurveType());
             const char* curveText = "FixedTime";
-            if (curveTypeValue == 1)
-            {
-                curveText = "SunWindow";
-            }
-            else if (curveTypeValue == 2)
-            {
-                curveText = "Manual";
-            }
-            else if (curveTypeValue == 3)
-            {
-                curveText = "Astronomical";
-            }
+            if (curveTypeValue == 1) curveText = "SunWindow";
+            else if (curveTypeValue == 2) curveText = "Manual";
+            else if (curveTypeValue == 3) curveText = "Astronomical";
+
+            String sunrise = master->hasSunTimes() ? formatMinutesToClock(master->getSunriseMinutes()) : String("--:--");
+            String sunset  = master->hasSunTimes() ? formatMinutesToClock(master->getSunsetMinutes())  : String("--:--");
 
             Serial.printf("    curve=%s slew=%uK/min manual=%uK sun=%s/%s offset=%d/%d\n",
                           curveText,
-                          static_cast<unsigned>(slewRate),
-                          static_cast<unsigned>(manualKelvin),
+                          static_cast<unsigned>(master->getSlewRateKelvinPerMinute()),
+                          static_cast<unsigned>(master->getManualKelvin()),
                           sunrise.c_str(),
                           sunset.c_str(),
-                          static_cast<int>(sunriseOffset),
-                          static_cast<int>(sunsetOffset));
+                          static_cast<int>(master->getSunriseOffsetMin()),
+                          static_cast<int>(master->getSunsetOffsetMin()));
         }
 
         Serial.println("=================================");
@@ -3744,9 +3491,7 @@ void HueGatewayModule::setupDevices()
         #ifdef ParamHUE_HUESwitchOffTransitionSec
         offFade = ParamHUE_HUESwitchOffTransitionSec;
         #endif
-        #ifdef ParamHUE_HUEHCLFadeDuration
-        hclFade = ParamHUE_HUEHCLFadeDuration;
-        #endif
+        hclFade = static_cast<uint8_t>(HCL::masterManager.getFadeDuration());
         appendDiagnosticLog("INFO", "SETUP", String("setupDevices done: mapped=") + String(_lightCount)
             + " onFade=" + String(static_cast<unsigned>(onFade)) + "s"
             + " offFade=" + String(static_cast<unsigned>(offFade)) + "s"
@@ -4933,21 +4678,16 @@ void HueGatewayModule::evaluateHclChannelLockFallback(const tm* timeinfo, bool h
 
 void HueGatewayModule::publishHclMasterValues()
 {
-    #ifdef ParamHUE_HUEHCLEnable
-    if (ParamHUE_HUEHCLEnable == 0)
+    if (!HCL::masterManager.isEnabled())
     {
         return;
     }
-    #endif
 
-    uint8_t masterCount = 4;
-    #ifdef ParamHUE_HUEHCLMasterCount
-    masterCount = ParamHUE_HUEHCLMasterCount;
+    uint8_t masterCount = HCL::masterManager.getMasterCount();
     if (masterCount > 4)
     {
         masterCount = 4;
     }
-    #endif
 
     for (uint8_t masterNumber = 1; masterNumber <= masterCount; masterNumber++)
     {
@@ -6215,8 +5955,13 @@ esp_err_t HueGatewayModule::handleWebStatus(httpd_req_t* req)
     const bool hclEnabled = (ParamHUE_HUEHCLEnable != 0);
     html += "<tr><td>HCL aktiviert</td><td>" + String(hclEnabled ? "Ja" : "Nein") + "</td></tr>";
     #else
-    const bool hclEnabled = false;
-    html += "<tr><td>HCL aktiviert</td><td>Nein</td></tr>";
+    #ifdef ParamHUE_HUEHCLEnable
+    const bool hclEnabled = (ParamHUE_HUEHCLEnable != 0);
+    html += "<tr><td>HCL aktiviert</td><td>" + String(hclEnabled ? "Ja" : "Nein") + "</td></tr>";
+    #else
+    const bool hclEnabled = HCL::masterManager.isEnabled();
+    html += "<tr><td>HCL aktiviert</td><td>" + String(hclEnabled ? "Ja" : "Nein") + "</td></tr>";
+    #endif
     #endif
 
     if (hclEnabled)
@@ -6229,21 +5974,10 @@ esp_err_t HueGatewayModule::handleWebStatus(httpd_req_t* req)
             : 0;
         html += "<tr><td>HCL-Zeitbasis</td><td>" + String(hasStatusTime ? formatMinutesToClock(statusCurrentMinutes) : "n/a") + "</td></tr>";
 
-        #ifdef ParamHUE_HUEHCLMasterCount
-        const uint8_t masterCount = ParamHUE_HUEHCLMasterCount;
+        const uint8_t masterCount = HCL::masterManager.getMasterCount();
         html += "<tr><td>HCL-Master</td><td>" + String(masterCount) + "</td></tr>";
-        #else
-        const uint8_t masterCount = 0;
-        html += "<tr><td>HCL-Master</td><td>0</td></tr>";
-        #endif
-
-        #ifdef ParamHUE_HUEHCLUpdateInterval
-        html += "<tr><td>HCL-Aktualisierungsintervall</td><td>" + String(ParamHUE_HUEHCLUpdateInterval) + " s</td></tr>";
-        #endif
-
-        #ifdef ParamHUE_HUEHCLFadeDuration
-        html += "<tr><td>HCL-Überblenddauer</td><td>" + String(ParamHUE_HUEHCLFadeDuration) + " s</td></tr>";
-        #endif
+        html += "<tr><td>HCL-Aktualisierungsintervall</td><td>" + String(HCL::masterManager.getUpdateInterval()) + " s</td></tr>";
+        html += "<tr><td>HCL-Überblenddauer</td><td>" + String(HCL::masterManager.getFadeDuration()) + " s</td></tr>";
 
         for (uint8_t masterNumber = 1; masterNumber <= 4; masterNumber++)
         {
@@ -6262,63 +5996,13 @@ esp_err_t HueGatewayModule::handleWebStatus(httpd_req_t* req)
                 html += "<tr><td>HCL M" + String(masterNumber) + " Aktuell</td><td>" +
                     String(current.kelvin) + " K / " + String(current.brightness) + "%</td></tr>";
 
-            uint8_t curveTypeValue = 0;
-            uint16_t slewRate = 0;
-            uint16_t manualKelvin = 4000;
-            String sunrise = "";
-            String sunset = "";
-            int16_t sunriseOffset = 0;
-            int16_t sunsetOffset = 0;
-
-            switch (masterNumber)
-            {
-                case 1:
-                    #ifdef ParamHUE_HCLM1CurveType
-                    curveTypeValue = ParamHUE_HCLM1CurveType;
-                    slewRate = ParamHUE_HCLM1SlewRate;
-                    manualKelvin = ParamHUE_HCLM1ManualKelvin;
-                    sunrise = readFixedTimeParam(ParamHUE_HCLM1Sunrise);
-                    sunset = readFixedTimeParam(ParamHUE_HCLM1Sunset);
-                    sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM1SunriseOffset);
-                    sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM1SunsetOffset);
-                    #endif
-                    break;
-                case 2:
-                    #ifdef ParamHUE_HCLM2CurveType
-                    curveTypeValue = ParamHUE_HCLM2CurveType;
-                    slewRate = ParamHUE_HCLM2SlewRate;
-                    manualKelvin = ParamHUE_HCLM2ManualKelvin;
-                    sunrise = readFixedTimeParam(ParamHUE_HCLM2Sunrise);
-                    sunset = readFixedTimeParam(ParamHUE_HCLM2Sunset);
-                    sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM2SunriseOffset);
-                    sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM2SunsetOffset);
-                    #endif
-                    break;
-                case 3:
-                    #ifdef ParamHUE_HCLM3CurveType
-                    curveTypeValue = ParamHUE_HCLM3CurveType;
-                    slewRate = ParamHUE_HCLM3SlewRate;
-                    manualKelvin = ParamHUE_HCLM3ManualKelvin;
-                    sunrise = readFixedTimeParam(ParamHUE_HCLM3Sunrise);
-                    sunset = readFixedTimeParam(ParamHUE_HCLM3Sunset);
-                    sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM3SunriseOffset);
-                    sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM3SunsetOffset);
-                    #endif
-                    break;
-                case 4:
-                    #ifdef ParamHUE_HCLM4CurveType
-                    curveTypeValue = ParamHUE_HCLM4CurveType;
-                    slewRate = ParamHUE_HCLM4SlewRate;
-                    manualKelvin = ParamHUE_HCLM4ManualKelvin;
-                    sunrise = readFixedTimeParam(ParamHUE_HCLM4Sunrise);
-                    sunset = readFixedTimeParam(ParamHUE_HCLM4Sunset);
-                    sunriseOffset = static_cast<int16_t>(ParamHUE_HCLM4SunriseOffset);
-                    sunsetOffset = static_cast<int16_t>(ParamHUE_HCLM4SunsetOffset);
-                    #endif
-                    break;
-                default:
-                    break;
-            }
+            const uint8_t curveTypeValue = static_cast<uint8_t>(master->getCurveType());
+            const uint16_t slewRate = master->getSlewRateKelvinPerMinute();
+            const uint16_t manualKelvin = master->getManualKelvin();
+            String sunrise = master->hasSunTimes() ? formatMinutesToClock(master->getSunriseMinutes()) : String("--:--");
+            String sunset  = master->hasSunTimes() ? formatMinutesToClock(master->getSunsetMinutes())  : String("--:--");
+            const int16_t sunriseOffset = master->getSunriseOffsetMin();
+            const int16_t sunsetOffset  = master->getSunsetOffsetMin();
 
             String curveText = "Stützpunkte";
             if (curveTypeValue == 1)
