@@ -751,33 +751,13 @@
                           <!-- HCL-Master-Zuordnung (nur für Farbtemperatur/RGB) -->
                           <choose ParamRefId="%AID%_UP-%TT%5%CC%002_R-%TT%5%CC%00201">
                             <when test=">=2">
-                              <choose ParamRefId="%AID%_P-%TT%00010_R-%TT%0001001">
-                                <when test="1">
-                                  <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLLine" Text="" UIHint="HorizontalRuler" />
-                                  <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLHeader" Text="Lichtmanager" UIHint="Headline" HelpContext="HUE-Lichtmanager-Zuordnung" />
-                                  <ParameterRefRef RefId="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701" HelpContext="HUE-Lichtmanager-Zuordnung" />
-                                  <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLMasterInfo" Text="Der gewählte Lichtmanager muss unter ‚Lichtmanager' aktiviert sein." UIHint="Information" HelpContext="HUE-Lichtmanager-Zuordnung" />
-                                  <choose ParamRefId="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701">
-                                    <when test=">=1">
-                                      <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLLockHeader" Text="Lichtmanager Sperre (Hue-Kanal)" UIHint="Headline" HelpContext="HUE-Sperre-kanal-spezifisch" />
-                                      <ParameterRefRef RefId="%AID%_P-%TT%00042_R-%TT%0004201" HelpContext="HUE-Sperre-kanal-spezifisch" />
-                                      <choose ParamRefId="%AID%_P-%TT%00042_R-%TT%0004201">
-                                        <when test="0">
-                                          <ParameterRefRef RefId="%AID%_P-%TT%5%CC%011_R-%TT%5%CC%01101" IndentLevel="1" HelpContext="HUE-Sperre-kanal-spezifisch" />
-                                        </when>
-                                        <when test="1">
-                                          <ParameterRefRef RefId="%AID%_P-%TT%00043_R-%TT%0004301" IndentLevel="1" HelpContext="HUE-Sperre-kanal-spezifisch" />
-                                        </when>
-                                        <when test="2">
-                                          <ParameterRefRef RefId="%AID%_P-%TT%00044_R-%TT%0004401" IndentLevel="1" HelpContext="HUE-Sperre-kanal-spezifisch" />
-                                        </when>
-                                        <when test="3">
-                                          <ParameterRefRef RefId="%AID%_P-%TT%00043_R-%TT%0004301" IndentLevel="1" HelpContext="HUE-Sperre-kanal-spezifisch" />
-                                          <ParameterRefRef RefId="%AID%_P-%TT%00044_R-%TT%0004401" IndentLevel="1" HelpContext="HUE-Sperre-kanal-spezifisch" />
-                                        </when>
-                                      </choose>
-                                    </when>
-                                  </choose>
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLLine" Text="" UIHint="HorizontalRuler" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLHeader" Text="Lichtmanager" UIHint="Headline" HelpContext="HUE-Lichtmanager-Zuordnung" />
+                              <ParameterRefRef RefId="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701" HelpContext="HUE-Lichtmanager-Zuordnung" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLMasterInfo" Text="Der gewählte Lichtmanager muss unter ‚Lichtmanager' aktiviert sein." UIHint="Information" HelpContext="HUE-Lichtmanager-Zuordnung" />
+                              <choose ParamRefId="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701">
+                                <when test=">=1">
+                                  <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLLockHeader" Text="Lichtmanager Sperre (Hue-Kanal)" UIHint="Headline" HelpContext="HUE-Sperre-kanal-spezifisch" />
                                 </when>
                               </choose>
                             </when>
@@ -1752,14 +1732,10 @@
                         </choose>
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%002_R-%TT%5%CC%00201">
                           <when test=">=2">
-                            <choose ParamRefId="%AID%_P-%TT%00010_R-%TT%0001001">
-                              <when test="1">
-                                <choose ParamRefId="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701">
-                                  <when test=">=1">
-                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%009_R-%TT%5%CC%00901" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                                    <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%010_R-%TT%5%CC%01001" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                                  </when>
-                                </choose>
+                            <choose ParamRefId="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701">
+                              <when test=">=1">
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%009_R-%TT%5%CC%00901" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%010_R-%TT%5%CC%01001" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
                               </when>
                             </choose>
                           </when>

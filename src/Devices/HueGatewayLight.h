@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include "HueGatewayDevice.h"
+#include "ILightManagerOutput.h"
 
 // Forward Declaration
 class HueGatewayClient;
@@ -18,7 +19,7 @@ class HueGatewayClient;
  * Hue → KNX: updateFromHue()
  */
 
-class HueGatewayLight : public HueGatewayDevice
+class HueGatewayLight : public HueGatewayDevice, public ILightManagerOutput
 {
 public:
     /**
@@ -133,7 +134,7 @@ public:
     uint8_t getBlue() const { return _currentBlue; }
     
     /**
-    * @brief Assigns HCL master (0 = none, 1-8 = master number).
+    * @brief Assigns HCL master (0 = none, 1-16 = master number).
      */
     void setHCLMaster(uint8_t masterNum) override { _hclMasterNum = masterNum; }
     
@@ -146,6 +147,11 @@ public:
     bool isHCLChannelLocked() const override { return _hclChannelLockActive; }
 
     static unsigned long globalHclWriteNextAllowedMs();
+
+    /**
+     * @brief ILightManagerOutput: empfängt HCL-Sollwert von LightManagerModule.
+     */
+    void onLightManagerValue(uint8_t masterNum, uint16_t kelvin, uint8_t brightness, uint8_t fadeDuration) override;
 
     /**
     * @brief Sets ETS light type (0=switch,1=dimm,2=ct,3=rgb).
@@ -193,7 +199,7 @@ private:
     bool _isGroupedTarget;
     
     // HCL configuration and current interpolation state.
-    uint8_t _hclMasterNum;  // 0 = no HCL, 1-8 = HCL master number
+    uint8_t _hclMasterNum;  // 0 = no HCL, 1-16 = HCL master number
     bool _hclChannelLockActive;
     bool _fadingActive;     // true while a fade transition is active
     uint16_t _currentKelvin; // Current color temperature in Kelvin
@@ -201,6 +207,12 @@ private:
     uint8_t _lastHCLBrightness; // Last applied HCL brightness (%)
     uint16_t _hclPhaseOffsetMs;
     unsigned long _nextHCLDueMs;
+
+    // Pending HCL value pushed from LightManagerModule
+    uint16_t _pendingHclKelvin;
+    uint8_t  _pendingHclBrightness;
+    uint8_t  _pendingHclFadeDuration;
+    bool     _hclValuePending;
     unsigned long _lastHueWriteSuccessMs;
     
     // Lifecycle flags.
