@@ -738,7 +738,7 @@
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%009_R-%TT%5%CC%00901" HelpContext="HUE-Zieltyp" />
                           <choose ParamRefId="%AID%_UP-%TT%5%CC%009_R-%TT%5%CC%00901">
                             <when test=">=1">
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_TargetTypeInfo" Text="Für Raum/Zone: Der Statuswert bildet nicht zwingend den exakten Zustand aller Einzelgeräte ab." UIHint="Information" HelpContext="HUE-Zieltyp" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_TargetTypeInfo" Text="Für Raum/Zone: Der Statuswert bildet nicht zwingend den exakten Zustand aller Einzelgeräte ab." UIHint="Information" />
                             </when>
                           </choose>
                           <!-- Ziel-RID oder Name -->
@@ -752,19 +752,19 @@
                           <choose ParamRefId="%AID%_UP-%TT%5%CC%002_R-%TT%5%CC%00201">
                             <when test=">=2">
                               <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLLine" Text="" UIHint="HorizontalRuler" />
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLHeader" Text="Lichtmanager" UIHint="Headline" HelpContext="HUE-Lichtmanager-Zuordnung" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLHeader" Text="Lichtmanager" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701" HelpContext="HUE-Lichtmanager-Zuordnung" />
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLMasterInfo" Text="Der gewählte Lichtmanager muss unter ‚Lichtmanager' aktiviert sein." UIHint="Information" HelpContext="HUE-Lichtmanager-Zuordnung" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLMasterInfo" Text="Der gewählte Lichtmanager muss unter ‚Lichtmanager' aktiviert sein." UIHint="Information" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701">
                                 <when test=">=1">
-                                  <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLLockHeader" Text="Lichtmanager Sperre (Hue-Kanal)" UIHint="Headline" HelpContext="HUE-Sperre-kanal-spezifisch" />
+                                  <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_HCLLockHeader" Text="Lichtmanager Sperre (Hue-Kanal)" UIHint="Headline" />
                                 </when>
                               </choose>
                             </when>
                           </choose>
 
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_SyncLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_SyncHeader" Text="Synchronisation" UIHint="Headline" HelpContext="HUE-Synchronisationsrichtung" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_SyncHeader" Text="Synchronisation" UIHint="Headline" />
                           <!-- Synchronisationsrichtung -->
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%004_R-%TT%5%CC%00401" HelpContext="HUE-Synchronisationsrichtung" />
                           <!-- Polling-Intervall (nur bei Hue→KNX oder Bidirektional) -->
@@ -781,7 +781,7 @@
                           </choose>
                           <!-- Szenensteuerung -->
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_ScnLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_ScnHdr" Text="Szenensteuerung" UIHint="Headline" HelpContext="HUE-Szenensteuerung" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_ScnHdr" Text="Szenensteuerung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%019_R-%TT%5%CC%01901" HelpContext="HUE-Szenensteuerung" />
                         </when>
 
@@ -795,10 +795,10 @@
                           <when test="1">
                             <ParameterBlock Id="%AID%_PB-%TT%5%CC%02" Name="HUE%C%Scenes" Text="Hue %C%: Szenen" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" Icon="view-list-outline" HelpContext="HUE-Szenensteuerung">
                               <!-- Szene speichern -->
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_StoreHdr" Text="Szene speichern" UIHint="Headline" HelpContext="HUE-Szenensteuerung" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_StoreHdr" Text="Szene speichern" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%200_R-%TT%5%CC%20001" HelpContext="HUE-Szenensteuerung" />
                               <!-- Szene A -->
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc1Hdr" Text="Szene A" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc1Hdr" Text="Szene A" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%020_R-%TT%5%CC%02001" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%020_R-%TT%5%CC%02001">
                                 <when test=">=1">
@@ -873,7 +873,7 @@
                                 </when>
                               </choose>
                               <!-- Szene 2 -->
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc2Hdr" Text="Szene B" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc2Hdr" Text="Szene B" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%030_R-%TT%5%CC%03001" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%030_R-%TT%5%CC%03001">
                                 <when test=">=1">
@@ -948,7 +948,7 @@
                                 </when>
                               </choose>
                               <!-- Szene 3 -->
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc3Hdr" Text="Szene C" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc3Hdr" Text="Szene C" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%040_R-%TT%5%CC%04001" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%040_R-%TT%5%CC%04001">
                                 <when test=">=1">
@@ -1023,7 +1023,7 @@
                                 </when>
                               </choose>
                               <!-- Szene 4 -->
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc4Hdr" Text="Szene D" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc4Hdr" Text="Szene D" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%050_R-%TT%5%CC%05001" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%050_R-%TT%5%CC%05001">
                                 <when test=">=1">
@@ -1098,7 +1098,7 @@
                                 </when>
                               </choose>
                               <!-- Szene 5 -->
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc5Hdr" Text="Szene E" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc5Hdr" Text="Szene E" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%060_R-%TT%5%CC%06001" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%060_R-%TT%5%CC%06001">
                                 <when test=">=1">
@@ -1173,7 +1173,7 @@
                                 </when>
                               </choose>
                               <!-- Szene 6 -->
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc6Hdr" Text="Szene F" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc6Hdr" Text="Szene F" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%070_R-%TT%5%CC%07001" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%070_R-%TT%5%CC%07001">
                                 <when test=">=1">
@@ -1248,7 +1248,7 @@
                                 </when>
                               </choose>
                               <!-- Szene 7 -->
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc7Hdr" Text="Szene G" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc7Hdr" Text="Szene G" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%080_R-%TT%5%CC%08001" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%080_R-%TT%5%CC%08001">
                                 <when test=">=1">
@@ -1323,7 +1323,7 @@
                                 </when>
                               </choose>
                               <!-- Szene 8 -->
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc8Hdr" Text="Szene H" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Sc8Hdr" Text="Szene H" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%090_R-%TT%5%CC%09001" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%090_R-%TT%5%CC%09001">
                                 <when test=">=1">
@@ -1411,13 +1411,13 @@
                           <!-- Geräte-UUID -->
                           <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" HelpContext="HUE-Hue-Ziel-Geraete-ID-oder-Name" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_MotionOptLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_MotionOptHdr" Text="Optionale Kommunikationsobjekte" UIHint="Headline" HelpContext="HUE-Optionale-Kommunikationsobjekte" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_MotionOptHdr" Text="Optionale Kommunikationsobjekte" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%014_R-%TT%5%CC%01401" HelpContext="HUE-Geraet-erreichbar-verwenden" />
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%017_R-%TT%5%CC%01701" HelpContext="HUE-Batterie-verwenden" />
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%015_R-%TT%5%CC%01501" HelpContext="HUE-Temperatur-verwenden" />
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%016_R-%TT%5%CC%01601" HelpContext="HUE-Helligkeit-verwenden" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_MotionSyncLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_MotionSyncHdr" Text="Abfrage" UIHint="Headline" HelpContext="HUE-Polling-Intervall" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_MotionSyncHdr" Text="Abfrage" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%005_R-%TT%5%CC%00501" HelpContext="HUE-Polling-Intervall" />
                         </when>
 
@@ -1431,7 +1431,7 @@
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%140_R-%TT%5%CC%14001" HelpContext="HUE-TasterSchalter-Konfiguration" />
 
                           <!-- === Taste 1 === -->
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Btn1Hdr" Text="Taste 1" UIHint="Headline" HelpContext="HUE-Taste-Kurzdruck" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Btn1Hdr" Text="Taste 1" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%300_R-%TT%5%CC%30001" HelpContext="HUE-Taste-Kurzdruck" />
                           <choose ParamRefId="%AID%_UP-%TT%5%CC%300_R-%TT%5%CC%30001">
                             <when test="1"><ParameterRefRef RefId="%AID%_UP-%TT%5%CC%302_R-%TT%5%CC%30201" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" /></when>
@@ -1465,7 +1465,7 @@
                           <!-- === Taste 2 (ab 2 Tasten) === -->
                           <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
                             <when test=">=2">
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Btn2Hdr" Text="Taste 2" UIHint="Headline" HelpContext="HUE-Taste-Kurzdruck" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Btn2Hdr" Text="Taste 2" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%320_R-%TT%5%CC%32001" HelpContext="HUE-Taste-Kurzdruck" />
                               <choose ParamRefId="%AID%_UP-%TT%5%CC%320_R-%TT%5%CC%32001">
                                 <when test="1"><ParameterRefRef RefId="%AID%_UP-%TT%5%CC%322_R-%TT%5%CC%32201" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" /></when>
@@ -1501,7 +1501,7 @@
                           <!-- === Taste 3 (ab 3 Tasten) === -->
                           <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
                             <when test=">=3">
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Btn3Hdr" Text="Taste 3" UIHint="Headline" HelpContext="HUE-Taste-Kurzdruck" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Btn3Hdr" Text="Taste 3" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%340_R-%TT%5%CC%34001" HelpContext="HUE-Taste-Kurzdruck" />
                               <choose ParamRefId="%AID%_UP-%TT%5%CC%340_R-%TT%5%CC%34001">
                                 <when test="1"><ParameterRefRef RefId="%AID%_UP-%TT%5%CC%342_R-%TT%5%CC%34201" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" /></when>
@@ -1537,7 +1537,7 @@
                           <!-- === Taste 4 (ab 4 Tasten) === -->
                           <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
                             <when test=">=4">
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Btn4Hdr" Text="Taste 4" UIHint="Headline" HelpContext="HUE-Taste-Kurzdruck" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_Btn4Hdr" Text="Taste 4" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%360_R-%TT%5%CC%36001" HelpContext="HUE-Taste-Kurzdruck" />
                               <choose ParamRefId="%AID%_UP-%TT%5%CC%360_R-%TT%5%CC%36001">
                                 <when test="1"><ParameterRefRef RefId="%AID%_UP-%TT%5%CC%362_R-%TT%5%CC%36201" IndentLevel="1" HelpContext="HUE-Taste-Kurzdruck" /></when>
@@ -1572,7 +1572,7 @@
 
                           <!-- === Drehregler === -->
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_RotaryLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_RotaryHdr" Text="Drehregler" UIHint="Headline" HelpContext="HUE-Drehregler" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_RotaryHdr" Text="Drehregler" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%138_R-%TT%5%CC%13801" HelpContext="HUE-Drehregler" />
                           <choose ParamRefId="%AID%_UP-%TT%5%CC%138_R-%TT%5%CC%13801">
                             <when test="1">
@@ -1583,7 +1583,7 @@
 
                           <!-- Polling-Intervall -->
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_BtnSyncLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_BtnSyncHdr" Text="Abfrage" UIHint="Headline" HelpContext="HUE-Polling-Intervall" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_BtnSyncHdr" Text="Abfrage" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%005_R-%TT%5%CC%00501" HelpContext="HUE-Polling-Intervall" />
                         </when>
 
@@ -1592,12 +1592,12 @@
                           <!-- Geräte-UUID -->
                           <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" HelpContext="HUE-Hue-Ziel-Geraete-ID-oder-Name" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_ContactOptLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_ContactOptHdr" Text="Optionale Kommunikationsobjekte" UIHint="Headline" HelpContext="HUE-Optionale-Kommunikationsobjekte" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_ContactOptHdr" Text="Optionale Kommunikationsobjekte" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%018_R-%TT%5%CC%01801" HelpContext="HUE-Sabotage-verwenden" />
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%017_R-%TT%5%CC%01701" HelpContext="HUE-Batterie-verwenden" />
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%014_R-%TT%5%CC%01401" HelpContext="HUE-Geraet-erreichbar-verwenden" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_ContactSyncLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_ContactSyncHdr" Text="Abfrage" UIHint="Headline" HelpContext="HUE-Polling-Intervall" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_ContactSyncHdr" Text="Abfrage" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%005_R-%TT%5%CC%00501" HelpContext="HUE-Polling-Intervall" />
                         </when>
 
@@ -1606,15 +1606,15 @@
                           <!-- Geräte-UUID -->
                           <ParameterRefRef RefId="%AID%_P-%TT%5%CC%008_R-%TT%5%CC%00801" HelpContext="HUE-Hue-Ziel-Geraete-ID-oder-Name" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PlugOptLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PlugOptHdr" Text="Optionale Kommunikationsobjekte" UIHint="Headline" HelpContext="HUE-Optionale-Kommunikationsobjekte" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PlugOptHdr" Text="Optionale Kommunikationsobjekte" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%014_R-%TT%5%CC%01401" HelpContext="HUE-Geraet-erreichbar-verwenden" />
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PlugSyncLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PlugSyncHdr" Text="Synchronisation" UIHint="Headline" HelpContext="HUE-Synchronisationsrichtung" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PlugSyncHdr" Text="Synchronisation" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%004_R-%TT%5%CC%00401" HelpContext="HUE-Synchronisationsrichtung" />
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%005_R-%TT%5%CC%00501" HelpContext="HUE-Polling-Intervall" />
                           <!-- Szenensteuerung -->
                           <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PScnLine" Text="" UIHint="HorizontalRuler" />
-                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PScnHdr" Text="Szenensteuerung" UIHint="Headline" HelpContext="HUE-Szenensteuerung" />
+                          <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PScnHdr" Text="Szenensteuerung" UIHint="Headline" />
                           <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%019_R-%TT%5%CC%01901" HelpContext="HUE-Szenensteuerung" />
                         </when>
 
@@ -1622,30 +1622,30 @@
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%019_R-%TT%5%CC%01901">
                           <when test="1">
                             <ParameterBlock Id="%AID%_PB-%TT%5%CC%03" Name="HUE%C%ScenesPlug" Text="Hue %C%: Szenen" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" Icon="view-list-outline" HelpContext="HUE-Szenen">
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PStoreHdr" Text="Szene speichern" UIHint="Headline" HelpContext="HUE-Szenensteuerung" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PStoreHdr" Text="Szene speichern" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_UP-%TT%5%CC%200_R-%TT%5%CC%20001" HelpContext="HUE-Szenensteuerung" />
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc1Hdr" Text="Szene 1" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc1Hdr" Text="Szene 1" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%020_R-%TT%5%CC%02001" HelpContext="HUE-Szenen" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%020_R-%TT%5%CC%02001"><when test=">=1"><ParameterRefRef RefId="%AID%_UP-%TT%5%CC%101_R-%TT%5%CC%10101" IndentLevel="1" HelpContext="HUE-Szenen" /></when></choose>
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc2Hdr" Text="Szene B" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc2Hdr" Text="Szene B" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%030_R-%TT%5%CC%03001" HelpContext="HUE-Szenen" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%030_R-%TT%5%CC%03001"><when test=">=1"><ParameterRefRef RefId="%AID%_UP-%TT%5%CC%104_R-%TT%5%CC%10401" IndentLevel="1" HelpContext="HUE-Szenen" /></when></choose>
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc3Hdr" Text="Szene C" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc3Hdr" Text="Szene C" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%040_R-%TT%5%CC%04001" HelpContext="HUE-Szenen" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%040_R-%TT%5%CC%04001"><when test=">=1"><ParameterRefRef RefId="%AID%_UP-%TT%5%CC%107_R-%TT%5%CC%10701" IndentLevel="1" HelpContext="HUE-Szenen" /></when></choose>
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc4Hdr" Text="Szene D" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc4Hdr" Text="Szene D" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%050_R-%TT%5%CC%05001" HelpContext="HUE-Szenen" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%050_R-%TT%5%CC%05001"><when test=">=1"><ParameterRefRef RefId="%AID%_UP-%TT%5%CC%110_R-%TT%5%CC%11001" IndentLevel="1" HelpContext="HUE-Szenen" /></when></choose>
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc5Hdr" Text="Szene E" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc5Hdr" Text="Szene E" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%060_R-%TT%5%CC%06001" HelpContext="HUE-Szenen" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%060_R-%TT%5%CC%06001"><when test=">=1"><ParameterRefRef RefId="%AID%_UP-%TT%5%CC%113_R-%TT%5%CC%11301" IndentLevel="1" HelpContext="HUE-Szenen" /></when></choose>
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc6Hdr" Text="Szene F" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc6Hdr" Text="Szene F" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%070_R-%TT%5%CC%07001" HelpContext="HUE-Szenen" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%070_R-%TT%5%CC%07001"><when test=">=1"><ParameterRefRef RefId="%AID%_UP-%TT%5%CC%116_R-%TT%5%CC%11601" IndentLevel="1" HelpContext="HUE-Szenen" /></when></choose>
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc7Hdr" Text="Szene G" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc7Hdr" Text="Szene G" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%080_R-%TT%5%CC%08001" HelpContext="HUE-Szenen" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%080_R-%TT%5%CC%08001"><when test=">=1"><ParameterRefRef RefId="%AID%_UP-%TT%5%CC%119_R-%TT%5%CC%11901" IndentLevel="1" HelpContext="HUE-Szenen" /></when></choose>
-                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc8Hdr" Text="Szene H" UIHint="Headline" HelpContext="HUE-Szenen" />
+                              <ParameterSeparator Id="%AID%_PS-%TT%5%CC%CH%C%_PSc8Hdr" Text="Szene H" UIHint="Headline" />
                               <ParameterRefRef RefId="%AID%_P-%TT%5%CC%090_R-%TT%5%CC%09001" HelpContext="HUE-Szenen" />
                               <choose ParamRefId="%AID%_P-%TT%5%CC%090_R-%TT%5%CC%09001"><when test=">=1"><ParameterRefRef RefId="%AID%_UP-%TT%5%CC%122_R-%TT%5%CC%12201" IndentLevel="1" HelpContext="HUE-Szenen" /></when></choose>
                             </ParameterBlock>
@@ -1661,71 +1661,71 @@
                       <when test="0">
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%004_R-%TT%5%CC%00401">
                           <when test="0">
-                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00001" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00001" />
                           </when>
                           <when test="1">
-                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00001" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00001" />
                           </when>
                           <when test="2">
-                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00001" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00001" />
                           </when>
                         </choose>
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%002_R-%TT%5%CC%00201">
                           <when test=">=1">
                             <choose ParamRefId="%AID%_UP-%TT%5%CC%004_R-%TT%5%CC%00401">
                               <when test="0">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00101" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00201" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00101" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00201" />
                               </when>
                               <when test="2">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00101" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00201" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00101" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00201" />
                               </when>
                             </choose>
                             <choose ParamRefId="%AID%_UP-%TT%5%CC%004_R-%TT%5%CC%00401">
                               <when test="1">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00301" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00401" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00301" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00401" />
                               </when>
                               <when test="2">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00301" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00401" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00301" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00401" />
                               </when>
                             </choose>
                           </when>
                           <when test=">=2">
                             <choose ParamRefId="%AID%_UP-%TT%5%CC%004_R-%TT%5%CC%00401">
                               <when test="0">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00501" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00501" />
                               </when>
                               <when test="2">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00501" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00501" />
                               </when>
                             </choose>
                             <choose ParamRefId="%AID%_UP-%TT%5%CC%004_R-%TT%5%CC%00401">
                               <when test="1">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00601" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00601" />
                               </when>
                               <when test="2">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00601" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00601" />
                               </when>
                             </choose>
                           </when>
                           <when test="=3">
                             <choose ParamRefId="%AID%_UP-%TT%5%CC%004_R-%TT%5%CC%00401">
                               <when test="0">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00701" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00701" />
                               </when>
                               <when test="2">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00701" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00701" />
                               </when>
                             </choose>
                             <choose ParamRefId="%AID%_UP-%TT%5%CC%004_R-%TT%5%CC%00401">
                               <when test="1">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00801" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00801" />
                               </when>
                               <when test="2">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00801" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00801" />
                               </when>
                             </choose>
                           </when>
@@ -1734,8 +1734,8 @@
                           <when test=">=2">
                             <choose ParamRefId="%AID%_P-%TT%5%CC%007_R-%TT%5%CC%00701">
                               <when test=">=1">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%009_R-%TT%5%CC%00901" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%010_R-%TT%5%CC%01001" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%009_R-%TT%5%CC%00901" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%010_R-%TT%5%CC%01001" />
                               </when>
                             </choose>
                           </when>
@@ -1744,10 +1744,10 @@
                           <when test="1">
                             <choose ParamRefId="%AID%_UP-%TT%5%CC%200_R-%TT%5%CC%20001">
                               <when test="0">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%011_R-%TT%5%CC%01102" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%011_R-%TT%5%CC%01102" />
                               </when>
                               <when test="1">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%011_R-%TT%5%CC%01101" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%011_R-%TT%5%CC%01101" />
                               </when>
                             </choose>
                           </when>
@@ -1756,25 +1756,25 @@
 
                       <!-- DeviceType 1: Bewegungsmelder – Status Bewegung (KO-Slot 0) + optionale KOs -->
                       <when test="1">
-                        <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00002" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                        <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00002" />
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%014_R-%TT%5%CC%01401">
                           <when test="1">
-                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00304" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00304" />
                           </when>
                         </choose>
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%017_R-%TT%5%CC%01701">
                           <when test="1">
-                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00402" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00402" />
                           </when>
                         </choose>
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%015_R-%TT%5%CC%01501">
                           <when test="1">
-                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00502" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00502" />
                           </when>
                         </choose>
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%016_R-%TT%5%CC%01601">
                           <when test="1">
-                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00602" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00602" />
                           </when>
                         </choose>
                       </when>
@@ -1783,40 +1783,40 @@
                       <when test="2">
                         <!-- ===== Taste 1: Kurzdruck-KO (KO-Slot 0) ===== -->
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%300_R-%TT%5%CC%30001">
-                          <when test="1"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00020" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                          <when test="2"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00021" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                          <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00022" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                          <when test="4"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00023" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                          <when test="5"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00024" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                          <when test="6"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00025" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                          <when test="7"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00026" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                          <when test="8"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00027" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                          <when test="1"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00020" /></when>
+                          <when test="2"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00021" /></when>
+                          <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00022" /></when>
+                          <when test="4"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00023" /></when>
+                          <when test="5"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00024" /></when>
+                          <when test="6"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00025" /></when>
+                          <when test="7"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00026" /></when>
+                          <when test="8"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00027" /></when>
                         </choose>
                         <!-- Taste 1: Langdruck-KO (KO-Slot 1) -->
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%301_R-%TT%5%CC%30101">
-                          <when test="1"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00130" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                          <when test="2"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00131" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                          <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00132" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                          <when test="4"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00133" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                          <when test="5"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00134" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                          <when test="6"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00135" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                          <when test="7"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00136" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                          <when test="8"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00137" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                          <when test="9"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00138" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                          <when test="1"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00130" /></when>
+                          <when test="2"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00131" /></when>
+                          <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00132" /></when>
+                          <when test="4"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00133" /></when>
+                          <when test="5"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00134" /></when>
+                          <when test="6"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00135" /></when>
+                          <when test="7"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00136" /></when>
+                          <when test="8"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00137" /></when>
+                          <when test="9"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%001_R-%TT%5%CC%00138" /></when>
                         </choose>
 
                         <!-- ===== Taste 2 (ab 2 Tasten): Kurzdruck-KO (KO-Slot 2) ===== -->
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
                           <when test=">=2">
                             <choose ParamRefId="%AID%_UP-%TT%5%CC%320_R-%TT%5%CC%32001">
-                              <when test="1"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00220" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="2"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00221" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00222" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="4"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00223" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="5"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00224" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="6"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00225" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="7"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00226" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="8"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00227" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                              <when test="1"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00220" /></when>
+                              <when test="2"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00221" /></when>
+                              <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00222" /></when>
+                              <when test="4"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00223" /></when>
+                              <when test="5"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00224" /></when>
+                              <when test="6"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00225" /></when>
+                              <when test="7"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00226" /></when>
+                              <when test="8"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%002_R-%TT%5%CC%00227" /></when>
                             </choose>
                           </when>
                         </choose>
@@ -1824,15 +1824,15 @@
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
                           <when test=">=2">
                             <choose ParamRefId="%AID%_UP-%TT%5%CC%321_R-%TT%5%CC%32101">
-                              <when test="1"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00330" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="2"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00331" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00332" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="4"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00333" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="5"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00334" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="6"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00335" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="7"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00336" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="8"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00337" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="9"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00338" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                              <when test="1"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00330" /></when>
+                              <when test="2"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00331" /></when>
+                              <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00332" /></when>
+                              <when test="4"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00333" /></when>
+                              <when test="5"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00334" /></when>
+                              <when test="6"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00335" /></when>
+                              <when test="7"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00336" /></when>
+                              <when test="8"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00337" /></when>
+                              <when test="9"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00338" /></when>
                             </choose>
                           </when>
                         </choose>
@@ -1841,14 +1841,14 @@
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
                           <when test=">=3">
                             <choose ParamRefId="%AID%_UP-%TT%5%CC%340_R-%TT%5%CC%34001">
-                              <when test="1"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00420" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="2"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00421" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00422" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="4"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00423" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="5"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00424" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="6"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00425" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="7"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00426" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="8"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00427" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                              <when test="1"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00420" /></when>
+                              <when test="2"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00421" /></when>
+                              <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00422" /></when>
+                              <when test="4"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00423" /></when>
+                              <when test="5"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00424" /></when>
+                              <when test="6"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00425" /></when>
+                              <when test="7"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00426" /></when>
+                              <when test="8"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00427" /></when>
                             </choose>
                           </when>
                         </choose>
@@ -1856,15 +1856,15 @@
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
                           <when test=">=3">
                             <choose ParamRefId="%AID%_UP-%TT%5%CC%341_R-%TT%5%CC%34101">
-                              <when test="1"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00530" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="2"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00531" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00532" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="4"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00533" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="5"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00534" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="6"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00535" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="7"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00536" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="8"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00537" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="9"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00538" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                              <when test="1"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00530" /></when>
+                              <when test="2"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00531" /></when>
+                              <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00532" /></when>
+                              <when test="4"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00533" /></when>
+                              <when test="5"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00534" /></when>
+                              <when test="6"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00535" /></when>
+                              <when test="7"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00536" /></when>
+                              <when test="8"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00537" /></when>
+                              <when test="9"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%005_R-%TT%5%CC%00538" /></when>
                             </choose>
                           </when>
                         </choose>
@@ -1873,14 +1873,14 @@
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
                           <when test=">=4">
                             <choose ParamRefId="%AID%_UP-%TT%5%CC%360_R-%TT%5%CC%36001">
-                              <when test="1"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00620" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="2"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00621" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00622" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="4"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00623" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="5"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00624" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="6"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00625" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="7"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00626" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="8"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00627" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                              <when test="1"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00620" /></when>
+                              <when test="2"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00621" /></when>
+                              <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00622" /></when>
+                              <when test="4"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00623" /></when>
+                              <when test="5"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00624" /></when>
+                              <when test="6"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00625" /></when>
+                              <when test="7"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00626" /></when>
+                              <when test="8"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%006_R-%TT%5%CC%00627" /></when>
                             </choose>
                           </when>
                         </choose>
@@ -1888,15 +1888,15 @@
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%013_R-%TT%5%CC%01301">
                           <when test=">=4">
                             <choose ParamRefId="%AID%_UP-%TT%5%CC%361_R-%TT%5%CC%36101">
-                              <when test="1"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00730" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="2"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00731" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00732" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="4"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00733" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="5"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00734" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="6"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00735" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="7"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00736" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="8"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00737" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
-                              <when test="9"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00738" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" /></when>
+                              <when test="1"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00730" /></when>
+                              <when test="2"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00731" /></when>
+                              <when test="3"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00732" /></when>
+                              <when test="4"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00733" /></when>
+                              <when test="5"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00734" /></when>
+                              <when test="6"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00735" /></when>
+                              <when test="7"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00736" /></when>
+                              <when test="8"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00737" /></when>
+                              <when test="9"><ComObjectRefRef RefId="%AID%_O-%TT%5%CC%007_R-%TT%5%CC%00738" /></when>
                             </choose>
                           </when>
                         </choose>
@@ -1906,19 +1906,19 @@
                           <when test="1">
                             <choose ParamRefId="%AID%_UP-%TT%5%CC%139_R-%TT%5%CC%13901">
                               <when test="0">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00820" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00820" />
                               </when>
                               <when test="1">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00821" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00821" />
                               </when>
                               <when test="2">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00822" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00822" />
                               </when>
                               <when test="3">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00823" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00823" />
                               </when>
                               <when test="4">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00824" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%008_R-%TT%5%CC%00824" />
                               </when>
                             </choose>
                           </when>
@@ -1927,41 +1927,41 @@
 
                       <!-- DeviceType 3: Kontaktsensor – Status Kontakt offen (KO-Slot 0) + optionale KOs -->
                       <when test="3">
-                        <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00003" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                        <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00003" />
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%018_R-%TT%5%CC%01801">
                           <when test="1">
-                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00305" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00305" />
                           </when>
                         </choose>
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%017_R-%TT%5%CC%01701">
                           <when test="1">
-                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00402" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%004_R-%TT%5%CC%00402" />
                           </when>
                         </choose>
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%014_R-%TT%5%CC%01401">
                           <when test="1">
-                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%009_R-%TT%5%CC%00903" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%009_R-%TT%5%CC%00903" />
                           </when>
                         </choose>
                       </when>
 
                       <!-- DeviceType 4: Steckdose – Schalten + Status Schalten + opt. Erreichbar -->
                       <when test="4">
-                        <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00004" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
-                        <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00302" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                        <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%000_R-%TT%5%CC%00004" />
+                        <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%003_R-%TT%5%CC%00302" />
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%014_R-%TT%5%CC%01401">
                           <when test="1">
-                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%009_R-%TT%5%CC%00903" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                            <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%009_R-%TT%5%CC%00903" />
                           </when>
                         </choose>
                         <choose ParamRefId="%AID%_UP-%TT%5%CC%019_R-%TT%5%CC%01901">
                           <when test="1">
                             <choose ParamRefId="%AID%_UP-%TT%5%CC%200_R-%TT%5%CC%20001">
                               <when test="0">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%011_R-%TT%5%CC%01102" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%011_R-%TT%5%CC%01102" />
                               </when>
                               <when test="1">
-                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%011_R-%TT%5%CC%01101" TextParameterRefId="%AID%_P-%TT%5%CC%000_R-%TT%5%CC%00001" />
+                                <ComObjectRefRef RefId="%AID%_O-%TT%5%CC%011_R-%TT%5%CC%01101" />
                               </when>
                             </choose>
                           </when>

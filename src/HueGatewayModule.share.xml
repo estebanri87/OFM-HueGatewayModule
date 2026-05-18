@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <?xml-model href="../../../../Organization/knxprod-support/knx_project_20/knx-editor.xsd" type="application/xml" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <KNX xmlns:op="http://github.com/OpenKNX/OpenKNXproducer" xmlns="http://knx.org/xml/project/20" CreatedBy="KNX MT" ToolVersion="5.1.255.16695">
 
@@ -541,17 +541,17 @@
               
               <ParameterBlock Id="%AID%_PB-HUEMain" Name="HueGateway" Text="Allgemein" Icon="cog-outline" HelpContext="HUE-Bridge-Konfiguration">
                 
-                <ParameterSeparator Id="%AID%_PS-HUETitle" Text="Philips Hue Gateway" UIHint="Headline" HelpContext="HUE-Allgemein" />
+                <ParameterSeparator Id="%AID%_PS-HUETitle" Text="Philips Hue Gateway" UIHint="Headline" />
                 <ParameterSeparator Id="%AID%_PS-HUEVersion" Text="Version: %ModuleVersion%" />
                 <ParameterSeparator Id="%AID%_PS-HUELine1" Text="" UIHint="HorizontalRuler" />
 
-                <ParameterSeparator Id="%AID%_PS-HUEDevices" Text="Kanalauswahl" UIHint="Headline" HelpContext="HUE-Kanal" />
+                <ParameterSeparator Id="%AID%_PS-HUEDevices" Text="Kanalauswahl" UIHint="Headline" />
                 <ParameterRefRef RefId="%AID%_P-%TT%00005_R-%TT%0000501" HelpContext="HUE-Anzahl-aktiver-Kanaele" />
                 <ParameterSeparator Id="%AID%_PS-HUELineDevices" Text="" UIHint="HorizontalRuler" />
                 
-                <ParameterSeparator Id="%AID%_PS-HUEBridge" Text="Bridge-Konfiguration" UIHint="Headline" HelpContext="HUE-Bridge-Konfiguration" />
+                <ParameterSeparator Id="%AID%_PS-HUEBridge" Text="Bridge-Konfiguration" UIHint="Headline" />
                 <ParameterRefRef RefId="%AID%_P-%TT%00001_R-%TT%0000101" HelpContext="HUE-Bridge-Erkennung" />
-                  <ParameterSeparator Id="%AID%_PS-HUEBridgeInfo" Text="mDNS funktioniert nur im selben VLAN wie die Bridge. Bei VLANs oder Netzwerksegmentierung 'Manuelle IP-Adresse' wählen." UIHint="Information" HelpContext="HUE-Bridge-Konfiguration" />
+                  <ParameterSeparator Id="%AID%_PS-HUEBridgeInfo" Text="mDNS funktioniert nur im selben VLAN wie die Bridge. Bei VLANs oder Netzwerksegmentierung 'Manuelle IP-Adresse' wählen." UIHint="Information" />
                 
                 <!-- Manuelle IP nur bei Auswahl "Manuelle IP-Adresse" anzeigen -->
                 <choose ParamRefId="%AID%_P-%TT%00001_R-%TT%0000101">
@@ -565,21 +565,21 @@
                 <ParameterRefRef RefId="%AID%_P-%TT%00007_R-%TT%0000701" HelpContext="HUE-Pairing-Trigger" />
                 <choose ParamRefId="%AID%_P-%TT%00006_R-%TT%0000601">
                   <when test="1">
-                    <ComObjectRefRef RefId="%AID%_O-%TT%00001_R-%TT%0000101" HelpContext="HUE-Bridge-Verbindungsstatus" />
+                    <ComObjectRefRef RefId="%AID%_O-%TT%00001_R-%TT%0000101" />
                   </when>
                 </choose>
-                <ComObjectRefRef RefId="%AID%_O-%TT%00002_R-%TT%0000201" HelpContext="HUE-Pairing-Trigger" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00002_R-%TT%0000201" />
 
                 <ParameterSeparator Id="%AID%_PS-HUESwitchTransitionLine" Text="" UIHint="HorizontalRuler" />
-                <ParameterSeparator Id="%AID%_PS-HUESwitchTransition" Text="Einschaltverhalten" UIHint="Headline" HelpContext="HUE-Einschaltverhalten" />
+                <ParameterSeparator Id="%AID%_PS-HUESwitchTransition" Text="Einschaltverhalten" UIHint="Headline" />
                 <ParameterRefRef RefId="%AID%_P-%TT%00040_R-%TT%0004001" HelpContext="HUE-Einschaltverhalten" />
                 <ParameterRefRef RefId="%AID%_P-%TT%00041_R-%TT%0004101" HelpContext="HUE-Einschaltverhalten" />
-                <ParameterSeparator Id="%AID%_PS-HUESwitchTransitionInfo" Text="Hinweis: Hue-Leuchten haben je nach Modell/Firmware ein eigenes Übergangsverhalten. Die eingestellten Zeiten wirken zusätzlich darauf, daher kann die reale Schaltzeit leicht abweichen." UIHint="Information" HelpContext="HUE-Einschaltverhalten" />
+                <ParameterSeparator Id="%AID%_PS-HUESwitchTransitionInfo" Text="Hinweis: Hue-Leuchten haben je nach Modell/Firmware ein eigenes Übergangsverhalten. Die eingestellten Zeiten wirken zusätzlich darauf, daher kann die reale Schaltzeit leicht abweichen." UIHint="Information" />
 
                 <ParameterSeparator Id="%AID%_PS-HUERelDimLine" Text="" UIHint="HorizontalRuler" />
-                <ParameterSeparator Id="%AID%_PS-HUERelDim" Text="Relatives Dimmen" UIHint="Headline" HelpContext="HUE-Relatives-Dimmen" />
+                <ParameterSeparator Id="%AID%_PS-HUERelDim" Text="Relatives Dimmen" UIHint="Headline" />
                 <ParameterRefRef RefId="%AID%_P-%TT%00078_R-%TT%0007801" HelpContext="HUE-Relatives-Dimmen" />
-                <ParameterSeparator Id="%AID%_PS-HUERelDimInfo" Text="Kleinere Werte = schnelleres Dimmen. Standard: 80ms für flüssiges Dimmen." UIHint="Information" HelpContext="HUE-Relatives-Dimmen" />
+                <ParameterSeparator Id="%AID%_PS-HUERelDimInfo" Text="Kleinere Werte = schnelleres Dimmen. Standard: 80ms für flüssiges Dimmen." UIHint="Information" />
                 
                 <!-- Status-KO nur anzeigen wenn aktiviert -->
                 <choose ParamRefId="%AID%_P-%TT%00006_R-%TT%0000601">
@@ -588,7 +588,7 @@
                 </choose>
 
                 <ParameterSeparator Id="%AID%_PS-HUEScenesEnableLine" Text="" UIHint="HorizontalRuler" />
-                <ParameterSeparator Id="%AID%_PS-HUEScenesEnable" Text="Hue Szenen" UIHint="Headline" HelpContext="HUE-Hue-Szenen-aktivieren" />
+                <ParameterSeparator Id="%AID%_PS-HUEScenesEnable" Text="Hue Szenen" UIHint="Headline" />
                 <ParameterRefRef RefId="%AID%_P-%TT%00077_R-%TT%0007701" HelpContext="HUE-Hue-Szenen-aktivieren" />
 
               </ParameterBlock>
@@ -596,7 +596,7 @@
               <choose ParamRefId="%AID%_P-%TT%00077_R-%TT%0007701">
                 <when test="1">
               <ParameterBlock Id="%AID%_PB-HUEScenes" Name="HueScenes" Text="Hue Szenen" Icon="format-list-text" HelpContext="HUE-Szenensteuerung">
-                <ParameterSeparator Id="%AID%_PS-HUEScenes" Text="Hue Szenen-Zuordnung" UIHint="Headline" HelpContext="HUE-Szenensteuerung" />
+                <ParameterSeparator Id="%AID%_PS-HUEScenes" Text="Hue Szenen-Zuordnung" UIHint="Headline" />
                 <ParameterSeparator Id="%AID%_PS-HUEScenesInfo" Text="Weisen Sie den 8 Hue-Szene-Slots die RID der gewünschten Philips Hue Szene zu. Die RID ist die interne Hue-API-Kennung der Szene (abrufbar über die Hue REST API v2)." UIHint="Information" />
                 <ParameterRefRef RefId="%AID%_P-%TT%00069_R-%TT%0006901" HelpContext="HUE-Hue-Szenen-global" />
                 <ParameterRefRef RefId="%AID%_P-%TT%00070_R-%TT%0007001" HelpContext="HUE-Hue-Szenen-global" />
@@ -611,7 +611,7 @@
               </choose>
               
               <!-- Light-Channel-Template einbinden (Lampen-Kanäle unter Philips Hue verschachtelt) -->
-              <op:include href="HueGatewayModule.templ.xml" xpath="//Dynamic/ChannelIndependentBlock" type="template" prefix="HUE" IsInner="true" />
+              <op:include href="HueGatewayModule.templ.xml" xpath="//Dynamic/ChannelIndependentBlock/*" type="template" prefix="HUE" IsInner="true" />
               
             </Channel>
           </Dynamic>
