@@ -9,7 +9,7 @@
   <ManufacturerData>
     <Manufacturer RefId="M-00FA">
       <ApplicationPrograms>
-        <ApplicationProgram Id="%AID%" ApplicationNumber="102" ApplicationVersion="22" ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Hue Bridge Module" LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="de" DynamicTableManagement="false" Linkable="true" MinEtsVersion="5.0">
+        <ApplicationProgram Id="%AID%" ApplicationNumber="102" ApplicationVersion="23" ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Hue Bridge Module" LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="de" DynamicTableManagement="false" Linkable="true" MinEtsVersion="5.0">
           
           <Static>
             <ParameterTypes>
@@ -111,59 +111,6 @@
                 </TypeRestriction>
               </ParameterType>
               
-              <!-- Anzahl Lichtmanager -->
-
-              <!-- Anzahl Stützpunkte pro Lichtmanager -->
-              
-              <!-- HCL-Uhrzeit (HH:MM als Zeichenfolge) -->
-              
-              <!-- HCL-Kelvin (2000-6500) -->
-              <ParameterType Id="%AID%_PT-HUEHCLKelvin" Name="HUEHCLKelvin">
-                <TypeNumber SizeInBit="16" Type="unsignedInt" minInclusive="2000" maxInclusive="6500" />
-              </ParameterType>
-              
-              <!-- HCL-Helligkeit (0-100 %) -->
-              <ParameterType Id="%AID%_PT-HUEHCLBrightnessPercent" Name="HUEHCLBrightnessPercent">
-                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="100" />
-              </ParameterType>
-              
-              <!-- HCL-Aktualisierungsintervall (Sekunden) -->
-              
-              <!-- HCL-Überblenddauer (Sekunden) -->
-
-              <!-- HCL-Sperre: Rueckfall aktivieren -->
-
-              <!-- HCL-Sperre: Rueckfallzeit -->
-              <ParameterType Id="%AID%_PT-HUEHCLLockFallback" Name="HUEHCLLockFallback">
-                <TypeRestriction Base="Value" SizeInBit="8" UIHint="DropDown">
-                  <Enumeration Text="kein Rückfall" Value="0" Id="%ENID%" />
-                  <Enumeration Text="1 min" Value="1" Id="%ENID%" />
-                  <Enumeration Text="2 min" Value="2" Id="%ENID%" />
-                  <Enumeration Text="5 min" Value="3" Id="%ENID%" />
-                  <Enumeration Text="10 min" Value="4" Id="%ENID%" />
-                  <Enumeration Text="20 min" Value="5" Id="%ENID%" />
-                  <Enumeration Text="30 min" Value="6" Id="%ENID%" />
-                  <Enumeration Text="1 h" Value="7" Id="%ENID%" />
-                  <Enumeration Text="2 h" Value="8" Id="%ENID%" />
-                  <Enumeration Text="5 h" Value="9" Id="%ENID%" />
-                  <Enumeration Text="8 h" Value="10" Id="%ENID%" />
-                  <Enumeration Text="12 h" Value="11" Id="%ENID%" />
-                  <Enumeration Text="Tageswechsel (um 00:00)" Value="12" Id="%ENID%" />
-                </TypeRestriction>
-              </ParameterType>
-
-              <!-- HCL-Sperre: Rueckfallstrategie -->
-
-              <!-- HCL-Sperre: freie Rueckfalldauer -->
-
-              <!-- HCL-Kurventyp -->
-
-              <!-- HCL-Slew-Rate (Kelvin pro Minute) -->
-
-              <!-- HCL-Zeitoffset in Minuten -->
-
-              <!-- Name des Lichtmanagers -->
-              
               <!-- Auswahl Lichtmanager -->
               <ParameterType Id="%AID%_PT-HUEHCLMasterSelect" Name="HUEHCLMasterSelect">
                 <TypeRestriction Base="Value" SizeInBit="8" UIHint="DropDown">
@@ -186,14 +133,6 @@
                   <Enumeration Text="Lichtmanager 16" Value="16" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
-
-              <!-- Saison-Modus -->
-
-              <!-- DST-Offset Tage (signed) -->
-
-              <!-- Monat 1–12 -->
-
-              <!-- Tag 1–31 -->
 
               <!-- Szenen-Konfiguration -->
               <ParameterType Id="%AID%_PT-HUESceneNumber" Name="HUESceneNumber">
