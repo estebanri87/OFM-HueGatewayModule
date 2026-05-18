@@ -111,28 +111,9 @@
                 </TypeRestriction>
               </ParameterType>
               
-              <!-- Auswahl Lichtmanager -->
-              <ParameterType Id="%AID%_PT-HUEHCLMasterSelect" Name="HUEHCLMasterSelect">
-                <TypeRestriction Base="Value" SizeInBit="8" UIHint="DropDown">
-                  <Enumeration Text="Kein Lichtmanager" Value="0" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 1" Value="1" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 2" Value="2" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 3" Value="3" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 4" Value="4" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 5" Value="5" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 6" Value="6" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 7" Value="7" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 8" Value="8" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 9" Value="9" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 10" Value="10" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 11" Value="11" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 12" Value="12" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 13" Value="13" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 14" Value="14" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 15" Value="15" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 16" Value="16" Id="%ENID%" />
-                </TypeRestriction>
-              </ParameterType>
+              <!-- Auswahl Lichtmanager: ParameterType liegt jetzt zentral im
+                   OFM-LightManager (PT-LMGMasterSelect, share.xml). Refs aus
+                   templ.xml verwenden %AID%_PT-LMGMasterSelect. -->
 
               <!-- HCL-Kelvin (2000-6500) - genutzt von CH%C%Scene*ColorTemp im templ -->
               <ParameterType Id="%AID%_PT-HUEHCLKelvin" Name="HUEHCLKelvin">

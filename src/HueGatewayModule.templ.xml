@@ -21,7 +21,7 @@
               </Parameter>
               
               <!-- Lichtmanager-Master-Zuordnung -->
-              <Parameter Id="%AID%_P-%TT%5%CC%007" Name="CH%C%HCLMaster" ParameterType="%AID%_PT-HUEHCLMasterSelect" Text="Zuordnung Lichtmanager" Value="0">
+              <Parameter Id="%AID%_P-%TT%5%CC%007" Name="CH%C%HCLMaster" ParameterType="%AID%_PT-LMGMasterSelect" Text="Zuordnung Lichtmanager" Value="0">
                 <Memory CodeSegment="%MID%" Offset="4" BitOffset="0" />
               </Parameter>
 
