@@ -113,8 +113,9 @@ struct HclFixedInterpolationDebug
 
 static String formatMinutesToClock(uint16_t minutes)
 {
-    char timeBuffer[6] = {0};
-    HCL::Setpoint::formatTime(minutes % 1440, timeBuffer);
+    const uint16_t m = minutes % 1440;
+    char timeBuffer[6];
+    snprintf(timeBuffer, sizeof(timeBuffer), "%02u:%02u", m / 60, m % 60);
     return String(timeBuffer);
 }
 
