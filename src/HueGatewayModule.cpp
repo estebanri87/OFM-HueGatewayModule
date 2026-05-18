@@ -3366,8 +3366,17 @@ void HueGatewayModule::setupDevices()
         setupLight->setLightType(effectiveLightType);
 
         uint8_t hclMaster = ParamHUE_CHHCLMaster;
-        if (hclMaster > HCL::MasterManager::MAX_MASTERS)
+        // Clamp dynamically against the actually configured master count in
+        // LightManagerModule. The ETS param range is 0..16 (PT-HUEHCLMasterSelect)
+        // but only 0..LMGHCLMasterCount are valid at runtime.
+        const uint8_t dynMax = HCL::masterManager.getMasterCount();
+        if (hclMaster > dynMax)
         {
+            if (hclMaster != 0)
+            {
+                logErrorP("Channel %u: HCL master %u out of range (max=%u) - reset to 0",
+                          ch + 1, hclMaster, dynMax);
+            }
             hclMaster = 0;
         }
         _devices[ch]->setHCLMaster(hclMaster);
