@@ -2,29 +2,18 @@
 
 Alle wesentlichen Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 
-## [0.4.2] - 2026-05-08
+## [0.5.0] - 2026-05-18
 
-### Hinzugefügt
-- **Adaptive Helligkeit (Tageslicht-Kompensation / Konstantlichtregelung)** für alle 8 Lichtmanager:
-  - Neuer Modus je LM: `Aus` / `Tageslicht-Kompensation (Open-Loop)` / `Konstantlichtregelung (Closed-Loop)`
-  - Neuer KO: **Helligkeitssensor (DPT 9.004)** – Lux-Istwert-Eingang
-  - Neuer KO: **Tag/Nacht (DPT 1.001)** – Aktivierungssteuerung per Tageszeit
-  - Neuer KO: **Adaptive Helligkeit aktiv (DPT 1.011)** – Status-Ausgang
-  - Konfigurierbar: Skalierungsmaximum, Mindesthelligkeit, Kompensationsstärke (Open-Loop),
-    P-Faktor / Totband / Auf-HCL-Wert-begrenzen (Closed-Loop), Sensor-Timeout,
-    Mindestschrittgröße, Aktivierungszeitraum (immer / tagsüber / nach Uhrzeit)
+### Geändert (Architektur)
+- HCL-Engine und Lichtmanager-Konfiguration in eigenständiges Modul **OFM-LightManagerModule** extrahiert (neue Abhängigkeit). Die Entwicklungsgeschichte aller HCL/LM-bezogenen Funktionen ist im dortigen CHANGELOG dokumentiert.
+- Tote HCL-`ifdef`-Blöcke entfernt; HCL-Datenzugriff ausschließlich über `HCL::masterManager`.
+- `share.xml` bereinigt (ApplicationVersion 22 → 23): überflüssige HCL-Typen und Stub-Datei `HueGatewayHCL.templ.xml` entfernt.
+- `PT-HUEHCLMasterSelect` durch gemeinsamen `PT-LMGMasterSelect` aus OFM-LightManager ersetzt.
+- Dynamische HCL-Master-Begrenzung gegen `LightManagerModule.getMasterCount()` zur Laufzeit.
 
 ## [0.4.1] - 2026-04-20
 
 ### Hinzugefügt
-- **Saison-Profil für Lichtmanager 1–8** (ETS + Runtime):
-  - Neuer Parameter „Saison-Profil" je Lichtmanager mit vier Modi:
-    - `Standard` – immer Winter-Profil aktiv
-    - `Automatisch (Sommer/Winterzeit)` – nutzt System-DST-Flag; optionaler DST-Offset-Tage-Parameter für abweichende Regionen
-    - `Festes Datum` – konfigurierbares Sommerfenster (Sommerstart/Sommerende je Monat+Tag); unterstützt Jahreswechsel-Übergang (Südhalbkugel)
-    - `Per Kommunikationsobjekt` – KO „Saison" schaltet Sommer/Winter zur Laufzeit
-  - `HCL::Master`: zweiter Stützpunkt-Array (`_setpointsSummer`), `setIsSummer()`, `setSummerSetpoint()`, `sortSummerSetpoints()`; Interpolation und Bereichsberechnung nutzen automatisch das aktive Profil
-  - Hilfedatei `HUE-HCL-Saison-KO.md` ergänzt
 - Neue Baggage-Dateien: `HUE-Hue-Ziel-Geraete-ID.md`, `HUE-Hue-Ziel-Light-Room-Zone-ID.md`
 
 ### Geändert
@@ -110,8 +99,6 @@ Alle wesentlichen Änderungen an diesem Projekt werden in dieser Datei dokumenti
 ## [0.3.5] - 2026-03-18
 
 ### Hinzugefügt
-- **Astronomische HCL-Kurve**: Farbtemperatur und Helligkeit werden anhand der Sonnenhöhe berechnet.
-- Fallback-Policies, Diagnose-Ringpuffer und Retry-Aktionen für stabilen Dauerbetrieb.
 - Transition-Getter in `HueGatewayLight` und verbessertes Switch-Logging.
 
 ### Geändert
@@ -142,7 +129,6 @@ Alle wesentlichen Änderungen an diesem Projekt werden in dieser Datei dokumenti
 
 ### Geändert
 - Versionszweig 0.3.x gestartet (Nachfolger von 0.2.x).
-- HCL-Manager-Handling und Übergangszeitverhalten überarbeitet.
 
 ## [0.2.2] - 2026-02-26
 
@@ -152,13 +138,7 @@ Alle wesentlichen Änderungen an diesem Projekt werden in dieser Datei dokumenti
 ### Geändert
 - Übergangszeiten werden konsistent in der Runtime sowohl für HCL- als auch Nicht-HCL-Schaltwege angewendet.
 
-### Behoben
-- HCL-Manager 5–8: ETS-Zuweisungen wurden zur Laufzeit nicht korrekt angewendet.
-
 ## [0.2.1] - 2026-02-25
-
-### Hinzugefügt
-- Kanal-spezifischer HCL-Lock: Parameter, Kommunikationsobjekt und Runtime-Verhalten.
 
 ### Behoben
 - Doppelter globaler HCL-Manager-Status-KO-Bereich in der ETS-Oberfläche entfernt.
@@ -177,7 +157,6 @@ Alle wesentlichen Änderungen an diesem Projekt werden in dieser Datei dokumenti
 - Hue Bridge Discovery via mDNS; Button-Press-Authentifizierung ohne manuelle Token-Konfiguration.
 - Bidirektionale Lichtkanal-Steuerung: Schalten, Dimmen (0–100 %), Farbtemperatur (2000–6500 K), RGB.
 - Bidirektionale Statusaktualisierung via Hue API v2 Event Stream (SSE); Polling als Fallback.
-- HCL-Master-Funktion (Alpha): tageszeit- und kanal-abhängige Farbtemperatur-/Helligkeitssteuerung.
 - OFM-WebUI-Anbindung für kanalbasierte Hue-UUID-Konfiguration.
 - TLS-Unterstützung für HTTPS-Kommunikation mit der Hue Bridge.
 - NVS-Persistierung von Bridge-UUID und API-Key.
