@@ -9,7 +9,7 @@
   <ManufacturerData>
     <Manufacturer RefId="M-00FA">
       <ApplicationPrograms>
-        <ApplicationProgram Id="%AID%" ApplicationNumber="102" ApplicationVersion="22" ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Hue Bridge Module" LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="de" DynamicTableManagement="false" Linkable="true" MinEtsVersion="5.0">
+        <ApplicationProgram Id="%AID%" ApplicationNumber="102" ApplicationVersion="23" ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Hue Bridge Module" LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="de" DynamicTableManagement="false" Linkable="true" MinEtsVersion="5.0">
           
           <Static>
             <ParameterTypes>
@@ -111,29 +111,21 @@
                 </TypeRestriction>
               </ParameterType>
               
-              <!-- Anzahl Lichtmanager -->
+              <!-- Auswahl Lichtmanager: ParameterType liegt jetzt zentral im
+                   OFM-LightManager (PT-LMGMasterSelect, share.xml). Refs aus
+                   templ.xml verwenden %AID%_PT-LMGMasterSelect. -->
 
-              <!-- Anzahl Stützpunkte pro Lichtmanager -->
-              
-              <!-- HCL-Uhrzeit (HH:MM als Zeichenfolge) -->
-              
-              <!-- HCL-Kelvin (2000-6500) -->
+              <!-- HCL-Kelvin (2000-6500) - genutzt von CH%C%Scene*ColorTemp im templ -->
               <ParameterType Id="%AID%_PT-HUEHCLKelvin" Name="HUEHCLKelvin">
                 <TypeNumber SizeInBit="16" Type="unsignedInt" minInclusive="2000" maxInclusive="6500" />
               </ParameterType>
-              
-              <!-- HCL-Helligkeit (0-100 %) -->
+
+              <!-- HCL-Helligkeit (0-100 %) - genutzt von CH%C%Scene*Brightness im templ -->
               <ParameterType Id="%AID%_PT-HUEHCLBrightnessPercent" Name="HUEHCLBrightnessPercent">
                 <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="100" />
               </ParameterType>
-              
-              <!-- HCL-Aktualisierungsintervall (Sekunden) -->
-              
-              <!-- HCL-Überblenddauer (Sekunden) -->
 
-              <!-- HCL-Sperre: Rueckfall aktivieren -->
-
-              <!-- HCL-Sperre: Rueckfallzeit -->
+              <!-- HCL-Sperre: Rueckfallzeit - genutzt von CH%C%HCLLockFallback im templ -->
               <ParameterType Id="%AID%_PT-HUEHCLLockFallback" Name="HUEHCLLockFallback">
                 <TypeRestriction Base="Value" SizeInBit="8" UIHint="DropDown">
                   <Enumeration Text="kein Rückfall" Value="0" Id="%ENID%" />
@@ -151,49 +143,6 @@
                   <Enumeration Text="Tageswechsel (um 00:00)" Value="12" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
-
-              <!-- HCL-Sperre: Rueckfallstrategie -->
-
-              <!-- HCL-Sperre: freie Rueckfalldauer -->
-
-              <!-- HCL-Kurventyp -->
-
-              <!-- HCL-Slew-Rate (Kelvin pro Minute) -->
-
-              <!-- HCL-Zeitoffset in Minuten -->
-
-              <!-- Name des Lichtmanagers -->
-              
-              <!-- Auswahl Lichtmanager -->
-              <ParameterType Id="%AID%_PT-HUEHCLMasterSelect" Name="HUEHCLMasterSelect">
-                <TypeRestriction Base="Value" SizeInBit="8" UIHint="DropDown">
-                  <Enumeration Text="Kein Lichtmanager" Value="0" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 1" Value="1" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 2" Value="2" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 3" Value="3" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 4" Value="4" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 5" Value="5" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 6" Value="6" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 7" Value="7" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 8" Value="8" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 9" Value="9" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 10" Value="10" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 11" Value="11" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 12" Value="12" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 13" Value="13" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 14" Value="14" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 15" Value="15" Id="%ENID%" />
-                  <Enumeration Text="Lichtmanager 16" Value="16" Id="%ENID%" />
-                </TypeRestriction>
-              </ParameterType>
-
-              <!-- Saison-Modus -->
-
-              <!-- DST-Offset Tage (signed) -->
-
-              <!-- Monat 1–12 -->
-
-              <!-- Tag 1–31 -->
 
               <!-- Szenen-Konfiguration -->
               <ParameterType Id="%AID%_PT-HUESceneNumber" Name="HUESceneNumber">
