@@ -30,7 +30,7 @@
                 <Memory CodeSegment="%MID%" Offset="86" BitOffset="0" />
               </Parameter>
               
-              <Union Id="%AID%_U-%TT%5%CC%002" SizeInBit="16">
+              <Union SizeInBit="16">
                 <Memory CodeSegment="%MID%" Offset="0" BitOffset="0" />
                 
                 <!-- Lampentyp (Bits 0-1) -->
@@ -54,7 +54,7 @@
                 <!-- Bits 5-7 von Byte 1: frei -->
               </Union>
               
-              <Union Id="%AID%_U-%TT%5%CC%005" SizeInBit="16">
+              <Union SizeInBit="16">
                 <Memory CodeSegment="%MID%" Offset="2" BitOffset="0" />
                 
                 <!-- Polling-Intervall (Sekunden) -->
@@ -65,7 +65,7 @@
               </Union>
 
               <!-- Optionale Kommunikationsobjekte (Bit-Flags für Sensor/Kontakt/Steckdose) -->
-              <Union Id="%AID%_U-%TT%5%CC%006" SizeInBit="8">
+              <Union SizeInBit="8">
                 <Memory CodeSegment="%MID%" Offset="87" BitOffset="0" />
                 <!-- Bit 0: Erreichbarkeit-KO (Sensor=KO3, Kontakt=KO9, Steckdose=KO9) -->
                 <Parameter Id="%AID%_UP-%TT%5%CC%014" Name="CH%C%OptReachable" ParameterType="%AID%_PT-CheckBox" Offset="0" BitOffset="0" Text="Gerät erreichbar verwenden" Value="0" />
@@ -81,7 +81,7 @@
               
               <!-- ===== Szenensteuerung ===== -->
               <!-- Byte 88: Bit 0 = SceneEnabled, Bit 1 = SceneStoreActive -->
-              <Union Id="%AID%_U-%TT%5%CC%019" SizeInBit="8">
+              <Union SizeInBit="8">
                 <Memory CodeSegment="%MID%" Offset="88" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%019" Name="CH%C%SceneEnabled" ParameterType="%AID%_PT-CheckBox" Offset="0" BitOffset="0" Text="Szenensteuerung aktivieren" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%200" Name="CH%C%SceneStoreActive" ParameterType="%AID%_PT-HUESceneStoreActive" Offset="0" BitOffset="1" Text="Szene speichern" Value="0" />
@@ -89,7 +89,7 @@
 
               <!-- Szene 1: Bytes 89-97 -->
               <Parameter Id="%AID%_P-%TT%5%CC%020" Name="CH%C%Scene1Number" ParameterType="%AID%_PT-HUESceneNumber" Text="Szenennummer" Value="0"><Memory CodeSegment="%MID%" Offset="89" BitOffset="0" /></Parameter>
-              <Union Id="%AID%_U-%TT%5%CC%021" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="90" BitOffset="0" />
+              <Union SizeInBit="8"><Memory CodeSegment="%MID%" Offset="90" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%021" Name="CH%C%Scene1ActionOnOff" ParameterType="%AID%_PT-HUESceneActionOnOff" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%022" Name="CH%C%Scene1ActionDim" ParameterType="%AID%_PT-HUESceneActionDim" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%023" Name="CH%C%Scene1ActionCT" ParameterType="%AID%_PT-HUESceneActionCT" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
@@ -105,7 +105,7 @@
 
               <!-- Szene 2: Bytes 98-106 -->
               <Parameter Id="%AID%_P-%TT%5%CC%030" Name="CH%C%Scene2Number" ParameterType="%AID%_PT-HUESceneNumber" Text="Szenennummer" Value="0"><Memory CodeSegment="%MID%" Offset="98" BitOffset="0" /></Parameter>
-              <Union Id="%AID%_U-%TT%5%CC%031" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="99" BitOffset="0" />
+              <Union SizeInBit="8"><Memory CodeSegment="%MID%" Offset="99" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%031" Name="CH%C%Scene2ActionOnOff" ParameterType="%AID%_PT-HUESceneActionOnOff" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%032" Name="CH%C%Scene2ActionDim" ParameterType="%AID%_PT-HUESceneActionDim" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%033" Name="CH%C%Scene2ActionCT" ParameterType="%AID%_PT-HUESceneActionCT" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
@@ -121,7 +121,7 @@
 
               <!-- Szene 3: Bytes 107-115 -->
               <Parameter Id="%AID%_P-%TT%5%CC%040" Name="CH%C%Scene3Number" ParameterType="%AID%_PT-HUESceneNumber" Text="Szenennummer" Value="0"><Memory CodeSegment="%MID%" Offset="107" BitOffset="0" /></Parameter>
-              <Union Id="%AID%_U-%TT%5%CC%041" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="108" BitOffset="0" />
+              <Union SizeInBit="8"><Memory CodeSegment="%MID%" Offset="108" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%041" Name="CH%C%Scene3ActionOnOff" ParameterType="%AID%_PT-HUESceneActionOnOff" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%042" Name="CH%C%Scene3ActionDim" ParameterType="%AID%_PT-HUESceneActionDim" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%043" Name="CH%C%Scene3ActionCT" ParameterType="%AID%_PT-HUESceneActionCT" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
@@ -137,7 +137,7 @@
 
               <!-- Szene 4: Bytes 116-124 -->
               <Parameter Id="%AID%_P-%TT%5%CC%050" Name="CH%C%Scene4Number" ParameterType="%AID%_PT-HUESceneNumber" Text="Szenennummer" Value="0"><Memory CodeSegment="%MID%" Offset="116" BitOffset="0" /></Parameter>
-              <Union Id="%AID%_U-%TT%5%CC%051" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="117" BitOffset="0" />
+              <Union SizeInBit="8"><Memory CodeSegment="%MID%" Offset="117" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%051" Name="CH%C%Scene4ActionOnOff" ParameterType="%AID%_PT-HUESceneActionOnOff" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%052" Name="CH%C%Scene4ActionDim" ParameterType="%AID%_PT-HUESceneActionDim" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%053" Name="CH%C%Scene4ActionCT" ParameterType="%AID%_PT-HUESceneActionCT" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
@@ -153,7 +153,7 @@
 
               <!-- Szene 5: Bytes 125-133 -->
               <Parameter Id="%AID%_P-%TT%5%CC%060" Name="CH%C%Scene5Number" ParameterType="%AID%_PT-HUESceneNumber" Text="Szenennummer" Value="0"><Memory CodeSegment="%MID%" Offset="125" BitOffset="0" /></Parameter>
-              <Union Id="%AID%_U-%TT%5%CC%061" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="126" BitOffset="0" />
+              <Union SizeInBit="8"><Memory CodeSegment="%MID%" Offset="126" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%061" Name="CH%C%Scene5ActionOnOff" ParameterType="%AID%_PT-HUESceneActionOnOff" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%062" Name="CH%C%Scene5ActionDim" ParameterType="%AID%_PT-HUESceneActionDim" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%063" Name="CH%C%Scene5ActionCT" ParameterType="%AID%_PT-HUESceneActionCT" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
@@ -169,7 +169,7 @@
 
               <!-- Szene 6: Bytes 134-142 -->
               <Parameter Id="%AID%_P-%TT%5%CC%070" Name="CH%C%Scene6Number" ParameterType="%AID%_PT-HUESceneNumber" Text="Szenennummer" Value="0"><Memory CodeSegment="%MID%" Offset="134" BitOffset="0" /></Parameter>
-              <Union Id="%AID%_U-%TT%5%CC%071" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="135" BitOffset="0" />
+              <Union SizeInBit="8"><Memory CodeSegment="%MID%" Offset="135" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%071" Name="CH%C%Scene6ActionOnOff" ParameterType="%AID%_PT-HUESceneActionOnOff" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%072" Name="CH%C%Scene6ActionDim" ParameterType="%AID%_PT-HUESceneActionDim" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%073" Name="CH%C%Scene6ActionCT" ParameterType="%AID%_PT-HUESceneActionCT" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
@@ -185,7 +185,7 @@
 
               <!-- Szene 7: Bytes 143-151 -->
               <Parameter Id="%AID%_P-%TT%5%CC%080" Name="CH%C%Scene7Number" ParameterType="%AID%_PT-HUESceneNumber" Text="Szenennummer" Value="0"><Memory CodeSegment="%MID%" Offset="143" BitOffset="0" /></Parameter>
-              <Union Id="%AID%_U-%TT%5%CC%081" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="144" BitOffset="0" />
+              <Union SizeInBit="8"><Memory CodeSegment="%MID%" Offset="144" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%081" Name="CH%C%Scene7ActionOnOff" ParameterType="%AID%_PT-HUESceneActionOnOff" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%082" Name="CH%C%Scene7ActionDim" ParameterType="%AID%_PT-HUESceneActionDim" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%083" Name="CH%C%Scene7ActionCT" ParameterType="%AID%_PT-HUESceneActionCT" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
@@ -201,7 +201,7 @@
 
               <!-- Szene 8: Bytes 152-160 -->
               <Parameter Id="%AID%_P-%TT%5%CC%090" Name="CH%C%Scene8Number" ParameterType="%AID%_PT-HUESceneNumber" Text="Szenennummer" Value="0"><Memory CodeSegment="%MID%" Offset="152" BitOffset="0" /></Parameter>
-              <Union Id="%AID%_U-%TT%5%CC%091" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="153" BitOffset="0" />
+              <Union SizeInBit="8"><Memory CodeSegment="%MID%" Offset="153" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%091" Name="CH%C%Scene8ActionOnOff" ParameterType="%AID%_PT-HUESceneActionOnOff" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%092" Name="CH%C%Scene8ActionDim" ParameterType="%AID%_PT-HUESceneActionDim" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%093" Name="CH%C%Scene8ActionCT" ParameterType="%AID%_PT-HUESceneActionCT" Offset="0" BitOffset="0" Text="Aktion" Value="1" />
@@ -216,12 +216,12 @@
               <Parameter Id="%AID%_P-%TT%5%CC%099" Name="CH%C%Scene8Blue" ParameterType="%AID%_PT-HUESceneRGB" Text="Blau" Value="0"><Memory CodeSegment="%MID%" Offset="160" BitOffset="0" /></Parameter>
 
               <!-- ===== Tasterkanal: Taste 1 KurzTyp/LangTyp (Offset 161) ===== -->
-              <Union Id="%AID%_U-%TT%5%CC%130" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="161" BitOffset="0" />
+              <Union SizeInBit="8"><Memory CodeSegment="%MID%" Offset="161" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%300" Name="CH%C%Btn1KurzTyp" ParameterType="%AID%_PT-HUEKurzTyp" Offset="0" BitOffset="0" Text="Taste 1 Kurzdruck" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%301" Name="CH%C%Btn1LangTyp" ParameterType="%AID%_PT-HUELangTyp" Offset="0" BitOffset="4" Text="Taste 1 Langdruck" Value="0" />
               </Union>
               <!-- Taste 1: Kurzdruck Sub-Werte (Offset 165-166, 16-bit Union) -->
-              <Union Id="%AID%_U-%TT%5%CC%200" SizeInBit="16"><Memory CodeSegment="%MID%" Offset="165" BitOffset="0" />
+              <Union SizeInBit="16"><Memory CodeSegment="%MID%" Offset="165" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%302" Name="CH%C%Btn1KurzSchaltwert" ParameterType="%AID%_PT-HUESchaltwertKurz" Offset="0" BitOffset="0" Text="Schaltwert" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%303" Name="CH%C%Btn1KurzRichtungDim" ParameterType="%AID%_PT-HUERichtungDim" Offset="0" BitOffset="0" Text="Richtung" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%304" Name="CH%C%Btn1KurzDimStep" ParameterType="%AID%_PT-HUELichtDimStep" Offset="0" BitOffset="1" Text="Schrittweite" Value="4" />
@@ -233,7 +233,7 @@
                 <Parameter Id="%AID%_UP-%TT%5%CC%310" Name="CH%C%Btn1KurzWord" ParameterType="%AID%_PT-HUEWordWert" Offset="0" BitOffset="0" Text="Wert" Value="0" />
               </Union>
               <!-- Taste 1: Langdruck Sub-Werte (Offset 167-168, 16-bit Union) -->
-              <Union Id="%AID%_U-%TT%5%CC%201" SizeInBit="16"><Memory CodeSegment="%MID%" Offset="167" BitOffset="0" />
+              <Union SizeInBit="16"><Memory CodeSegment="%MID%" Offset="167" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%311" Name="CH%C%Btn1LangSchaltwert" ParameterType="%AID%_PT-HUESchaltwertLang" Offset="0" BitOffset="0" Text="Schaltwert" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%312" Name="CH%C%Btn1LangRichtungDim" ParameterType="%AID%_PT-HUERichtungDim" Offset="0" BitOffset="0" Text="Richtung" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%313" Name="CH%C%Btn1LangDimStep" ParameterType="%AID%_PT-HUELichtDimStep" Offset="0" BitOffset="1" Text="Schrittweite" Value="4" />
@@ -246,12 +246,12 @@
               </Union>
 
               <!-- ===== Tasterkanal: Taste 2 KurzTyp/LangTyp (Offset 162) ===== -->
-              <Union Id="%AID%_U-%TT%5%CC%131" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="162" BitOffset="0" />
+              <Union SizeInBit="8"><Memory CodeSegment="%MID%" Offset="162" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%320" Name="CH%C%Btn2KurzTyp" ParameterType="%AID%_PT-HUEKurzTyp" Offset="0" BitOffset="0" Text="Taste 2 Kurzdruck" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%321" Name="CH%C%Btn2LangTyp" ParameterType="%AID%_PT-HUELangTyp" Offset="0" BitOffset="4" Text="Taste 2 Langdruck" Value="0" />
               </Union>
               <!-- Taste 2: Kurzdruck Sub-Werte (Offset 169-170, 16-bit Union) -->
-              <Union Id="%AID%_U-%TT%5%CC%202" SizeInBit="16"><Memory CodeSegment="%MID%" Offset="169" BitOffset="0" />
+              <Union SizeInBit="16"><Memory CodeSegment="%MID%" Offset="169" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%322" Name="CH%C%Btn2KurzSchaltwert" ParameterType="%AID%_PT-HUESchaltwertKurz" Offset="0" BitOffset="0" Text="Schaltwert" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%323" Name="CH%C%Btn2KurzRichtungDim" ParameterType="%AID%_PT-HUERichtungDim" Offset="0" BitOffset="0" Text="Richtung" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%324" Name="CH%C%Btn2KurzDimStep" ParameterType="%AID%_PT-HUELichtDimStep" Offset="0" BitOffset="1" Text="Schrittweite" Value="4" />
@@ -263,7 +263,7 @@
                 <Parameter Id="%AID%_UP-%TT%5%CC%330" Name="CH%C%Btn2KurzWord" ParameterType="%AID%_PT-HUEWordWert" Offset="0" BitOffset="0" Text="Wert" Value="0" />
               </Union>
               <!-- Taste 2: Langdruck Sub-Werte (Offset 171-172, 16-bit Union) -->
-              <Union Id="%AID%_U-%TT%5%CC%203" SizeInBit="16"><Memory CodeSegment="%MID%" Offset="171" BitOffset="0" />
+              <Union SizeInBit="16"><Memory CodeSegment="%MID%" Offset="171" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%331" Name="CH%C%Btn2LangSchaltwert" ParameterType="%AID%_PT-HUESchaltwertLang" Offset="0" BitOffset="0" Text="Schaltwert" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%332" Name="CH%C%Btn2LangRichtungDim" ParameterType="%AID%_PT-HUERichtungDim" Offset="0" BitOffset="0" Text="Richtung" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%333" Name="CH%C%Btn2LangDimStep" ParameterType="%AID%_PT-HUELichtDimStep" Offset="0" BitOffset="1" Text="Schrittweite" Value="4" />
@@ -276,12 +276,12 @@
               </Union>
 
               <!-- ===== Tasterkanal: Taste 3 KurzTyp/LangTyp (Offset 163) ===== -->
-              <Union Id="%AID%_U-%TT%5%CC%132" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="163" BitOffset="0" />
+              <Union SizeInBit="8"><Memory CodeSegment="%MID%" Offset="163" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%340" Name="CH%C%Btn3KurzTyp" ParameterType="%AID%_PT-HUEKurzTyp" Offset="0" BitOffset="0" Text="Taste 3 Kurzdruck" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%341" Name="CH%C%Btn3LangTyp" ParameterType="%AID%_PT-HUELangTyp" Offset="0" BitOffset="4" Text="Taste 3 Langdruck" Value="0" />
               </Union>
               <!-- Taste 3: Kurzdruck Sub-Werte (Offset 173-174, 16-bit Union) -->
-              <Union Id="%AID%_U-%TT%5%CC%204" SizeInBit="16"><Memory CodeSegment="%MID%" Offset="173" BitOffset="0" />
+              <Union SizeInBit="16"><Memory CodeSegment="%MID%" Offset="173" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%342" Name="CH%C%Btn3KurzSchaltwert" ParameterType="%AID%_PT-HUESchaltwertKurz" Offset="0" BitOffset="0" Text="Schaltwert" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%343" Name="CH%C%Btn3KurzRichtungDim" ParameterType="%AID%_PT-HUERichtungDim" Offset="0" BitOffset="0" Text="Richtung" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%344" Name="CH%C%Btn3KurzDimStep" ParameterType="%AID%_PT-HUELichtDimStep" Offset="0" BitOffset="1" Text="Schrittweite" Value="4" />
@@ -293,7 +293,7 @@
                 <Parameter Id="%AID%_UP-%TT%5%CC%350" Name="CH%C%Btn3KurzWord" ParameterType="%AID%_PT-HUEWordWert" Offset="0" BitOffset="0" Text="Wert" Value="0" />
               </Union>
               <!-- Taste 3: Langdruck Sub-Werte (Offset 175-176, 16-bit Union) -->
-              <Union Id="%AID%_U-%TT%5%CC%205" SizeInBit="16"><Memory CodeSegment="%MID%" Offset="175" BitOffset="0" />
+              <Union SizeInBit="16"><Memory CodeSegment="%MID%" Offset="175" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%351" Name="CH%C%Btn3LangSchaltwert" ParameterType="%AID%_PT-HUESchaltwertLang" Offset="0" BitOffset="0" Text="Schaltwert" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%352" Name="CH%C%Btn3LangRichtungDim" ParameterType="%AID%_PT-HUERichtungDim" Offset="0" BitOffset="0" Text="Richtung" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%353" Name="CH%C%Btn3LangDimStep" ParameterType="%AID%_PT-HUELichtDimStep" Offset="0" BitOffset="1" Text="Schrittweite" Value="4" />
@@ -306,12 +306,12 @@
               </Union>
 
               <!-- ===== Tasterkanal: Taste 4 KurzTyp/LangTyp (Offset 164) ===== -->
-              <Union Id="%AID%_U-%TT%5%CC%133" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="164" BitOffset="0" />
+              <Union SizeInBit="8"><Memory CodeSegment="%MID%" Offset="164" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%360" Name="CH%C%Btn4KurzTyp" ParameterType="%AID%_PT-HUEKurzTyp" Offset="0" BitOffset="0" Text="Taste 4 Kurzdruck" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%361" Name="CH%C%Btn4LangTyp" ParameterType="%AID%_PT-HUELangTyp" Offset="0" BitOffset="4" Text="Taste 4 Langdruck" Value="0" />
               </Union>
               <!-- Taste 4: Kurzdruck Sub-Werte (Offset 177-178, 16-bit Union) -->
-              <Union Id="%AID%_U-%TT%5%CC%206" SizeInBit="16"><Memory CodeSegment="%MID%" Offset="177" BitOffset="0" />
+              <Union SizeInBit="16"><Memory CodeSegment="%MID%" Offset="177" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%362" Name="CH%C%Btn4KurzSchaltwert" ParameterType="%AID%_PT-HUESchaltwertKurz" Offset="0" BitOffset="0" Text="Schaltwert" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%363" Name="CH%C%Btn4KurzRichtungDim" ParameterType="%AID%_PT-HUERichtungDim" Offset="0" BitOffset="0" Text="Richtung" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%364" Name="CH%C%Btn4KurzDimStep" ParameterType="%AID%_PT-HUELichtDimStep" Offset="0" BitOffset="1" Text="Schrittweite" Value="4" />
@@ -323,7 +323,7 @@
                 <Parameter Id="%AID%_UP-%TT%5%CC%370" Name="CH%C%Btn4KurzWord" ParameterType="%AID%_PT-HUEWordWert" Offset="0" BitOffset="0" Text="Wert" Value="0" />
               </Union>
               <!-- Taste 4: Langdruck Sub-Werte (Offset 179-180, 16-bit Union) -->
-              <Union Id="%AID%_U-%TT%5%CC%207" SizeInBit="16"><Memory CodeSegment="%MID%" Offset="179" BitOffset="0" />
+              <Union SizeInBit="16"><Memory CodeSegment="%MID%" Offset="179" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%371" Name="CH%C%Btn4LangSchaltwert" ParameterType="%AID%_PT-HUESchaltwertLang" Offset="0" BitOffset="0" Text="Schaltwert" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%372" Name="CH%C%Btn4LangRichtungDim" ParameterType="%AID%_PT-HUERichtungDim" Offset="0" BitOffset="0" Text="Richtung" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%373" Name="CH%C%Btn4LangDimStep" ParameterType="%AID%_PT-HUELichtDimStep" Offset="0" BitOffset="1" Text="Schrittweite" Value="4" />
@@ -336,7 +336,7 @@
               </Union>
 
               <!-- ===== Tasterkanal: Drehregler Aktivierung + Funktion (Offset 181) ===== -->
-              <Union Id="%AID%_U-%TT%5%CC%134" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="181" BitOffset="0" />
+              <Union SizeInBit="8"><Memory CodeSegment="%MID%" Offset="181" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%138" Name="CH%C%HasRotary" ParameterType="%AID%_PT-HUEHasRotary" Offset="0" BitOffset="0" Text="Drehregler vorhanden (Beta)" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%139" Name="CH%C%RotaryFunction" ParameterType="%AID%_PT-HUERotaryFunction" Offset="0" BitOffset="1" Text="Drehregler Funktion" Value="0" />
               </Union>
@@ -345,7 +345,7 @@
               <Parameter Id="%AID%_P-%TT%5%CC%127" Name="CH%C%RotaryStepPercent" ParameterType="%AID%_PT-HUELichtDimStep" Text="Schrittweite" Value="4"><Memory CodeSegment="%MID%" Offset="182" BitOffset="0" /></Parameter>
 
               <!-- ===== Tasterkanal: Native Hue Aktion (Offset 183) ===== -->
-              <Union Id="%AID%_U-%TT%5%CC%135" SizeInBit="8"><Memory CodeSegment="%MID%" Offset="183" BitOffset="0" />
+              <Union SizeInBit="8"><Memory CodeSegment="%MID%" Offset="183" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%TT%5%CC%140" Name="CH%C%NativeHueAction" ParameterType="%AID%_PT-HUENativeHueAction" Offset="0" BitOffset="0" Text="Native Hue Aktion" Value="0" />
               </Union>
 
