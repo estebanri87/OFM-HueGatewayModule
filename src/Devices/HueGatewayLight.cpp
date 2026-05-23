@@ -107,6 +107,21 @@ void HueGatewayLight::onLightManagerValue(uint8_t masterNum, uint16_t kelvin, ui
     _hclValuePending = true;
 }
 
+void HueGatewayLight::onLightManagerPartial(uint8_t masterNum, uint16_t kelvin, uint8_t brightness,
+                                            uint8_t validMask, uint8_t fadeDuration)
+{
+    if (masterNum != _hclMasterNum)
+        return;
+    if (validMask == 0)
+        return;
+
+    // Nur valide Achsen uebernehmen; die anderen behalten den letzten Pending-Wert.
+    if (validMask & 0b01) _pendingHclKelvin     = kelvin;
+    if (validMask & 0b10) _pendingHclBrightness = brightness;
+    _pendingHclFadeDuration = fadeDuration;
+    _hclValuePending = true;
+}
+
 void HueGatewayLight::begin(uint16_t koSwitch, uint16_t koBrightness, uint16_t koDimming,
                             uint16_t koStatusSwitch, uint16_t koStatusBrightness,
                             uint16_t koStatusColorTemp, uint16_t koStatusColorRGB)

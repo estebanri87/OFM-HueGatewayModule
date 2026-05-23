@@ -146,53 +146,30 @@ static bool isDateInSummerRange(uint8_t month, uint8_t day,
     }
 }
 
-static bool buildFixedInterpolationDebug(const HCL::Master* master, uint16_t currentMinutes, HclFixedInterpolationDebug& debug)
+static bool buildFixedInterpolationDebug(const LightManagerChannel* channel, uint16_t currentMinutes, HclFixedInterpolationDebug& debug)
 {
     debug = HclFixedInterpolationDebug();
-    if (master == nullptr)
+    if (channel == nullptr)
     {
         return false;
     }
 
-    uint8_t firstValid = 0xFF;
-    uint8_t lastValid = 0xFF;
-    uint8_t validCount = 0;
-
-    for (uint8_t i = 0; i < HCL::Master::MAX_SETPOINTS; i++)
-    {
-        const HCL::Setpoint* setpoint = master->getSetpoint(i);
-        if (setpoint == nullptr || setpoint->timeMinutes >= 1440)
-        {
-            continue;
-        }
-
-        if (firstValid == 0xFF)
-        {
-            firstValid = i;
-        }
-        lastValid = i;
-        validCount++;
-    }
-
-    if (validCount < 2 || firstValid == 0xFF || lastValid == 0xFF)
+    const uint8_t count = channel->resolvedCount();
+    if (count < 2)
     {
         return false;
     }
 
-    uint8_t prevIndex = lastValid;
-    uint8_t nextIndex = firstValid;
-
-    for (uint8_t i = firstValid; i < HCL::Master::MAX_SETPOINTS; i++)
+    // _resolvedSetpoints[] is sorted ascending by timeMinutes (Phase 2.I).
+    uint8_t prevIndex = static_cast<uint8_t>(count - 1);
+    uint8_t nextIndex = 0;
+    for (uint8_t i = 0; i < count; ++i)
     {
-        const HCL::Setpoint* setpoint = master->getSetpoint(i);
-        if (setpoint == nullptr || setpoint->timeMinutes >= 1440)
-        {
-            continue;
-        }
-
-        if (setpoint->timeMinutes <= currentMinutes)
+        const HCL::ResolvedSetpoint& sp = channel->resolvedAt(i);
+        if (sp.timeMinutes <= currentMinutes)
         {
             prevIndex = i;
+            nextIndex = static_cast<uint8_t>((i + 1) % count);
         }
         else
         {
@@ -201,38 +178,27 @@ static bool buildFixedInterpolationDebug(const HCL::Master* master, uint16_t cur
         }
     }
 
-    const HCL::Setpoint* lastSetpoint = master->getSetpoint(lastValid);
-    if (lastSetpoint != nullptr && currentMinutes > lastSetpoint->timeMinutes)
-    {
-        prevIndex = lastValid;
-        nextIndex = firstValid;
-    }
-
-    const HCL::Setpoint* prev = master->getSetpoint(prevIndex);
-    const HCL::Setpoint* next = master->getSetpoint(nextIndex);
-    if (prev == nullptr || next == nullptr)
-    {
-        return false;
-    }
+    const HCL::ResolvedSetpoint& prev = channel->resolvedAt(prevIndex);
+    const HCL::ResolvedSetpoint& next = channel->resolvedAt(nextIndex);
 
     int32_t span = 0;
     int32_t elapsed = 0;
-    const bool wraps = (next->timeMinutes <= prev->timeMinutes);
+    const bool wraps = (next.timeMinutes <= prev.timeMinutes);
     if (!wraps)
     {
-        span = static_cast<int32_t>(next->timeMinutes) - static_cast<int32_t>(prev->timeMinutes);
-        elapsed = static_cast<int32_t>(currentMinutes) - static_cast<int32_t>(prev->timeMinutes);
+        span = static_cast<int32_t>(next.timeMinutes) - static_cast<int32_t>(prev.timeMinutes);
+        elapsed = static_cast<int32_t>(currentMinutes) - static_cast<int32_t>(prev.timeMinutes);
     }
     else
     {
-        span = (1440 - static_cast<int32_t>(prev->timeMinutes)) + static_cast<int32_t>(next->timeMinutes);
-        if (currentMinutes >= prev->timeMinutes)
+        span = (1440 - static_cast<int32_t>(prev.timeMinutes)) + static_cast<int32_t>(next.timeMinutes);
+        if (currentMinutes >= prev.timeMinutes)
         {
-            elapsed = static_cast<int32_t>(currentMinutes) - static_cast<int32_t>(prev->timeMinutes);
+            elapsed = static_cast<int32_t>(currentMinutes) - static_cast<int32_t>(prev.timeMinutes);
         }
         else
         {
-            elapsed = (1440 - static_cast<int32_t>(prev->timeMinutes)) + static_cast<int32_t>(currentMinutes);
+            elapsed = (1440 - static_cast<int32_t>(prev.timeMinutes)) + static_cast<int32_t>(currentMinutes);
         }
     }
 
@@ -246,63 +212,52 @@ static bool buildFixedInterpolationDebug(const HCL::Master* master, uint16_t cur
     debug.valid = true;
     debug.wrapsMidnight = wraps;
     debug.currentMinutes = currentMinutes;
-    debug.prevTime = prev->timeMinutes;
-    debug.nextTime = next->timeMinutes;
-    debug.prevKelvin = prev->kelvin;
-    debug.nextKelvin = next->kelvin;
-    debug.prevBrightness = prev->brightness;
-    debug.nextBrightness = next->brightness;
+    debug.prevTime = prev.timeMinutes;
+    debug.nextTime = next.timeMinutes;
+    debug.prevKelvin = prev.kelvin;
+    debug.nextKelvin = next.kelvin;
+    debug.prevBrightness = prev.brightness;
+    debug.nextBrightness = next.brightness;
     debug.spanMinutes = static_cast<uint16_t>((span < 0) ? 0 : span);
     debug.elapsedMinutes = static_cast<uint16_t>((elapsed < 0) ? 0 : elapsed);
     debug.factor = factor;
-    const float targetKelvinFloat = static_cast<float>(prev->kelvin) +
-        (static_cast<float>(next->kelvin) - static_cast<float>(prev->kelvin)) * factor;
-    const float targetBrightnessFloat = static_cast<float>(prev->brightness) +
-        (static_cast<float>(next->brightness) - static_cast<float>(prev->brightness)) * factor;
-    debug.targetKelvin = static_cast<uint16_t>(constrain(static_cast<int32_t>(targetKelvinFloat), static_cast<int32_t>(2000), static_cast<int32_t>(6500)));
+    const float targetKelvinFloat = static_cast<float>(prev.kelvin) +
+        (static_cast<float>(next.kelvin) - static_cast<float>(prev.kelvin)) * factor;
+    const float targetBrightnessFloat = static_cast<float>(prev.brightness) +
+        (static_cast<float>(next.brightness) - static_cast<float>(prev.brightness)) * factor;
+    debug.targetKelvin = static_cast<uint16_t>(constrain(static_cast<int32_t>(targetKelvinFloat), static_cast<int32_t>(1500), static_cast<int32_t>(10000)));
     debug.targetBrightness = static_cast<uint8_t>(constrain(static_cast<int32_t>(targetBrightnessFloat), static_cast<int32_t>(0), static_cast<int32_t>(100)));
     return true;
 }
 
-static String buildSetpointListDebug(const HCL::Master* master)
+static String buildSetpointListDebug(const LightManagerChannel* channel)
 {
-    if (master == nullptr)
+    if (channel == nullptr)
     {
         return String("n/a");
     }
 
+    const uint8_t count = channel->resolvedCount();
+    if (count == 0)
+    {
+        return String("(keine aufgel\xC3\xB6sten Setpoints)");
+    }
+
     String details;
     details.reserve(448);
-    bool first = true;
-    for (uint8_t i = 0; i < HCL::Master::MAX_SETPOINTS; i++)
+    for (uint8_t i = 0; i < count; ++i)
     {
-        const HCL::Setpoint* setpoint = master->getSetpoint(i);
-        if (setpoint == nullptr || setpoint->timeMinutes >= 1440)
-        {
-            continue;
-        }
-
-        if (!first)
-        {
-            details += " | ";
-        }
-
+        const HCL::ResolvedSetpoint& sp = channel->resolvedAt(i);
+        if (i > 0) details += " | ";
         details += String(i + 1);
         details += ": ";
-        details += formatMinutesToClock(setpoint->timeMinutes);
+        details += formatMinutesToClock(sp.timeMinutes);
         details += " ";
-        details += String(setpoint->kelvin);
+        details += String(sp.kelvin);
         details += "K/";
-        details += String(setpoint->brightness);
+        details += String(sp.brightness);
         details += "%";
-        first = false;
     }
-
-    if (first)
-    {
-        return String("(keine gültigen Setpoints)");
-    }
-
     return details;
 }
 
@@ -2220,10 +2175,8 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
         if (hclEnabled)
         {
             const uint8_t masterCount = HCL::masterManager.getMasterCount();
-            Serial.printf("Update interval: %us\n",
-                          static_cast<unsigned>(HCL::masterManager.getUpdateInterval()));
-            Serial.printf("Fade duration: %us\n",
-                          static_cast<unsigned>(HCL::masterManager.getFadeDuration()));
+            Serial.printf("Update interval: per channel (see master list)\n");
+            Serial.printf("Fade duration: per channel (see master list)\n");
 
             for (uint8_t masterNumber = 1; masterNumber <= HCL::MasterManager::MAX_MASTERS; masterNumber++)
             {
@@ -2238,31 +2191,31 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
                     continue;
                 }
 
+                LightManagerChannel* ch = openknxLightManagerModule.channel(masterNumber);
                 HCL::InterpolatedValue current = HCL::masterManager.getCurrentValue(masterNumber);
-                Serial.printf("M%u: current=%uK/%u%% setpoints=%u\n",
+                const uint8_t resolvedCount = ch ? ch->resolvedCount() : 0;
+                const char* profileName = ch ? ch->activeProfileName() : "";
+                const int profileIdx = ch ? ch->activeProfileIndex() : -1;
+                Serial.printf("M%u: current=%uK/%u%% resolvedSP=%u profile=%d(%s)\n",
                               static_cast<unsigned>(masterNumber),
                               static_cast<unsigned>(current.kelvin),
                               static_cast<unsigned>(current.brightness),
-                              static_cast<unsigned>(master->getValidSetpointCount()));
-
-                const uint8_t curveTypeValue = static_cast<uint8_t>(master->getCurveType());
-                const char* curveText = "FixedTime";
-                if (curveTypeValue == 1) curveText = "SunWindow";
-                else if (curveTypeValue == 2) curveText = "Manual";
-                else if (curveTypeValue == 3) curveText = "Astronomical";
+                              static_cast<unsigned>(resolvedCount),
+                              profileIdx,
+                              (profileName && profileName[0]) ? profileName : "-");
 
                 String sunrise = master->hasSunTimes() ? formatMinutesToClock(master->getSunriseMinutes()) : String("--:--");
                 String sunset  = master->hasSunTimes() ? formatMinutesToClock(master->getSunsetMinutes())  : String("--:--");
+                const HCL::AdaptiveConfig& adaptive = master->getAdaptiveConfig();
+                const char* adaptiveModeText = "Disabled";
+                if (adaptive.mode == HCL::AdaptiveMode::OpenLoop)   adaptiveModeText = "OpenLoop";
+                else if (adaptive.mode == HCL::AdaptiveMode::ClosedLoop) adaptiveModeText = "ClosedLoop";
 
-                Serial.printf("    curve=%s slew=%uK/min manual=%uK sun=%s/%s offset=%d/%d applied=%uK\n",
-                              curveText,
-                              static_cast<unsigned>(master->getSlewRateKelvinPerMinute()),
-                              static_cast<unsigned>(master->getManualKelvin()),
+                Serial.printf("    sun=%s/%s summer=%s adaptive=%s\n",
                               sunrise.c_str(),
                               sunset.c_str(),
-                              static_cast<int>(master->getSunriseOffsetMin()),
-                              static_cast<int>(master->getSunsetOffsetMin()),
-                              static_cast<unsigned>(master->getAppliedKelvin()));
+                              master->isSummer() ? "yes" : "no",
+                              adaptiveModeText);
             }
         }
         
@@ -2289,10 +2242,8 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
 
         const uint8_t masterCount = HCL::masterManager.getMasterCount();
         Serial.printf("Master count: %u\n", static_cast<unsigned>(masterCount));
-        Serial.printf("Update interval: %us\n",
-                      static_cast<unsigned>(HCL::masterManager.getUpdateInterval()));
-        Serial.printf("Fade duration: %us\n",
-                      static_cast<unsigned>(HCL::masterManager.getFadeDuration()));
+        Serial.printf("Update interval: per channel (see master list)\n");
+        Serial.printf("Fade duration: per channel (see master list)\n");
 
         for (uint8_t masterNumber = 1; masterNumber <= HCL::MasterManager::MAX_MASTERS; masterNumber++)
         {
@@ -2307,31 +2258,31 @@ bool HueGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
                 continue;
             }
 
+            LightManagerChannel* ch = openknxLightManagerModule.channel(masterNumber);
             HCL::InterpolatedValue current = HCL::masterManager.getCurrentValue(masterNumber);
-            Serial.printf("M%u: current=%uK/%u%% setpoints=%u applied=%uK\n",
+            const uint8_t resolvedCount = ch ? ch->resolvedCount() : 0;
+            const int profileIdx = ch ? ch->activeProfileIndex() : -1;
+            const char* profileName = ch ? ch->activeProfileName() : "";
+            Serial.printf("M%u: current=%uK/%u%% resolvedSP=%u profile=%d(%s)\n",
                           static_cast<unsigned>(masterNumber),
                           static_cast<unsigned>(current.kelvin),
                           static_cast<unsigned>(current.brightness),
-                          static_cast<unsigned>(master->getValidSetpointCount()),
-                          static_cast<unsigned>(master->getAppliedKelvin()));
-
-            const uint8_t curveTypeValue = static_cast<uint8_t>(master->getCurveType());
-            const char* curveText = "FixedTime";
-            if (curveTypeValue == 1) curveText = "SunWindow";
-            else if (curveTypeValue == 2) curveText = "Manual";
-            else if (curveTypeValue == 3) curveText = "Astronomical";
+                          static_cast<unsigned>(resolvedCount),
+                          profileIdx,
+                          (profileName && profileName[0]) ? profileName : "-");
 
             String sunrise = master->hasSunTimes() ? formatMinutesToClock(master->getSunriseMinutes()) : String("--:--");
             String sunset  = master->hasSunTimes() ? formatMinutesToClock(master->getSunsetMinutes())  : String("--:--");
+            const HCL::AdaptiveConfig& adaptive = master->getAdaptiveConfig();
+            const char* adaptiveModeText = "Disabled";
+            if (adaptive.mode == HCL::AdaptiveMode::OpenLoop)   adaptiveModeText = "OpenLoop";
+            else if (adaptive.mode == HCL::AdaptiveMode::ClosedLoop) adaptiveModeText = "ClosedLoop";
 
-            Serial.printf("    curve=%s slew=%uK/min manual=%uK sun=%s/%s offset=%d/%d\n",
-                          curveText,
-                          static_cast<unsigned>(master->getSlewRateKelvinPerMinute()),
-                          static_cast<unsigned>(master->getManualKelvin()),
+            Serial.printf("    sun=%s/%s summer=%s adaptive=%s\n",
                           sunrise.c_str(),
                           sunset.c_str(),
-                          static_cast<int>(master->getSunriseOffsetMin()),
-                          static_cast<int>(master->getSunsetOffsetMin()));
+                          master->isSummer() ? "yes" : "no",
+                          adaptiveModeText);
         }
 
         Serial.println("=================================");
@@ -3501,7 +3452,7 @@ void HueGatewayModule::setupDevices()
         #ifdef ParamHUE_HUESwitchOffTransitionSec
         offFade = ParamHUE_HUESwitchOffTransitionSec;
         #endif
-        hclFade = static_cast<uint8_t>(HCL::masterManager.getFadeDuration());
+        hclFade = openknxLightManagerModule.channelFadeDurationSec(1);
         appendDiagnosticLog("INFO", "SETUP", String("setupDevices done: mapped=") + String(_lightCount)
             + " onFade=" + String(static_cast<unsigned>(onFade)) + "s"
             + " offFade=" + String(static_cast<unsigned>(offFade)) + "s"
@@ -4702,7 +4653,7 @@ void HueGatewayModule::publishHclMasterValues()
     for (uint8_t masterNumber = 1; masterNumber <= masterCount; masterNumber++)
     {
         HCL::Master* master = HCL::masterManager.getMaster(masterNumber);
-        if (!master || !master->isValid())
+        if (!master)
         {
             continue;
         }
@@ -4713,7 +4664,7 @@ void HueGatewayModule::publishHclMasterValues()
         const uint8_t index = static_cast<uint8_t>(masterNumber - 1);
 
         const unsigned long nowMs = millis();
-        const unsigned long updateIntervalMs = static_cast<unsigned long>(HCL::masterManager.getUpdateInterval()) * 1000UL;
+        const unsigned long updateIntervalMs = static_cast<unsigned long>(openknxLightManagerModule.channelUpdateIntervalSec(masterNumber)) * 1000UL;
         const bool intervalElapsed = (_hclLastPublishMs[index] == 0) || ((nowMs - _hclLastPublishMs[index]) >= updateIntervalMs);
 
         if (_hclMasterValuesPublished[index] &&
@@ -5986,8 +5937,8 @@ esp_err_t HueGatewayModule::handleWebStatus(httpd_req_t* req)
 
         const uint8_t masterCount = HCL::masterManager.getMasterCount();
         html += "<tr><td>HCL-Master</td><td>" + String(masterCount) + "</td></tr>";
-        html += "<tr><td>HCL-Aktualisierungsintervall</td><td>" + String(HCL::masterManager.getUpdateInterval()) + " s</td></tr>";
-        html += "<tr><td>HCL-Überblenddauer</td><td>" + String(HCL::masterManager.getFadeDuration()) + " s</td></tr>";
+        html += "<tr><td>HCL-Aktualisierungsintervall</td><td>pro Kanal</td></tr>";
+        html += "<tr><td>HCL-Überblenddauer</td><td>pro Kanal</td></tr>";
 
         for (uint8_t masterNumber = 1; masterNumber <= 4; masterNumber++)
         {
@@ -6002,45 +5953,37 @@ esp_err_t HueGatewayModule::handleWebStatus(httpd_req_t* req)
                 continue;
             }
 
+            LightManagerChannel* ch = openknxLightManagerModule.channel(masterNumber);
             HCL::InterpolatedValue current = HCL::masterManager.getCurrentValue(masterNumber);
                 html += "<tr><td>HCL M" + String(masterNumber) + " Aktuell</td><td>" +
                     String(current.kelvin) + " K / " + String(current.brightness) + "%</td></tr>";
 
-            const uint8_t curveTypeValue = static_cast<uint8_t>(master->getCurveType());
-            const uint16_t slewRate = master->getSlewRateKelvinPerMinute();
-            const uint16_t manualKelvin = master->getManualKelvin();
             String sunrise = master->hasSunTimes() ? formatMinutesToClock(master->getSunriseMinutes()) : String("--:--");
             String sunset  = master->hasSunTimes() ? formatMinutesToClock(master->getSunsetMinutes())  : String("--:--");
-            const int16_t sunriseOffset = master->getSunriseOffsetMin();
-            const int16_t sunsetOffset  = master->getSunsetOffsetMin();
 
-            String curveText = "Stützpunkte";
-            if (curveTypeValue == 1)
-            {
-                curveText = "Sonnenfenster";
-            }
-            else if (curveTypeValue == 2)
-            {
-                curveText = "Manuell";
-            }
-            else if (curveTypeValue == 3)
-            {
-                curveText = "Astronomisch";
-            }
+            const int profileIdx = ch ? ch->activeProfileIndex() : -1;
+            const char* profileName = ch ? ch->activeProfileName() : "";
+            String profileText = (profileIdx < 0)
+                ? String("(kein aktives Profil)")
+                : (String("P") + String(profileIdx + 1) +
+                   ((profileName && profileName[0]) ? (String(" – ") + String(profileName)) : String("")));
 
-            html += "<tr><td>HCL M" + String(masterNumber) + " Kurve</td><td>" + curveText + "</td></tr>";
-            html += "<tr><td>HCL M" + String(masterNumber) + " Steigrate</td><td>" + String(slewRate) + " K/min</td></tr>";
-            html += "<tr><td>HCL M" + String(masterNumber) + " Manuell</td><td>" + String(manualKelvin) + " K</td></tr>";
+            const HCL::AdaptiveConfig& adaptive = master->getAdaptiveConfig();
+            String adaptiveModeText = "Disabled";
+            if (adaptive.mode == HCL::AdaptiveMode::OpenLoop)   adaptiveModeText = "OpenLoop";
+            else if (adaptive.mode == HCL::AdaptiveMode::ClosedLoop) adaptiveModeText = "ClosedLoop";
+
+            html += "<tr><td>HCL M" + String(masterNumber) + " Aktives Profil</td><td>" + profileText + "</td></tr>";
+            html += "<tr><td>HCL M" + String(masterNumber) + " Saison</td><td>" + String(master->isSummer() ? "Sommer" : "Winter") + "</td></tr>";
             html += "<tr><td>HCL M" + String(masterNumber) + " Sonne</td><td>" + sunrise + " / " + sunset + "</td></tr>";
-            html += "<tr><td>HCL M" + String(masterNumber) + " Offset</td><td>" + String(sunriseOffset) + " / " + String(sunsetOffset) + " min</td></tr>";
-            html += "<tr><td>HCL M" + String(masterNumber) + " Setpoints gültig</td><td>" + String(master->getValidSetpointCount()) + "</td></tr>";
-            html += "<tr><td>HCL M" + String(masterNumber) + " Setpoint-Liste</td><td>" + buildSetpointListDebug(master) + "</td></tr>";
-            html += "<tr><td>HCL M" + String(masterNumber) + " Angewendet</td><td>" + String(master->getAppliedKelvin()) + " K</td></tr>";
+            html += "<tr><td>HCL M" + String(masterNumber) + " Adaptive</td><td>" + adaptiveModeText + "</td></tr>";
+            html += "<tr><td>HCL M" + String(masterNumber) + " Resolved SPs</td><td>" + String(ch ? ch->resolvedCount() : 0) + "</td></tr>";
+            html += "<tr><td>HCL M" + String(masterNumber) + " Setpoint-Liste</td><td>" + buildSetpointListDebug(ch) + "</td></tr>";
 
             if (hasStatusTime)
             {
                 HclFixedInterpolationDebug interpolationDebug;
-                if (buildFixedInterpolationDebug(master, statusCurrentMinutes, interpolationDebug) && interpolationDebug.valid)
+                if (buildFixedInterpolationDebug(ch, statusCurrentMinutes, interpolationDebug) && interpolationDebug.valid)
                 {
                     html += "<tr><td>HCL M" + String(masterNumber) + " Interpolation</td><td>" +
                         formatMinutesToClock(interpolationDebug.prevTime) + " (" + String(interpolationDebug.prevKelvin) + " K / " + String(interpolationDebug.prevBrightness) + "%) → " +
@@ -6055,7 +5998,7 @@ esp_err_t HueGatewayModule::handleWebStatus(httpd_req_t* req)
                 }
                 else
                 {
-                    html += "<tr><td>HCL M" + String(masterNumber) + " Interpolation</td><td>n/a (zu wenig gültige Setpoints)</td></tr>";
+                    html += "<tr><td>HCL M" + String(masterNumber) + " Interpolation</td><td>n/a (zu wenig Resolved-Setpoints)</td></tr>";
                 }
             }
 

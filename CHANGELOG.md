@@ -2,6 +2,24 @@
 
 Alle wesentlichen Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 
+## [0.7.0] - 2026-05-22 — Partial-Sink-Integration
+
+### Geändert (kompatibilitätsrelevant)
+- Mindestversion **OFM-LightManager 0.3.0** (ProfileV2-HCL-Engine + Variante-E-Dispatch). KO-Block des Lichtmanagers wächst von 12 auf **22** KOs je Kanal (+10 KOs/Kanal) → alle HUE-KO-Nummern in diesem OAM verschieben sich um **+160** (16 Kanäle × 10 neue KOs). HUE-Gruppenadressen müssen in der ETS nach dem Update **neu verknüpft** werden.
+- `LMG_KoOffset` und `LMG_KoSingleOffset` müssen im OAM um den neuen `LMG_KoBlockSize=22` neu berechnet werden.
+
+### Hinzugefügt
+- **`ILightManagerOutput::onLightManagerPartial(masterNum, kelvin, brightness, validMask, fade)`-Implementierung** für die `HueLightManagerBridge`. `validMask` Bit 0 = Kelvin valid, Bit 1 = Brightness valid; nicht-valide Achsen werden aus dem letzten Cache aufgefüllt. Bridge respektiert Achsen-Maske gemäß `HclAxes`/`StatusKoOutput` und überträgt nur projektierte Achsen an die Hue-Bridge.
+- Konsistenz zwischen KNX-Bus- und Hue-Helligkeit: Bridge konsumiert `appliedKelvin()` / `effectiveBrightness()` (geslewt + adaptiert + ext-gemischt) statt des rohen HCL-Sollwerts.
+
+## [0.6.0] - 2026-05-19
+
+### Geändert (kompatibilitätsrelevant)
+- Mindestversion **OFM-LightManager 0.2.0** (DPT 249.600 + per-Kanal-Timing). Der KO-Block des Lichtmanagers wächst um 4 KOs je Kanal → alle HUE-KO-Nummern in diesem OAM sind um **+64** verschoben (`KoOffset 533 → 597`, `KoSingleOffset 531 → 595`).
+  - Alle HUE-Gruppenadressen müssen in der ETS nach dem Update **neu verknüpft** werden.
+- Diagnostische Anzeigen für `Aktualisierungsintervall`/`Überblenddauer` (Konsole `hue`/`hue hcl`, Web-UI-Status) zeigen jetzt `pro Kanal`, da diese Werte nicht mehr global geführt werden.
+- HCL-Throttle in `HueGatewayModule` verwendet die per-Kanal-Werte aus `LightManagerModule::channelUpdateIntervalSec(masterNum)` und `channelFadeDurationSec(masterNum)`.
+
 ## [0.5.0] - 2026-05-18
 
 ### Geändert (Architektur)

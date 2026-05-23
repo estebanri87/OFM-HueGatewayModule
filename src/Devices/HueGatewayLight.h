@@ -154,6 +154,14 @@ public:
     void onLightManagerValue(uint8_t masterNum, uint16_t kelvin, uint8_t brightness, uint8_t fadeDuration) override;
 
     /**
+     * @brief ILightManagerOutput: Partial-Push (0.3.0, F11). validMask Bit 0 = Kelvin valid,
+     *        Bit 1 = Brightness valid. Nicht-valide Achsen werden aus dem letzten Pending-Wert
+     *        beibehalten.
+     */
+    void onLightManagerPartial(uint8_t masterNum, uint16_t kelvin, uint8_t brightness,
+                               uint8_t validMask, uint8_t fadeDuration) override;
+
+    /**
     * @brief Sets ETS light type (0=switch,1=dimm,2=ct,3=rgb).
      */
     void setLightType(uint8_t lightType) { _lightType = lightType; }
